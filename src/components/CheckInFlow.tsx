@@ -45,23 +45,23 @@ export default function CheckInFlow({ event }: Props) {
 		});
 
 	if (step.name === 'done') {
-		// The confirmation screen is inset further than the forms (48px vs 30px page padding).
+		// The confirmation screen is inset further than the forms (36px vs 24px page padding).
 		return (
 			<section
 				aria-live="polite"
-				className="flex w-[calc(100%-36px)] flex-col items-center gap-12 rounded-[12px] border-2 border-b-8 border-med-blue bg-white px-9 py-[54px] text-center"
+				className="flex w-[calc(100%-24px)] flex-col items-center gap-9 rounded-[10px] border-2 border-b-6 border-med-blue bg-white px-7 py-10 text-center"
 			>
-				<div className="flex w-full flex-col items-center gap-10">
-					<div className="flex flex-col items-center gap-1.5">
-						<p className="text-[32px] text-med-blue">You’re checked in</p>
-						<h1 className="font-display text-[64px] break-words">{step.attendee.firstName}</h1>
+				<div className="flex w-full flex-col items-center gap-7.5">
+					<div className="flex flex-col items-center gap-1">
+						<p className="text-2xl text-med-blue">You’re checked in</p>
+						<h1 className="font-display text-5xl break-words">{step.attendee.firstName}</h1>
 					</div>
-					<p className="text-2xl tracking-[-0.6px] text-med-blue">Show this to one of the organisers</p>
+					<p className="text-lg tracking-[-0.45px] text-med-blue">Show this to one of the organisers</p>
 				</div>
 				<img src={divider.src} alt="" width={388} height={1} className="block h-px w-full" />
-				<div className="flex flex-col items-center gap-3">
-					<h2 className="font-display text-[40px]">{event.name}</h2>
-					<p className="text-2xl text-med-blue">{event.description}</p>
+				<div className="flex flex-col items-center gap-2">
+					<h2 className="font-display text-3xl">{event.name}</h2>
+					<p className="text-lg text-med-blue">{event.description}</p>
 				</div>
 			</section>
 		);
@@ -69,13 +69,13 @@ export default function CheckInFlow({ event }: Props) {
 
 	return (
 		<>
-			<header className="flex flex-col items-center gap-3 text-center">
-				<h1 className="font-display text-[54px] break-words">{event.name}</h1>
-				<p className="text-[32px] text-med-blue">{event.description}</p>
+			<header className="flex flex-col items-center gap-2 text-center">
+				<h1 className="font-display text-[40px] leading-tight break-words">{event.name}</h1>
+				<p className="text-2xl text-med-blue">{event.description}</p>
 			</header>
 
 			{step.name === 'email' ? (
-				<form onSubmit={submitEmail} className="flex w-full flex-col gap-12 rounded-[12px] bg-white px-7 py-10">
+				<form onSubmit={submitEmail} className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
 					<TextField
 						label="Email"
 						type="email"
@@ -92,10 +92,10 @@ export default function CheckInFlow({ event }: Props) {
 					{error && <ErrorMessage message={error} />}
 				</form>
 			) : (
-				<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-12 rounded-[12px] bg-white px-7 py-10">
-					<div className="flex w-full flex-col gap-2.5">
-						<p className="text-2xl text-black">Email</p>
-						<p className="text-[28px] font-semibold break-all">{email}</p>
+				<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
+					<div className="flex w-full flex-col gap-2">
+						<p className="text-lg text-black">Email</p>
+						<p className="text-xl font-semibold break-all">{email}</p>
 					</div>
 					<TextField
 						label="First name"
@@ -116,7 +116,7 @@ export default function CheckInFlow({ event }: Props) {
 						value={lastName}
 						onChange={(e) => setLastName(e.target.value)}
 					/>
-					<div className="flex w-full items-center gap-5">
+					<div className="flex w-full items-center gap-4">
 						<button
 							type="button"
 							disabled={submitting}
@@ -142,7 +142,7 @@ export default function CheckInFlow({ event }: Props) {
 // Not in the Figma file; kept deliberately plain until there's a designed error state.
 function ErrorMessage({ message }: { message: string }) {
 	return (
-		<p role="alert" className="-mt-6 text-center text-xl text-med-blue">
+		<p role="alert" className="-mt-4.5 text-center text-base text-med-blue">
 			{message}
 		</p>
 	);

@@ -12,7 +12,7 @@ const { event } = Astro.props;
 ---
 
 <Layout title={`Check in · ${event.name}`}>
-	<main class="mx-auto flex min-h-dvh max-w-[560px] flex-col items-center justify-center gap-10 px-[30px] py-[60px]">
+	<main class="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-center gap-7.5 px-6 py-12">
 		<CheckInFlow client:load event={event} />
 		<PoweredBy />
 	</main>
