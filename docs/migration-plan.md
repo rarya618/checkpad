@@ -4,9 +4,9 @@ As of 16 October 2026 · Russal Arya
 
 ## Summary
 
-Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad has the attendee flow and the two organiser dashboards built on mock data, but no backend, sign-in, import or settings yet, and several old features have no design.
+Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad moves to a new Firebase project, `checkpad-app`; the old project stays up only for redirects, then retires. Checkpad has the attendee flow and the two organiser dashboards built on mock data, but no backend, sign-in, import or settings yet, and several old features have no design.
 
-One issue can't wait for the migration: the old public check-in page reads attendee lists straight from the database without sign-in, so the live database is probably readable by anyone. Check the live Firebase rules first.
+One issue can't wait for the migration: in the old project, the public check-in page reads attendee lists straight from the database without sign-in, so the live database is probably readable by anyone. Check the live Firebase rules first.
 
 Checkpad today is an npm workspaces monorepo:
 
@@ -37,7 +37,7 @@ Related problems:
 
 What to do today:
 
-- [ ] Read the live rules in the Firebase console (Realtime Database → Rules)
+- [ ] Read the live rules in the old project's Firebase console (Realtime Database → Rules); the new `checkpad-app` project doesn't fix the old one, which stays live until cutover
 - [ ] If `events` is publicly readable, lock it down, and accept that public self-check-in stops until a server function replaces it
 - [ ] Turn off the past-event autofill
 - [ ] Decide whether the exposure needs a notice to attendees under your privacy obligations
@@ -65,7 +65,7 @@ Of the 13 old features, two are built in Checkpad and one partly, four are desig
 ## Decisions the migration forces
 
 1. **Open/closed: manual switch or time window.** The old app has a manual `open`/`closed` status, and staff can still check people in from the dashboard while it's closed. Checkpad currently opens and closes on the event's start and end times. Old events store only a date, no times. Recommendation: go back to the manual switch, and add automatic opening and closing later if wanted.
-2. **Old links and printed QR codes.** Old events are addressed by Firebase IDs (`?event=-Nx…`). Team signs use `?team=<slug>`, which is meant to stay valid indefinitely and always points at the team's current open event. If the old domain or those URL formats stop working, printed signs break. Either keep the old hosting up and forwarding, or have the new site redirect both URL formats. That means Checkpad also needs teams and the "current event for this team" rule.
+2. **Old links and printed QR codes.** Old events are addressed by Firebase IDs (`?event=-Nx…`). Team signs use `?team=<slug>`, which is meant to stay valid indefinitely and always points at the team's current open event. If the old domain or those URL formats stop working, printed signs break. With the move to `checkpad-app`, old links point at the old project's hosting domain, so that hosting stays up and serves only redirects to Checkpad: `?event=<old id>` to the event's new slug, and `?team=<slug>` to the team's current event. That means Checkpad also needs teams and the "current event for this team" rule, plus a table of old event IDs to new slugs.
 3. **Walk-in ticket numbers.** The old app assigns `GDGWALKIN0001`, `GDGWALKIN0002`, … with a database transaction, so two devices can't get the same number. Checkpad's mock shows "Walk-in" in the ticket column instead. Recommendation: keep the old numbering.
 4. **Attendee table order.** The old table lists checked-in attendees first (by check-in time), then everyone else alphabetically. Checkpad keeps registration order. Pick one.
 5. **Time format.** The attendee screens say "6:24pm" and the dashboard says "18:24", both as drawn in Figma. Pick one for everywhere.
@@ -107,32 +107,37 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 
 Migration script:
 
-1. Export the Realtime Database as JSON from the Firebase console.
+1. Export the old project's Realtime Database as JSON from the Firebase console.
 2. Transform it with a script in this repo: create slugs and IDs, convert dates, map fields, keep the old IDs for redirects.
-3. Load it into the new backend, test first, then production.
+3. Import it into `checkpad-app`: a test database first, then production.
 4. Check counts per event (attendees, checked in, walk-ins) against the old app.
 5. Make the old app read-only during cutover, so no check-ins land in the old database after the export.
 
+Sign-in accounts don't move between projects. Google sign-in has no passwords, so admins sign in again on `checkpad-app` and get their role from the migrated admins list, matched by email.
+
 ## Backend approach
 
-Recommendation: stay on Firebase, so the data and Google sign-in carry over, but stop browsers from reading the database directly.
+Recommendation: build on the new Firebase project `checkpad-app` with Google sign-in, and stop browsers from reading the database directly. It starts with locked-down rules and no data, and only the old project serves the old app.
+
+- **Database:** because data moves between projects anyway, choosing Firestore instead of Realtime Database costs no extra migration work. Firestore has richer queries and rules per document; Realtime Database keeps the old data shape and the old export as-is.
 
 - **Attendee check-in runs on the server.** One endpoint (an Astro server route, or a Cloud Function) takes an event and an email and returns only what the confirmation screen shows: first name, already-checked-in time and status. It never returns the attendee list.
 - **Walk-ins are assigned on the server** with the same transaction on the ticket counter.
 - **Database rules deny all public access.** Organisers read and write only through rules that check their role and team, for example from custom claims set when an admin is added. Roles are no longer checked only in React.
 - **Slow down email probing:** rate-limit the check-in endpoint per IP and per event.
 - **The attendee site moves from fully prebuilt pages to server rendering** for event pages. This also removes the brief blank screen on load, because the server knows whether check-in is open.
-- **Hosting:** one Firebase project for both apps, or Firebase Hosting for the dashboard plus a server host for Astro. Decide when the backend work starts.
+- **Hosting:** both apps in `checkpad-app`, either Firebase App Hosting for the Astro site's server rendering plus Firebase Hosting for the dashboard, or a server host for Astro. Decide when the backend work starts.
+- **Project setup:** enable the Google sign-in provider, add the Checkpad domains as authorised domains, and keep a separate test project or database for migration test runs.
 
 ## Phased plan
 
-1. **Today: rules.** Check the live rules, lock down public reads, and turn off the autofill.
-2. **Backend foundation.** Data model, server check-in endpoint, database rules, Google sign-in with roles.
+1. **Today: rules in the old project.** Check the live rules, lock down public reads, and turn off the autofill.
+2. **Backend foundation in `checkpad-app`.** Database choice, data model, server check-in endpoint, database rules, Google sign-in with roles.
 3. **Attendee flow on real data.** Wire `apps/web` to the endpoint, add the old-URL redirects and team links.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
 5. **Design and build the missing screens.** Event settings with the open/close switch, Bevy import and export, staff check-in, the QR display, organisers and teams, then the prize draw and cloud credits if kept.
 6. **Data migration.** Run the script against a copy, check the counts, then production.
-7. **Cutover.** Point the domains at Checkpad, keep the old app read-only for a while, then retire it.
+7. **Cutover.** Point the Checkpad domains at `checkpad-app`, switch the old project's hosting to redirects only, keep the old database read-only for a while, then retire it.
 
 ## Open questions
 
@@ -143,4 +148,5 @@ Recommendation: stay on Firebase, so the data and Google sign-in carry over, but
 - [ ] Default start and end times and time zone for migrated events
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
-- [ ] Firestore or Realtime Database for the new backend? Realtime Database makes migration simplest
+- [ ] Firestore or Realtime Database in `checkpad-app`?
+- [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?
