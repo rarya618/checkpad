@@ -11,7 +11,8 @@ function DashboardLayout() {
 			<div className="shrink-0 py-6 pr-3 pl-6">
 				<Sidebar />
 			</div>
-			<main className="min-w-0 flex-1 overflow-y-auto overscroll-none py-6 pr-6">
+			{/* No top padding here: PageHeader carries it so it can stick flush to the top */}
+			<main className="min-w-0 flex-1 overflow-y-auto overscroll-none pr-6 pb-6">
 				<Outlet />
 			</main>
 		</div>
