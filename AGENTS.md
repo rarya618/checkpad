@@ -8,6 +8,10 @@ npm workspaces monorepo:
 
 Run `npm install` from the repo root only. Add a dependency to one app with `npm install <pkg> -w @checkpad/web` (or `-w @checkpad/dashboard`).
 
+## Firebase
+
+The Firebase project is `checkpad-app` (see `.firebaserc`). Run the CLI as `npx -y firebase-tools@latest …`. The dashboard reads its Firebase config from `apps/dashboard/.env.local` (git-ignored); copy `apps/dashboard/.env.example` and fill it in. No database is set up yet: Firestore vs Realtime Database is still open in `docs/migration-plan.md`.
+
 ## Development
 
 ### apps/web (Astro)

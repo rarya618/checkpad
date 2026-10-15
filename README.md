@@ -13,6 +13,14 @@ Event check-in for meetups: attendees check themselves in from a link or QR code
     └── shared/       Design tokens, button styles, types, formatting, logo
 ```
 
+## Setup
+
+The backend is the Firebase project `checkpad-app`. Before running the dashboard, copy `apps/dashboard/.env.example` to `apps/dashboard/.env.local` and fill in the web app config:
+
+```sh
+npx -y firebase-tools@latest apps:sdkconfig WEB 1:677507474751:web:1bdfc84d4db15eec91df8a --project checkpad-app
+```
+
 ## Commands
 
 Run from the repo root:
