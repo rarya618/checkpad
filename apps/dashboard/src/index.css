@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "@checkpad/shared/theme.css";
 
+@theme {
+  /* Ticket numbers in the attendees table */
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+
 @layer base {
   /* Loaded from Google Fonts in index.html; apps/web self-hosts it via Astro's font API */
   :root {

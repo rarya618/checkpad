@@ -3,13 +3,14 @@ import { NavLink } from 'react-router';
 import ellipsis from '../assets/ellipsis-vertical.svg';
 import { currentUser } from '../lib/mock';
 
-const items = [
-	{ to: '/events', label: 'Events' },
-	{ to: '/organisers', label: 'Organisers' },
-	{ to: '/analytics', label: 'Analytics' },
-];
+export interface SidebarItem {
+	to: string;
+	label: string;
+	/** Only highlight on an exact URL match (for an item whose URL prefixes others). */
+	end?: boolean;
+}
 
-export default function Sidebar() {
+export default function Sidebar({ items }: { items: SidebarItem[] }) {
 	return (
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-[18px] border border-med-blue bg-light-blue px-[15px] pt-7.5 pb-[15px]">
 			<div className="flex w-full flex-col gap-[21px]">
@@ -22,6 +23,7 @@ export default function Sidebar() {
 							<li key={item.to}>
 								<NavLink
 									to={item.to}
+									end={item.end}
 									className={({ isActive }) =>
 										`block rounded-[6px] px-[21px] py-[9px] text-lg ${
 											isActive ? 'bg-dark-blue font-display text-off-white' : 'tracking-[-0.45px] hover:bg-white/50'

@@ -3,16 +3,22 @@ import type { ReactNode } from 'react';
 interface Props {
 	title: string;
 	actions?: ReactNode;
+	/** h1 for a page title, h2 for a section inside a page. */
+	level?: 1 | 2;
+	/**
+	 * Spacing and stick point. The space above the title lives inside the header so
+	 * it can scroll away; the header sticks once 24px remains (the sidebar's gap).
+	 * Defaults to a page header: 51px above, sticks after 27px of scroll.
+	 */
+	className?: string;
 }
 
-// Sticks to the top of the scrolling content column after scrolling 27px, leaving
-// a 24px gap above it to match the sidebar's. The page's top spacing lives inside
-// the header so it can be scrolled away; the background hides content underneath.
-export default function PageHeader({ title, actions }: Props) {
+export default function PageHeader({ title, actions, level = 1, className = 'top-[-27px] pt-[51px] pb-[21px]' }: Props) {
+	const Heading = level === 1 ? 'h1' : 'h2';
 	return (
-		<header className="sticky top-[-27px] z-10 bg-off-white px-6 pt-[51px] pb-[21px]">
-			<div className="flex items-center justify-between py-0.5">
-				<h1 className="font-display text-3xl">{title}</h1>
+		<header className={`sticky z-10 bg-off-white px-6 ${className}`}>
+			<div className="flex items-center justify-between gap-4 py-0.5">
+				<Heading className="font-display text-3xl">{title}</Heading>
 				{actions}
 			</div>
 		</header>

@@ -1,9 +1,10 @@
 import { buttonClass } from '@checkpad/shared/button';
 import EventCard from '../components/EventCard';
 import PageHeader from '../components/PageHeader';
-import { eventSummaries } from '../lib/mock';
+import { useEventSummaries } from '../lib/roster';
 
 export default function EventsPage() {
+	const summaries = useEventSummaries();
 	return (
 		<>
 			<PageHeader
@@ -16,7 +17,7 @@ export default function EventsPage() {
 				}
 			/>
 			<ul className="flex flex-col gap-3 px-6 pb-[27px]">
-				{eventSummaries.map((summary) => (
+				{summaries.map((summary) => (
 					<li key={summary.event.slug}>
 						<EventCard summary={summary} />
 					</li>
