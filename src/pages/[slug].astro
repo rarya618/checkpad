@@ -1,0 +1,19 @@
+---
+import type { GetStaticPaths } from 'astro';
+import CheckInFlow from '../components/CheckInFlow';
+import PoweredBy from '../components/PoweredBy.astro';
+import Layout from '../layouts/Layout.astro';
+import { events } from '../lib/events';
+
+export const getStaticPaths = (() =>
+	events.map((event) => ({ params: { slug: event.slug }, props: { event } }))) satisfies GetStaticPaths;
+
+const { event } = Astro.props;
+---
+
+<Layout title={`Check in · ${event.name}`}>
+	<main class="mx-auto flex min-h-dvh max-w-[560px] flex-col items-center justify-center gap-10 px-[30px] py-[60px]">
+		<CheckInFlow client:load event={event} />
+		<PoweredBy />
+	</main>
+</Layout>

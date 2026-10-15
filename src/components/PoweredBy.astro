@@ -1,0 +1,9 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/checkpad-logo.svg';
+---
+
+<div class="flex flex-col items-center gap-2">
+	<p class="text-[28px] font-light text-med-blue">powered by</p>
+	<Image src={logo} alt="checkpad" width={235} height={56} />
+</div>

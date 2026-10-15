@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+@theme {
+  --color-dark-blue: #112d4e;
+  --color-med-blue: #3f72af;
+  --color-light-blue: #dbe2ef;
+  --color-off-white: #f9f7f7;
+
+  --font-sans: var(--font-bricolage), sans-serif;
+}
+
+@layer base {
+  body {
+    font-variation-settings: "opsz" 14;
+  }
+}
+
+/* Bricolage Grotesque's 96pt ExtraBold cut, used for headings and button labels */
+@utility font-display {
+  font-weight: 800;
+  font-variation-settings: "opsz" 96;
+}
