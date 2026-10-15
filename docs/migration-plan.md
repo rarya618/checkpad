@@ -141,6 +141,7 @@ Bevy imports write in batches of at most 500, so a large import isn't all-or-not
 - **The attendee site moves from fully prebuilt pages to server rendering** for event pages. This also removes the brief blank screen on load, because the server knows whether check-in is open.
 - **Hosting:** both apps in `checkpad-app`, either Firebase App Hosting for the Astro site's server rendering plus Firebase Hosting for the dashboard, or a server host for Astro. Decide when the backend work starts.
 - **Project setup:** enable the Google sign-in provider, add the Checkpad domains as authorised domains, and keep a separate test project or database for migration test runs.
+- **Billing: `checkpad-app` is on the free Spark plan.** Cloud Functions and Firebase App Hosting need the Blaze (pay-as-you-go) plan, so the server-side check-in needs one of: upgrading to Blaze, which likely stays within the free usage at meetup scale but needs a billing account; or hosting the Astro site on another server host that uses the Firebase Admin SDK, which works on Spark. Firestore and Firebase Hosting for the dashboard work on Spark either way. Decide before phase 2.
 
 ## Phased plan
 
@@ -162,3 +163,4 @@ Bevy imports write in batches of at most 500, so a large import isn't all-or-not
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
 - [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?
+- [ ] Upgrade `checkpad-app` to Blaze, or host the Astro site elsewhere?
