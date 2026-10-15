@@ -1,0 +1,14 @@
+{
+  "name": "@checkpad/shared",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./theme.css": "./theme.css",
+    "./button": "./src/button.ts",
+    "./events": "./src/events.ts",
+    "./attendees": "./src/attendees.ts",
+    "./format": "./src/format.ts",
+    "./checkpad-logo.svg": "./assets/checkpad-logo.svg"
+  }
+}

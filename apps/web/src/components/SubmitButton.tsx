@@ -1,4 +1,4 @@
-import { buttonClass } from './button';
+import { buttonClass } from '@checkpad/shared/button';
 
 interface Props {
 	loading: boolean;

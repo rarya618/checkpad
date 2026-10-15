@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import divider from '../assets/divider.svg';
-import { checkIn, checkInWalkIn, type Attendee } from '../lib/checkin';
-import { checkInWindow, type CheckInWindow, type CheckpadEvent } from '../lib/events';
-import { formatDay, formatTime } from '../lib/format';
-import { buttonClass } from './button';
+import type { Attendee } from '@checkpad/shared/attendees';
+import { buttonClass } from '@checkpad/shared/button';
+import { checkInWindow, type CheckInWindow, type CheckpadEvent } from '@checkpad/shared/events';
+import { formatDay, formatTime } from '@checkpad/shared/format';
+import { checkIn, checkInWalkIn } from '../lib/checkin';
 import StatusScreen from './StatusScreen';
 import SubmitButton from './SubmitButton';
 import TextField from './TextField';

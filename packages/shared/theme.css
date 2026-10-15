@@ -1,4 +1,12 @@
-@import "tailwindcss";
+/*
+ * Checkpad design tokens, shared by every app. Import after Tailwind:
+ *   @import "tailwindcss";
+ *   @import "@checkpad/shared/theme.css";
+ * Each app must define --font-bricolage (Astro's font API does this in apps/web).
+ */
+
+/* Let Tailwind see class names used in shared code (e.g. button.ts) */
+@source "./src";
 
 @theme {
   --color-dark-blue: #112d4e;

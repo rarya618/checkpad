@@ -1,5 +1,5 @@
-import logo from '../assets/checkpad-logo.svg';
-import { buttonClass } from './button';
+import { buttonClass } from '@checkpad/shared/button';
+import logo from '@checkpad/shared/checkpad-logo.svg';
 
 interface Props {
 	title: string;

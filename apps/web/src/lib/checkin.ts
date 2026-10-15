@@ -2,12 +2,7 @@
 // reload and the guest list ships to the client. Swap these functions for real
 // network calls once there's a backend; the UI only depends on their signatures.
 
-export interface Attendee {
-	email: string;
-	firstName: string;
-	lastName: string;
-	checkedInAt: Date | null;
-}
+import type { Attendee } from '@checkpad/shared/attendees';
 
 export type CheckInResult =
 	| { status: 'checked-in'; attendee: Attendee; alreadyCheckedIn: boolean }

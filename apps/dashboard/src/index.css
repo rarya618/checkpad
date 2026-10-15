@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@checkpad/shared/theme.css";
+
+@layer base {
+  /* Loaded from Google Fonts in index.html; apps/web self-hosts it via Astro's font API */
+  :root {
+    --font-bricolage: "Bricolage Grotesque";
+  }
+}
