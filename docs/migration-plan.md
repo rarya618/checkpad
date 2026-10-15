@@ -107,9 +107,9 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 
 Migration script:
 
-1. Export the old project's Realtime Database as JSON from the Firebase console.
+1. Export the old project's (`gdg-syd-check-in`) Realtime Database as JSON from the Firebase console.
 2. Transform it with a script in this repo: create slugs and IDs, convert dates, map fields, keep the old IDs for redirects.
-3. Import it into `checkpad-app`: a test database first, then production.
+3. Write it into Firestore in `checkpad-app` with the Admin SDK: a test project or the emulator first, then production.
 4. Check counts per event (attendees, checked in, walk-ins) against the old app.
 5. Make the old app read-only during cutover, so no check-ins land in the old database after the export.
 
@@ -119,7 +119,20 @@ Sign-in accounts don't move between projects. Google sign-in has no passwords, s
 
 Recommendation: build on the new Firebase project `checkpad-app` with Google sign-in, and stop browsers from reading the database directly. It starts with locked-down rules and no data, and only the old project serves the old app.
 
-- **Database:** because data moves between projects anyway, choosing Firestore instead of Realtime Database costs no extra migration work. Firestore has richer queries and rules per document; Realtime Database keeps the old data shape and the old export as-is.
+- **Database: Firestore, Standard edition, `(default)` database in `australia-southeast1` (Sydney).** Decided 16 October 2026. Rules apply per document and reads never pull in a whole subtree, which rules out the old app's exposure. It can query by email, slug and team; counts are cheap; and live listeners and the offline cache work by default. Enterprise edition was ruled out: live updates are opt-in there, indexes aren't automatic, and storage costs more. The location can't be changed later.
+
+```text
+events/{eventId}                     slug, name, description, status, startsAt?, endsAt?, timeZone,
+                                     teamIds[], counts {registered, checkedIn, walkIns},
+                                     walkInCounter, legacyId
+events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source, checkedInAt,
+                                     jobTitle?, company?, ticketType?, ticketTitle?, ticketVenue?,
+                                     bevyOrderNumber?, cloudCreditsClickedAt?
+admins/{email}                       role, teamId?
+teams/{teamId}                       name, slug, globalAccess
+```
+
+Bevy imports write in batches of at most 500, so a large import isn't all-or-nothing; it stays safe to re-run because it merges by ticket number.
 
 - **Attendee check-in runs on the server.** One endpoint (an Astro server route, or a Cloud Function) takes an event and an email and returns only what the confirmation screen shows: first name, already-checked-in time and status. It never returns the attendee list.
 - **Walk-ins are assigned on the server** with the same transaction on the ticket counter.
@@ -132,7 +145,7 @@ Recommendation: build on the new Firebase project `checkpad-app` with Google sig
 ## Phased plan
 
 1. **Today: rules in the old project.** Check the live rules, lock down public reads, and turn off the autofill.
-2. **Backend foundation in `checkpad-app`.** Database choice, data model, server check-in endpoint, database rules, Google sign-in with roles.
+2. **Backend foundation in `checkpad-app`.** Firestore data model, server check-in endpoint, Firestore rules, Google sign-in with roles.
 3. **Attendee flow on real data.** Wire `apps/web` to the endpoint, add the old-URL redirects and team links.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
 5. **Design and build the missing screens.** Event settings with the open/close switch, Bevy import and export, staff check-in, the QR display, organisers and teams, then the prize draw and cloud credits if kept.
@@ -148,5 +161,4 @@ Recommendation: build on the new Firebase project `checkpad-app` with Google sig
 - [ ] Default start and end times and time zone for migrated events
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
-- [ ] Firestore or Realtime Database in `checkpad-app`?
 - [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?

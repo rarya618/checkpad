@@ -1,8 +1,9 @@
 // Firebase for the organiser dashboard (project checkpad-app). Config comes from
-// .env.local (see .env.example). Database and sign-in UI aren't wired up yet:
-// the database type is still undecided (docs/migration-plan.md).
+// .env.local (see .env.example). Nothing uses it yet: the pages still run on mock
+// data, and sign-in isn't designed.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 
 const env = import.meta.env;
 
@@ -21,3 +22,9 @@ export const app = initializeApp({
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// Firestore (Standard edition, australia-southeast1) with an offline cache shared
+// across tabs, so check-ins at the door keep working on flaky venue Wi-Fi.
+export const db = initializeFirestore(app, {
+	localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+});
