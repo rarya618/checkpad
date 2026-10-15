@@ -1,8 +1,9 @@
-import type { CheckpadEvent } from '@checkpad/shared/events';
+import type { CheckpadEvent } from './events';
 
-// Placeholder until there's a backend. The first mirrors the event in the Figma
-// dashboards (now finished); the others exist so every check-in state has a URL.
-export const events: CheckpadEvent[] = [
+// Sample data shared by both apps until there's a backend. The first mirrors the
+// event in the Figma dashboards (now finished); the others exist so every
+// check-in state can be seen.
+export const mockEvents: CheckpadEvent[] = [
 	{
 		slug: 'gdg-september-meetup',
 		name: 'September Meetup',

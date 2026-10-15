@@ -18,6 +18,8 @@
   --font-sans: var(--font-bricolage), sans-serif;
 
   /* Figma uses the font's natural ("Auto") line height, not Tailwind's paired ones */
+  --text-xs--line-height: normal;
+  --text-sm--line-height: normal;
   --text-base--line-height: normal;
   --text-lg--line-height: normal;
   --text-xl--line-height: normal;

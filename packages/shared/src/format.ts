@@ -1,4 +1,4 @@
-// Formats match the Figma copy: "6:24pm", "5pm", "Thu 10 September".
+// Formats match the Figma copy: "6:24pm", "5pm", "Thu 10 September", "Thu, 10 September 2026".
 
 function parts(date: Date, timeZone: string, options: Intl.DateTimeFormatOptions) {
 	const result: Record<string, string> = {};
@@ -16,4 +16,9 @@ export function formatTime(date: Date, timeZone: string) {
 export function formatDay(date: Date, timeZone: string) {
 	const { weekday, day, month } = parts(date, timeZone, { weekday: 'short', day: 'numeric', month: 'long' });
 	return `${weekday} ${day} ${month}`;
+}
+
+export function formatDate(date: Date, timeZone: string) {
+	const { weekday, day, month, year } = parts(date, timeZone, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+	return `${weekday}, ${day} ${month} ${year}`;
 }

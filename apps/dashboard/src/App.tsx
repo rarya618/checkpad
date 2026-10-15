@@ -1,14 +1,29 @@
-import logo from '@checkpad/shared/checkpad-logo.svg';
+import { Navigate, Outlet, Route, Routes } from 'react-router';
+import Sidebar from './components/Sidebar';
+import ComingSoon from './pages/ComingSoon';
+import EventsPage from './pages/EventsPage';
 
-// Placeholder until the Figma "Events Dashboard" and "Attendees Dashboard" are built.
+function DashboardLayout() {
+	return (
+		<div className="flex h-dvh gap-3 p-6">
+			<Sidebar />
+			<main className="min-w-0 flex-1">
+				<Outlet />
+			</main>
+		</div>
+	);
+}
+
 export default function App() {
 	return (
-		<main className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-off-white font-sans text-dark-blue antialiased">
-			<img src={logo} alt="checkpad" width={176} height={42} />
-			<div className="flex flex-col items-center gap-2 text-center">
-				<h1 className="font-display text-[40px]">Organiser dashboard</h1>
-				<p className="text-2xl text-med-blue">Coming soon</p>
-			</div>
-		</main>
+		<Routes>
+			<Route element={<DashboardLayout />}>
+				<Route index element={<Navigate to="/events" replace />} />
+				<Route path="events" element={<EventsPage />} />
+				<Route path="organisers" element={<ComingSoon title="Organisers" />} />
+				<Route path="analytics" element={<ComingSoon title="Analytics" />} />
+				<Route path="*" element={<Navigate to="/events" replace />} />
+			</Route>
+		</Routes>
 	);
 }

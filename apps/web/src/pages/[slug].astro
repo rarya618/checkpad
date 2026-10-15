@@ -3,10 +3,10 @@ import type { GetStaticPaths } from 'astro';
 import CheckInFlow from '../components/CheckInFlow';
 import PoweredBy from '../components/PoweredBy.astro';
 import Layout from '../layouts/Layout.astro';
-import { events } from '../lib/events';
+import { mockEvents } from '@checkpad/shared/mock-events';
 
 export const getStaticPaths = (() =>
-	events.map((event) => ({ params: { slug: event.slug }, props: { event } }))) satisfies GetStaticPaths;
+	mockEvents.map((event) => ({ params: { slug: event.slug }, props: { event } }))) satisfies GetStaticPaths;
 
 const { event } = Astro.props;
 ---
