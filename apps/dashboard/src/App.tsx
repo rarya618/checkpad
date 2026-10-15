@@ -3,11 +3,15 @@ import Sidebar from './components/Sidebar';
 import ComingSoon from './pages/ComingSoon';
 import EventsPage from './pages/EventsPage';
 
+// The window never scrolls: the sidebar is locked in place and only the content
+// column scrolls, edge to edge, without overscroll bounce.
 function DashboardLayout() {
 	return (
-		<div className="flex h-dvh gap-3 p-6">
-			<Sidebar />
-			<main className="min-w-0 flex-1">
+		<div className="flex h-dvh overflow-hidden">
+			<div className="shrink-0 py-6 pr-3 pl-6">
+				<Sidebar />
+			</div>
+			<main className="min-w-0 flex-1 overflow-y-auto overscroll-none py-6 pr-6">
 				<Outlet />
 			</main>
 		</div>
