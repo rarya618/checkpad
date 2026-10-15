@@ -1,20 +1,12 @@
 ---
-import { Image } from 'astro:assets';
-import logo from '../assets/checkpad-logo.svg';
-import { buttonClass } from '../components/button';
+import StatusScreen from '../components/StatusScreen';
 import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Event not found · checkpad">
-	<main class="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-between gap-9 px-9 py-12 text-center">
-		<Image src={logo} alt="checkpad" width={176} height={42} />
-		<div class="flex w-full flex-col items-center gap-4.5">
-			<div class="flex w-full flex-col items-center gap-2">
-				<h1 class="font-display text-[40px] leading-tight">Event not found</h1>
-				<p class="text-2xl leading-9 text-med-blue">This link does not match an existing event.</p>
-			</div>
-			<p class="text-lg leading-7.5">Check with your host to see if you have the correct link.</p>
-		</div>
-		<a href="/" class={`w-full ${buttonClass('primary')}`}>Back to homepage</a>
-	</main>
+	<StatusScreen
+		title="Event not found"
+		subtitle="This link does not match an existing event."
+		body="Check with your host to see if you have the correct link."
+	/>
 </Layout>

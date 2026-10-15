@@ -10,15 +10,21 @@ export interface Attendee {
 }
 
 export type CheckInResult =
-	| { status: 'checked-in'; attendee: Attendee }
+	| { status: 'checked-in'; attendee: Attendee; alreadyCheckedIn: boolean }
 	| { status: 'not-registered' };
 
+// A real backend must also reject check-ins outside the event's window; the UI
+// only hides the form.
+const sampleAttendees = () => [
+	{ email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee', checkedInAt: null },
+	{ email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee', checkedInAt: null },
+	{ email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe', checkedInAt: null },
+];
+
 const attendeesByEvent: Record<string, Attendee[]> = {
-	'gdg-september-meetup': [
-		{ email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee', checkedInAt: null },
-		{ email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee', checkedInAt: null },
-		{ email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe', checkedInAt: null },
-	],
+	'gdg-september-meetup': sampleAttendees(),
+	'checkpad-demo': sampleAttendees(),
+	'gdg-future-meetup': sampleAttendees(),
 };
 
 const normalise = (email: string) => email.trim().toLowerCase();
@@ -28,8 +34,9 @@ export async function checkIn(eventSlug: string, email: string): Promise<CheckIn
 	await delay();
 	const attendee = attendeesByEvent[eventSlug]?.find((a) => a.email === normalise(email));
 	if (!attendee) return { status: 'not-registered' };
+	const alreadyCheckedIn = attendee.checkedInAt !== null;
 	attendee.checkedInAt ??= new Date();
-	return { status: 'checked-in', attendee };
+	return { status: 'checked-in', attendee, alreadyCheckedIn };
 }
 
 export async function checkInWalkIn(
