@@ -52,17 +52,22 @@ Of the 13 old features, two are built in Checkpad and one partly, nine are desig
 | Attendee table: check in, undo, search, counter | Built | Attendees dashboard. Empty and no-results states designed |
 | Event list with counts | Built | Events dashboard. Empty state and card ⋮ menu designed |
 | Venue QR display (`&display=qr`) | Designed | "QR Code screen", opened from the Share dialog ("Attendees – share") |
-| Staff check-in by email, adding walk-ins | Designed | "Check in" (found, already arrived, not found), "Staff check in (mobile)", "Attendees – add walk-in" |
+| Staff check-in by email, adding walk-ins | Designed | "Check in" (found, already arrived, not found), "Attendees – add walk-in", and on phones "Staff check in (mobile)" (found, already arrived, not found, add walk-in, menu) |
 | Create, edit, delete events, open/close, walk-in ticket defaults | Designed | "New event", "Event settings" (the Edit button opens it), "Attendees – delete event" |
-| Organisers page | Designed | "Organisers" (people), "Organisers – add organiser", "Organisers – row menu" |
-| Sign-in and roles (superadmin, organiser, team member) | Designed | "Sign in" (Google or an emailed sign-in link), "Sign in – check your email", "Sign in – link expired", "No access" |
+| Organisers page | Designed | "Organisers" (people), "Organisers – add organiser", "Organisers – row menu", "Organisers – edit organiser" (role and team), "Organisers – remove organiser" |
+| Sign-in and roles (superadmin, organiser, team member) | Designed | "Sign in" (Google or an emailed sign-in link), "Sign in – check your email", "Sign in – link expired", "No access", and sign out from "Events – account menu" (the ⋮ by your name in the sidebar) |
 | Bevy CSV import and export | Designed | Attendees ⋮ menu, "Attendees – import from Bevy", "Attendees – import error". Export downloads directly from the menu, no screen |
 | Teams and permanent team links (`?team=<slug>`) | Designed | "Organisers – teams", "Organisers – manage team", "Team has no event (mobile-first)" |
-| Merch prize draw | Designed | Full-screen venue display: "Prize draw display" (ready, drawing, winner), opened from the event ⋮ menu |
+| Merch prize draw | Designed | Full-screen venue display: "Prize draw display" (ready, drawing, winner, nobody checked in, everyone has won, start over?), opened from the event ⋮ menu |
 | Cloud credits link and click tracking | Dropped | — |
 | CSV export for Bevy bulk upload | Designed | "Export for Bevy" in the Attendees and Events ⋮ menus |
 
-Also designed, with no old equivalent: "Link not found (mobile-first)" for mistyped links and old event links that can't be redirected, and the Share dialog.
+Also designed, with no old equivalent:
+
+- "Link not found (mobile-first)", for mistyped links and old event links that can't be redirected
+- the Share dialog
+- a Toast component for quick confirmations: checked in (with Undo), link copied, import finished (with Details), invite sent, settings saved, and checked in on a phone
+- "Event settings – unsaved changes" and "Event settings – leave without saving?" (Keep editing, Discard and leave, Save and leave)
 
 ### Design notes
 
@@ -70,10 +75,13 @@ Also designed, with no old equivalent: "Link not found (mobile-first)" for misty
 - **Prize draw:** shows names only on the projector, no emails or ticket numbers. "Not here" drops the person without counting them as a winner and draws again. They stay out of the draw for the rest of the night, unlike the old app's put-back, which returned them to the pool. The display needs an organiser signed in, because it reads the checked-in list.
 - **No danger colour:** the palette has no red, so the delete-event button and the import error use the normal blues. Add a danger colour before building them.
 - **Not built into the nav:** Analytics is in both sidebars but has no design and no old equivalent.
+- **Save changes** in Event settings stays disabled until something changes; the "Unsaved changes" pill shows when it's enabled.
+- **Import finished toast:** its Details action reopens the import summary, listing the skipped rows.
+- **Phone screens for staff** are drawn taller than the 810px phone frame where content needs it; they scroll, and the recent check-ins list sits below the fold.
 
 ## Decisions the migration forces
 
-1. **Open/closed: manual switch or time window.** The old app has a manual `open`/`closed` status, and staff can still check people in from the dashboard while it's closed. Checkpad currently opens and closes on the event's start and end times. Old events store only a date, no times. Recommendation: go back to the manual switch, and add automatic opening and closing later if wanted. The designs use the manual switch ("Event settings"). The existing "Check in not open" attendee screen still says "Check-in opens at 5pm", which only works with a time window; its copy needs changing if the switch stays.
+1. **Open/closed: manual switch or time window.** The old app has a manual `open`/`closed` status, and staff can still check people in from the dashboard while it's closed. Checkpad currently opens and closes on the event's start and end times. Old events store only a date, no times. Recommendation: go back to the manual switch, and add automatic opening and closing later if wanted. The designs use the manual switch ("Event settings"). The "Check in not open" attendee screen's copy is updated in Figma to match ("The organisers haven't opened check-in for this event yet"); `apps/web/src/components/CheckInFlow.tsx` still shows the opening time and should change in the same change that adds the switch.
 2. **Old links and printed QR codes.** Old events are addressed by Firebase IDs (`?event=-Nx…`). Team signs use `?team=<slug>`, which is meant to stay valid indefinitely and always points at the team's current open event. If the old domain or those URL formats stop working, printed signs break. With the move to `checkpad-app`, old links point at the old project's hosting domain, so that hosting stays up and serves only redirects to Checkpad: `?event=<old id>` to the event's new slug, and `?team=<slug>` to the team's current event. That means Checkpad also needs teams and the "current event for this team" rule, plus a table of old event IDs to new slugs. The designs give teams a new permanent link, `checkpad.app/team/<slug>`, which opens the team's event that's open for check-in, or else its next upcoming one; `?team=<slug>` should redirect there.
 3. **Walk-in ticket numbers.** The old app assigns `GDGWALKIN0001`, `GDGWALKIN0002`, … with a database transaction, so two devices can't get the same number. Checkpad's mock shows "Walk-in" in the ticket column instead. Recommendation: keep the old numbering. The designs use it.
 4. **Attendee table order.** The old table lists checked-in attendees first (by check-in time), then everyone else alphabetically. Checkpad keeps registration order. Pick one.
