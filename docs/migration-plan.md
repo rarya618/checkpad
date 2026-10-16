@@ -68,13 +68,17 @@ Also designed, with no old equivalent:
 - the Share dialog
 - a Toast component for quick confirmations: checked in (with Undo), link copied, import finished (with Details), invite sent, settings saved, and checked in on a phone
 - "Event settings – unsaved changes" and "Event settings – leave without saving?" (Keep editing, Discard and leave, Save and leave)
+- Analytics, from both sidebars:
+  - "Event analytics": stat tiles for checked in, pre-registered, walk-ins and the busiest 15 minutes; an arrivals chart of check-ins every 15 minutes (pre-registered and walk-ins stacked); turnout by ticket type
+  - "Analytics" (across events): team and time-range filters; stat tiles for events, check-ins, average turnout and returning attendees; a turnout-by-event chart; a table of every event's registered, checked in, turnout and walk-ins
 
 ### Design notes
 
 - **Line height:** 1.5× the font size for text up to 24px, 1.2× for 28px and up. The 64px stat numbers on the Attendees page use a 60px line height. `packages/shared/theme.css` still sets every line height to `normal`, so the apps don't match yet.
 - **Prize draw:** shows names only on the projector, no emails or ticket numbers. "Not here" drops the person without counting them as a winner and draws again. They stay out of the draw for the rest of the night, unlike the old app's put-back, which returned them to the pool. The display needs an organiser signed in, because it reads the checked-in list.
 - **No danger colour:** the palette has no red, so the delete-event button and the import error use the normal blues. Add a danger colour before building them.
-- **Not built into the nav:** Analytics is in both sidebars but has no design and no old equivalent.
+- **Analytics data:** event analytics uses only `checkedInAt`, `source` and Bevy's `ticketType`, which the data model already has. Turnout uses the `counts` on each event. "Returning attendees" needs matching people by email across events, a collection-group query over every event's attendees. It must run on the server or behind organiser-only rules, or it exposes who attended what. Drop that tile from the first build if it's too much.
+- **Charts** use the two brand blues for pre-registered and walk-ins, matching the Attendees stats bar, always with a legend and labels so colour isn't the only cue. A third series would need a proper categorical palette.
 - **Save changes** in Event settings stays disabled until something changes; the "Unsaved changes" pill shows when it's enabled.
 - **Import finished toast:** its Details action reopens the import summary, listing the skipped rows.
 - **Phone screens for staff** are drawn taller than the 810px phone frame where content needs it; they scroll, and the recent check-ins list sits below the fold.
@@ -171,7 +175,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 2. **Backend foundation in `checkpad-app`.** Firestore data model, server check-in endpoint, Firestore rules, Google and email-link sign-in with roles.
 3. **Attendee flow on real data.** Wire `apps/web` to the endpoint, add the old-URL redirects and team links.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
-5. **Build the designed screens.** The designs are done (see the feature map). Event settings with the open/close switch, Bevy import and export, staff check-in (desktop and phone), the QR display and Share dialog, organisers and teams, then the prize draw display. Update the line-height tokens in `theme.css` first.
+5. **Build the designed screens.** The designs are done (see the feature map). Event settings with the open/close switch, Bevy import and export, staff check-in (desktop and phone), the QR display and Share dialog, organisers and teams, then the prize draw display and analytics. Update the line-height tokens in `theme.css` first.
 6. **Data migration.** Run the script against a copy, check the counts, then production.
 7. **Cutover.** Point the Checkpad domains at `checkpad-app`, switch the old project's hosting to redirects only, keep the old database read-only for a while, then retire it.
 
@@ -183,7 +187,8 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 - [x] Which features without a design survive? Prize draw and walk-in ticket defaults kept; cloud credits dropped
 - [ ] Add a danger colour for delete and error states?
 - [ ] Prize draw "Not here": keep the person out for the night (as designed), or return them to the pool like the old app?
-- [ ] Design Analytics, or take it out of the sidebar for now?
+- [x] Design Analytics, or take it out of the sidebar for now? Designed
+- [ ] Keep "Returning attendees" in the first analytics build, given it needs a cross-event email query?
 - [ ] Default start and end times and time zone for migrated events
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
