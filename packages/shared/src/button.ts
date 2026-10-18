@@ -1,9 +1,10 @@
 // Shared so Astro links and React buttons render the same Figma "Button" component.
-const base = 'flex items-center justify-center font-display disabled:cursor-not-allowed';
+const base = 'flex items-center justify-center font-display transition-colors disabled:cursor-not-allowed';
 
+// Hover only applies on devices that can hover, and never to a disabled button
 const variants = {
-	primary: 'bg-dark-blue text-off-white',
-	secondary: 'bg-light-blue text-dark-blue',
+	primary: 'bg-dark-blue text-off-white not-disabled:hover:bg-dark-blue-hover',
+	secondary: 'bg-light-blue text-dark-blue not-disabled:hover:bg-light-blue-hover',
 };
 
 const sizes = {

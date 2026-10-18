@@ -30,29 +30,31 @@ section[id] {
 		scroll-behavior: smooth;
 	}
 
-	/* Mobile menu (Nav.astro): fade and slide in, fade out. allow-discrete keeps the
-	   dialog on screen while it animates out; browsers without it just skip the animation. */
+	/* Mobile menu (Nav.astro): stays opaque and unrolls from under the header, whose
+	   position its top bar matches, so nothing shows through mid-animation. allow-discrete
+	   keeps the dialog on screen while it rolls back up; browsers without it skip the animation. */
 	dialog[data-menu] {
-		opacity: 0;
-		translate: 0 -8px;
+		clip-path: inset(0 0 calc(100% - var(--header-height)) 0);
 		transition:
-			opacity 150ms ease-in,
-			translate 150ms ease-in,
-			display 150ms allow-discrete,
-			overlay 150ms allow-discrete;
+			clip-path 180ms cubic-bezier(0.4, 0, 1, 1),
+			display 180ms allow-discrete,
+			overlay 180ms allow-discrete;
 	}
 
 	dialog[data-menu][open] {
-		opacity: 1;
-		translate: 0 0;
-		transition-duration: 220ms;
+		clip-path: inset(0);
+		transition-duration: 280ms;
 		transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
 
 	@starting-style {
 		dialog[data-menu][open] {
-			opacity: 0;
-			translate: 0 -8px;
+			clip-path: inset(0 0 calc(100% - var(--header-height)) 0);
 		}
 	}
+}
+
+/* Reserve the scrollbar's space so locking scroll under the menu doesn't shift the page */
+html {
+	scrollbar-gutter: stable;
 }

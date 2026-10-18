@@ -14,6 +14,9 @@
   --color-light-blue: #dbe2ef;
   --color-off-white: #f9f7f7;
   --color-error: #b3261e;
+  /* Button hover fills (button.ts): each base colour nudged towards med-blue */
+  --color-dark-blue-hover: color-mix(in oklab, var(--color-dark-blue), var(--color-med-blue) 25%);
+  --color-light-blue-hover: color-mix(in oklab, var(--color-light-blue), var(--color-med-blue) 20%);
 
   --font-sans: var(--font-bricolage), sans-serif;
 
