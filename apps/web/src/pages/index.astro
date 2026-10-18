@@ -1,16 +1,159 @@
 ---
+import { Image } from 'astro:assets';
+import { buttonClass } from '@checkpad/shared/button';
+import attendeesDashboard from '../assets/screens/attendees-dashboard.png';
+import checkedInPhone from '../assets/screens/checked-in-phone.png';
+import eventAnalytics from '../assets/screens/event-analytics.png';
+import prizeDraw from '../assets/screens/prize-draw.png';
+import Footer from '../components/marketing/Footer.astro';
+import Icon, { type IconName } from '../components/marketing/Icon.astro';
+import Nav from '../components/marketing/Nav.astro';
+import SectionHeader from '../components/marketing/SectionHeader.astro';
+import Showcase from '../components/marketing/Showcase.astro';
+import Layout from '../layouts/Layout.astro';
+import { DASHBOARD_URL } from '../lib/config';
+
+// Copy and layout follow the Figma "Marketing site – desktop" and "– mobile" frames.
+const steps: { icon: IconName; title: string; body: string }[] = [
+	{ icon: 'upload', title: 'Import your list', body: 'Upload the attendee CSV from Bevy. Walk-ins get a ticket number when they arrive.' },
+	{ icon: 'qr-code', title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
+	{ icon: 'activity', title: 'Watch arrivals live', body: 'Every check-in lands on your dashboard in seconds, with a running count of who’s in.' },
+];
+
+const features: { icon: IconName; title: string; body: string }[] = [
+	{ icon: 'smartphone', title: 'Self check-in on their phone', body: 'No app and no queue at the desk. Attendees scan, type their email and they’re in.' },
+	{ icon: 'user-check', title: 'Staff check-in and walk-ins', body: 'Look someone up from a laptop or phone, or add a walk-in with a ticket on the spot.' },
+	{ icon: 'layout-dashboard', title: 'A live dashboard', body: 'See who’s arrived, undo a mistake and search the list while the room fills up.' },
+	{ icon: 'gift', title: 'Prize draw on the projector', body: 'Draw winners from everyone checked in. Names only, no repeats, saved if you refresh.' },
+	{ icon: 'bar-chart', title: 'Analytics', body: 'Arrivals every 15 minutes, turnout by ticket type and trends across your events.' },
+	{ icon: 'users', title: 'Teams and organisers', body: 'Give each chapter a permanent check-in link and share events with co-organisers.' },
+];
+
+const container = 'mx-auto w-full max-w-[1440px] px-6 lg:px-30';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="checkpad · Real-time self check-in for events">
+	<Nav />
+	<main>
+		<!-- Hero -->
+		<section class="overflow-hidden">
+			<div class="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 pt-6 pb-18 lg:flex-row lg:items-center lg:gap-16 lg:pt-14 lg:pr-0 lg:pb-30 lg:pl-30">
+				<div class="flex flex-col gap-8 lg:w-[540px] lg:shrink-0 lg:gap-7">
+					<p class="self-start rounded-full bg-light-blue px-3.5 py-1.5 text-[15px] leading-[22px] font-medium lg:px-4 lg:text-base lg:leading-6">
+						For community event organisers
+					</p>
+					<div class="flex flex-col gap-4 lg:gap-7">
+						<h1 class="font-display text-[44px] leading-[53px] lg:text-[68px] lg:leading-[82px]">A real-time self check-in app.</h1>
+						<p class="text-lg leading-[27px] text-dark-blue/85 lg:text-[21px] lg:leading-8">
+							Save time and effort at the door. Attendees check themselves in on their phone, and you watch the room fill up live.
+						</p>
+					</div>
+					<div class="flex flex-col gap-3 lg:flex-row">
+						<a href={DASHBOARD_URL} class={buttonClass('primary')}>Get started</a>
+						<a href="#how-it-works" class={buttonClass('secondary')}>See how it works</a>
+					</div>
+				</div>
+				<div
+					class="relative h-[400px] shrink-0 overflow-hidden rounded-3xl bg-light-blue lg:h-[600px] lg:w-[760px] lg:overflow-visible lg:rounded-none lg:bg-transparent"
+				>
+					<Image
+						src={attendeesDashboard}
+						alt="The Attendees dashboard showing 41 people checked in"
+						widths={[560, 800, 1120, 1600]}
+						sizes="(min-width: 1024px) 800px, 560px"
+						loading="eager"
+						class="absolute top-8 left-[120px] w-[560px] max-w-none rounded-xl shadow-[0_12px_32px_rgb(17_45_78/0.12)] lg:top-0 lg:left-20 lg:w-[800px] lg:rounded-2xl lg:border lg:border-light-blue lg:shadow-[0_24px_64px_rgb(17_45_78/0.16)]"
+					/>
+					<Image
+						src={checkedInPhone}
+						alt="An attendee’s phone showing “You’re checked in”"
+						widths={[210, 420]}
+						sizes="(min-width: 1024px) 210px, 168px"
+						loading="eager"
+						class="absolute top-[52px] left-8 w-[168px] rounded-3xl border-[5px] border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] lg:top-[190px] lg:left-0 lg:w-[210px] lg:rounded-[28px] lg:border-[6px] lg:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
+					/>
+				</div>
+			</div>
+		</section>
+
+		<!-- How it works -->
+		<section id="how-it-works" class="bg-white">
+			<div class={`${container} flex flex-col gap-8 py-18 lg:gap-14 lg:py-30`}>
+				<SectionHeader eyebrow="How it works" title="Doors open in three steps." />
+				<ol class="grid gap-10 lg:grid-cols-3">
+					{steps.map((s, i) => (
+						<li class="flex flex-col gap-4">
+							<div class="flex items-center gap-4">
+								<span class="grid size-14 place-items-center rounded-[14px] bg-off-white">
+									<Icon name={s.icon} />
+								</span>
+								<span class="font-mono text-base leading-6 text-med-blue">{String(i + 1).padStart(2, '0')}</span>
+							</div>
+							<h3 class="text-[22px] leading-[33px] font-semibold">{s.title}</h3>
+							<p class="text-[17px] leading-[26px] text-dark-blue/85">{s.body}</p>
+						</li>
+					))}
+				</ol>
+			</div>
+		</section>
+
+		<!-- Features -->
+		<section id="features">
+			<div class={`${container} flex flex-col gap-8 py-18 lg:gap-14 lg:py-30`}>
+				<SectionHeader
+					eyebrow="Features"
+					title="Everything for the door, nothing else."
+					subtitle="From the first scan at the door to the last prize of the night."
+					center
+				/>
+				<ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+					{features.map((f) => (
+						<li class="flex flex-col gap-4 rounded-[20px] border-[1.5px] border-light-blue bg-white p-8">
+							<span class="grid size-14 place-items-center rounded-[14px] bg-light-blue">
+								<Icon name={f.icon} />
+							</span>
+							<h3 class="text-[22px] leading-[33px] font-semibold">{f.title}</h3>
+							<p class="text-[17px] leading-[26px] text-dark-blue/85">{f.body}</p>
+						</li>
+					))}
+				</ul>
+			</div>
+		</section>
+
+		<Showcase
+			id="prize-draw"
+			class="bg-light-blue"
+			eyebrow="Prize draw"
+			title="End the night with a draw."
+			body="Put the draw on the projector and pick winners from everyone who checked in. If a winner has gone home, tap Not here and draw again."
+			points={['Names only on screen, never emails', 'No one wins twice', 'Winners are saved if the page refreshes']}
+			image={prizeDraw}
+			imageAlt="The prize draw display announcing Ada Lovelace as winner #3"
+		/>
+
+		<Showcase
+			id="analytics"
+			eyebrow="Analytics"
+			title="Know how the night went."
+			body="See when people arrived, how many walk-ins you had and how turnout compares across your events."
+			points={['Arrivals every 15 minutes', 'Turnout by ticket type', 'Trends across every event']}
+			image={eventAnalytics}
+			imageAlt="Event analytics with arrivals every 15 minutes and turnout by ticket type"
+			reverse
+		/>
+
+		<!-- Call to action -->
+		<section>
+			<div class={`${container} pt-2 pb-18 lg:pt-10 lg:pb-30`}>
+				<div class="flex flex-col items-center gap-4 rounded-3xl bg-dark-blue px-7 py-12 text-center lg:gap-6 lg:rounded-[32px] lg:px-20 lg:py-22">
+					<h2 class="font-display text-[32px] leading-[38px] text-off-white lg:text-[52px] lg:leading-[62px]">Run your next door with Checkpad.</h2>
+					<p class="text-[17px] leading-[26px] text-light-blue lg:text-xl lg:leading-[30px]">
+						Set up an event in a few minutes. Your attendees won’t need an account.
+					</p>
+					<a href={DASHBOARD_URL} class={`mt-2 w-full lg:mt-4 lg:w-auto ${buttonClass('secondary')}`}>Get started</a>
+				</div>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>

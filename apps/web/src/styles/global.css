@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @import "@checkpad/shared/theme.css";
+
+@theme {
+	--font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Stop the page scrolling behind the open mobile menu */
+html:has(dialog[open]) {
+	overflow: hidden;
+}

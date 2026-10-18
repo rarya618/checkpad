@@ -25,6 +25,13 @@ export default defineConfig({
           variableAxis: { opsz: [['12', '96']] }
         }
       }
+    },
+    {
+      provider: fontProviders.google(),
+      name: 'Geist Mono',
+      cssVariable: '--font-geist-mono',
+      weights: ['400'],
+      fallbacks: ['monospace']
     }
   ]
 });
