@@ -60,33 +60,34 @@ What to do:
 
 ## Feature map
 
-Of the 13 old features, two are built in Checkpad and one partly, nine are designed but not built, and one (cloud credits) is dropped. Everything built runs on mock data. Screen names below are frames in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad).
+All 12 old features that are kept are built in Checkpad; cloud credits are dropped. Everything runs on mock data in the browser: the dashboard keeps events, attendees, organisers, teams and prize draw results in memory, so changes last until the page reloads. Screen names below are frames in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad).
 
-| Old feature | Status | Where it lands in Checkpad |
-| --- | --- | --- |
-| Public self-check-in (`?event=<id>`) | Partly built | `apps/web` `/<slug>`. Ticket number on the confirmation is designed ("Checked in with ticket"), not built. Cloud credits button dropped. Past-event autofill dropped |
-| Attendee table: check in, undo, search, counter | Built | Attendees dashboard. Empty and no-results states designed |
-| Event list with counts | Built | Events dashboard. Empty state and card ⋮ menu designed |
-| Venue QR display (`&display=qr`) | Designed | "QR Code screen", opened from the Share dialog ("Attendees – share") |
-| Staff check-in by email, adding walk-ins | Designed | "Check in" (found, already arrived, not found), "Attendees – add walk-in", and on phones "Staff check in (mobile)" (found, already arrived, not found, add walk-in, menu) |
-| Create, edit, delete events, open/close, walk-in ticket defaults | Designed | "New event", "Event settings" (the Edit button opens it), "Attendees – delete event" |
-| Organisers page | Designed | "Organisers" (people), "Organisers – add organiser", "Organisers – row menu", "Organisers – edit organiser" (role and team), "Organisers – remove organiser" |
-| Sign-in and roles (superadmin, organiser, team member) | Designed | "Sign in" (Google or an emailed sign-in link), "Sign in – check your email", "Sign in – link expired", "No access", and sign out from "Events – account menu" (the ⋮ by your name in the sidebar) |
-| Bevy CSV import and export | Designed | Attendees ⋮ menu, "Attendees – import from Bevy", "Attendees – import error". Export downloads directly from the menu, no screen |
-| Teams and permanent team links (`?team=<slug>`) | Designed | "Organisers – teams", "Organisers – manage team", "Team has no event (mobile-first)" |
-| Merch prize draw | Designed | Full-screen venue display: "Prize draw display" (ready, drawing, winner, nobody checked in, everyone has won, start over?), opened from the event ⋮ menu |
-| Cloud credits link and click tracking | Dropped | — |
-| CSV export for Bevy bulk upload | Designed | "Export for Bevy" in the Attendees and Events ⋮ menus |
+| Old feature | Status | Where it lands in Checkpad | Still to do |
+| --- | --- | --- | --- |
+| Public self-check-in (`?event=<id>`) | Built (mock data) | `apps/web` `/<slug>`, with the ticket number on the confirmation ("Checked in with ticket") and "Link not found" for unknown links. Cloud credits button and past-event autofill dropped | Server check-in endpoint (phase 2); redirect from `?event=<old id>` |
+| Attendee table: check in, undo, search, counter | Built (mock data) | Attendees dashboard, with the "checked in" toast (Undo), and the empty and no-results states | Live data and updates |
+| Event list with counts | Built (mock data) | Events dashboard, with the card ⋮ menu and the empty state | Live data |
+| Venue QR display (`&display=qr`) | Built (mock data) | Share dialog (copy link, download the QR as a PNG, open the display) and the full-screen display at `/events/<slug>/display`. The QR codes are generated from the event's link | Opens in a new tab, which starts with fresh mock data until there's a backend |
+| Staff check-in by email, adding walk-ins | Built (mock data) | "Check in" page (find by email or ticket: found, already arrived, not found), the walk-in dialog (also from the Attendees page), and on phones the "Staff check in (mobile)" screens with a top bar and slide-in menu | Live data; walk-in numbers need a transaction on the server |
+| Create, edit, delete events, open/close, walk-in ticket defaults | Built (mock data) | "New event", "Event settings" (with unsaved changes, leave without saving and the saved toast) and the delete dialog. Changing an event's link moves its attendees and redirects the old link | Decide open/close (Decisions, 1) |
+| Organisers page | Built (mock data) | People tab, with add (invite toast), edit, remove and the row menu | Real invites and roles |
+| Sign-in and roles (superadmin, organiser, team member) | Built (mock data) | "Sign in", "Check your email", "Link expired", "No access" and the account menu. Every dashboard page and display needs a signed-in organiser. Sign-in is a mock: Google signs in as the super admin, and the development build has a shortcut for the emailed link | Firebase Auth (Google and email link); roles aren't enforced: every organiser can do everything |
+| Bevy CSV import and export | Built (mock data) | Import (new, updated, unchanged and skipped rows, matched by ticket number; the "can't read this file" errors; the "import finished" toast with Details) and export, from both ⋮ menus | Confirm the columns Bevy's bulk upload expects; the export's columns are a guess |
+| Teams and permanent team links (`?team=<slug>`) | Built (mock data) | Teams tab and Manage team (renaming a team updates its events and members), and `apps/web` `/team/<slug>`, which opens the team's open or next event, or "No event right now" | Redirect from `?team=<slug>` |
+| Merch prize draw | Built (mock data) | Full-screen display at `/events/<slug>/prize-draw` (ready, drawing, winner, nobody checked in, everyone has won, start over?), from the event ⋮ menu and the phone menu | Save results per event in Firestore |
+| Cloud credits link and click tracking | Dropped | — | — |
+| CSV export for Bevy bulk upload | Built (mock data) | "Export for Bevy" in the Attendees and Events ⋮ menus | Same as import: confirm the columns |
 
-Also designed, with no old equivalent:
+Also built, with no old equivalent:
 
 - "Link not found (mobile-first)", for mistyped links and old event links that can't be redirected
 - the Share dialog
-- a Toast component for quick confirmations: checked in (with Undo), link copied, import finished (with Details), invite sent, settings saved, and checked in on a phone
+- toasts for quick confirmations: checked in (with Undo), check-in link copied, import finished (with Details), invite sent and settings saved, on desktop and phones
 - "Event settings – unsaved changes" and "Event settings – leave without saving?" (Keep editing, Discard and leave, Save and leave)
 - Analytics, from both sidebars:
   - "Event analytics": stat tiles for checked in, pre-registered, walk-ins and the busiest 15 minutes; an arrivals chart of check-ins every 15 minutes (pre-registered and walk-ins stacked); turnout by ticket type
-  - "Analytics" (across events): team and time-range filters; stat tiles for events, check-ins, average turnout and returning attendees; a turnout-by-event chart; a table of every event's registered, checked in, turnout and walk-ins
+  - "Analytics" (across events): team and time-range filters; stat tiles for events, check-ins, average turnout and returning attendees; a turnout-by-event chart; a table of every event's registered, checked in, turnout and walk-ins. The mock data includes the April to August 2026 meetups so these have history
+- the marketing site at `apps/web` `/`
 
 ### Design notes
 
