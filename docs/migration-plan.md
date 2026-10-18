@@ -4,7 +4,7 @@ As of 18 October 2026 · Russal Arya
 
 ## Summary
 
-Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad moves to a new Firebase project, `checkpad-app`; the old project stays up only for redirects, then retires. Checkpad has the attendee flow and the two organiser dashboards built on mock data, but no backend, sign-in, import or settings yet. Every old feature that's being kept now has a design in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad); cloud credits are dropped.
+Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad moves to a new Firebase project, `checkpad-app`; the old project stays up only for redirects, then retires. Every old feature that's being kept has a design in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad), and every designed screen is now built, on mock data held in the browser; cloud credits are dropped. What's missing is the backend: no Firestore data, real sign-in, server check-in or old-URL redirects yet (phases 2–4 and 6–7).
 
 One issue can't wait for the migration: the old project's live database rules are fully open, so anyone can read and write every event's attendee list without signing in (checked 18 October 2026). The old app won't be changed before it's retired, so retiring it must also lock down or delete the old database.
 
