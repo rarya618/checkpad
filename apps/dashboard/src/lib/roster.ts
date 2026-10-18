@@ -20,6 +20,34 @@ export function setCheckedIn(eventSlug: string, attendeeId: string, checkedInAt:
 	listeners.forEach((listener) => listener());
 }
 
+/** Adds someone who didn't register, already checked in, with the next walk-in ticket. */
+export function addWalkIn(
+	eventSlug: string,
+	person: Pick<RosterAttendee, 'firstName' | 'lastName' | 'email'>,
+	ticketPrefix: string,
+): RosterAttendee {
+	const roster = rosters[eventSlug] ?? EMPTY;
+	const attendee: RosterAttendee = {
+		id: `${eventSlug}-walk-in-${Date.now()}`,
+		...person,
+		ticket: nextWalkInTicket(roster, ticketPrefix),
+		walkIn: true,
+		checkedInAt: new Date(),
+	};
+	rosters = { ...rosters, [eventSlug]: [...roster, attendee] };
+	listeners.forEach((listener) => listener());
+	return attendee;
+}
+
+export function nextWalkInTicket(roster: RosterAttendee[], ticketPrefix: string) {
+	return `${ticketPrefix}${String(roster.filter((a) => a.walkIn).length + 1).padStart(4, '0')}`;
+}
+
+export function removeAttendee(eventSlug: string, attendeeId: string) {
+	rosters = { ...rosters, [eventSlug]: (rosters[eventSlug] ?? EMPTY).filter((a) => a.id !== attendeeId) };
+	listeners.forEach((listener) => listener());
+}
+
 export function useRoster(eventSlug: string) {
 	return useSyncExternalStore(subscribe, () => rosters[eventSlug] ?? EMPTY);
 }

@@ -5,6 +5,8 @@ import { useSyncExternalStore } from 'react';
 export interface Toast {
 	id: number;
 	message: string;
+	/** Figma "Toast" Action=Yes: a button such as Undo. */
+	action?: { label: string; onClick: () => void };
 }
 
 let current: Toast | null = null;
@@ -22,10 +24,15 @@ function set(toast: Toast | null) {
 	listeners.forEach((listener) => listener());
 }
 
-export function showToast(message: string) {
+export function showToast(message: string, action?: Toast['action']) {
 	clearTimeout(timer);
-	set({ id: nextId++, message });
+	set({ id: nextId++, message, action });
 	timer = setTimeout(() => set(null), 5000);
+}
+
+export function dismissToast() {
+	clearTimeout(timer);
+	set(null);
 }
 
 export function useToast() {

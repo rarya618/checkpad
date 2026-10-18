@@ -4,7 +4,7 @@ import { mockEvents } from '@checkpad/shared/mock-events';
 
 export interface RosterAttendee extends Attendee {
 	id: string;
-	/** Ticket number from the registration platform; walk-ins have none. */
+	/** Ticket number from the registration platform, or GDGWALKIN0001… for walk-ins. */
 	ticket: string | null;
 	walkIn: boolean;
 }
@@ -92,7 +92,8 @@ function buildRoster(eventSlug: string, startsAt: string, spec: RosterSpec): Ros
 		}
 	}
 	for (let i = 0; i < spec.walkIns; i++) {
-		list.push({ id: `${eventSlug}-${list.length}`, ...person(list.length), ticket: null, walkIn: true, checkedInAt: arrival() });
+		const ticket = `GDGWALKIN${String(i + 1).padStart(4, '0')}`;
+		list.push({ id: `${eventSlug}-${list.length}`, ...person(list.length), ticket, walkIn: true, checkedInAt: arrival() });
 	}
 	return list;
 }

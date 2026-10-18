@@ -23,7 +23,7 @@ import {
 } from '../lib/eventForm';
 import { isSlugTaken, teams, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
 import { currentUser } from '../lib/mock';
-import { useRoster } from '../lib/roster';
+import { nextWalkInTicket, useRoster } from '../lib/roster';
 import { showToast } from '../lib/toast';
 
 // Keyed by slug so moving between events (or saving a new link) starts a fresh form.
@@ -106,7 +106,6 @@ function EventSettingsPage({ slug }: { slug: string }) {
 	}
 
 	const team = teams.find((t) => t.name === form.team) ?? teams[0];
-	const nextWalkIn = roster.filter((a) => a.walkIn).length + 1;
 	const linkLocked = event.selfCheckInOpen;
 
 	return (
@@ -168,7 +167,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								label="Walk-in ticket title"
 								value={form.walkInTicketTitle}
 								onChange={(e) => update('walkInTicketTitle', e.target.value)}
-								hint={`Next walk-in ticket: ${team.walkInTicketPrefix}${String(nextWalkIn).padStart(4, '0')}`}
+								hint={`Next walk-in ticket: ${nextWalkInTicket(roster, team.walkInTicketPrefix)}`}
 							/>
 							<TextField label="Walk-in venue" value={form.walkInVenue} onChange={(e) => update('walkInVenue', e.target.value)} />
 						</FormCard>

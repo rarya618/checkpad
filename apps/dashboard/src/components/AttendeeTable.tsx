@@ -3,6 +3,7 @@ import { formatClockTime } from '@checkpad/shared/format';
 import { useEffect, useRef } from 'react';
 import undo from '../assets/undo.png';
 import type { RosterAttendee } from '../lib/mock';
+import { checkIn } from '../lib/checkIn';
 import { setCheckedIn } from '../lib/roster';
 
 interface Props {
@@ -57,9 +58,11 @@ function AttendeeRow({ eventSlug, timeZone, attendee }: { eventSlug: string; tim
 		if (refocus.current) actionRef.current?.focus();
 		refocus.current = false;
 	}, [attendee.checkedInAt]);
-	const toggle = (checkedInAt: Date | null) => {
+	const toggle = (checkingIn: boolean) => {
 		refocus.current = true;
-		setCheckedIn(eventSlug, attendee.id, checkedInAt);
+		// Checking in confirms with a toast that offers Undo (Figma "Toast – checked in")
+		if (checkingIn) checkIn(eventSlug, attendee);
+		else setCheckedIn(eventSlug, attendee.id, null);
 	};
 
 	return (
@@ -94,7 +97,7 @@ function AttendeeRow({ eventSlug, timeZone, attendee }: { eventSlug: string; tim
 							type="button"
 							aria-label={`Undo check-in for ${name}`}
 							title="Undo check-in"
-							onClick={() => toggle(null)}
+							onClick={() => toggle(false)}
 							className="rounded p-0.5 hover:bg-light-blue/60"
 						>
 							{/* Cropped exactly as in the Figma file */}
@@ -108,7 +111,7 @@ function AttendeeRow({ eventSlug, timeZone, attendee }: { eventSlug: string; tim
 						ref={actionRef}
 						type="button"
 						aria-label={`Check in ${name}`}
-						onClick={() => toggle(new Date())}
+						onClick={() => toggle(true)}
 						className={buttonClass('primary', 'sm')}
 					>
 						Check in

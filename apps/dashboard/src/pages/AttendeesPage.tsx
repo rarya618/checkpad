@@ -6,6 +6,7 @@ import AttendeeTable from '../components/AttendeeTable';
 import EventOverview from '../components/EventOverview';
 import PageHeader from '../components/PageHeader';
 import StatsCard from '../components/StatsCard';
+import { WalkInDialog } from '../components/WalkIn';
 import { useEvent } from '../lib/events';
 import { rosterStats, useRoster } from '../lib/roster';
 
@@ -16,6 +17,7 @@ export default function AttendeesPage() {
 	const roster = useRoster(slug);
 	const stats = useMemo(() => rosterStats(roster), [roster]);
 	const [query, setQuery] = useState('');
+	const [addingWalkIn, setAddingWalkIn] = useState(false);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -46,8 +48,8 @@ export default function AttendeesPage() {
 								className="min-w-0 flex-1 bg-transparent text-[16.5px] tracking-[-0.41px] outline-none placeholder:text-dark-blue/30"
 							/>
 						</label>
-						{/* The add-attendee form isn't designed yet */}
-						<button type="button" className={buttonClass('primary')}>
+						{/* Figma "Attendees – add walk-in" */}
+						<button type="button" onClick={() => setAddingWalkIn(true)} className={buttonClass('primary')}>
 							Add attendee
 						</button>
 					</div>
@@ -57,6 +59,7 @@ export default function AttendeesPage() {
 				<StatsCard stats={stats} />
 				<AttendeeTable eventSlug={slug} timeZone={event.timeZone} attendees={filtered} query={query.trim()} />
 			</div>
+			{addingWalkIn && <WalkInDialog event={event} onClose={() => setAddingWalkIn(false)} />}
 		</>
 	);
 }
