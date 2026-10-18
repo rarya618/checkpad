@@ -91,14 +91,14 @@ Also built, with no old equivalent:
 
 ### Design notes
 
-- **Line height:** 1.5× the font size for text up to 24px, 1.2× for 28px and up. The 64px stat numbers on the Attendees page use a 60px line height. `packages/shared/theme.css` still sets every line height to `normal`, so the apps don't match yet.
+- **Line height:** 1.5× the font size for text up to 24px, 1.2× for 28px and up. The 64px stat numbers on the Attendees page use a 60px line height. The text-size tokens in `packages/shared/theme.css` follow this now; text with a fixed pixel size (`text-[15px]` and the like) still uses the font's normal line height, so older screens don't all match yet.
 - **Prize draw:** shows names only on the projector, no emails or ticket numbers. "Not here" drops the person without counting them as a winner and draws again. They stay out of the draw for the rest of the night, unlike the old app's put-back, which returned them to the pool. The display needs an organiser signed in, because it reads the checked-in list.
-- **No danger colour:** the palette has no red, so the delete-event button and the import error use the normal blues. Add a danger colour before building them.
+- **No danger colour:** the palette has no red, so the delete-event button, the remove-organiser button and the import error use the normal blues, as designed. Add a danger colour if they should stand out.
 - **Analytics data:** event analytics uses only `checkedInAt`, `source` and Bevy's `ticketType`, which the data model already has. Turnout uses the `counts` on each event. "Returning attendees" needs matching people by email across events, a collection-group query over every event's attendees. It must run on the server or behind organiser-only rules, or it exposes who attended what. Drop that tile from the first build if it's too much.
-- **Charts** use the two brand blues for pre-registered and walk-ins, matching the Attendees stats bar, always with a legend and labels so colour isn't the only cue. A third series would need a proper categorical palette.
+- **Charts** use the two brand blues for pre-registered and walk-ins, matching the Attendees stats bar, always with a legend and labels so colour isn't the only cue. A palette check found the pair easy to tell apart, colour-blind readers included, but dark blue is darker than chart series usually are and can read as near-black. A third series would need a proper categorical palette.
 - **Save changes** in Event settings stays disabled until something changes; the "Unsaved changes" pill shows when it's enabled.
 - **Import finished toast:** its Details action reopens the import summary, listing the skipped rows.
-- **Phone screens for staff** are drawn taller than the 810px phone frame where content needs it; they scroll, and the recent check-ins list sits below the fold.
+- **Phone screens for staff** are drawn taller than the 810px phone frame where content needs it; they scroll, and the recent check-ins list sits below the fold. Below 768px wide the dashboard shows the phone designs at full size; the desktop designs are built at 75% of their Figma size. Pages without phone designs (Attendees, Events, Settings, Organisers, Analytics) don't fit on a phone yet.
 
 ## Decisions the migration forces
 
