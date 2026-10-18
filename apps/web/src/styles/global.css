@@ -9,3 +9,18 @@
 html:has(dialog[open]) {
 	overflow: hidden;
 }
+
+/* Keep in-page link targets clear of the sticky header (see Nav.astro) */
+:root {
+	--header-height: 85px;
+}
+
+@media (min-width: 64rem) {
+	:root {
+		--header-height: 99px;
+	}
+}
+
+section[id] {
+	scroll-margin-top: var(--header-height);
+}

@@ -13,30 +13,35 @@ const links = [
 ];
 ---
 
-<header class="mx-auto flex w-full max-w-[1440px] items-center justify-between py-5 pr-4 pl-6 lg:px-30 lg:py-7">
-	<a href="/" aria-label="checkpad home">
-		<Image src={logo} alt="checkpad" width={176} height={42} class="w-[134px] lg:w-[176px]" />
-	</a>
-	<nav aria-label="Main" class="hidden lg:block">
-		<ul class="flex gap-10">
-			{links.map((l) => (
-				<li><a href={l.href} class="text-[17px] leading-[26px] font-medium hover:text-med-blue">{l.label}</a></li>
-			))}
-		</ul>
-	</nav>
-	<div class="hidden gap-3 lg:flex">
-		<a href={DASHBOARD_URL} class={buttonClass('secondary')}>Sign in</a>
-		<a href={DASHBOARD_URL} class={buttonClass('primary')}>Get started</a>
+<header
+	data-header
+	class="sticky top-0 z-40 border-b border-transparent bg-off-white/90 backdrop-blur-md transition-colors data-scrolled:border-light-blue"
+>
+	<div class="mx-auto flex w-full max-w-[1440px] items-center justify-between py-5 pr-4 pl-6 lg:px-30 lg:py-7">
+		<a href="/" aria-label="checkpad home">
+			<Image src={logo} alt="checkpad" width={176} height={42} class="w-[134px] lg:w-[176px]" />
+		</a>
+		<nav aria-label="Main" class="hidden lg:block">
+			<ul class="flex gap-10">
+				{links.map((l) => (
+					<li><a href={l.href} class="text-[17px] leading-[26px] font-medium hover:text-med-blue">{l.label}</a></li>
+				))}
+			</ul>
+		</nav>
+		<div class="hidden gap-3 lg:flex">
+			<a href={DASHBOARD_URL} class={buttonClass('secondary')}>Sign in</a>
+			<a href={DASHBOARD_URL} class={buttonClass('primary')}>Get started</a>
+		</div>
+		<button
+			type="button"
+			data-menu-open
+			aria-label="Open menu"
+			aria-haspopup="dialog"
+			class="grid size-11 place-items-center rounded-[10px] lg:hidden"
+		>
+			<Icon name="menu" />
+		</button>
 	</div>
-	<button
-		type="button"
-		data-menu-open
-		aria-label="Open menu"
-		aria-haspopup="dialog"
-		class="grid size-11 place-items-center rounded-[10px] lg:hidden"
-	>
-		<Icon name="menu" />
-	</button>
 </header>
 
 <!-- Mobile menu, from the Figma "Marketing site – mobile, menu open" frame -->
@@ -71,6 +76,12 @@ const links = [
 </dialog>
 
 <script>
+	// Show the header's bottom border once the page has scrolled under it
+	const header = document.querySelector<HTMLElement>('[data-header]')!;
+	const onScroll = () => header.toggleAttribute('data-scrolled', scrollY > 0);
+	addEventListener('scroll', onScroll, { passive: true });
+	onScroll();
+
 	const menu = document.querySelector<HTMLDialogElement>('[data-menu]')!;
 	document.querySelector('[data-menu-open]')!.addEventListener('click', () => menu.showModal());
 	document.querySelector('[data-menu-close]')!.addEventListener('click', () => menu.close());
