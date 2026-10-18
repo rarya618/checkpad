@@ -10,6 +10,7 @@ import ComingSoon from './pages/ComingSoon';
 import EventSettingsRoute from './pages/EventSettingsPage';
 import EventsPage from './pages/EventsPage';
 import NewEventPage from './pages/NewEventPage';
+import VenueDisplayPage from './pages/VenueDisplayPage';
 
 const mainItems: SidebarItem[] = [
 	{ to: '/events', label: 'Events' },
@@ -89,6 +90,8 @@ export default function App() {
 				<Route path="organisers" element={<ComingSoon title="Organisers" />} />
 				<Route path="analytics" element={<ComingSoon title="Analytics" />} />
 			</Route>
+			{/* Full screen, no sidebar: shown on the venue's projector */}
+			<Route path="events/:slug/display" element={<VenueDisplayPage />} />
 			<Route path="events/:slug" element={<EventLayout />}>
 				<Route index element={<AttendeesPage />} />
 				<Route path="check-in" element={<CheckInPage />} />

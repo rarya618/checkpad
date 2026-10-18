@@ -6,6 +6,8 @@ export interface RosterAttendee extends Attendee {
 	id: string;
 	/** Ticket number from the registration platform, or GDGWALKIN0001… for walk-ins. */
 	ticket: string | null;
+	/** Bevy's ticket title, e.g. "General admission"; set by imports. */
+	ticketType?: string;
 	walkIn: boolean;
 }
 

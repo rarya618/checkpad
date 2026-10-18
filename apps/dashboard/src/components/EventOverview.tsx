@@ -9,15 +9,23 @@ import gift from '../assets/gift.svg';
 import trash from '../assets/trash.svg';
 import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
+import { exportForBevy, type ImportPlan } from '../lib/bevy';
 import type { DashboardEvent } from '../lib/events';
+import { useRoster } from '../lib/roster';
 import DeleteEventDialog from './DeleteEventDialog';
+import ImportDialog from './ImportDialog';
 import Menu from './Menu';
+import ShareDialog from './ShareDialog';
 
 // Top of an event's pages: breadcrumbs, event name, date, check-in link, actions.
 export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
 	const [deleting, setDeleting] = useState(false);
+	const [sharing, setSharing] = useState(false);
+	// Importing a file, or showing a finished import again from the toast's Details
+	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
+	const roster = useRoster(event.slug);
 	return (
 		<section className="flex items-center gap-3 px-6 pt-[54px]">
 			<div className="flex min-w-0 flex-1 flex-col gap-3.5 py-px">
@@ -46,17 +54,16 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				<Link to={`/events/${event.slug}/settings`} className={buttonClass('secondary')}>
 					Edit
 				</Link>
-				{/* The Share dialog is built with the QR display */}
-				<button type="button" className={buttonClass('primary')}>
+				<button type="button" onClick={() => setSharing(true)} className={buttonClass('primary')}>
 					Share
 				</button>
-				{/* Figma "Attendees – more menu"; only Delete event is built so far */}
+				{/* Figma "Attendees – more menu" */}
 				<Menu
 					label="More event options"
 					buttonClassName="rounded-[10px] bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
 					items={[
-						{ label: 'Import from Bevy', icon: upload, disabled: true },
-						{ label: 'Export for Bevy', icon: download, disabled: true },
+						{ label: 'Import from Bevy', icon: upload, onSelect: () => setImporting({}) },
+						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event, roster) },
 						{ label: 'Open prize draw', icon: gift, disabled: true },
 						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
 					]}
@@ -65,6 +72,10 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				</Menu>
 			</div>
 			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
+			{sharing && <ShareDialog event={event} onClose={() => setSharing(false)} />}
+			{importing && (
+				<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
+			)}
 		</section>
 	);
 }

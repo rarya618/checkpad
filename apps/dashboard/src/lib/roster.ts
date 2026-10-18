@@ -1,6 +1,7 @@
 // In-memory attendee store shared by every dashboard page, so checking someone in
 // on the Attendees page also updates the Events page. Swap for API calls later.
 import { useSyncExternalStore } from 'react';
+import type { ImportPlan } from './bevy';
 import { buildMockRosters, type RosterAttendee } from './mock';
 
 let rosters = buildMockRosters();
@@ -41,6 +42,28 @@ export function addWalkIn(
 
 export function nextWalkInTicket(roster: RosterAttendee[], ticketPrefix: string) {
 	return `${ticketPrefix}${String(roster.filter((a) => a.walkIn).length + 1).padStart(4, '0')}`;
+}
+
+/** Applies a Bevy import: adds new tickets as not arrived and updates names and ticket types. */
+export function importAttendees(eventSlug: string, plan: Pick<ImportPlan, 'added' | 'updated'>) {
+	const updates = new Map(plan.updated.map((row) => [row.ticket.toLowerCase(), row]));
+	const roster = (rosters[eventSlug] ?? EMPTY).map((a) => {
+		const row = a.ticket && updates.get(a.ticket.toLowerCase());
+		return row ? { ...a, firstName: row.firstName, lastName: row.lastName, ticketType: row.ticketType || a.ticketType } : a;
+	});
+	const stamp = Date.now();
+	const added: RosterAttendee[] = plan.added.map((row, i) => ({
+		id: `${eventSlug}-import-${stamp}-${i}`,
+		firstName: row.firstName,
+		lastName: row.lastName,
+		email: row.email,
+		ticket: row.ticket,
+		ticketType: row.ticketType || undefined,
+		walkIn: false,
+		checkedInAt: null,
+	}));
+	rosters = { ...rosters, [eventSlug]: [...roster, ...added] };
+	listeners.forEach((listener) => listener());
 }
 
 export function removeAttendee(eventSlug: string, attendeeId: string) {
