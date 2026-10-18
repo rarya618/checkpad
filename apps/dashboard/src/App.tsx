@@ -2,14 +2,20 @@ import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-r
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
 import Sidebar, { type SidebarItem } from './components/Sidebar';
 import Toaster from './components/Toaster';
+import { useSession } from './lib/auth';
 import { renamedSlug, useEvent } from './lib/events';
+import { isOrganiser, useOrganisers } from './lib/organisers';
 import { useIsDesktop } from './lib/useMediaQuery';
+import AnalyticsPage from './pages/AnalyticsPage';
 import AttendeesPage from './pages/AttendeesPage';
 import CheckInPage from './pages/CheckInPage';
-import ComingSoon from './pages/ComingSoon';
+import EventAnalyticsPage from './pages/EventAnalyticsPage';
 import EventSettingsRoute from './pages/EventSettingsPage';
 import EventsPage from './pages/EventsPage';
 import NewEventPage from './pages/NewEventPage';
+import OrganisersPage from './pages/OrganisersPage';
+import PrizeDrawPage from './pages/PrizeDrawPage';
+import { CheckEmailPage, NoAccessPage, SignInLinkPage, SignInPage } from './pages/SignInPages';
 import VenueDisplayPage from './pages/VenueDisplayPage';
 
 const mainItems: SidebarItem[] = [
@@ -73,30 +79,50 @@ function EventLayout() {
 			mobile={{
 				title: event.name,
 				items: [attendees, checkIn, settings],
-				extras: [{ label: 'All events', to: '/events' }, { label: 'Open prize draw', disabled: true }],
+				extras: [
+					{ label: 'All events', to: '/events' },
+					{ label: 'Open prize draw', href: `${base}/prize-draw` },
+				],
 			}}
 		/>
 	);
 }
 
+// Every dashboard page and display needs a signed-in organiser (docs/migration-plan.md).
+function RequireOrganiser() {
+	const session = useSession();
+	const { pathname, search } = useLocation();
+	useOrganisers(); // re-check when the organiser list changes
+	if (!session) return <Navigate to={`/sign-in?${new URLSearchParams({ next: pathname + search })}`} replace />;
+	if (!isOrganiser(session.email)) return <Navigate to="/no-access" replace />;
+	return <Outlet />;
+}
+
 export default function App() {
 	return (
 		<Routes>
-			{/* The main menu on phones isn't designed; it reuses the sidebar's items */}
-			<Route element={<DashboardLayout items={mainItems} mobile={{ title: 'Menu', items: mainItems, extras: [] }} />}>
-				<Route index element={<Navigate to="/events" replace />} />
-				<Route path="events" element={<EventsPage />} />
-				<Route path="events/new" element={<NewEventPage />} />
-				<Route path="organisers" element={<ComingSoon title="Organisers" />} />
-				<Route path="analytics" element={<ComingSoon title="Analytics" />} />
-			</Route>
-			{/* Full screen, no sidebar: shown on the venue's projector */}
-			<Route path="events/:slug/display" element={<VenueDisplayPage />} />
-			<Route path="events/:slug" element={<EventLayout />}>
-				<Route index element={<AttendeesPage />} />
-				<Route path="check-in" element={<CheckInPage />} />
-				<Route path="analytics" element={<ComingSoon title="Analytics" />} />
-				<Route path="settings" element={<EventSettingsRoute />} />
+			<Route path="sign-in" element={<SignInPage />} />
+			<Route path="sign-in/check-email" element={<CheckEmailPage />} />
+			<Route path="sign-in/link" element={<SignInLinkPage />} />
+			<Route path="no-access" element={<NoAccessPage />} />
+			<Route element={<RequireOrganiser />}>
+				{/* The main menu on phones isn't designed; it reuses the sidebar's items */}
+				<Route element={<DashboardLayout items={mainItems} mobile={{ title: 'Menu', items: mainItems, extras: [] }} />}>
+					<Route index element={<Navigate to="/events" replace />} />
+					<Route path="events" element={<EventsPage />} />
+					<Route path="events/new" element={<NewEventPage />} />
+					<Route path="organisers" element={<OrganisersPage />} />
+					<Route path="analytics" element={<AnalyticsPage />} />
+				</Route>
+				{/* Full screen, no sidebar: shown on the venue's projector */}
+				<Route path="events/:slug/display" element={<VenueDisplayPage />} />
+				<Route path="events/:slug/prize-draw" element={<PrizeDrawPage />} />
+				<Route path="events/:slug" element={<EventLayout />}>
+					<Route index element={<AttendeesPage />} />
+					<Route path="check-in" element={<CheckInPage />} />
+					<Route path="analytics" element={<EventAnalyticsPage />} />
+					<Route path="settings" element={<EventSettingsRoute />} />
+				</Route>
 			</Route>
 			<Route path="*" element={<Navigate to="/events" replace />} />
 		</Routes>

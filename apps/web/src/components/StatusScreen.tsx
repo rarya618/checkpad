@@ -5,11 +5,13 @@ interface Props {
 	title: string;
 	subtitle: string;
 	body: string;
+	/** Figma's "Link not found" and "Team has no event" have no button, just the space for one. */
+	homeLink?: boolean;
 }
 
 // Full-screen message layout from the Figma "Error handling" frame, also used for
-// the "not open yet" and "closed" states.
-export default function StatusScreen({ title, subtitle, body }: Props) {
+// the "not open yet", "closed", "link not found" and "team has no event" states.
+export default function StatusScreen({ title, subtitle, body, homeLink = true }: Props) {
 	return (
 		<main className="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-between gap-9 px-9 py-12 text-center">
 			<img src={logo.src} alt="checkpad" width={176} height={42} />
@@ -20,9 +22,13 @@ export default function StatusScreen({ title, subtitle, body }: Props) {
 				</div>
 				<p className="text-lg leading-7.5">{body}</p>
 			</div>
-			<a href="/" className={`w-full ${buttonClass('primary')}`}>
-				Back to homepage
-			</a>
+			{homeLink ? (
+				<a href="/" className={`w-full ${buttonClass('primary')}`}>
+					Back to homepage
+				</a>
+			) : (
+				<div aria-hidden="true" className="h-[47px]" />
+			)}
 		</main>
 	);
 }

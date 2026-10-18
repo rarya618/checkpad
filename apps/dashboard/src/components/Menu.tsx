@@ -18,10 +18,14 @@ interface Props {
 	label: string;
 	items: MenuItem[];
 	buttonClassName: string;
+	/** Shown above the items, e.g. who is signed in (Figma "Account menu"). */
+	header?: ReactNode;
+	/** "above-left" opens upwards from a button near the bottom-left (the sidebar's account button). */
+	placement?: 'below-right' | 'above-left';
 	children: ReactNode;
 }
 
-export default function Menu({ label, items, buttonClassName, children }: Props) {
+export default function Menu({ label, items, buttonClassName, header, placement = 'below-right', children }: Props) {
 	const [open, setOpen] = useState(false);
 	const root = useRef<HTMLDivElement>(null);
 	const button = useRef<HTMLButtonElement>(null);
@@ -80,8 +84,16 @@ export default function Menu({ label, items, buttonClassName, children }: Props)
 					id={id}
 					role="menu"
 					aria-label={label}
-					className="absolute top-[calc(100%+6px)] right-0 z-20 flex w-[225px] flex-col gap-[3px] rounded-[10.5px] border border-med-blue bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)]"
+					className={`absolute z-20 flex w-[225px] flex-col gap-[3px] rounded-[10.5px] border border-med-blue bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
+						placement === 'above-left' ? 'bottom-[calc(100%+6px)] left-0' : 'top-[calc(100%+6px)] right-0'
+					}`}
 				>
+					{header && (
+						<>
+							<div role="none">{header}</div>
+							<div role="separator" className="h-px bg-light-blue" />
+						</>
+					)}
 					{items.map((item) => {
 						const content = (
 							<>

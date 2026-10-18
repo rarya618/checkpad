@@ -9,11 +9,14 @@ interface Props {
 	onClose: () => void;
 	/** Shows a close (×) button at the top right, as the delete dialog does. */
 	closeButton?: ReactNode;
+	/** "lg": full size, for the projector displays; otherwise the dashboard's 75% scale. */
+	size?: 'md' | 'lg';
 	className?: string;
 	children: ReactNode;
 }
 
-export default function Dialog({ title, description, onClose, closeButton, className = '', children }: Props) {
+export default function Dialog({ title, description, onClose, closeButton, size = 'md', className = '', children }: Props) {
+	const lg = size === 'lg';
 	const ref = useRef<HTMLDialogElement>(null);
 
 	useEffect(() => {
@@ -33,15 +36,17 @@ export default function Dialog({ title, description, onClose, closeButton, class
 				onClose();
 			}}
 			onClick={(e) => e.target === e.currentTarget && onClose()}
-			className={`m-auto max-w-[calc(100vw-48px)] rounded-[15px] bg-white p-0 text-dark-blue shadow-[0_9px_30px_rgb(17_45_78/0.18)] backdrop:bg-dark-blue/45 ${className}`}
+			className={`m-auto max-w-[calc(100vw-48px)] bg-white p-0 text-dark-blue backdrop:bg-dark-blue/45 ${
+				lg ? 'rounded-[20px] shadow-[0_12px_40px_rgb(17_45_78/0.18)]' : 'rounded-[15px] shadow-[0_9px_30px_rgb(17_45_78/0.18)]'
+			} ${className}`}
 		>
-			<div className="flex flex-col gap-[18px] px-[30px] py-[27px]">
-				<div className="flex items-start gap-3">
-					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
-						<h2 id="dialog-title" className="font-display text-2xl leading-[1.2]">
+			<div className={`flex flex-col ${lg ? 'gap-6 px-10 py-9' : 'gap-[18px] px-[30px] py-[27px]'}`}>
+				<div className={`flex items-start ${lg ? 'gap-4' : 'gap-3'}`}>
+					<div className={`flex min-w-0 flex-1 flex-col ${lg ? 'gap-2' : 'gap-1.5'}`}>
+						<h2 id="dialog-title" className={`font-display leading-[1.2] ${lg ? 'text-[32px]' : 'text-2xl'}`}>
 							{title}
 						</h2>
-						<p id="dialog-description" className="text-[15px] leading-[1.5] text-med-blue">
+						<p id="dialog-description" className={`leading-[1.5] text-med-blue ${lg ? 'text-xl' : 'text-[15px]'}`}>
 							{description}
 						</p>
 					</div>

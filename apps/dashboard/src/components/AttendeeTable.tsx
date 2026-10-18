@@ -10,10 +10,10 @@ interface Props {
 	eventSlug: string;
 	timeZone: string;
 	attendees: RosterAttendee[];
-	query: string;
 }
 
-export default function AttendeeTable({ eventSlug, timeZone, attendees, query }: Props) {
+// The page shows Figma's empty states instead of an empty table.
+export default function AttendeeTable({ eventSlug, timeZone, attendees }: Props) {
 	return (
 		<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
 			<table className="w-full table-fixed">
@@ -33,14 +33,6 @@ export default function AttendeeTable({ eventSlug, timeZone, attendees, query }:
 					{attendees.map((attendee) => (
 						<AttendeeRow key={attendee.id} eventSlug={eventSlug} timeZone={timeZone} attendee={attendee} />
 					))}
-					{attendees.length === 0 && (
-						<tr>
-							{/* Not in the design */}
-							<td colSpan={3} className="py-6 text-center text-[15px] text-med-blue">
-								{query ? `No attendees match “${query}”` : 'No attendees yet'}
-							</td>
-						</tr>
-					)}
 				</tbody>
 			</table>
 		</div>
@@ -82,7 +74,7 @@ function AttendeeRow({ eventSlug, timeZone, attendee }: { eventSlug: string; tim
 				</div>
 			</td>
 			<td className="py-[7.5px] pr-2 font-mono text-[15px] text-black">
-				{/* Not in the design: walk-ins have no ticket number */}
+				{/* Walk-ins added before tickets were numbered have none */}
 				{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
 			</td>
 			<td className="py-[7.5px]">

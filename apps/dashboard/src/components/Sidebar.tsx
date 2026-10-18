@@ -1,7 +1,11 @@
 import logo from '@checkpad/shared/checkpad-logo.svg';
 import { NavLink } from 'react-router';
 import ellipsis from '../assets/ellipsis-vertical.svg';
-import { currentUser } from '../lib/mock';
+import logout from '../assets/logout.svg';
+import switchIcon from '../assets/switch.svg';
+import { signOut, useCurrentOrganiser, useSession } from '../lib/auth';
+import { roleLabel } from '../lib/organisers';
+import Menu from './Menu';
 
 export interface SidebarItem {
 	to: string;
@@ -38,16 +42,50 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
 				</nav>
 			</div>
 			<div className="flex w-full items-center justify-between border-t border-med-blue/50 px-3.5 py-[21px]">
-				<div className="flex flex-col gap-[4.5px]">
-					{/* Figma's 28px name at 75% scale: 1.2 line height, not text-xl's 1.5 */}
-					<p className="font-display text-xl leading-[1.2]">{currentUser.name}</p>
-					<p className="text-sm text-med-blue">{currentUser.role}</p>
-				</div>
-				{/* The account menu isn't designed yet */}
-				<button type="button" aria-label="Account options" className="rounded-md p-1 hover:bg-white/50">
-					<img src={ellipsis} alt="" width={18} height={18} />
-				</button>
+				<AccountSummary />
+				<AccountMenu />
 			</div>
 		</aside>
+	);
+}
+
+function AccountSummary() {
+	const session = useSession();
+	const me = useCurrentOrganiser();
+	return (
+		<div className="flex min-w-0 flex-col gap-[4.5px]">
+			{/* Figma's 28px name at 75% scale: 1.2 line height, not text-xl's 1.5 */}
+			<p className="truncate font-display text-xl leading-[1.2]">{me?.name ?? session?.email}</p>
+			<p className="text-sm text-med-blue">{me ? roleLabel(me.role) : ''}</p>
+		</div>
+	);
+}
+
+// Figma "Events – account menu": who is signed in, then Switch account and Sign out.
+function AccountMenu() {
+	const session = useSession();
+	const me = useCurrentOrganiser();
+	if (!session) return null;
+	return (
+		<Menu
+			label="Account options"
+			placement="above-left"
+			buttonClassName="rounded-md p-1 hover:bg-white/50"
+			header={
+				<div className="flex flex-col gap-[1.5px] px-[10.5px] pt-[7.5px] pb-[9px] leading-[1.5]">
+					<p className="text-xs text-med-blue">Signed in as</p>
+					<p className="truncate text-[13.5px] font-bold">{session.email}</p>
+					<p className="text-xs text-med-blue">
+						{me ? roleLabel(me.role) : 'Organiser'} · via {session.method === 'google' ? 'Google' : 'email link'}
+					</p>
+				</div>
+			}
+			items={[
+				{ label: 'Switch account', icon: switchIcon, onSelect: signOut },
+				{ label: 'Sign out', icon: logout, onSelect: signOut },
+			]}
+		>
+			<img src={ellipsis} alt="" width={18} height={18} />
+		</Menu>
 	);
 }

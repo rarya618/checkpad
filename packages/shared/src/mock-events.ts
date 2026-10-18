@@ -1,4 +1,6 @@
-import type { CheckpadEvent } from './events';
+import type { CheckpadEvent, Team } from './events';
+
+export const mockTeams: Team[] = [{ slug: 'gdg-sydney', name: 'GDG Sydney' }];
 
 // Sample data shared by both apps until there's a backend. The first mirrors the
 // event in the Figma dashboards (now finished); the others exist so every
@@ -11,6 +13,7 @@ export const mockEvents: CheckpadEvent[] = [
 		startsAt: '2026-09-10T17:00:00+10:00',
 		endsAt: '2026-09-10T20:00:00+10:00',
 		timeZone: 'Australia/Sydney',
+		teamSlug: 'gdg-sydney',
 	},
 	{
 		slug: 'checkpad-demo',
@@ -27,5 +30,6 @@ export const mockEvents: CheckpadEvent[] = [
 		startsAt: '2030-03-14T17:00:00+11:00',
 		endsAt: '2030-03-14T20:00:00+11:00',
 		timeZone: 'Australia/Sydney',
+		teamSlug: 'gdg-sydney',
 	},
 ];

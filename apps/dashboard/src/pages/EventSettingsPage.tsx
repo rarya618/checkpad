@@ -22,7 +22,7 @@ import {
 	type EventForm,
 } from '../lib/eventForm';
 import { isSlugTaken, teams, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
-import { currentUser } from '../lib/mock';
+import { useCurrentOrganiser, useSession } from '../lib/auth';
 import { nextWalkInTicket, useRoster } from '../lib/roster';
 import { showToast } from '../lib/toast';
 
@@ -39,6 +39,8 @@ function EventSettingsPage({ slug }: { slug: string }) {
 	const event = useEvent(slug)!;
 	const roster = useRoster(slug);
 	const navigate = useNavigate();
+	const session = useSession();
+	const me = useCurrentOrganiser();
 	const saved = useMemo(() => eventToForm(event), [event]);
 	const [form, setForm] = useState(saved);
 
@@ -79,7 +81,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 			walkInTicketTitle: form.walkInTicketTitle.trim(),
 			walkInVenue: form.walkInVenue.trim(),
 			selfCheckInOpen: form.selfCheckInOpen,
-			selfCheckInChangedBy: switched ? currentUser.name : event.selfCheckInChangedBy,
+			selfCheckInChangedBy: switched ? (me?.name ?? session?.email ?? null) : event.selfCheckInChangedBy,
 			selfCheckInChangedAt: switched ? new Date().toISOString() : event.selfCheckInChangedAt,
 		};
 		dirtyRef.current = false;

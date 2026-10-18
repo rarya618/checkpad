@@ -200,6 +200,13 @@ function Confirmation({ event, attendee, alreadyCheckedIn }: { event: CheckpadEv
 					<p className="text-2xl text-med-blue">{alreadyCheckedIn ? 'You’re already checked in' : 'You’re checked in'}</p>
 					<h1 className="font-display text-5xl break-words">{attendee.firstName}</h1>
 				</div>
+				{/* Figma "Checked in with ticket (mobile-first)" */}
+				{attendee.ticket && (
+					<div className="flex flex-col items-center gap-1 rounded-[10px] bg-off-white px-5 py-3">
+						<p className="text-base text-med-blue">Ticket</p>
+						<p className="font-mono text-[22px] leading-[1.5]">{attendee.ticket}</p>
+					</div>
+				)}
 				<p className="text-lg tracking-[-0.45px] text-med-blue">
 					{alreadyCheckedIn && attendee.checkedInAt
 						? `Checked in at ${formatTime(attendee.checkedInAt, event.timeZone)}. ${note}`

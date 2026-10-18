@@ -3,21 +3,27 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import close from '../assets/close.svg';
 import menuIcon from '../assets/menu.svg';
-import { currentUser } from '../lib/mock';
+import { signOut, useCurrentOrganiser, useSession } from '../lib/auth';
+import { roleLabel } from '../lib/organisers';
 import type { SidebarItem } from './Sidebar';
 
 export interface MobileNavConfig {
 	/** Heading at the top of the menu, e.g. the event name. */
 	title: string;
 	items: SidebarItem[];
-	/** Below the divider: links out of this section, or actions not built yet. */
-	extras: { label: string; to?: string; disabled?: boolean }[];
+	/**
+	 * Below the divider: links out of this section, or actions not built yet. `href` opens
+	 * in a new tab: a full-screen display for the venue's projector.
+	 */
+	extras: { label: string; to?: string; href?: string; disabled?: boolean; onSelect?: () => void }[];
 }
 
 // Phones get Figma "Staff check in (mobile)"'s top bar instead of the sidebar, and its
 // menu ("– menu") slides in from the right. Full size, not the desktop's 75%.
 export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 	const [open, setOpen] = useState(false);
+	const session = useSession();
+	const me = useCurrentOrganiser();
 	const dialog = useRef<HTMLDialogElement>(null);
 	const { pathname } = useLocation();
 
@@ -72,15 +78,23 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 					<div className="flex-1" />
 					<div className="h-px bg-med-blue/40" />
 					<ul className="flex flex-col gap-2">
-						{[...extras, { label: 'Sign out', disabled: true }].map((x) => (
+						{[...extras, { label: 'Sign out', onSelect: signOut }].map((x) => (
 							<li key={x.label}>
-								{x.to && !x.disabled ? (
+								{x.href && !x.disabled ? (
+									<a href={x.href} target="_blank" rel="noreferrer" className={`${item} ${idle}`}>
+										{x.label}
+									</a>
+								) : x.to && !x.disabled ? (
 									<NavLink to={x.to} end className={`${item} ${idle}`}>
 										{x.label}
 									</NavLink>
 								) : (
-									// Not built yet: the prize draw and sign-in come later
-									<button type="button" disabled className={`${item} w-full text-left tracking-[-0.6px] disabled:opacity-45`} title="Not available yet">
+									<button
+										type="button"
+										disabled={x.disabled || !x.onSelect}
+										onClick={x.onSelect}
+										className={`${item} ${idle} w-full text-left disabled:opacity-45 disabled:hover:bg-transparent`}
+									>
 										{x.label}
 									</button>
 								)}
@@ -88,8 +102,8 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 						))}
 					</ul>
 					<div className="flex flex-col gap-0.5 pt-3 pl-3 leading-[1.5]">
-						<p className="font-display text-xl">{currentUser.name}</p>
-						<p className="text-base text-med-blue">{currentUser.role}</p>
+						<p className="truncate font-display text-xl">{me?.name ?? session?.email}</p>
+						<p className="text-base text-med-blue">{me ? roleLabel(me.role) : ''}</p>
 					</div>
 				</div>
 			</dialog>

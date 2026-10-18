@@ -2,11 +2,16 @@ import { buttonClass } from '@checkpad/shared/button';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import magnifyingGlass from '../assets/magnifying-glass.svg';
+import searchEmpty from '../assets/search-empty.svg';
+import users from '../assets/users.svg';
 import AttendeeTable from '../components/AttendeeTable';
+import EmptyState from '../components/EmptyState';
 import EventOverview from '../components/EventOverview';
+import ImportDialog from '../components/ImportDialog';
 import PageHeader from '../components/PageHeader';
 import StatsCard from '../components/StatsCard';
 import { WalkInDialog } from '../components/WalkIn';
+import type { ImportPlan } from '../lib/bevy';
 import { useEvent } from '../lib/events';
 import { rosterStats, useRoster } from '../lib/roster';
 
@@ -17,7 +22,9 @@ export default function AttendeesPage() {
 	const roster = useRoster(slug);
 	const stats = useMemo(() => rosterStats(roster), [roster]);
 	const [query, setQuery] = useState('');
-	const [addingWalkIn, setAddingWalkIn] = useState(false);
+	// The walk-in dialog, prefilled with the search when it came from "no search results"
+	const [walkIn, setWalkIn] = useState<string | null>(null);
+	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -49,17 +56,61 @@ export default function AttendeesPage() {
 							/>
 						</label>
 						{/* Figma "Attendees – add walk-in" */}
-						<button type="button" onClick={() => setAddingWalkIn(true)} className={buttonClass('primary')}>
+						<button type="button" onClick={() => setWalkIn('')} className={buttonClass('primary')}>
 							Add attendee
 						</button>
 					</div>
 				}
 			/>
 			<div className="flex flex-col gap-[15px] px-6 pb-[27px]">
-				<StatsCard stats={stats} />
-				<AttendeeTable eventSlug={slug} timeZone={event.timeZone} attendees={filtered} query={query.trim()} />
+				{roster.length === 0 ? (
+					// Figma "Attendees – empty"
+					<EmptyState
+						icon={users}
+						title="No attendees yet"
+						description="Import the attendee list from Bevy, or add walk-ins as people arrive."
+						actions={
+							<>
+								<button type="button" onClick={() => setWalkIn('')} className={buttonClass('secondary')}>
+									Add walk-in
+								</button>
+								<button type="button" onClick={() => setImporting({})} className={buttonClass('primary')}>
+									Import from Bevy
+								</button>
+							</>
+						}
+					/>
+				) : (
+					<>
+						<StatsCard stats={stats} />
+						{filtered.length === 0 ? (
+							// Figma "Attendees – no search results"
+							<EmptyState
+								compact
+								icon={searchEmpty}
+								title={`No one matches “${query.trim()}”`}
+								description="Search by first name, last name, email or ticket number."
+								actions={
+									<>
+										<button type="button" onClick={() => setQuery('')} className={buttonClass('secondary')}>
+											Clear search
+										</button>
+										<button type="button" onClick={() => setWalkIn(query.trim())} className={buttonClass('primary')}>
+											Add as walk-in
+										</button>
+									</>
+								}
+							/>
+						) : (
+							<AttendeeTable eventSlug={slug} timeZone={event.timeZone} attendees={filtered} />
+						)}
+					</>
+				)}
 			</div>
-			{addingWalkIn && <WalkInDialog event={event} onClose={() => setAddingWalkIn(false)} />}
+			{walkIn !== null && <WalkInDialog event={event} prefill={walkIn} onClose={() => setWalkIn(null)} />}
+			{importing && (
+				<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
+			)}
 		</>
 	);
 }

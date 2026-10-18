@@ -64,7 +64,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 					items={[
 						{ label: 'Import from Bevy', icon: upload, onSelect: () => setImporting({}) },
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event, roster) },
-						{ label: 'Open prize draw', icon: gift, disabled: true },
+						{ label: 'Open prize draw', icon: gift, onSelect: () => window.open(`/events/${event.slug}/prize-draw`, '_blank') },
 						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
 					]}
 				>

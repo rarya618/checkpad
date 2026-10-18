@@ -10,10 +10,10 @@ export type CheckInResult =
 
 // A real backend must also reject check-ins outside the event's window; the UI
 // only hides the form.
-const sampleAttendees = () => [
-	{ email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee', checkedInAt: null },
-	{ email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee', checkedInAt: null },
-	{ email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe', checkedInAt: null },
+const sampleAttendees = (): Attendee[] => [
+	{ email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee', checkedInAt: null, ticket: 'GOOGA263293408' },
+	{ email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee', checkedInAt: null, ticket: 'GOOGA263288757' },
+	{ email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe', checkedInAt: null, ticket: 'GOOGA263290115' },
 ];
 
 const attendeesByEvent: Record<string, Attendee[]> = {
@@ -39,12 +39,15 @@ export async function checkInWalkIn(
 	details: { email: string; firstName: string; lastName: string },
 ): Promise<Attendee> {
 	await delay();
+	const list = (attendeesByEvent[eventSlug] ??= []);
+	const walkIns = list.filter((a) => a.ticket?.startsWith('GDGWALKIN')).length;
 	const attendee: Attendee = {
 		email: normalise(details.email),
 		firstName: details.firstName.trim(),
 		lastName: details.lastName.trim(),
 		checkedInAt: new Date(),
+		ticket: `GDGWALKIN${String(walkIns + 1).padStart(4, '0')}`,
 	};
-	(attendeesByEvent[eventSlug] ??= []).push(attendee);
+	list.push(attendee);
 	return attendee;
 }

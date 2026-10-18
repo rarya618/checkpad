@@ -11,11 +11,14 @@ import { TextField } from './Field';
 // Figma "Attendees – add walk-in" (desktop dialog) and "Staff check in (mobile) – add walk-in"
 // (a card in place of the search). Both add the person already checked in.
 
-function useWalkInForm(event: DashboardEvent, initialEmail: string, onDone: () => void) {
+/** `prefill` is what staff searched for: an email fills Email, anything else the name. */
+function useWalkInForm(event: DashboardEvent, prefill: string, onDone: () => void) {
 	const roster = useRoster(event.slug);
-	const [firstName, setFirstName] = useState('');
-	const [lastName, setLastName] = useState('');
-	const [email, setEmail] = useState(looksLikeEmail(initialEmail) ? initialEmail.trim() : '');
+	const isEmail = looksLikeEmail(prefill);
+	const [first = '', ...rest] = isEmail ? [] : prefill.trim().split(/\s+/);
+	const [firstName, setFirstName] = useState(first);
+	const [lastName, setLastName] = useState(rest.join(' '));
+	const [email, setEmail] = useState(isEmail ? prefill.trim() : '');
 	const taken = roster.some((a) => a.email.toLowerCase() === email.trim().toLowerCase());
 	const emailError = taken ? 'Someone with this email is already on the list. Find them instead.' : null;
 	const valid = firstName.trim() !== '' && looksLikeEmail(email) && !taken;
@@ -41,8 +44,8 @@ function ticketDetails(event: DashboardEvent) {
 	return [event.walkInTicketTitle, event.walkInVenue.split(',')[0]].filter(Boolean).join(' · ');
 }
 
-export function WalkInDialog({ event, initialEmail = '', onClose }: { event: DashboardEvent; initialEmail?: string; onClose: () => void }) {
-	const { fields, valid, ticket, submit } = useWalkInForm(event, initialEmail, onClose);
+export function WalkInDialog({ event, prefill = '', onClose }: { event: DashboardEvent; prefill?: string; onClose: () => void }) {
+	const { fields, valid, ticket, submit } = useWalkInForm(event, prefill, onClose);
 	return (
 		<Dialog
 			title="Add walk-in"
@@ -81,8 +84,8 @@ export function WalkInDialog({ event, initialEmail = '', onClose }: { event: Das
 	);
 }
 
-export function WalkInCard({ event, initialEmail = '', onClose }: { event: DashboardEvent; initialEmail?: string; onClose: () => void }) {
-	const { fields, valid, ticket, submit } = useWalkInForm(event, initialEmail, onClose);
+export function WalkInCard({ event, prefill = '', onClose }: { event: DashboardEvent; prefill?: string; onClose: () => void }) {
+	const { fields, valid, ticket, submit } = useWalkInForm(event, prefill, onClose);
 	return (
 		<form onSubmit={submit} className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
 			<div className="flex items-center">

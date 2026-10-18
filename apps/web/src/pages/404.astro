@@ -3,10 +3,11 @@ import StatusScreen from '../components/StatusScreen';
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Event not found · checkpad">
+<Layout title="Link not found · checkpad">
 	<StatusScreen
-		title="Event not found"
-		subtitle="This link does not match an existing event."
-		body="Check with your host to see if you have the correct link."
+		title="Link not found"
+		subtitle="This check-in link doesn’t match any event."
+		body="Check the link with your organiser."
+		homeLink={false}
 	/>
 </Layout>

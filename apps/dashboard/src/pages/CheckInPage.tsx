@@ -162,7 +162,7 @@ export default function CheckInPage() {
 			{walkInFor !== null && (
 				<WalkInDialog
 					event={event}
-					initialEmail={walkInFor}
+					prefill={walkInFor}
 					onClose={() => {
 						setWalkInFor(null);
 						reset();
@@ -253,7 +253,7 @@ function MobileCheckIn(p: MobileProps) {
 			</section>
 
 			{p.walkInFor !== null ? (
-				<WalkInCard event={p.event} initialEmail={p.walkInFor} onClose={p.closeWalkIn} />
+				<WalkInCard event={p.event} prefill={p.walkInFor} onClose={p.closeWalkIn} />
 			) : (
 				<>
 					<form onSubmit={p.find} className="flex flex-col gap-4 rounded-2xl border border-med-blue bg-white p-5">

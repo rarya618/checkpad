@@ -3,6 +3,7 @@
 import type { CheckpadEvent } from '@checkpad/shared/events';
 import { mockEvents } from '@checkpad/shared/mock-events';
 import { useMemo, useSyncExternalStore } from 'react';
+import { pastEvents } from './mock';
 import { removeRoster, renameRoster, rosterStats, useAllRosters, type RosterStats } from './roster';
 
 export interface Team {
@@ -12,7 +13,9 @@ export interface Team {
 	walkInTicketPrefix: string;
 }
 
-export const teams: Team[] = [{ name: 'GDG Sydney', slug: 'gdg-sydney', walkInTicketPrefix: 'GDGWALKIN' }];
+// Live binding: pages that list teams read the latest on each render; the Organisers
+// page subscribes with useTeams() so it updates as soon as a team is saved.
+export let teams: Team[] = [{ name: 'GDG Sydney', slug: 'gdg-sydney', walkInTicketPrefix: 'GDGWALKIN' }];
 
 export interface DashboardEvent extends CheckpadEvent {
 	team: string;
@@ -35,7 +38,7 @@ const defaults = {
 };
 
 // September Meetup matches the Figma Event settings screen.
-let events: DashboardEvent[] = mockEvents.map((event) =>
+let events: DashboardEvent[] = [...mockEvents, ...pastEvents].map((event) =>
 	event.slug === 'gdg-september-meetup'
 		? {
 				...event,
@@ -57,6 +60,22 @@ function subscribe(listener: () => void) {
 
 function emit() {
 	listeners.forEach((listener) => listener());
+}
+
+export function useTeams() {
+	return useSyncExternalStore(subscribe, () => teams);
+}
+
+/**
+ * Creates a team (`previousName` null) or saves changes to one. A renamed team's events
+ * follow it; the caller moves its organisers (organisers.ts).
+ */
+export function saveTeam(previousName: string | null, team: Omit<Team, 'walkInTicketPrefix'>) {
+	const existing = teams.find((t) => t.name === previousName);
+	const saved: Team = { ...team, walkInTicketPrefix: existing?.walkInTicketPrefix ?? `${team.slug.split('-')[0].toUpperCase()}WALKIN` };
+	teams = existing ? teams.map((t) => (t === existing ? saved : t)) : [...teams, saved];
+	if (existing && previousName !== team.name) events = events.map((e) => (e.team === previousName ? { ...e, team: team.name } : e));
+	emit();
 }
 
 export function useEvents() {

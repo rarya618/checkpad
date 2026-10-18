@@ -6,6 +6,13 @@ export interface CheckpadEvent {
 	startsAt: string;
 	endsAt: string;
 	timeZone: string;
+	/** The team whose permanent link (checkpad.app/team/<slug>) can open this event. */
+	teamSlug?: string;
+}
+
+export interface Team {
+	slug: string;
+	name: string;
 }
 
 export type CheckInWindow = 'not-open' | 'open' | 'closed';
