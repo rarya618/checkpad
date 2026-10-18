@@ -192,7 +192,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 2. **Backend foundation in `checkpad-app`.** Firestore data model, server check-in endpoint, Firestore rules, Google and email-link sign-in with roles.
 3. **Attendee flow on real data.** Wire `apps/web` to the endpoint, add the old-URL redirects and team links.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
-5. **Build the designed screens.** The designs are done (see the feature map). Event settings with the open/close switch, Bevy import and export, staff check-in (desktop and phone), the QR display and Share dialog, organisers and teams, then the prize draw display and analytics. Update the line-height tokens in `theme.css` first.
+5. **Build the designed screens.** Done ahead of phases 2–4, on mock data (October 2026): every designed screen is built (see the feature map). They move to real data in phases 3 and 4.
 6. **Data migration.** Run the script against a copy, check the counts, then production.
 7. **Cutover.** Point the Checkpad domains at `checkpad-app`, switch the old project's hosting to redirects only, lock the old database down (it's fully open today), then retire it. The redirects don't need the database, so it can be locked as soon as the data is migrated.
 
