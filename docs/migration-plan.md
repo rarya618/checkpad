@@ -1,12 +1,12 @@
 # Checkpad migration plan
 
-As of 16 October 2026 · Russal Arya
+As of 18 October 2026 · Russal Arya
 
 ## Summary
 
 Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad moves to a new Firebase project, `checkpad-app`; the old project stays up only for redirects, then retires. Checkpad has the attendee flow and the two organiser dashboards built on mock data, but no backend, sign-in, import or settings yet. Every old feature that's being kept now has a design in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad); cloud credits are dropped.
 
-One issue can't wait for the migration: in the old project, the public check-in page reads attendee lists straight from the database without sign-in, so the live database is probably readable by anyone. Check the live Firebase rules first.
+One issue can't wait for the migration: the old project's live database rules are fully open, so anyone can read and write every event's attendee list without signing in (checked 18 October 2026). The old app won't be changed before it's retired, so retiring it must also lock down or delete the old database.
 
 Checkpad today is an npm workspaces monorepo:
 
@@ -14,9 +14,24 @@ Checkpad today is an npm workspaces monorepo:
 - `apps/dashboard`: React + Vite, the organiser dashboard
 - `packages/shared`: design tokens, button styles, types, date formatting and the logo
 
-## Urgent: the live app may expose every attendee
+## Urgent: the live app exposes every attendee
 
-If the public page works, the live database rules let anyone who isn't signed in read every event's attendee list. The rules file in the repo (`database.rules.json`) denies everything and has never changed since it was added, so the live rules must have been set in the Firebase console. That can't be confirmed from the repo alone.
+Checked on 18 October 2026: the live rules on `gdg-syd-check-in-default-rtdb` are
+
+```json
+{ "rules": { ".read": true, ".write": true } }
+```
+
+so anyone, signed in or not, can read and write the whole database. A request without sign-in for the top-level keys alone returned `admins`, `events` (14) and `teams`. The rules file in the old repo (`database.rules.json`) denies everything; the live rules were set in the Firebase console and never matched it.
+
+That means anyone can:
+
+- read every event's attendees: names, emails, job titles, companies and tickets
+- read the admins list: every organiser's email and role
+- add themselves to `admins` as a superadmin and get full access through the old dashboard
+- change or delete any event, attendee or team, including the data this plan migrates
+
+**Decision (18 October 2026): the old app won't be changed**, rules included, because it's being retired soon. Retiring the app doesn't close the database, so the retirement must lock down or delete it (see Cutover).
 
 What the public page (`?event=<id>`, no sign-in) does from the browser:
 
@@ -32,14 +47,15 @@ Attendee records hold first and last name, email, job title, company and ticket 
 Related problems:
 
 - **Name lookup by email:** the "Is this still you?" autofill shows a past attendee's name to anyone who types in their email.
-- **Roles only in the browser:** the role check lives in React, and the superadmin email is written into `AuthGate.tsx`. Unless the live rules check roles, anyone who can reach the database can edit or delete events and attendees.
-- **Open writes:** if the rules allow public writes so the check-in page works, anyone can check in, undo or overwrite any attendee.
+- **Roles only in the browser:** the role check lives in React, and the superadmin email is written into `AuthGate.tsx`. The live rules don't check roles, so anyone who can reach the database can edit or delete events and attendees.
+- **Open writes:** the rules allow public writes (that's how the check-in page works), so anyone can check in, undo or overwrite any attendee.
 
-What to do today:
+What to do:
 
-- [ ] Read the live rules in the old project's Firebase console (Realtime Database → Rules); the new `checkpad-app` project doesn't fix the old one, which stays live until cutover
-- [ ] If `events` is publicly readable, lock it down, and accept that public self-check-in stops until a server function replaces it
-- [ ] Turn off the past-event autofill
+- [x] Read the live rules: fully open for reads and writes (18 October 2026)
+- Not doing: locking down the rules or turning off the past-event autofill; the old app is left unchanged until it's retired
+- [ ] Export the old database as JSON soon and keep it private (Data migration, step 1); with open writes, anyone could delete it before the migration
+- [ ] When the old app is retired, lock down or delete its database; taking the app down alone leaves the data public
 - [ ] Decide whether the exposure needs a notice to attendees under your privacy obligations
 
 ## Feature map
@@ -129,7 +145,7 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 
 Migration script:
 
-1. Export the old project's (`gdg-syd-check-in`) Realtime Database as JSON from the Firebase console.
+1. Export the old project's (`gdg-syd-check-in`) Realtime Database as JSON from the Firebase console. Do this early and keep a dated copy: its rules allow anyone to change or delete the data.
 2. Transform it with a script in this repo: create slugs and IDs, convert dates, map fields, keep the old IDs for redirects.
 3. Write it into Firestore in `checkpad-app` with the Admin SDK: a test project or the emulator first, then production.
 4. Check counts per event (attendees, checked in, walk-ins) against the old app.
@@ -171,17 +187,17 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 
 ## Phased plan
 
-1. **Today: rules in the old project.** Check the live rules, lock down public reads, and turn off the autofill.
+1. **The old project.** Rules checked: fully open. Not changing the old app (decision, 18 October 2026); export its data early instead.
 2. **Backend foundation in `checkpad-app`.** Firestore data model, server check-in endpoint, Firestore rules, Google and email-link sign-in with roles.
 3. **Attendee flow on real data.** Wire `apps/web` to the endpoint, add the old-URL redirects and team links.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
 5. **Build the designed screens.** The designs are done (see the feature map). Event settings with the open/close switch, Bevy import and export, staff check-in (desktop and phone), the QR display and Share dialog, organisers and teams, then the prize draw display and analytics. Update the line-height tokens in `theme.css` first.
 6. **Data migration.** Run the script against a copy, check the counts, then production.
-7. **Cutover.** Point the Checkpad domains at `checkpad-app`, switch the old project's hosting to redirects only, keep the old database read-only for a while, then retire it.
+7. **Cutover.** Point the Checkpad domains at `checkpad-app`, switch the old project's hosting to redirects only, lock the old database down (it's fully open today), then retire it. The redirects don't need the database, so it can be locked as soon as the data is migrated.
 
 ## Open questions
 
-- [ ] What do the live Firebase rules say?
+- [x] What do the live Firebase rules say? Fully open for reads and writes; the old app is left unchanged until it's retired
 - [ ] Manual open/close, time window, or both? (Designs assume the manual switch)
 - [ ] Is the old domain staying, and how many team signs are printed?
 - [x] Which features without a design survive? Prize draw and walk-in ticket defaults kept; cloud credits dropped
