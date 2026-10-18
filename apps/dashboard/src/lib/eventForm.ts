@@ -1,5 +1,5 @@
 // Form values for New event and Event settings, and the conversions to and from an event.
-import { teams, type DashboardEvent } from './events';
+import { isSlugTaken, type DashboardEvent } from './events';
 
 export interface EventForm {
 	name: string;
@@ -49,9 +49,19 @@ export function cleanSlug(text: string) {
 	return text.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-{2,}/g, '-').replace(/^-/, '');
 }
 
-export function suggestedSlug(name: string, teamName: string) {
-	const prefix = teams.find((team) => team.name === teamName)?.linkPrefix;
-	return slugify(prefix ? `${prefix} ${name}` : name);
+/** Four random letters and digits, without look-alikes (i, l, 1, o, 0), since links get printed. */
+export function randomSuffix() {
+	const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+	return Array.from(crypto.getRandomValues(new Uint32Array(4)), (n) => chars[n % chars.length]).join('');
+}
+
+/** The name as a link, with `suffix` added if another event uses it already: "october-meetup-k3f9". */
+export function suggestedSlug(name: string, suffix: string) {
+	const base = slugify(name);
+	if (!base || !isSlugTaken(base)) return base;
+	let slug = `${base}-${suffix}`;
+	while (isSlugTaken(slug)) slug = `${base}-${randomSuffix()}`;
+	return slug;
 }
 
 function zonedParts(date: Date, timeZone: string) {

@@ -5,7 +5,7 @@ import { DateTimeFields } from '../components/EventFields';
 import { LinkField, SelectField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import { WEB_HOST } from '../lib/config';
-import { cleanSlug, formIsComplete, formTimes, suggestedSlug, type EventForm } from '../lib/eventForm';
+import { cleanSlug, formIsComplete, formTimes, randomSuffix, suggestedSlug, type EventForm } from '../lib/eventForm';
 import { createEvent, isSlugTaken, teams } from '../lib/events';
 
 const blank: EventForm = {
@@ -26,13 +26,15 @@ const blank: EventForm = {
 export default function NewEventPage() {
 	const navigate = useNavigate();
 	const [form, setForm] = useState(blank);
-	// The link follows the team and name until someone edits it by hand.
+	// The link follows the name until someone edits it by hand. A name another event
+	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
 	const [slugEdited, setSlugEdited] = useState(false);
+	const [suffix] = useState(randomSuffix);
 
 	function update<K extends keyof EventForm>(key: K, value: EventForm[K]) {
 		setForm((f) => {
 			const next = { ...f, [key]: value };
-			if (!slugEdited && (key === 'name' || key === 'team')) next.slug = suggestedSlug(next.name, next.team);
+			if (!slugEdited && key === 'name') next.slug = suggestedSlug(next.name, suffix);
 			return next;
 		});
 	}
@@ -111,7 +113,7 @@ export default function NewEventPage() {
 								setSlugEdited(true);
 								update('slug', cleanSlug(e.target.value));
 							}}
-							placeholder="gdg-october-meetup"
+							placeholder="october-meetup"
 							hint="Attendees use this link to check in."
 							error={slugTaken ? 'Another event already uses this link.' : null}
 						/>

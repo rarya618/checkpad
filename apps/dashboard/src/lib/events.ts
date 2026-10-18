@@ -8,13 +8,11 @@ import { removeRoster, renameRoster, rosterStats, useAllRosters, type RosterStat
 export interface Team {
 	name: string;
 	slug: string;
-	/** Prepended to new event links: "gdg" gives checkpad.app/gdg-october-meetup. */
-	linkPrefix: string;
 	/** Walk-in tickets count up from here: GDGWALKIN0001, GDGWALKIN0002, … */
 	walkInTicketPrefix: string;
 }
 
-export const teams: Team[] = [{ name: 'GDG Sydney', slug: 'gdg-sydney', linkPrefix: 'gdg', walkInTicketPrefix: 'GDGWALKIN' }];
+export const teams: Team[] = [{ name: 'GDG Sydney', slug: 'gdg-sydney', walkInTicketPrefix: 'GDGWALKIN' }];
 
 export interface DashboardEvent extends CheckpadEvent {
 	team: string;
