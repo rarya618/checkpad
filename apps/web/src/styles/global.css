@@ -24,3 +24,35 @@ html:has(dialog[open]) {
 section[id] {
 	scroll-margin-top: var(--header-height);
 }
+
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+
+	/* Mobile menu (Nav.astro): fade and slide in, fade out. allow-discrete keeps the
+	   dialog on screen while it animates out; browsers without it just skip the animation. */
+	dialog[data-menu] {
+		opacity: 0;
+		translate: 0 -8px;
+		transition:
+			opacity 150ms ease-in,
+			translate 150ms ease-in,
+			display 150ms allow-discrete,
+			overlay 150ms allow-discrete;
+	}
+
+	dialog[data-menu][open] {
+		opacity: 1;
+		translate: 0 0;
+		transition-duration: 220ms;
+		transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+
+	@starting-style {
+		dialog[data-menu][open] {
+			opacity: 0;
+			translate: 0 -8px;
+		}
+	}
+}
