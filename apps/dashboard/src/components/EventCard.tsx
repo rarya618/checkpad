@@ -1,9 +1,19 @@
 import { checkInWindow, type CheckInWindow } from '@checkpad/shared/events';
 import { formatDate } from '@checkpad/shared/format';
+import { useState } from 'react';
 import { Link } from 'react-router';
+import arrowRight from '../assets/arrow-right.svg';
+import download from '../assets/download.svg';
 import ellipsis from '../assets/ellipsis-vertical.svg';
-import type { EventSummary } from '../lib/roster';
+import link from '../assets/link.svg';
+import sliders from '../assets/sliders.svg';
+import trash from '../assets/trash.svg';
+import { checkInUrl } from '../lib/config';
+import type { EventSummary } from '../lib/events';
+import { showToast } from '../lib/toast';
 import CheckInRing from './CheckInRing';
+import DeleteEventDialog from './DeleteEventDialog';
+import Menu from './Menu';
 
 // Only "Closed" is in the Figma file; the other two are placeholders.
 const statuses: Record<CheckInWindow, { label: string; className: string }> = {
@@ -15,6 +25,7 @@ const statuses: Record<CheckInWindow, { label: string; className: string }> = {
 export default function EventCard({ summary }: { summary: EventSummary }) {
 	const { event, stats } = summary;
 	const status = statuses[checkInWindow(event)];
+	const [deleting, setDeleting] = useState(false);
 	return (
 		<article className="relative flex items-center justify-between gap-6 rounded-[10px] border border-med-blue bg-white px-[27px] py-6 hover:bg-off-white/60">
 			<div className="flex min-w-0 items-center gap-7.5">
@@ -40,10 +51,27 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 					<p className="text-[15px] text-black">{event.description}</p>
 				</div>
 			</div>
-			{/* The event options menu isn't designed yet */}
-			<button type="button" aria-label={`Options for ${event.name}`} className="relative shrink-0 rounded-md p-1 hover:bg-light-blue/60">
-				<img src={ellipsis} alt="" width={18} height={18} />
-			</button>
+			{/* Figma "Events – card menu". relative lifts it above the card's stretched link. */}
+			<div className="relative shrink-0">
+				<Menu
+					label={`Options for ${event.name}`}
+					buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
+					items={[
+						{ label: 'Open event', icon: arrowRight, to: `/events/${event.slug}` },
+						{ label: 'Settings', icon: sliders, to: `/events/${event.slug}/settings` },
+						{
+							label: 'Copy check-in link',
+							icon: link,
+							onSelect: () => navigator.clipboard.writeText(checkInUrl(event.slug)).then(() => showToast('Link copied')),
+						},
+						{ label: 'Export for Bevy', icon: download, disabled: true },
+						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
+					]}
+				>
+					<img src={ellipsis} alt="" width={18} height={18} />
+				</Menu>
+			</div>
+			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
 		</article>
 	);
 }

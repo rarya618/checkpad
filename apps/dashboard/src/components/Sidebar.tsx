@@ -39,7 +39,8 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
 			</div>
 			<div className="flex w-full items-center justify-between border-t border-med-blue/50 px-3.5 py-[21px]">
 				<div className="flex flex-col gap-[4.5px]">
-					<p className="font-display text-xl">{currentUser.name}</p>
+					{/* Figma's 28px name at 75% scale: 1.2 line height, not text-xl's 1.5 */}
+					<p className="font-display text-xl leading-[1.2]">{currentUser.name}</p>
 					<p className="text-sm text-med-blue">{currentUser.role}</p>
 				</div>
 				{/* The account menu isn't designed yet */}

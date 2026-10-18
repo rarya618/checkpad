@@ -6,12 +6,13 @@ import AttendeeTable from '../components/AttendeeTable';
 import EventOverview from '../components/EventOverview';
 import PageHeader from '../components/PageHeader';
 import StatsCard from '../components/StatsCard';
-import { findEvent, rosterStats, useRoster } from '../lib/roster';
+import { useEvent } from '../lib/events';
+import { rosterStats, useRoster } from '../lib/roster';
 
 export default function AttendeesPage() {
 	const { slug = '' } = useParams();
 	// EventLayout has already redirected unknown slugs.
-	const event = findEvent(slug)!;
+	const event = useEvent(slug)!;
 	const roster = useRoster(slug);
 	const stats = useMemo(() => rosterStats(roster), [roster]);
 	const [query, setQuery] = useState('');

@@ -1,8 +1,6 @@
 // In-memory attendee store shared by every dashboard page, so checking someone in
 // on the Attendees page also updates the Events page. Swap for API calls later.
-import type { CheckpadEvent } from '@checkpad/shared/events';
-import { mockEvents } from '@checkpad/shared/mock-events';
-import { useMemo, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { buildMockRosters, type RosterAttendee } from './mock';
 
 let rosters = buildMockRosters();
@@ -26,6 +24,23 @@ export function useRoster(eventSlug: string) {
 	return useSyncExternalStore(subscribe, () => rosters[eventSlug] ?? EMPTY);
 }
 
+export function useAllRosters() {
+	return useSyncExternalStore(subscribe, () => rosters);
+}
+
+/** Moves an event's attendees when its link changes (events.ts). */
+export function renameRoster(from: string, to: string) {
+	const { [from]: moved = EMPTY, ...rest } = rosters;
+	rosters = { ...rest, [to]: moved };
+	listeners.forEach((listener) => listener());
+}
+
+export function removeRoster(eventSlug: string) {
+	const { [eventSlug]: _removed, ...rest } = rosters;
+	rosters = rest;
+	listeners.forEach((listener) => listener());
+}
+
 export interface RosterStats {
 	total: number;
 	checkedIn: number;
@@ -44,24 +59,4 @@ export function rosterStats(roster: RosterAttendee[]): RosterStats {
 	}
 	const checkedIn = preRegistered + walkIns;
 	return { total: roster.length, checkedIn, preRegistered, walkIns, notArrived: roster.length - checkedIn };
-}
-
-export interface EventSummary {
-	event: CheckpadEvent;
-	stats: RosterStats;
-}
-
-export function useEventSummaries(): EventSummary[] {
-	const all = useSyncExternalStore(subscribe, () => rosters);
-	return useMemo(
-		() =>
-			mockEvents
-				.map((event) => ({ event, stats: rosterStats(all[event.slug] ?? EMPTY) }))
-				.sort((a, b) => b.event.startsAt.localeCompare(a.event.startsAt)),
-		[all],
-	);
-}
-
-export function findEvent(slug: string | undefined) {
-	return mockEvents.find((event) => event.slug === slug);
 }

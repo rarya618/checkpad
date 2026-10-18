@@ -1,0 +1,164 @@
+import { buttonClass } from '@checkpad/shared/button';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { DateTimeFields } from '../components/EventFields';
+import { LinkField, SelectField, TextField } from '../components/Field';
+import FormCard from '../components/FormCard';
+import { WEB_HOST } from '../lib/config';
+import { cleanSlug, formIsComplete, formTimes, suggestedSlug, type EventForm } from '../lib/eventForm';
+import { createEvent, isSlugTaken, teams } from '../lib/events';
+
+const blank: EventForm = {
+	name: '',
+	slug: '',
+	description: '',
+	date: '',
+	start: '17:00',
+	end: '20:00',
+	timeZone: 'Australia/Sydney',
+	team: teams[0].name,
+	walkInTicketTitle: 'General admission',
+	walkInVenue: '',
+	selfCheckInOpen: false,
+};
+
+// Figma "New event". Placeholders show the example values from the design.
+export default function NewEventPage() {
+	const navigate = useNavigate();
+	const [form, setForm] = useState(blank);
+	// The link follows the team and name until someone edits it by hand.
+	const [slugEdited, setSlugEdited] = useState(false);
+
+	function update<K extends keyof EventForm>(key: K, value: EventForm[K]) {
+		setForm((f) => {
+			const next = { ...f, [key]: value };
+			if (!slugEdited && (key === 'name' || key === 'team')) next.slug = suggestedSlug(next.name, next.team);
+			return next;
+		});
+	}
+
+	const team = teams.find((t) => t.name === form.team) ?? teams[0];
+	const slug = form.slug.replace(/-+$/, '');
+	const slugTaken = slug !== '' && isSlugTaken(slug);
+	const canCreate = formIsComplete(form) && !slugTaken;
+
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				if (!canCreate) return;
+				createEvent({
+					slug,
+					name: form.name.trim(),
+					description: form.description.trim(),
+					...formTimes(form),
+					timeZone: form.timeZone,
+					team: form.team,
+					walkInTicketTitle: form.walkInTicketTitle.trim(),
+					walkInVenue: form.walkInVenue.trim(),
+					selfCheckInOpen: false,
+					selfCheckInChangedBy: null,
+					selfCheckInChangedAt: null,
+				});
+				navigate(`/events/${slug}`);
+			}}
+		>
+			{/* Sticks once 24px remains above it, like PageHeader */}
+			<header className="sticky top-[-30px] z-10 flex items-end gap-3 bg-off-white px-6 pt-[54px] pb-[30px]">
+				<div className="flex min-w-0 flex-1 flex-col gap-3.5">
+					<nav aria-label="Breadcrumb">
+						<ol className="flex items-center gap-1.5 text-[15px] text-black">
+							<li>
+								<Link to="/events" className="tracking-[-0.375px] hover:underline">
+									Events
+								</Link>
+							</li>
+							<li aria-hidden="true">/</li>
+							<li aria-current="page" className="font-display">
+								New event
+							</li>
+						</ol>
+					</nav>
+					<h1 className="font-display text-3xl">New event</h1>
+				</div>
+				<div className="flex shrink-0 items-center gap-[15px]">
+					<Link to="/events" className={buttonClass('secondary')}>
+						Cancel
+					</Link>
+					<button type="submit" disabled={!canCreate} className={`${buttonClass('primary')} disabled:opacity-50`}>
+						Create event
+					</button>
+				</div>
+			</header>
+
+			<div className="grid gap-[18px] px-6 pb-[27px] lg:grid-cols-2">
+				<div className="flex flex-col gap-[18px]">
+					<FormCard title="Details">
+						<TextField
+							label="Name"
+							required
+							value={form.name}
+							onChange={(e) => update('name', e.target.value)}
+							placeholder="October Meetup"
+							autoFocus
+						/>
+						<LinkField
+							label="Link"
+							host={WEB_HOST}
+							required
+							value={form.slug}
+							onChange={(e) => {
+								setSlugEdited(true);
+								update('slug', cleanSlug(e.target.value));
+							}}
+							placeholder="gdg-october-meetup"
+							hint="Attendees use this link to check in."
+							error={slugTaken ? 'Another event already uses this link.' : null}
+						/>
+						<TextField
+							label="Description"
+							value={form.description}
+							onChange={(e) => update('description', e.target.value)}
+							placeholder="Join us for our monthly meetup"
+						/>
+					</FormCard>
+					<FormCard title="When">
+						<DateTimeFields form={form} update={update} />
+					</FormCard>
+				</div>
+				<div className="flex flex-col gap-[18px]">
+					<FormCard title="Team" description="Team members can see and run this event. Super admins see every event.">
+						<SelectField
+							label="Team"
+							value={form.team}
+							onChange={(e) => update('team', e.target.value)}
+							hint={`${WEB_HOST}/team/${team.slug} will point here while this is the team’s next event.`}
+						>
+							{teams.map((t) => (
+								<option key={t.slug}>{t.name}</option>
+							))}
+						</SelectField>
+					</FormCard>
+					<FormCard
+						title="Walk-ins"
+						description={`Walk-ins get the next ticket number: ${team.walkInTicketPrefix}0001, ${team.walkInTicketPrefix}0002, and so on.`}
+						className="flex-1"
+					>
+						<TextField
+							label="Ticket title"
+							value={form.walkInTicketTitle}
+							onChange={(e) => update('walkInTicketTitle', e.target.value)}
+							placeholder="General admission"
+						/>
+						<TextField
+							label="Venue"
+							value={form.walkInVenue}
+							onChange={(e) => update('walkInVenue', e.target.value)}
+							placeholder="Google Sydney, 1 Pirrama Rd, Pyrmont"
+						/>
+					</FormCard>
+				</div>
+			</div>
+		</form>
+	);
+}

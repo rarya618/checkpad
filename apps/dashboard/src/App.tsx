@@ -1,9 +1,12 @@
-import { Navigate, Outlet, Route, Routes, useParams } from 'react-router';
+import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
 import Sidebar, { type SidebarItem } from './components/Sidebar';
-import { findEvent } from './lib/roster';
+import Toaster from './components/Toaster';
+import { renamedSlug, useEvent } from './lib/events';
 import AttendeesPage from './pages/AttendeesPage';
 import ComingSoon from './pages/ComingSoon';
+import EventSettingsRoute from './pages/EventSettingsPage';
 import EventsPage from './pages/EventsPage';
+import NewEventPage from './pages/NewEventPage';
 
 const mainItems: SidebarItem[] = [
 	{ to: '/events', label: 'Events' },
@@ -19,10 +22,13 @@ function DashboardLayout({ items }: { items: SidebarItem[] }) {
 			<div className="shrink-0 py-6 pr-3 pl-6">
 				<Sidebar items={items} />
 			</div>
-			{/* No top padding here: page headers carry it so they can stick flush to the top */}
-			<main className="min-w-0 flex-1 overflow-y-auto overscroll-none pr-6 pb-6">
-				<Outlet />
-			</main>
+			<div className="relative min-w-0 flex-1">
+				{/* No top padding here: page headers carry it so they can stick flush to the top */}
+				<main className="h-full overflow-y-auto overscroll-none pr-6 pb-6">
+					<Outlet />
+				</main>
+				<Toaster />
+			</div>
 		</div>
 	);
 }
@@ -30,7 +36,13 @@ function DashboardLayout({ items }: { items: SidebarItem[] }) {
 // Inside an event the sidebar switches to that event's menu (Figma "Event view").
 function EventLayout() {
 	const { slug } = useParams();
-	if (!findEvent(slug)) return <Navigate to="/events" replace />;
+	const { pathname } = useLocation();
+	// Reactive: a deleted event leaves its pages, and one saved under a new link takes the page with it
+	const event = useEvent(slug);
+	if (!event) {
+		const moved = renamedSlug(slug);
+		return <Navigate to={moved ? pathname.replace(`/events/${slug}`, `/events/${moved}`) : '/events'} replace />;
+	}
 	const base = `/events/${slug}`;
 	return (
 		<DashboardLayout
@@ -50,6 +62,7 @@ export default function App() {
 			<Route element={<DashboardLayout items={mainItems} />}>
 				<Route index element={<Navigate to="/events" replace />} />
 				<Route path="events" element={<EventsPage />} />
+				<Route path="events/new" element={<NewEventPage />} />
 				<Route path="organisers" element={<ComingSoon title="Organisers" />} />
 				<Route path="analytics" element={<ComingSoon title="Analytics" />} />
 			</Route>
@@ -57,7 +70,7 @@ export default function App() {
 				<Route index element={<AttendeesPage />} />
 				<Route path="check-in" element={<ComingSoon title="Check in" />} />
 				<Route path="analytics" element={<ComingSoon title="Analytics" />} />
-				<Route path="settings" element={<ComingSoon title="Settings" />} />
+				<Route path="settings" element={<EventSettingsRoute />} />
 			</Route>
 			<Route path="*" element={<Navigate to="/events" replace />} />
 		</Routes>

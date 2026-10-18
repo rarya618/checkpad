@@ -1,7 +1,8 @@
 import { buttonClass } from '@checkpad/shared/button';
+import { Link } from 'react-router';
 import EventCard from '../components/EventCard';
 import PageHeader from '../components/PageHeader';
-import { useEventSummaries } from '../lib/roster';
+import { useEventSummaries } from '../lib/events';
 
 export default function EventsPage() {
 	const summaries = useEventSummaries();
@@ -10,10 +11,9 @@ export default function EventsPage() {
 			<PageHeader
 				title="Events"
 				actions={
-					// The create-event form isn't designed yet
-					<button type="button" className={buttonClass('primary')}>
+					<Link to="/events/new" className={buttonClass('primary')}>
 						New event
-					</button>
+					</Link>
 				}
 			/>
 			<ul className="flex flex-col gap-3 px-6 pb-[27px]">

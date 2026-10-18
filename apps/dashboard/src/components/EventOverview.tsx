@@ -1,16 +1,23 @@
 import { buttonClass } from '@checkpad/shared/button';
-import type { CheckpadEvent } from '@checkpad/shared/events';
 import { formatDate, formatTimeRange } from '@checkpad/shared/format';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import clipboard from '../assets/clipboard.svg';
+import download from '../assets/download.svg';
 import ellipsis from '../assets/ellipsis-vertical-dark.svg';
+import gift from '../assets/gift.svg';
+import trash from '../assets/trash.svg';
+import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
+import type { DashboardEvent } from '../lib/events';
+import DeleteEventDialog from './DeleteEventDialog';
+import Menu from './Menu';
 
-// Top of the Attendees dashboard: breadcrumbs, event name, date, check-in link, actions.
-export default function EventOverview({ event }: { event: CheckpadEvent }) {
+// Top of an event's pages: breadcrumbs, event name, date, check-in link, actions.
+export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
+	const [deleting, setDeleting] = useState(false);
 	return (
 		<section className="flex items-center gap-3 px-6 pt-[54px]">
 			<div className="flex min-w-0 flex-1 flex-col gap-3.5 py-px">
@@ -35,18 +42,29 @@ export default function EventOverview({ event }: { event: CheckpadEvent }) {
 				</div>
 				<CheckInLink url={checkInUrl(event.slug)} />
 			</div>
-			{/* Edit, Share and the options menu aren't designed yet */}
 			<div className="flex shrink-0 items-center gap-[15px]">
-				<button type="button" className={buttonClass('secondary')}>
+				<Link to={`/events/${event.slug}/settings`} className={buttonClass('secondary')}>
 					Edit
-				</button>
+				</Link>
+				{/* The Share dialog is built with the QR display */}
 				<button type="button" className={buttonClass('primary')}>
 					Share
 				</button>
-				<button type="button" aria-label="More event options" className="rounded-[10px] bg-light-blue p-3">
+				{/* Figma "Attendees – more menu"; only Delete event is built so far */}
+				<Menu
+					label="More event options"
+					buttonClassName="rounded-[10px] bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
+					items={[
+						{ label: 'Import from Bevy', icon: upload, disabled: true },
+						{ label: 'Export for Bevy', icon: download, disabled: true },
+						{ label: 'Open prize draw', icon: gift, disabled: true },
+						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
+					]}
+				>
 					<img src={ellipsis} alt="" width={18} height={18} />
-				</button>
+				</Menu>
 			</div>
+			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
 		</section>
 	);
 }
