@@ -17,18 +17,18 @@ const links = [
 	data-header
 	class="sticky top-0 z-40 border-b border-transparent bg-off-white/90 backdrop-blur-md transition-colors data-scrolled:border-light-blue"
 >
-	<div class="mx-auto flex w-full max-w-[1440px] items-center justify-between py-5 pr-4 pl-6 lg:px-30 lg:py-7">
+	<div class="mx-auto flex w-full max-w-[1440px] items-center justify-between py-5 pr-4 pl-6 md:pr-10 md:pl-12 xl:px-30 xl:py-7">
 		<a href="/" aria-label="checkpad home">
-			<Image src={logo} alt="checkpad" width={176} height={42} class="w-[134px] lg:w-[176px]" />
+			<Image src={logo} alt="checkpad" width={176} height={42} class="w-[134px] xl:w-[176px]" />
 		</a>
-		<nav aria-label="Main" class="hidden lg:block">
+		<nav aria-label="Main" class="hidden xl:block">
 			<ul class="flex gap-10">
 				{links.map((l) => (
 					<li><a href={l.href} class="text-[17px] leading-[26px] font-medium hover:text-med-blue">{l.label}</a></li>
 				))}
 			</ul>
 		</nav>
-		<div class="hidden gap-3 lg:flex">
+		<div class="hidden gap-3 xl:flex">
 			<a href={DASHBOARD_URL} class={buttonClass('secondary')}>Sign in</a>
 			<a href={DASHBOARD_URL} class={buttonClass('primary')}>Get started</a>
 		</div>
@@ -37,7 +37,7 @@ const links = [
 			data-menu-open
 			aria-label="Open menu"
 			aria-haspopup="dialog"
-			class="grid size-11 place-items-center rounded-[10px] lg:hidden"
+			class="grid size-11 place-items-center rounded-[10px] xl:hidden"
 		>
 			<Icon name="menu" />
 		</button>
@@ -48,15 +48,15 @@ const links = [
 <dialog
 	data-menu
 	aria-label="Menu"
-	class="m-0 h-dvh max-h-none w-full max-w-none flex-col bg-off-white p-0 text-dark-blue open:flex lg:hidden"
+	class="m-0 h-dvh max-h-none w-full max-w-none flex-col bg-off-white p-0 text-dark-blue open:flex xl:hidden"
 >
-	<div class="flex items-center justify-between py-5 pr-4 pl-6">
+	<div class="flex items-center justify-between py-5 pr-4 pl-6 md:pr-10 md:pl-12">
 		<Image src={logo} alt="checkpad" width={176} height={42} class="w-[134px]" />
 		<button type="button" data-menu-close aria-label="Close menu" class="grid size-11 place-items-center rounded-[10px] bg-light-blue">
 			<Icon name="x" />
 		</button>
 	</div>
-	<div class="flex flex-1 flex-col justify-between px-6 pt-4 pb-8">
+	<div class="flex flex-1 flex-col justify-between px-6 pt-4 pb-8 md:px-12">
 		<ul>
 			{links.map((l) => (
 				<li>
@@ -67,10 +67,12 @@ const links = [
 				</li>
 			))}
 		</ul>
-		<div class="flex flex-col gap-3">
-			<a href={DASHBOARD_URL} class={`w-full ${buttonClass('primary')}`}>Get started</a>
-			<a href={DASHBOARD_URL} class={`w-full ${buttonClass('secondary')}`}>Sign in</a>
-			<p class="text-center text-[15px] leading-[22px] text-dark-blue/80">At an event? Scan the QR code at the venue.</p>
+		<div class="flex flex-col gap-4">
+			<div class="flex flex-wrap gap-3">
+				<a href={DASHBOARD_URL} class={buttonClass('primary')}>Get started</a>
+				<a href={DASHBOARD_URL} class={buttonClass('secondary')}>Sign in</a>
+			</div>
+			<p class="text-[15px] leading-[22px] text-dark-blue/80">At an event? Scan the QR code at the venue.</p>
 		</div>
 	</div>
 </dialog>
@@ -87,6 +89,6 @@ const links = [
 	document.querySelector('[data-menu-close]')!.addEventListener('click', () => menu.close());
 	// Close before following an in-page link so the page can scroll to it
 	menu.querySelectorAll('[data-menu-link]').forEach((link) => link.addEventListener('click', () => menu.close()));
-	// The menu only exists below the lg breakpoint
-	matchMedia('(min-width: 1024px)').addEventListener('change', (e) => e.matches && menu.close());
+	// The menu only exists below the xl breakpoint
+	matchMedia('(min-width: 1280px)').addEventListener('change', (e) => e.matches && menu.close());
 </script>

@@ -15,7 +15,7 @@ html:has(dialog[open]) {
 	--header-height: 85px;
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 80rem) {
 	:root {
 		--header-height: 99px;
 	}

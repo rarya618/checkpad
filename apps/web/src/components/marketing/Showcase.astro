@@ -23,15 +23,15 @@ const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, clas
 <section id={id} class={className}>
 	<div
 		class:list={[
-			'mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 py-18 lg:items-center lg:gap-20 lg:px-30 lg:py-30',
-			reverse ? 'lg:flex-row-reverse' : 'lg:flex-row',
+			'mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 py-18 md:px-12 xl:items-center xl:gap-20 xl:px-30 xl:py-30',
+			reverse ? 'xl:flex-row-reverse' : 'xl:flex-row',
 		]}
 	>
-		<div class="flex flex-1 flex-col gap-8 lg:gap-5">
+		<div class="flex flex-1 flex-col gap-8 xl:gap-5">
 			<SectionHeader eyebrow={eyebrow} title={title} subtitle={body} />
-			<ul class="flex flex-col gap-2.5 lg:gap-3 lg:pt-2">
+			<ul class="flex flex-col gap-2.5 xl:gap-3 xl:pt-2">
 				{points.map((p) => (
-					<li class="flex items-center gap-2.5 text-[17px] leading-[26px] font-medium lg:gap-3 lg:text-lg lg:leading-[27px]">
+					<li class="flex items-center gap-2.5 text-[17px] leading-[26px] font-medium xl:gap-3 xl:text-lg xl:leading-[27px]">
 						<Icon name="check" size={22} strokeWidth={2.5} class="shrink-0 text-med-blue" />
 						{p}
 					</li>
@@ -42,8 +42,8 @@ const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, clas
 			src={image}
 			alt={imageAlt}
 			widths={[640, 960, 1280]}
-			sizes="(min-width: 1024px) 640px, 100vw"
-			class="w-full shrink-0 rounded-xl border border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] lg:w-[640px] lg:rounded-2xl"
+			sizes="(min-width: 1280px) 640px, (min-width: 768px) 720px, 100vw"
+			class="w-full shrink-0 rounded-xl border md:max-w-[720px] border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:w-[640px] xl:rounded-2xl"
 		/>
 	</div>
 </section>
