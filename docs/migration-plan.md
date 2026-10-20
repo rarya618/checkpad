@@ -1,6 +1,6 @@
 # Checkpad migration plan
 
-As of 18 October 2026 · Russal Arya
+As of 21 October 2026 · Russal Arya
 
 ## Summary
 
@@ -177,21 +177,27 @@ Bevy imports write in batches of at most 500, so a large import isn't all-or-not
 
 Prize draw results are saved per event, so a refresh or a second organiser's laptop doesn't lose the winners or redraw someone. The old app kept them only in the browser tab. Anyone in `draw` is out of the pool; Start over deletes the event's `draw` documents. An admin with no `lastSignInAt` shows as "Invited" on the Organisers page.
 
-- **Attendee check-in runs on the server.** One endpoint (an Astro server route, or a Cloud Function) takes an event and an email and returns only what the confirmation screen shows: first name, already-checked-in time and status. It never returns the attendee list.
+- **Attendee check-in runs on the server.** One endpoint, a Cloud Function, takes an event and an email and returns only what the confirmation screen shows: first name, already-checked-in time and status. It never returns the attendee list. The same function returns an event's public details (name, description, open or closed) for the check-in page to show when it loads.
 - **Walk-ins are assigned on the server** with the same transaction on the ticket counter. The endpoint refuses a self-serve walk-in when the event's `selfWalkIns` is off; staff can always add one from the dashboard.
 - **Database rules deny all public access.** Organisers read and write only through rules that check their role and team, for example from custom claims set when an admin is added. Roles are no longer checked only in React.
 - **Slow down email probing:** rate-limit the check-in endpoint per IP and per event.
-- **The attendee site moves from fully prebuilt pages to server rendering** for event pages. This also removes the brief blank screen on load, because the server knows whether check-in is open.
-- **Hosting:** both apps in `checkpad-app`, either Firebase App Hosting for the Astro site's server rendering plus Firebase Hosting for the dashboard, or a server host for Astro. Decide when the backend work starts.
+- **The attendee site stays prebuilt (decided 21 October 2026).** One prebuilt check-in page serves every event: Hosting rewrites `/<slug>` and `/team/<slug>` to it, and the page reads the link and asks the endpoint for the event when it loads. Server rendering was the earlier plan and was dropped because:
+  - the page loads from Hosting's cache, so a QR scan on venue Wi-Fi isn't held up by a server starting up; only pressing "Check in" waits on the function
+  - if the function fails, the page still loads and can tell the attendee to find an organiser
+  - security is the same either way, because what protects attendees is check-in running in the endpoint
+  - only one function needs the paid plan, not the whole attendee site
+
+  What it costs: a brief loading state while the event loads (instead of the right screen arriving first), and every event link shows the same generic preview in Slack, iMessage and the like. Check-in pages are marked "don't index", so search doesn't matter for them. Astro can server-render individual pages later without changing the rest, so revisit if Checkpad adds pages that need per-event previews or fresh content on arrival, such as public event listings.
+- **Hosting:** both apps on Firebase Hosting in `checkpad-app`, as two sites: the dashboard on the default site (`checkpad-app.web.app`) and `apps/web` on a second site with `checkpad.app` pointed at it. The check-in endpoint is a Cloud Function.
 - **Sign-in:** Google and an emailed sign-in link (Firebase's passwordless email link), no passwords. Keep Firebase's default of one account per email address, so the same person signing in with Google one day and an email link the next stays one user; role checks match by email.
 - **Project setup:** enable the Google and Email link sign-in providers, add the Checkpad domains as authorised domains, and keep a separate test project or database for migration test runs.
-- **Billing: `checkpad-app` is on the free Spark plan.** Cloud Functions and Firebase App Hosting need the Blaze (pay-as-you-go) plan, so the server-side check-in needs one of: upgrading to Blaze, which likely stays within the free usage at meetup scale but needs a billing account; or hosting the Astro site on another server host that uses the Firebase Admin SDK, which works on Spark. Firestore and Firebase Hosting for the dashboard work on Spark either way. Decide before phase 2.
+- **Billing: `checkpad-app` is on the free Spark plan.** Firebase Hosting (both apps) and Firestore work on Spark. Only the check-in endpoint needs more: Cloud Functions need the Blaze (pay-as-you-go) plan, which likely stays within the free usage at meetup scale but needs a billing account. The alternative is running that one endpoint on another host with the Firebase Admin SDK, which works on Spark. Decide before phase 2.
 
 ## Phased plan
 
 1. **The old project.** Rules checked: fully open. Not changing the old app (decision, 18 October 2026); export its data early instead.
 2. **Backend foundation in `checkpad-app`.** Firestore data model, server check-in endpoint, Firestore rules, Google and email-link sign-in with roles.
-3. **Attendee flow on real data.** Wire `apps/web` to the endpoint, add the old-URL redirects and team links.
+3. **Attendee flow on real data.** Replace the per-event prebuilt pages (`getStaticPaths` over the mock events) with one check-in page and one team page, plus Hosting rewrites; wire them to the endpoint; add the old-URL redirects.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
 5. **Build the designed screens.** Done ahead of phases 2–4, on mock data (October 2026): every designed screen is built (see the feature map). They move to real data in phases 3 and 4.
 6. **Data migration.** Run the script against a copy, check the counts, then production.
@@ -211,4 +217,5 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
 - [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?
-- [ ] Upgrade `checkpad-app` to Blaze, or host the Astro site elsewhere?
+- [ ] Upgrade `checkpad-app` to Blaze for the check-in function, or run that one endpoint on another host?
+- [x] Server-render the attendee site, or keep it prebuilt? Prebuilt, with one check-in endpoint (21 October 2026)
