@@ -96,10 +96,10 @@ Attendees also land on checkpad.app when they scan a QR at a venue. The site tel
 
 ## Current page (apps/web, for reference)
 
-- Hero: "A real-time self check-in app." / "Save time and effort at the door. Attendees check themselves in on their phone, and you watch the room fill up live."
+- Hero: "Attendees check themselves in." / "They scan the QR code at the door and type their email. You watch the room fill up from your laptop or phone."
 - Sections: How it works (three steps), Features (six cards), Walk-ins, Analytics, call to action with the waitlist form.
-- Known issues the copywriting skill would flag: "Everything for the door, nothing else." is a negation construction; several sections use three-item lists; "real-time" and "live" depend on phase 4.
-- The page has no meta description. [NEED: one, once positioning settles]
+- Still open: "Watch arrivals live" and "A live dashboard" depend on live updates (phase 4).
+- Meta description: "Attendees check themselves in at your meetup with a QR code and their email. You track arrivals and walk-ins on a dashboard. Join the waitlist."
 
 ## Learnings
 
@@ -107,3 +107,4 @@ Angles and claims already tried, and what happened. Add to this as copy ships.
 
 - 21 October 2026: the prize draw had its own page section and menu link; moved to a single feature card because few organisers will use it. Walk-ins took its place.
 - 21 October 2026: "Get started" buttons became "Join the waitlist" because Checkpad isn't open yet.
+- 21 October 2026, copywriting pass: hero changed from "A real-time self check-in app." (a category label that fails the swap test) to "Attendees check themselves in." "Let attendees check themselves in." was tried and dropped because it broke as "Let attendees / check / themselves in." at desktop width. Removed "in seconds" and "saved if you refresh" until the backend makes them true. Kept the organiser voice: "the door", "watch the room fill up", "Doors open in three steps", "Know how the night went", "Run your next door with Checkpad."
