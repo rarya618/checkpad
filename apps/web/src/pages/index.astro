@@ -4,12 +4,13 @@ import { buttonClass } from '@checkpad/shared/button';
 import attendeesDashboard from '../assets/screens/attendees-dashboard.png';
 import checkedInPhone from '../assets/screens/checked-in-phone.png';
 import eventAnalytics from '../assets/screens/event-analytics.png';
-import prizeDraw from '../assets/screens/prize-draw.png';
+import staffCheckIn from '../assets/screens/staff-check-in.png';
 import Footer from '../components/marketing/Footer.astro';
 import Icon, { type IconName } from '../components/marketing/Icon.astro';
 import Nav from '../components/marketing/Nav.astro';
 import SectionHeader from '../components/marketing/SectionHeader.astro';
 import Showcase from '../components/marketing/Showcase.astro';
+import WaitlistForm from '../components/marketing/WaitlistForm';
 import Layout from '../layouts/Layout.astro';
 import { DASHBOARD_URL } from '../lib/config';
 
@@ -121,14 +122,14 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 		</section>
 
 		<Showcase
-			id="prize-draw"
+			id="walk-ins"
 			class="bg-light-blue"
-			eyebrow="Prize draw"
-			title="End the night with a draw."
-			body="Put the draw on the projector and pick winners from everyone who checked in. If a winner has gone home, tap Not here and draw again."
-			points={['Names only on screen, never emails', 'No one wins twice', 'Winners are saved if the page refreshes']}
-			image={prizeDraw}
-			imageAlt="The prize draw display announcing Ada Lovelace as winner #3"
+			eyebrow="Walk-ins"
+			title="Nobody gets turned away at the door."
+			body="Staff look people up by email or ticket number from a laptop or phone. If someone didn’t register, add them on the spot and they’re checked in with the next walk-in ticket."
+			points={['Find anyone by email or ticket number', 'No two walk-ins get the same ticket', 'Works from a phone at the door']}
+			image={staffCheckIn}
+			imageAlt="The staff Check in page offering to add an unregistered email as walk-in GDGWALKIN0005"
 		/>
 
 		<Showcase
@@ -143,14 +144,16 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 		/>
 
 		<!-- Call to action -->
-		<section>
+		<section id="waitlist">
 			<div class={`${container} pt-2 pb-18 xl:pt-10 xl:pb-30`}>
 				<div class="flex flex-col items-center gap-4 rounded-3xl bg-dark-blue px-7 py-12 text-center xl:gap-6 xl:rounded-[32px] xl:px-20 xl:py-22">
 					<h2 class="font-display text-[32px] leading-[38px] text-off-white xl:text-[52px] xl:leading-[62px]">Run your next door with Checkpad.</h2>
 					<p class="text-[17px] leading-[26px] text-light-blue xl:text-xl xl:leading-[30px]">
-						Set up an event in a few minutes. Your attendees won’t need an account.
+						Checkpad is opening to more organisers soon. Leave your email and we’ll let you know when you can set up your first event.
 					</p>
-					<a href={DASHBOARD_URL} class={`mt-2 xl:mt-4 ${buttonClass('secondary')}`}>Get started</a>
+					<div class="mt-2 flex w-full justify-center xl:mt-4">
+						<WaitlistForm client:visible />
+					</div>
 				</div>
 			</div>
 		</section>
