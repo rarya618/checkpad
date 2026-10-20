@@ -14,10 +14,10 @@ import WaitlistForm from '../components/marketing/WaitlistForm';
 import Layout from '../layouts/Layout.astro';
 
 // Copy and layout follow the Figma "Marketing site – desktop" and "– mobile" frames.
-const steps: { icon: IconName; title: string; body: string }[] = [
-	{ icon: 'upload', title: 'Import your list', body: 'Upload the attendee CSV from Bevy. Checkpad matches people by ticket number, so you can import again when more register.' },
-	{ icon: 'qr-code', title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
-	{ icon: 'activity', title: 'Watch arrivals live', body: 'Your dashboard counts who’s in, who hasn’t arrived yet and how many walk-ins you’ve had.' },
+const steps: { title: string; body: string }[] = [
+	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy. Checkpad matches people by ticket number, so you can import again when more register.' },
+	{ title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
+	{ title: 'Watch arrivals live', body: 'Your dashboard counts who’s in, who hasn’t arrived yet and how many walk-ins you’ve had.' },
 ];
 
 const features: { icon: IconName; title: string; body: string }[] = [
@@ -115,17 +115,19 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 		<section id="how-it-works" class="bg-white">
 			<div class={`${container} flex flex-col gap-8 py-18 xl:gap-14 xl:py-30`}>
 				<SectionHeader eyebrow="How it works" title="Three steps from your Bevy list to check-in." />
-				<ol class="grid gap-10 lg:grid-cols-3">
+				{/* A timeline: each number is joined to the next by a line, down the page on
+				    phones and tablets and across it in three columns on large screens. */}
+				<ol class="grid lg:grid-cols-3">
 					{steps.map((s, i) => (
-						<li class="flex flex-col gap-4">
-							<div class="flex items-center gap-4">
-								<span class="grid size-14 place-items-center rounded-[14px] bg-off-white">
-									<Icon name={s.icon} />
-								</span>
-								<span class="font-mono text-base leading-6 text-med-blue">{String(i + 1).padStart(2, '0')}</span>
+						<li class="flex gap-5 lg:flex-col lg:gap-6">
+							<div aria-hidden="true" class="flex w-12 shrink-0 flex-col items-center lg:w-auto lg:flex-row">
+								<span class="font-display text-[48px] leading-none text-med-blue lg:text-[64px]">{i + 1}</span>
+								{i < steps.length - 1 && <span class="my-3 w-0.5 flex-1 rounded-full bg-light-blue lg:mx-6 lg:my-0 lg:h-0.5 lg:w-auto" />}
 							</div>
-							<h3 class="text-[22px] leading-[33px] font-semibold">{s.title}</h3>
-							<p class="text-[17px] leading-[26px] text-dark-blue/85">{s.body}</p>
+							<div class="flex flex-col gap-2 pt-2 pb-10 lg:gap-3 lg:pt-0 lg:pr-10 lg:pb-0">
+								<h3 class="text-[22px] leading-[33px] font-semibold">{s.title}</h3>
+								<p class="text-[17px] leading-[26px] text-dark-blue/85">{s.body}</p>
+							</div>
 						</li>
 					))}
 				</ol>
