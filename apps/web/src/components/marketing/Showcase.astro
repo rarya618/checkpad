@@ -31,7 +31,7 @@ const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, clas
 			<SectionHeader eyebrow={eyebrow} title={title} subtitle={body} />
 			<ul class="flex flex-col gap-2.5 xl:gap-3 xl:pt-2">
 				{points.map((p) => (
-					<li class="flex items-center gap-2.5 text-[17px] leading-[26px] font-medium xl:gap-3 xl:text-lg xl:leading-[27px]">
+					<li class="flex items-center gap-2.5 text-base font-medium xl:gap-3 xl:text-lg">
 						<Icon name="check" size={22} strokeWidth={2.5} class="shrink-0 text-med-blue" />
 						{p}
 					</li>

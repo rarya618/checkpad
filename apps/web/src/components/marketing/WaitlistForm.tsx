@@ -37,7 +37,7 @@ export default function WaitlistForm() {
 
 	if (joined) {
 		return (
-			<p role="status" className="text-[17px] leading-[26px] text-off-white xl:text-xl xl:leading-[30px]">
+			<p role="status" className="text-base text-off-white xl:text-xl">
 				You’re on the list. We’ll email <span className="font-semibold">{joined}</span> when Checkpad opens.
 			</p>
 		);

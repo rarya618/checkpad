@@ -24,7 +24,7 @@ const links = [
 		<nav aria-label="Main" class="hidden xl:block">
 			<ul class="flex gap-10">
 				{links.map((l) => (
-					<li><a href={l.href} class="text-[17px] leading-[26px] font-medium transition-colors hover:text-med-blue">{l.label}</a></li>
+					<li><a href={l.href} class="text-base font-medium transition-colors hover:text-med-blue">{l.label}</a></li>
 				))}
 			</ul>
 		</nav>
@@ -61,7 +61,7 @@ const links = [
 			{links.map((l) => (
 				<li>
 					<a href={l.href} data-menu-link class="flex items-center justify-between border-b border-light-blue py-5">
-						<span class="font-display text-[28px] leading-[34px]">{l.label}</span>
+						<span class="font-display text-3xl">{l.label}</span>
 						<Icon name="chevron-right" size={24} class="text-med-blue" />
 					</a>
 				</li>
@@ -72,7 +72,7 @@ const links = [
 				<a href="/#waitlist" data-menu-link class={buttonClass('primary')}>Join the waitlist</a>
 				<a href={DASHBOARD_URL} class={buttonClass('secondary')}>Sign in</a>
 			</div>
-			<p class="text-[15px] leading-[22px] text-dark-blue/80">At an event? Scan the QR code at the venue.</p>
+			<p class="text-sm text-dark-blue/80">At an event? Scan the QR code at the venue.</p>
 		</div>
 	</div>
 </dialog>

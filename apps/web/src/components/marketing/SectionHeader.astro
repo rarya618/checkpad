@@ -10,7 +10,7 @@ const { eyebrow, title, subtitle, center = false } = Astro.props;
 ---
 
 <div class:list={['flex flex-col gap-3 xl:gap-4', center && 'xl:items-center xl:text-center']}>
-	<p class="text-base leading-6 font-semibold text-med-blue xl:text-[17px] xl:leading-[26px]">{eyebrow}</p>
-	<h2 class="font-display text-[32px] leading-[38px] xl:text-[44px] xl:leading-[53px]">{title}</h2>
-	{subtitle && <p class="max-w-[720px] text-lg leading-[27px] text-dark-blue/85 xl:text-xl xl:leading-[30px]">{subtitle}</p>}
+	<p class="text-base leading-6 font-semibold text-med-blue">{eyebrow}</p>
+	<h2 class="font-display text-3xl text-balance xl:text-5xl">{title}</h2>
+	{subtitle && <p class="max-w-[720px] text-lg text-dark-blue/85 xl:text-xl">{subtitle}</p>}
 </div>
