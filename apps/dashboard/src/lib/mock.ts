@@ -83,6 +83,13 @@ const specs: Record<string, RosterSpec> = {
 		seed: 1,
 		extra: [{ email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe' }],
 	},
+	'checkpad-demo-registered-only': {
+		registered: 12,
+		checkedIn: 0,
+		walkIns: 0,
+		seed: 2,
+		extra: [{ email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe' }],
+	},
 	'gdg-future-meetup': { registered: 56, checkedIn: 0, walkIns: 0, seed: 3 },
 };
 

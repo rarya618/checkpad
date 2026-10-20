@@ -19,6 +19,7 @@ const sampleAttendees = (): Attendee[] => [
 const attendeesByEvent: Record<string, Attendee[]> = {
 	'gdg-september-meetup': sampleAttendees(),
 	'checkpad-demo': sampleAttendees(),
+	'checkpad-demo-registered-only': sampleAttendees(),
 	'gdg-future-meetup': sampleAttendees(),
 };
 
