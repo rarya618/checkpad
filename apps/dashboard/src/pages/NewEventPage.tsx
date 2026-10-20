@@ -4,8 +4,9 @@ import { Link, useNavigate } from 'react-router';
 import { DateTimeFields } from '../components/EventFields';
 import { LinkField, SelectField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
+import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
-import { cleanSlug, formIsComplete, formTimes, randomSuffix, suggestedSlug, type EventForm } from '../lib/eventForm';
+import { cleanSlug, formIsComplete, formTimes, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
 import { createEvent, isSlugTaken, teams } from '../lib/events';
 
 const blank: EventForm = {
@@ -145,7 +146,7 @@ export default function NewEventPage() {
 					</FormCard>
 					<FormCard
 						title="Walk-ins"
-						description={`Walk-ins get the next ticket number: ${team.walkInTicketPrefix}0001, ${team.walkInTicketPrefix}0002, and so on.`}
+						description={`Walk-ins get the next ticket number: ${team.walkInTicketPrefix}0001, ${team.walkInTicketPrefix}0002, and so on. Staff can always add them.`}
 						className="flex-1"
 					>
 						<TextField
@@ -159,6 +160,12 @@ export default function NewEventPage() {
 							value={form.walkInVenue}
 							onChange={(e) => update('walkInVenue', e.target.value)}
 							placeholder="Google Sydney, 1 Pirrama Rd, Pyrmont"
+						/>
+						<SwitchRow
+							label="Attendees can add themselves"
+							note={selfWalkInsNote(form.selfWalkIns)}
+							checked={form.selfWalkIns}
+							onChange={(on) => update('selfWalkIns', on)}
 						/>
 					</FormCard>
 				</div>

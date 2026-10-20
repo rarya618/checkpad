@@ -18,6 +18,7 @@ import {
 	eventToForm,
 	formIsComplete,
 	formTimes,
+	selfWalkInsNote,
 	unsavedMessage,
 	type EventForm,
 } from '../lib/eventForm';
@@ -159,7 +160,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								onChange={(on) => update('selfCheckInOpen', on)}
 							/>
 						</FormCard>
-						<FormCard level={3} title="Team and walk-ins">
+						<FormCard level={3} title="Team and walk-ins" description="Staff can always add walk-ins from the dashboard.">
 							<SelectField label="Team" value={form.team} onChange={(e) => update('team', e.target.value)}>
 								{teams.map((t) => (
 									<option key={t.slug}>{t.name}</option>
@@ -172,6 +173,12 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								hint={`Next walk-in ticket: ${nextWalkInTicket(roster, team.walkInTicketPrefix)}`}
 							/>
 							<TextField label="Walk-in venue" value={form.walkInVenue} onChange={(e) => update('walkInVenue', e.target.value)} />
+							<SwitchRow
+								label="Attendees can add themselves"
+								note={selfWalkInsNote(form.selfWalkIns)}
+								checked={form.selfWalkIns}
+								onChange={(on) => update('selfWalkIns', on)}
+							/>
 						</FormCard>
 					</div>
 					<FormCard level={3} title="Details">
