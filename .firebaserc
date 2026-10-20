@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "checkpad-app"
-  }
+  },
+  "targets": {
+    "checkpad-app": {
+      "hosting": {
+        "dashboard": [
+          "checkpad-app"
+        ],
+        "web": [
+          "checkpad-web-cf816"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

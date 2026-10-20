@@ -11,7 +11,7 @@ export const getStaticPaths = (() =>
 const { event } = Astro.props;
 ---
 
-<Layout title={`Check in · ${event.name}`}>
+<Layout title={`Check in · ${event.name}`} noindex>
 	<CheckInFlow client:load event={event}>
 		<PoweredBy />
 	</CheckInFlow>

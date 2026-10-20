@@ -13,6 +13,6 @@ export const getStaticPaths = (() =>
 const { team, events } = Astro.props;
 ---
 
-<Layout title={`Check in · ${team.name}`}>
+<Layout title={`Check in · ${team.name}`} noindex>
 	<TeamLink client:load team={team} events={events} />
 </Layout>

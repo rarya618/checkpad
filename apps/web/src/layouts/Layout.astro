@@ -5,9 +5,11 @@ import '../styles/global.css';
 interface Props {
 	title: string;
 	description?: string;
+	/** Keep the page out of search results (check-in and team links). */
+	noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, noindex = false } = Astro.props;
 ---
 
 <html lang="en">
@@ -20,6 +22,7 @@ const { title, description } = Astro.props;
 		<Font cssVariable="--font-geist-mono" />
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
+		{noindex && <meta name="robots" content="noindex" />}
 	</head>
 	<body class="bg-off-white font-sans text-dark-blue antialiased">
 		<slot />
