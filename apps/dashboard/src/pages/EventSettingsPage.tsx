@@ -10,7 +10,7 @@ import { LinkField, SelectField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
-import Switch from '../components/Switch';
+import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
 import {
 	changedSettings,
@@ -152,13 +152,12 @@ function EventSettingsPage({ slug }: { slug: string }) {
 							badge={<StatusBadge open={event.selfCheckInOpen} />}
 							description="Staff can always check people in from the dashboard."
 						>
-							<div className="flex items-center gap-3 rounded-[7.5px] bg-off-white px-[15px] py-[10.5px]">
-								<div className="flex min-w-0 flex-1 flex-col gap-[1.5px] leading-[1.5]">
-									<p className="text-[15px] font-bold">Self check-in open</p>
-									<p className="text-xs text-med-blue">{selfCheckInNote(event, form.selfCheckInOpen)}</p>
-								</div>
-								<Switch checked={form.selfCheckInOpen} onChange={(on) => update('selfCheckInOpen', on)} label="Self check-in open" />
-							</div>
+							<SwitchRow
+								label="Self check-in open"
+								note={selfCheckInNote(event, form.selfCheckInOpen)}
+								checked={form.selfCheckInOpen}
+								onChange={(on) => update('selfCheckInOpen', on)}
+							/>
 						</FormCard>
 						<FormCard level={3} title="Team and walk-ins">
 							<SelectField label="Team" value={form.team} onChange={(e) => update('team', e.target.value)}>
