@@ -191,7 +191,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 - **Hosting:** both apps on Firebase Hosting in `checkpad-app`, as two sites: the dashboard on the default site (`checkpad-app.web.app`) and `apps/web` on a second site with `checkpad.app` pointed at it. The check-in endpoint is a Cloud Function.
 - **Sign-in:** Google and an emailed sign-in link (Firebase's passwordless email link), no passwords. Keep Firebase's default of one account per email address, so the same person signing in with Google one day and an email link the next stays one user; role checks match by email.
 - **Project setup:** enable the Google and Email link sign-in providers, add the Checkpad domains as authorised domains, and keep a separate test project or database for migration test runs.
-- **Billing: `checkpad-app` is on the free Spark plan.** Firebase Hosting (both apps) and Firestore work on Spark. Only the check-in endpoint needs more: Cloud Functions need the Blaze (pay-as-you-go) plan, which likely stays within the free usage at meetup scale but needs a billing account. The alternative is running that one endpoint on another host with the Firebase Admin SDK, which works on Spark. Decide before phase 2.
+- **Billing: `checkpad-app` is on the Blaze (pay-as-you-go) plan** (from 21 October 2026), so the check-in endpoint runs as a Cloud Function in the same project. At meetup scale it should stay within Blaze's free usage. Set a budget alert on the billing account so an unexpected spike shows up early.
 
 ## Phased plan
 
@@ -217,5 +217,5 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
 - [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?
-- [ ] Upgrade `checkpad-app` to Blaze for the check-in function, or run that one endpoint on another host?
+- [x] Upgrade `checkpad-app` to Blaze for the check-in function, or run that one endpoint on another host? Blaze (21 October 2026)
 - [x] Server-render the attendee site, or keep it prebuilt? Prebuilt, with one check-in endpoint (21 October 2026)
