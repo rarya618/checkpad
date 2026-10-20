@@ -125,7 +125,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 								{i < steps.length - 1 && <span class="my-3 w-0.5 flex-1 rounded-full bg-light-blue lg:mx-6 lg:my-0 lg:h-0.5 lg:w-auto" />}
 							</div>
 							<div class="flex flex-col gap-2 pt-2 pb-10 lg:gap-3 lg:pt-0 lg:pr-10 lg:pb-0">
-								<h3 class="text-[22px] leading-[33px] font-semibold">{s.title}</h3>
+								<h3 class="font-display text-[22px] leading-[33px]">{s.title}</h3>
 								<p class="text-[17px] leading-[26px] text-dark-blue/85">{s.body}</p>
 							</div>
 						</li>
@@ -149,7 +149,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 							<span class="grid size-14 place-items-center rounded-[14px] bg-light-blue">
 								<Icon name={f.icon} />
 							</span>
-							<h3 class="text-[22px] leading-[33px] font-semibold">{f.title}</h3>
+							<h3 class="font-display text-[22px] leading-[33px]">{f.title}</h3>
 							<p class="text-[17px] leading-[26px] text-dark-blue/85">{f.body}</p>
 						</li>
 					))}
@@ -217,7 +217,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 									<Icon name={v.icon} />
 								</span>
 								<div class="flex flex-col gap-1">
-									<h3 class="text-xl leading-[30px] font-semibold">{v.title}</h3>
+									<h3 class="font-display text-xl leading-[30px]">{v.title}</h3>
 									<p class="text-[17px] leading-[26px] text-dark-blue/85">{v.body}</p>
 								</div>
 							</li>
