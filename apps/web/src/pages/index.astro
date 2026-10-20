@@ -103,14 +103,11 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 		<section aria-labelledby="used-by">
 			<div class={`${container} flex flex-col gap-3 pb-18 md:flex-row md:items-baseline md:gap-6 xl:pb-24`}>
 				<h2 id="used-by" class="text-base leading-6 font-semibold text-med-blue xl:text-[17px] xl:leading-[26px]">Used by</h2>
-				<div class="flex flex-col gap-1">
-					<ul class="flex flex-wrap gap-x-8 gap-y-1">
-						{usedBy.map((name) => (
-							<li class="font-display text-2xl leading-[1.5] xl:text-[28px] xl:leading-[1.2]">{name}</li>
-						))}
-					</ul>
-					<p class="text-base leading-6 text-dark-blue/85">Both groups check in their meetups with the app Checkpad grew out of.</p>
-				</div>
+				<ul class="flex flex-wrap gap-x-8 gap-y-1">
+					{usedBy.map((name) => (
+						<li class="font-display text-2xl leading-[1.5] xl:text-[28px] xl:leading-[1.2]">{name}</li>
+					))}
+				</ul>
 			</div>
 		</section>
 

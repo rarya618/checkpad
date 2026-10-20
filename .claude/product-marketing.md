@@ -79,7 +79,7 @@ The prize draw is a nice extra, not a reason people choose Checkpad. Don't lead 
 
 ## Proof available
 
-- **Used by:** GDG Sydney and GDG UTS run check-in on the original app. The page names them as text, worded as "the app Checkpad grew out of", because Checkpad itself isn't live. Their logos can't go up until approved by the Google contact. [NEED: logo approval from Google]
+- **Used by:** GDG Sydney and GDG UTS run check-in on the original app. The page lists their names under "Used by", with no explanation line (cut as too wordy, 21 October 2026). Checkpad itself isn't live yet, so keep any longer claim accurate: they use the app Checkpad grew out of. Their logos can't go up until approved by the Google contact. [NEED: logo approval from Google]
 
 Nothing else yet. Everything in the screenshots is sample data ("September Meetup", 41 of 109 checked in), so never quote those numbers as results.
 
