@@ -135,6 +135,7 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 | `events/{id}` key | `id` (new) + `slug` | Generate the slug from the name, unique; keep the old ID for redirects |
 | `date` | `startsAt`, `endsAt` | Old events have no times: pick a default (e.g. 17:00–20:00) or leave them blank |
 | — | `timeZone` | New; default `Australia/Sydney` unless events run elsewhere |
+| — | `selfWalkIns` | New; `true` for migrated events, matching the old app, where anyone not on the list could add themselves |
 | `status` | `status` (new) | Only if the manual switch is kept (decision 1) |
 | `description` | `description` | Optional in the old app, required in Checkpad's type |
 | `attendees/{ticketNumber}` | `ticket` + `id` | Walk-ins keep `GDGWALKIN####` |
@@ -163,7 +164,7 @@ Recommendation: build on the new Firebase project `checkpad-app` with Google sig
 ```text
 events/{eventId}                     slug, name, description, status, startsAt?, endsAt?, timeZone,
                                      teamIds[], counts {registered, checkedIn, walkIns},
-                                     walkInCounter, legacyId
+                                     walkInCounter, selfWalkIns, legacyId
 events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source, checkedInAt,
                                      jobTitle?, company?, ticketType?, ticketTitle?, ticketVenue?,
                                      bevyOrderNumber?
@@ -177,7 +178,7 @@ Bevy imports write in batches of at most 500, so a large import isn't all-or-not
 Prize draw results are saved per event, so a refresh or a second organiser's laptop doesn't lose the winners or redraw someone. The old app kept them only in the browser tab. Anyone in `draw` is out of the pool; Start over deletes the event's `draw` documents. An admin with no `lastSignInAt` shows as "Invited" on the Organisers page.
 
 - **Attendee check-in runs on the server.** One endpoint (an Astro server route, or a Cloud Function) takes an event and an email and returns only what the confirmation screen shows: first name, already-checked-in time and status. It never returns the attendee list.
-- **Walk-ins are assigned on the server** with the same transaction on the ticket counter.
+- **Walk-ins are assigned on the server** with the same transaction on the ticket counter. The endpoint refuses a self-serve walk-in when the event's `selfWalkIns` is off; staff can always add one from the dashboard.
 - **Database rules deny all public access.** Organisers read and write only through rules that check their role and team, for example from custom claims set when an admin is added. Roles are no longer checked only in React.
 - **Slow down email probing:** rate-limit the check-in endpoint per IP and per event.
 - **The attendee site moves from fully prebuilt pages to server rendering** for event pages. This also removes the brief blank screen on load, because the server knows whether check-in is open.
