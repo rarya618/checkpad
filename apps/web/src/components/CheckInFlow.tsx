@@ -12,6 +12,8 @@ import TextField from './TextField';
 type Step =
 	| { name: 'email' }
 	| { name: 'walk-in' }
+	// Not on the list, and the event doesn't let people add themselves
+	| { name: 'not-registered' }
 	| { name: 'done'; attendee: Attendee; alreadyCheckedIn: boolean };
 
 interface Props {
@@ -91,7 +93,9 @@ export default function CheckInFlow({ event, children }: Props) {
 			setStep(
 				result.status === 'checked-in'
 					? { name: 'done', attendee: result.attendee, alreadyCheckedIn: result.alreadyCheckedIn }
-					: { name: 'walk-in' },
+					: event.selfWalkIns
+						? { name: 'walk-in' }
+						: { name: 'not-registered' },
 			);
 		});
 	};
@@ -136,6 +140,22 @@ export default function CheckInFlow({ event, children }: Props) {
 							</SubmitButton>
 							{requestError && <RequestError message={requestError} />}
 						</form>
+					) : step.name === 'not-registered' ? (
+						<section aria-live="polite" className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
+							<div className="flex w-full flex-col gap-2">
+								<p className="text-lg text-black">Email</p>
+								<p className="text-xl font-semibold break-all">{email}</p>
+							</div>
+							<div className="flex w-full flex-col gap-2">
+								<h2 className="font-display text-[28px] leading-[1.2]">You’re not on the list</h2>
+								<p className="text-lg text-med-blue">
+									Check it’s the email you registered with, or find one of the organisers and they’ll add you.
+								</p>
+							</div>
+							<button type="button" onClick={() => setStep({ name: 'email' })} className={`w-full ${buttonClass('secondary')}`}>
+								Try another email
+							</button>
+						</section>
 					) : (
 						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
 							<div className="flex w-full flex-col gap-2">

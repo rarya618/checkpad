@@ -8,8 +8,8 @@ export type CheckInResult =
 	| { status: 'checked-in'; attendee: Attendee; alreadyCheckedIn: boolean }
 	| { status: 'not-registered' };
 
-// A real backend must also reject check-ins outside the event's window; the UI
-// only hides the form.
+// A real backend must also reject check-ins outside the event's window, and walk-ins
+// when the event's selfWalkIns is off; the UI only hides the forms.
 const sampleAttendees = (): Attendee[] => [
 	{ email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee', checkedInAt: null, ticket: 'GOOGA263293408' },
 	{ email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee', checkedInAt: null, ticket: 'GOOGA263288757' },
