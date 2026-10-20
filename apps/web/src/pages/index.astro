@@ -29,6 +29,26 @@ const features: { icon: IconName; title: string; body: string }[] = [
 	{ icon: 'users', title: 'Teams and organisers', body: 'Give each chapter a permanent check-in link and share events with co-organisers.' },
 ];
 
+// Groups running their meetups on gdg-check-in, the app Checkpad replaces. Names only:
+// their logos need approval from Google first.
+const usedBy = ['GDG Sydney', 'GDG UTS'];
+
+// Only Bevy's CSV import is built. Keep the others marked as planned until they ship.
+const platforms: { name: string; supported: boolean }[] = [
+	{ name: 'Bevy', supported: true },
+	{ name: 'Eventbrite', supported: false },
+	{ name: 'Humanitix', supported: false },
+	{ name: 'Luma', supported: false },
+	{ name: 'Meetup', supported: false },
+	{ name: 'Any CSV file', supported: false },
+];
+
+const venueNeeds: { icon: IconName; title: string; body: string }[] = [
+	{ icon: 'qr-code', title: 'A screen or a printed sign', body: 'Show the QR code on a TV or projector, or download it as a PNG and print it.' },
+	{ icon: 'smartphone', title: 'Attendees’ own phones', body: 'They scan with the camera or type the short link, over mobile data or the venue’s Wi-Fi.' },
+	{ icon: 'layout-dashboard', title: 'A laptop or phone for staff', body: 'Look people up and add walk-ins from either one, in the browser.' },
+];
+
 const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 ---
 
@@ -40,7 +60,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 	<main>
 		<!-- Hero -->
 		<section class="overflow-hidden">
-			<div class="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 pt-6 md:px-12 pb-18 xl:min-h-[min(calc(100svh-var(--header-height)),900px)] xl:flex-row xl:items-center xl:gap-16 xl:pt-6 xl:pr-0 xl:pb-44 xl:pl-30">
+			<div class="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 pt-6 md:px-12 pb-18 xl:min-h-[min(calc(100svh-var(--header-height)),900px)] xl:flex-row xl:items-center xl:gap-16 xl:pt-6 xl:pr-0 xl:pb-24 xl:pl-30">
 				<div class="flex flex-col gap-8 xl:mb-10 xl:w-[540px] xl:shrink-0 xl:gap-7">
 					<p class="self-start rounded-full bg-light-blue px-3.5 py-1.5 text-[15px] leading-[22px] font-medium xl:px-4 xl:text-base xl:leading-6">
 						For community event organisers
@@ -75,6 +95,21 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 						loading="eager"
 						class="absolute top-[52px] left-8 w-[168px] rounded-3xl border-[5px] border-dark-blue md:top-20 md:left-16 md:w-[210px] md:border-[6px] shadow-[0_16px_36px_rgb(17_45_78/0.22)] xl:top-[190px] xl:left-0 xl:w-[210px] xl:rounded-[28px] xl:border-[6px] xl:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
 					/>
+				</div>
+			</div>
+		</section>
+
+		<!-- Used by -->
+		<section aria-labelledby="used-by">
+			<div class={`${container} flex flex-col gap-3 pb-18 md:flex-row md:items-baseline md:gap-6 xl:pb-24`}>
+				<h2 id="used-by" class="text-base leading-6 font-semibold text-med-blue xl:text-[17px] xl:leading-[26px]">Used by</h2>
+				<div class="flex flex-col gap-1">
+					<ul class="flex flex-wrap gap-x-8 gap-y-1">
+						{usedBy.map((name) => (
+							<li class="font-display text-2xl leading-[1.5] xl:text-[28px] xl:leading-[1.2]">{name}</li>
+						))}
+					</ul>
+					<p class="text-base leading-6 text-dark-blue/85">Both groups check in their meetups with the app Checkpad grew out of.</p>
 				</div>
 			</div>
 		</section>
@@ -144,6 +179,54 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 			imageAlt="Event analytics with arrivals every 15 minutes and turnout by ticket type"
 			reverse
 		/>
+
+		<!-- Supported platforms and venues -->
+		<section class="bg-white">
+			<div class={`${container} grid gap-18 py-18 xl:grid-cols-2 xl:gap-20 xl:py-30`}>
+				<div id="platforms" class="flex scroll-mt-(--header-height) flex-col gap-8">
+					<SectionHeader
+						eyebrow="Supported platforms"
+						title="Bring your attendee list from Bevy."
+						subtitle="Export the attendee CSV from Bevy and import it before the event. Imports from other platforms are planned."
+					/>
+					<ul class="flex flex-col">
+						{platforms.map((p) => (
+							<li class="flex items-center justify-between gap-4 border-b border-light-blue py-4 first:border-t">
+								<span class="text-lg leading-[27px] font-semibold">{p.name}</span>
+								<span
+									class:list={[
+										'rounded-full px-3 py-1 text-sm leading-[21px] font-semibold',
+										p.supported ? 'bg-dark-blue text-off-white' : 'bg-light-blue text-dark-blue',
+									]}
+								>
+									{p.supported ? 'Supported' : 'Planned'}
+								</span>
+							</li>
+						))}
+					</ul>
+				</div>
+				<div id="venues" class="flex scroll-mt-(--header-height) flex-col gap-8">
+					<SectionHeader
+						eyebrow="Supported venues"
+						title="Any venue where attendees can get online."
+						subtitle="Checkpad runs in the browser, so a venue only needs three things."
+					/>
+					<ul class="flex flex-col gap-6">
+						{venueNeeds.map((v) => (
+							<li class="flex gap-4">
+								<span class="grid size-14 shrink-0 place-items-center rounded-[14px] bg-light-blue">
+									<Icon name={v.icon} />
+								</span>
+								<div class="flex flex-col gap-1">
+									<h3 class="text-xl leading-[30px] font-semibold">{v.title}</h3>
+									<p class="text-[17px] leading-[26px] text-dark-blue/85">{v.body}</p>
+								</div>
+							</li>
+						))}
+					</ul>
+				</div>
+			</div>
+		</section>
 
 		<!-- Call to action -->
 		<section id="waitlist">
