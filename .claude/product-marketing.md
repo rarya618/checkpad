@@ -4,7 +4,7 @@ Read by the copywriting skill before it writes anything (`.claude/skills/copywri
 
 ## The product in one line
 
-Self check-in for community meetups: attendees scan a QR code at the door and type their email, and organisers watch the room fill up on a dashboard.
+Self check-in for community meetups: attendees scan a QR code when they arrive and type their email, and organisers watch the room fill up on a dashboard.
 
 ## Where it came from
 
@@ -12,20 +12,20 @@ Checkpad replaces gdg-check-in, the app GDG Sydney built for its own meetups. Th
 
 - [NEED: how many people have checked in through the old app, and across how many real meetups]
 - [NEED: typical turnout for a GDG Sydney meetup (registered vs arrived), from the old data]
-- [NEED: the founder story in the founder's own words: why the old app was built and what went wrong at the door before it]
+- [NEED: the founder story in the founder's own words: why the old app was built and what went wrong at check-in before it]
 
 ## Who it's for
 
 **Primary:** volunteer organisers of recurring community tech meetups who register attendees on Bevy. Google Developer Group chapters first, since the product grew out of one.
 
-- They run the door themselves, from a laptop or phone (the dashboard has phone screens for staff check-in for this reason).
+- They run check-in themselves, from a laptop or phone (the dashboard has phone screens for staff check-in for this reason).
 - Walk-ins turn up, which is why walk-in tickets exist in both the old app and Checkpad.
 - They report attendance back to Bevy afterwards (hence "Export for Bevy").
-- Assumed, not confirmed: events are free, so many registered people don't come, and the door is run by one or two volunteers. [NEED: confirm both before copy relies on them]
+- Assumed, not confirmed: events are free, so many registered people don't come, and check-in is run by one or two volunteers. [NEED: confirm both before copy relies on them]
 
 **Secondary:** other community event organisers (the page says "For community event organisers"). [NEED: confirm whether non-Bevy and non-GDG organisers are actually in scope for the waitlist, and which platforms they register people on]
 
-**Not for:** paid ticketing, conferences with badge printing, or events that need payment at the door. Checkpad doesn't sell tickets or take payments. Say so when it helps someone self-select out.
+**Not for:** paid ticketing, conferences with badge printing, or events that need payment on entry. Checkpad doesn't sell tickets or take payments. Say so when it helps someone self-select out.
 
 ## The problem, in their words
 
@@ -61,7 +61,7 @@ The prize draw is a nice extra, not a reason people choose Checkpad. Don't lead 
 - **Built for Bevy meetups.** CSV in, check-ins out, matched by ticket number. [NEED: confirm what Bevy's own check-in tools do, so this doesn't overclaim against them]
 - **Attendees need nothing.** No app and no account: a QR code and their email.
 - **Walk-ins are first-class.** Numbered tickets, counted separately in analytics, and an organiser choice per event about whether people can add themselves.
-- **Made by organisers for their own door.** [NEED: founder story to back this up]
+- **Made by organisers for their own meetups.** [NEED: founder story to back this up]
 
 [NEED: named alternatives organisers use today (printed list, spreadsheet, Bevy's check-in, Luma, Eventbrite Organizer?) and what each gets wrong for a free meetup]
 
@@ -89,14 +89,14 @@ Attendees also land on checkpad.app when they scan a QR at a venue. The site tel
 - Plain, practical and calm, like an organiser explaining their setup to another organiser. Professional but friendly.
 - Australian English: organisers, colour, recognise.
 - Sentence case for headings and buttons. No exclamation marks.
-- Short concrete sentences about what happens at the door. Prefer "type their email" to "seamless check-in experience".
-- Customer words: door, check in, walk-in, attendee list, turnout, the room filling up, meetup, chapter, Bevy.
+- Short concrete sentences about what happens when people arrive. Prefer "type their email" to "seamless check-in experience".
+- Customer words: check in, walk-in, attendee list, turnout, the room filling up, meetup, chapter, Bevy.
 - Product name is "Checkpad" in prose (the logo is lowercase "checkpad").
 - Times: attendee screens use "6:24pm", the dashboard uses "18:24" (not yet unified, migration plan decision 5).
 
 ## Current page (apps/web, for reference)
 
-- Hero: "Attendees check themselves in." / "They scan the QR code at the door and type their email. You watch the room fill up from your laptop or phone."
+- Hero: "Attendees check themselves in." / "They scan a QR code when they arrive and type their email. You watch the room fill up from your laptop or phone."
 - Sections: How it works (three steps), Features (six cards), Walk-ins, Analytics, call to action with the waitlist form.
 - Still open: "Watch arrivals live" and "A live dashboard" depend on live updates (phase 4).
 - Meta description: "Attendees check themselves in at your meetup with a QR code and their email. You track arrivals and walk-ins on a dashboard. Join the waitlist."
@@ -107,4 +107,5 @@ Angles and claims already tried, and what happened. Add to this as copy ships.
 
 - 21 October 2026: the prize draw had its own page section and menu link; moved to a single feature card because few organisers will use it. Walk-ins took its place.
 - 21 October 2026: "Get started" buttons became "Join the waitlist" because Checkpad isn't open yet.
-- 21 October 2026, copywriting pass: hero changed from "A real-time self check-in app." (a category label that fails the swap test) to "Attendees check themselves in." "Let attendees check themselves in." was tried and dropped because it broke as "Let attendees / check / themselves in." at desktop width. Removed "in seconds" and "saved if you refresh" until the backend makes them true. Kept the organiser voice: "the door", "watch the room fill up", "Doors open in three steps", "Know how the night went", "Run your next door with Checkpad."
+- 21 October 2026, copywriting pass: hero changed from "A real-time self check-in app." (a category label that fails the swap test) to "Attendees check themselves in." "Let attendees check themselves in." was tried and dropped because it broke as "Let attendees / check / themselves in." at desktop width. Removed "in seconds" and "saved if you refresh" until the backend makes them true. Kept "watch the room fill up" and "Know how the night went."
+- 21 October 2026: "door" was overused as shorthand for check-in ("Doors open in three steps", "Everything for the door", "Run your next door"). It read oddly. Use it only literally, for where the QR code goes, and at most once on a page. "Door" was never confirmed as an organiser's word; it came from the old page copy.
