@@ -145,12 +145,14 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 				/>
 				<ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:gap-10">
 					{features.map((f) => (
-						<li class="flex flex-col gap-4 rounded-[20px] border-[1.5px] border-light-blue bg-white p-8">
+						<li class="flex flex-col gap-5 rounded-[20px] border-[1.5px] border-light-blue bg-white p-8">
 							<span class="grid size-14 place-items-center rounded-[14px] bg-light-blue">
 								<Icon name={f.icon} />
 							</span>
-							<h3 class="font-display text-xl">{f.title}</h3>
-							<p class="text-base text-dark-blue/85">{f.body}</p>
+							<div class="flex flex-col gap-1.5">
+								<h3 class="font-display text-xl">{f.title}</h3>
+								<p class="text-base text-dark-blue/85">{f.body}</p>
+							</div>
 						</li>
 					))}
 				</ul>
