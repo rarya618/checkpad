@@ -14,6 +14,7 @@ export const mockEvents: CheckpadEvent[] = [
 		endsAt: '2026-09-10T20:00:00+10:00',
 		timeZone: 'Australia/Sydney',
 		teamSlug: 'gdg-sydney',
+		selfWalkIns: true,
 	},
 	{
 		slug: 'checkpad-demo',
@@ -22,6 +23,7 @@ export const mockEvents: CheckpadEvent[] = [
 		startsAt: '2026-01-01T00:00:00+10:00',
 		endsAt: '2030-01-01T00:00:00+10:00',
 		timeZone: 'Australia/Sydney',
+		selfWalkIns: true,
 	},
 	{
 		slug: 'gdg-future-meetup',
@@ -31,5 +33,6 @@ export const mockEvents: CheckpadEvent[] = [
 		endsAt: '2030-03-14T20:00:00+11:00',
 		timeZone: 'Australia/Sydney',
 		teamSlug: 'gdg-sydney',
+		selfWalkIns: true,
 	},
 ];

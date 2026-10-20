@@ -80,6 +80,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 			team: form.team,
 			walkInTicketTitle: form.walkInTicketTitle.trim(),
 			walkInVenue: form.walkInVenue.trim(),
+			selfWalkIns: form.selfWalkIns,
 			selfCheckInOpen: form.selfCheckInOpen,
 			selfCheckInChangedBy: switched ? (me?.name ?? session?.email ?? null) : event.selfCheckInChangedBy,
 			selfCheckInChangedAt: switched ? new Date().toISOString() : event.selfCheckInChangedAt,

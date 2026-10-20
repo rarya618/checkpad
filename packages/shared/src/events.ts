@@ -8,6 +8,9 @@ export interface CheckpadEvent {
 	timeZone: string;
 	/** The team whose permanent link (checkpad.app/team/<slug>) can open this event. */
 	teamSlug?: string;
+	/** Whether people who aren't on the list can add themselves as walk-ins on the check-in
+	 *  page. Staff can always add walk-ins from the dashboard. */
+	selfWalkIns: boolean;
 }
 
 export interface Team {

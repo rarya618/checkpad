@@ -19,6 +19,7 @@ const blank: EventForm = {
 	team: teams[0].name,
 	walkInTicketTitle: 'General admission',
 	walkInVenue: '',
+	selfWalkIns: true,
 	selfCheckInOpen: false,
 };
 
@@ -58,6 +59,7 @@ export default function NewEventPage() {
 					team: form.team,
 					walkInTicketTitle: form.walkInTicketTitle.trim(),
 					walkInVenue: form.walkInVenue.trim(),
+					selfWalkIns: form.selfWalkIns,
 					selfCheckInOpen: false,
 					selfCheckInChangedBy: null,
 					selfCheckInChangedAt: null,

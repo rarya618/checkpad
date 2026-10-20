@@ -13,6 +13,7 @@ export interface EventForm {
 	team: string;
 	walkInTicketTitle: string;
 	walkInVenue: string;
+	selfWalkIns: boolean;
 	selfCheckInOpen: boolean;
 }
 
@@ -106,8 +107,14 @@ export function eventToForm(event: DashboardEvent): EventForm {
 		team: event.team,
 		walkInTicketTitle: event.walkInTicketTitle,
 		walkInVenue: event.walkInVenue,
+		selfWalkIns: event.selfWalkIns,
 		selfCheckInOpen: event.selfCheckInOpen,
 	};
+}
+
+/** The note under the "Attendees can add themselves" switch. */
+export function selfWalkInsNote(on: boolean) {
+	return on ? 'Anyone not on the list can check in as a walk-in' : 'Anyone not on the list is sent to an organiser';
 }
 
 /** Start and end as ISO timestamps; an end at or before the start finishes the next day. */
@@ -133,6 +140,7 @@ const labels: Record<keyof EventForm, string> = {
 	team: 'team',
 	walkInTicketTitle: 'walk-in ticket title',
 	walkInVenue: 'walk-in venue',
+	selfWalkIns: 'walk-in switch',
 	selfCheckInOpen: 'self check-in switch',
 };
 
