@@ -1,5 +1,6 @@
 # build output
 dist/
+functions/lib/
 # generated types
 .astro/
 
@@ -13,6 +14,7 @@ yarn-error.log*
 pnpm-debug.log*
 firebase-debug.log*
 firebase-debug.*.log*
+firestore-debug.log*
 
 # firebase cache
 .firebase/

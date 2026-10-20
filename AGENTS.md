@@ -10,7 +10,7 @@ Run `npm install` from the repo root only. Add a dependency to one app with `npm
 
 ## Firebase
 
-The Firebase project is `checkpad-app` (see `.firebaserc`). Run the CLI as `npx -y firebase-tools@latest …`. The dashboard reads its Firebase config from `apps/dashboard/.env.local` (git-ignored); copy `apps/dashboard/.env.example` and fill it in. No database is set up yet: Firestore vs Realtime Database is still open in `docs/migration-plan.md`.
+The Firebase project is `checkpad-app` (see `.firebaserc`). Run the CLI as `npx -y firebase-tools@latest …`. The dashboard reads its Firebase config from `apps/dashboard/.env.local` (git-ignored); copy `apps/dashboard/.env.example` and fill it in. The database is Firestore (Standard edition, `australia-southeast1`); the data model is in `docs/migration-plan.md`. The project is on the Blaze plan.
 
 ## Development
 
@@ -29,6 +29,16 @@ Manage the background server with `astro dev stop`, `astro dev status`, and `ast
 ```
 npm run dev:dashboard
 ```
+
+### functions (Cloud Functions)
+
+The attendee check-in API, served on the Astro site at `/api` through a Hosting rewrite. Build with `npm run build -w @checkpad/functions`. The tests run against the Firestore and Functions emulators, which need Java 21 (`brew install openjdk@21`; it isn't the default `java`, so put it first on `PATH`):
+
+```
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm test -w @checkpad/functions"
+```
+
+`demo-checkpad` is an emulator-only project, so tests never touch production.
 
 ## Documentation
 
