@@ -8,7 +8,7 @@ Self check-in for community meetups: attendees scan a QR code when they arrive a
 
 ## Where it came from
 
-Checkpad replaces gdg-check-in, the app GDG Sydney built for its own meetups. The old app's database held 14 events on 18 October 2026 (some may be tests). Attendee lists come from Bevy, the event platform Google Developer Groups use for registration.
+Checkpad replaces gdg-check-in, the app GDG Sydney built for its own meetups. GDG Sydney and GDG UTS both use it today. The old app's database held 14 events on 18 October 2026 (some may be tests). Attendee lists come from Bevy, the event platform Google Developer Groups use for registration.
 
 - [NEED: how many people have checked in through the old app, and across how many real meetups]
 - [NEED: typical turnout for a GDG Sydney meetup (registered vs arrived), from the old data]
@@ -65,6 +65,11 @@ The prize draw is a nice extra, not a reason people choose Checkpad. Don't lead 
 
 [NEED: named alternatives organisers use today (printed list, spreadsheet, Bevy's check-in, Luma, Eventbrite Organizer?) and what each gets wrong for a free meetup]
 
+## Platforms and venues
+
+- **Supported platforms:** Bevy only (CSV import). Planned: Eventbrite, Humanitix, Luma, Meetup and any CSV file. Always label these "Planned" until each import ships; never imply they work today.
+- **What a venue needs:** a screen or printed sign for the QR code (it downloads as a PNG), attendees with phones and mobile data or Wi-Fi, and a laptop or phone for staff. Don't claim it works offline: the attendee check-in needs a connection.
+
 ## Offer and call to action
 
 - Checkpad is not open to new organisers yet. The only call to action is **Join the waitlist** (email only, stored in Firestore).
@@ -74,7 +79,9 @@ The prize draw is a nice extra, not a reason people choose Checkpad. Don't lead 
 
 ## Proof available
 
-None yet that can go on the page. Everything in the screenshots is sample data ("September Meetup", 41 of 109 checked in), so never quote those numbers as results.
+- **Used by:** GDG Sydney and GDG UTS run check-in on the original app. The page names them as text, worded as "the app Checkpad grew out of", because Checkpad itself isn't live. Their logos can't go up until approved by the Google contact. [NEED: logo approval from Google]
+
+Nothing else yet. Everything in the screenshots is sample data ("September Meetup", 41 of 109 checked in), so never quote those numbers as results.
 
 [NEED: real figures from the old app, an organiser quote with name and chapter, or a logo permission from GDG Sydney]
 
@@ -109,3 +116,4 @@ Angles and claims already tried, and what happened. Add to this as copy ships.
 - 21 October 2026: "Get started" buttons became "Join the waitlist" because Checkpad isn't open yet.
 - 21 October 2026, copywriting pass: hero changed from "A real-time self check-in app." (a category label that fails the swap test) to "Attendees check themselves in." "Let attendees check themselves in." was tried and dropped because it broke as "Let attendees / check / themselves in." at desktop width. Removed "in seconds" and "saved if you refresh" until the backend makes them true. Kept "watch the room fill up" and "Know how the night went."
 - 21 October 2026: "door" was overused as shorthand for check-in ("Doors open in three steps", "Everything for the door", "Run your next door"). It read oddly. Use it only literally, for where the QR code goes, and at most once on a page. "Door" was never confirmed as an organiser's word; it came from the old page copy.
+- 21 October 2026: added Used by (GDG Sydney, GDG UTS, names only), Supported platforms (Bevy supported, five planned) and Supported venues (what a venue needs) sections.
