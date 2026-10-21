@@ -102,7 +102,7 @@ export default function AttendeesPage() {
 								}
 							/>
 						) : (
-							<AttendeeTable eventSlug={slug} timeZone={event.timeZone} attendees={filtered} />
+							<AttendeeTable event={event} attendees={filtered} />
 						)}
 					</>
 				)}

@@ -1,8 +1,6 @@
 // Staff check-in actions shared by the Check in page and the Attendees table.
 import type { DashboardEvent } from './events';
-import { allTeams } from './teams';
-import type { RosterAttendee } from './mock';
-import { addWalkIn, removeAttendee, setCheckedIn } from './roster';
+import { addWalkIn, removeAttendee, setCheckedIn, type RosterAttendee } from './roster';
 import { showToast } from './toast';
 
 export function fullName(person: Pick<RosterAttendee, 'firstName' | 'lastName'>) {
@@ -25,19 +23,29 @@ export function looksLikeEmail(text: string) {
 }
 
 /** Checks someone in and offers Undo in the toast (Figma "Toast – checked in"). */
-export function checkIn(eventSlug: string, attendee: RosterAttendee) {
-	setCheckedIn(eventSlug, attendee.id, new Date());
-	showToast(`${fullName(attendee)} checked in`, { label: 'Undo', onClick: () => setCheckedIn(eventSlug, attendee.id, null) });
+export function checkIn(event: DashboardEvent, attendee: RosterAttendee) {
+	const name = fullName(attendee);
+	setCheckedIn(event, attendee.id, true).catch(() => showToast(`Couldn’t check ${name} in. Try again.`));
+	showToast(`${name} checked in`, { label: 'Undo', onClick: () => undoCheckIn(event, attendee) });
 }
 
-export function walkInTicketPrefix(event: DashboardEvent) {
-	const teams = allTeams();
-	return (teams.find((team) => team.name === event.team) ?? teams[0])?.walkInTicketPrefix ?? 'WALKIN';
+export function undoCheckIn(event: DashboardEvent, attendee: RosterAttendee) {
+	setCheckedIn(event, attendee.id, false).catch(() => showToast(`Couldn’t undo ${fullName(attendee)}’s check-in. Try again.`));
 }
 
-/** Adds a walk-in, already checked in. Undo takes them off the list again. */
-export function addWalkInAndCheckIn(event: DashboardEvent, person: Pick<RosterAttendee, 'firstName' | 'lastName' | 'email'>) {
-	const attendee = addWalkIn(event.slug, person, walkInTicketPrefix(event));
-	showToast(`${fullName(attendee)} checked in`, { label: 'Undo', onClick: () => removeAttendee(event.slug, attendee.id) });
-	return attendee;
+/**
+ * Adds a walk-in, already checked in. Undo takes them off the list again. Taking the next
+ * ticket number needs a connection, so offline it fails straight away and says so.
+ */
+export async function addWalkInAndCheckIn(event: DashboardEvent, person: Pick<RosterAttendee, 'firstName' | 'lastName' | 'email'>) {
+	const name = fullName(person);
+	try {
+		const ticket = await addWalkIn(event, person);
+		showToast(`${name} checked in`, {
+			label: 'Undo',
+			onClick: () => removeAttendee(event, ticket).catch(() => showToast(`Couldn’t remove ${name}. Try again.`)),
+		});
+	} catch {
+		showToast(`Couldn’t add ${name}. Check the connection and try again.`);
+	}
 }

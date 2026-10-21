@@ -2,7 +2,9 @@
 import { formatClockTime } from '@checkpad/shared/format';
 import { downloadCsv, parseCsv } from './csv';
 import type { DashboardEvent } from './events';
-import type { RosterAttendee } from './mock';
+import { looksLikeEmail } from './checkIn';
+import { loadRoster, type RosterAttendee } from './roster';
+import { showToast } from './toast';
 
 export interface BevyRow {
 	firstName: string;
@@ -69,7 +71,13 @@ export async function planImport(file: File, roster: RosterAttendee[]): Promise<
 		const row: BevyRow = { firstName: get('firstName'), lastName: get('lastName'), email: get('email'), ticket: get('ticket'), ticketType: get('ticketType') };
 		const rowNumber = i + 2;
 		if (!row.email) return skip('No email address', rowNumber);
+		// The rest match what the database accepts (firestore.rules), so one bad row can't stop the import
+		if (!looksLikeEmail(row.email)) return skip('Email address isn’t valid', rowNumber);
+		row.email = row.email.toLowerCase();
+		if (!row.firstName) return skip('No first name', rowNumber);
+		if (row.firstName.length > 100 || row.lastName.length > 100 || row.ticketType.length > 100) return skip('Name or ticket type is too long', rowNumber);
 		if (!row.ticket) return skip('No ticket number', rowNumber);
+		if (row.ticket.length > 100 || row.ticket.includes('/') || /^\.\.?$|^__.*__$/.test(row.ticket)) return skip('Ticket number can’t be used', rowNumber);
 		if (seen.has(row.ticket.toLowerCase())) return skip('Same ticket number as an earlier row', rowNumber);
 		seen.add(row.ticket.toLowerCase());
 
@@ -97,7 +105,7 @@ export function rowList(rows: number[]) {
 }
 
 /** Figma's "Export for Bevy": the attendee list as a CSV for Bevy's bulk upload, walk-ins included. */
-export function exportForBevy(event: DashboardEvent, roster: RosterAttendee[]) {
+function exportForBevy(event: DashboardEvent, roster: RosterAttendee[]) {
 	downloadCsv(`${event.slug}-attendees.csv`, [
 		['First Name', 'Last Name', 'Email', 'Ticket Number', 'Ticket Type', 'Walk-in', 'Checked In', 'Checked In At'],
 		...roster.map((a) => [
@@ -111,4 +119,13 @@ export function exportForBevy(event: DashboardEvent, roster: RosterAttendee[]) {
 			a.checkedInAt ? formatClockTime(a.checkedInAt, event.timeZone) : '',
 		]),
 	]);
+}
+
+/** Downloads the event's attendee list as a Bevy CSV, fetching it first. */
+export async function exportAttendees(event: DashboardEvent) {
+	try {
+		exportForBevy(event, await loadRoster(event));
+	} catch {
+		showToast('Couldn’t export the attendees. Check the connection and try again.');
+	}
 }

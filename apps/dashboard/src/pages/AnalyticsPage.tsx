@@ -6,7 +6,7 @@ import { BarChart, StatTile, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
 import { eventResult, eventsInRange, monthSpan, percent, ranges, returningShare } from '../lib/analytics';
 import { useEvents } from '../lib/events';
-import { useAllRosters } from '../lib/roster';
+import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
@@ -14,17 +14,19 @@ const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }]
 // Figma "Analytics" (across events) at 75% scale.
 export default function AnalyticsPage() {
 	const events = useEvents();
-	const rosters = useAllRosters();
 	const teams = useTeams() ?? [];
-	const [team, setTeam] = useState(teams[0]?.name ?? '');
+	const [team, setTeam] = useState(teams[0]?.id ?? '');
 	const [rangeId, setRangeId] = useState('6');
 	const range = ranges.find((r) => r.id === rangeId)!;
 
 	const included = useMemo(() => eventsInRange(events, team, range.months), [events, team, range]);
-	const results = useMemo(() => included.map((e) => eventResult(e, rosters[e.slug] ?? [])), [included, rosters]);
+	const results = useMemo(() => included.map((e) => eventResult(e)), [included]);
+	// Returning attendees needs every list of the team's past events, matched by email
+	const teamEvents = useMemo(() => events.filter((e) => e.teamId === team && new Date(e.startsAt).getTime() < Date.now()), [events, team]);
+	const rosters = useRosters(teamEvents);
 	const registered = results.reduce((n, r) => n + r.registered, 0);
 	const checkIns = results.reduce((n, r) => n + r.checkedIn, 0);
-	const returning = useMemo(() => returningShare(included, events.filter((e) => e.team === team), rosters), [included, events, team, rosters]);
+	const returning = useMemo(() => returningShare(included, teamEvents, rosters), [included, teamEvents, rosters]);
 
 	// Label the best turnout and the latest event, not every bar
 	const best = results.reduce<(typeof results)[number] | null>((b, r) => (!b || r.turnout > b.turnout ? r : b), null);
@@ -41,7 +43,9 @@ export default function AnalyticsPage() {
 					<div className="flex items-center gap-[9px]">
 						<Filter label="Team" value={team} onChange={setTeam}>
 							{teams.map((t) => (
-								<option key={t.slug}>{t.name}</option>
+								<option key={t.id} value={t.id}>
+									{t.name}
+								</option>
 							))}
 						</Filter>
 						<Filter label="Time range" value={rangeId} onChange={setRangeId}>

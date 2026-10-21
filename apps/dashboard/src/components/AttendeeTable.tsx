@@ -2,18 +2,17 @@ import { buttonClass } from '@checkpad/shared/button';
 import { formatClockTime } from '@checkpad/shared/format';
 import { useEffect, useRef } from 'react';
 import undo from '../assets/undo.png';
-import type { RosterAttendee } from '../lib/mock';
-import { checkIn } from '../lib/checkIn';
-import { setCheckedIn } from '../lib/roster';
+import { checkIn, undoCheckIn } from '../lib/checkIn';
+import type { DashboardEvent } from '../lib/events';
+import type { RosterAttendee } from '../lib/roster';
 
 interface Props {
-	eventSlug: string;
-	timeZone: string;
+	event: DashboardEvent;
 	attendees: RosterAttendee[];
 }
 
 // The page shows Figma's empty states instead of an empty table.
-export default function AttendeeTable({ eventSlug, timeZone, attendees }: Props) {
+export default function AttendeeTable({ event, attendees }: Props) {
 	return (
 		<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
 			<table className="w-full table-fixed">
@@ -31,7 +30,7 @@ export default function AttendeeTable({ eventSlug, timeZone, attendees }: Props)
 				</thead>
 				<tbody>
 					{attendees.map((attendee) => (
-						<AttendeeRow key={attendee.id} eventSlug={eventSlug} timeZone={timeZone} attendee={attendee} />
+						<AttendeeRow key={attendee.id} event={event} attendee={attendee} />
 					))}
 				</tbody>
 			</table>
@@ -39,7 +38,8 @@ export default function AttendeeTable({ eventSlug, timeZone, attendees }: Props)
 	);
 }
 
-function AttendeeRow({ eventSlug, timeZone, attendee }: { eventSlug: string; timeZone: string; attendee: RosterAttendee }) {
+function AttendeeRow({ event, attendee }: { event: DashboardEvent; attendee: RosterAttendee }) {
+	const { timeZone } = event;
 	const name = `${attendee.firstName} ${attendee.lastName}`;
 	const initials = `${attendee.firstName[0] ?? ''}${attendee.lastName[0] ?? ''}`.toUpperCase();
 
@@ -53,8 +53,8 @@ function AttendeeRow({ eventSlug, timeZone, attendee }: { eventSlug: string; tim
 	const toggle = (checkingIn: boolean) => {
 		refocus.current = true;
 		// Checking in confirms with a toast that offers Undo (Figma "Toast – checked in")
-		if (checkingIn) checkIn(eventSlug, attendee);
-		else setCheckedIn(eventSlug, attendee.id, null);
+		if (checkingIn) checkIn(event, attendee);
+		else undoCheckIn(event, attendee);
 	};
 
 	return (

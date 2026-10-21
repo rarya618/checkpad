@@ -2,7 +2,7 @@ import { buttonClass } from '@checkpad/shared/button';
 import { useState, type FormEvent } from 'react';
 import close from '../assets/close.svg';
 import x from '../assets/x.svg';
-import { addWalkInAndCheckIn, looksLikeEmail, walkInTicketPrefix } from '../lib/checkIn';
+import { addWalkInAndCheckIn, looksLikeEmail } from '../lib/checkIn';
 import type { DashboardEvent } from '../lib/events';
 import { nextWalkInTicket, useRoster } from '../lib/roster';
 import Dialog from './Dialog';
@@ -22,7 +22,7 @@ function useWalkInForm(event: DashboardEvent, prefill: string, onDone: () => voi
 	const taken = roster.some((a) => a.email.toLowerCase() === email.trim().toLowerCase());
 	const emailError = taken ? 'Someone with this email is already on the list. Find them instead.' : null;
 	const valid = firstName.trim() !== '' && looksLikeEmail(email) && !taken;
-	const ticket = nextWalkInTicket(roster, walkInTicketPrefix(event));
+	const ticket = nextWalkInTicket(event);
 
 	function submit(e: FormEvent) {
 		e.preventDefault();

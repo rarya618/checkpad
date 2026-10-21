@@ -2,7 +2,7 @@
 // flags, Bevy ticket types and emails (docs/migration-plan.md, Analytics data).
 import { formatClockTime } from '@checkpad/shared/format';
 import type { DashboardEvent } from './events';
-import type { RosterAttendee } from './mock';
+import type { RosterAttendee } from './roster';
 
 export interface ArrivalBin {
 	/** "18:15" */
@@ -74,19 +74,21 @@ export interface EventResult {
 	turnout: number;
 }
 
-export function eventResult(event: DashboardEvent, roster: RosterAttendee[]): EventResult {
-	const checkedIn = roster.filter((a) => a.checkedInAt).length;
-	return { event, registered: roster.length, checkedIn, walkIns: roster.filter((a) => a.walkIn).length, turnout: percent(checkedIn, roster.length) };
+/** From the counts the trigger keeps, so Analytics doesn't wait for every attendee list. */
+export function eventResult(event: DashboardEvent): EventResult {
+	const { registered, checkedIn, walkIns } = event.counts;
+	return { event, registered, checkedIn, walkIns, turnout: percent(checkedIn, registered) };
 }
 
 /**
  * Share of check-ins (in `events`) by someone who checked in to an earlier event of theirs,
  * matched by email. In the real app this runs on the server or behind organiser-only rules.
  */
+/** `rosters` by event ID. */
 export function returningShare(events: DashboardEvent[], allEvents: DashboardEvent[], rosters: Record<string, RosterAttendee[]>) {
 	const firstSeen = new Map<string, number>();
 	for (const e of [...allEvents].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
-		for (const a of rosters[e.slug] ?? []) {
+		for (const a of rosters[e.id] ?? []) {
 			const key = a.email.toLowerCase();
 			if (a.checkedInAt && !firstSeen.has(key)) firstSeen.set(key, new Date(e.startsAt).getTime());
 		}
@@ -95,7 +97,7 @@ export function returningShare(events: DashboardEvent[], allEvents: DashboardEve
 	let returning = 0;
 	for (const e of events) {
 		const start = new Date(e.startsAt).getTime();
-		for (const a of rosters[e.slug] ?? []) {
+		for (const a of rosters[e.id] ?? []) {
 			if (!a.checkedInAt) continue;
 			checkIns++;
 			if ((firstSeen.get(a.email.toLowerCase()) ?? start) < start) returning++;
@@ -112,10 +114,10 @@ export const ranges = [
 ];
 
 /** Finished events of a team since the first of the month `months` ago, oldest first. */
-export function eventsInRange(events: DashboardEvent[], team: string, months: number, now = new Date()) {
+export function eventsInRange(events: DashboardEvent[], teamId: string, months: number, now = new Date()) {
 	const from = Number.isFinite(months) ? new Date(now.getFullYear(), now.getMonth() - months, 1).getTime() : -Infinity;
 	return events
-		.filter((e) => e.team === team && new Date(e.endsAt).getTime() < now.getTime() && new Date(e.startsAt).getTime() >= from)
+		.filter((e) => e.teamId === teamId && new Date(e.endsAt).getTime() < now.getTime() && new Date(e.startsAt).getTime() >= from)
 		.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 }
 

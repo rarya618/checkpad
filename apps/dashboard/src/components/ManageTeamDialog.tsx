@@ -5,7 +5,6 @@ import x from '../assets/x.svg';
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, slugify } from '../lib/eventForm';
-import { renameTeamEvents } from '../lib/events';
 import { initialsOf, isOrganiser, roleLabel, saveTeamMembers, useMe, useOrganisers } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
@@ -57,7 +56,6 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 					if (!valid) return;
 					saveTeamMembers(team, { name: cleanName, slug: cleanSlugValue }, removed, invites.map((email) => ({ email, role: 'team-member' }))).then(
 						() => {
-							if (team) renameTeamEvents(team.name, cleanName);
 							if (invites.length) showToast(invites.length === 1 ? `${invites[0]} can sign in now` : `${invites.length} people can sign in now`);
 						},
 						() => showToast(`Couldn’t save ${cleanName}. Try again.`),

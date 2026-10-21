@@ -8,10 +8,9 @@ import { TextField } from '../components/Field';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
 import { WalkInCard, WalkInDialog } from '../components/WalkIn';
-import { checkIn, findAttendee, fullName, initials, looksLikeEmail, walkInTicketPrefix } from '../lib/checkIn';
+import { checkIn, findAttendee, fullName, initials, looksLikeEmail, undoCheckIn } from '../lib/checkIn';
 import { useEvent, type DashboardEvent } from '../lib/events';
-import type { RosterAttendee } from '../lib/mock';
-import { nextWalkInTicket, rosterStats, setCheckedIn, useRoster } from '../lib/roster';
+import { nextWalkInTicket, rosterStats, useRoster, type RosterAttendee } from '../lib/roster';
 import { useIsDesktop } from '../lib/useMediaQuery';
 
 type Result = { kind: 'found'; attendee: RosterAttendee } | { kind: 'not-found'; query: string } | null;
@@ -42,7 +41,7 @@ export default function CheckInPage() {
 	// Looked up live, so the card follows check-ins and undos made elsewhere.
 	const found = searched ? findAttendee(roster, searched) : undefined;
 	const result: Result = found ? { kind: 'found', attendee: found } : searched ? { kind: 'not-found', query: searched } : null;
-	const ticket = nextWalkInTicket(roster, walkInTicketPrefix(event));
+	const ticket = nextWalkInTicket(event);
 
 	function find(e: FormEvent) {
 		e.preventDefault();
@@ -58,10 +57,10 @@ export default function CheckInPage() {
 
 	const actions = {
 		checkIn: (a: RosterAttendee) => {
-			checkIn(slug, a);
+			checkIn(event, a);
 			reset();
 		},
-		undo: (a: RosterAttendee) => setCheckedIn(slug, a.id, null),
+		undo: (a: RosterAttendee) => undoCheckIn(event, a),
 		addWalkIn: (q: string) => setWalkInFor(q),
 	};
 

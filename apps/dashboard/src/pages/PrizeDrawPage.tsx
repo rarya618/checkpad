@@ -6,20 +6,26 @@ import gift from '../assets/gift-large.svg';
 import x from '../assets/x.svg';
 import Dialog from '../components/Dialog';
 import { fullName } from '../lib/checkIn';
-import { useEvent } from '../lib/events';
+import Loading from '../components/Loading';
+import Toaster from '../components/Toaster';
+import { useEvent, type DashboardEvent } from '../lib/events';
 import { addWinner, markLatestNotHere, resetDraw, useDraw } from '../lib/prizeDraw';
-import { useRoster } from '../lib/roster';
+import { useRoster, useRosterLoading } from '../lib/roster';
+import { showToast } from '../lib/toast';
 
 // Figma "Prize draw display – ready / drawing / winner / nobody checked in / everyone has
 // won / start over?". Full screen on the venue's projector, names only (no emails or tickets).
 export default function PrizeDrawPage() {
 	const { slug } = useParams();
 	const event = useEvent(slug);
+	const roster = useRosterLoading(slug ?? '');
 	if (!event) return <Navigate to="/events" replace />;
-	return <PrizeDraw slug={event.slug} name={event.name} />;
+	if (!roster) return <Loading />;
+	return <PrizeDraw event={event} />;
 }
 
-function PrizeDraw({ slug, name }: { slug: string; name: string }) {
+function PrizeDraw({ event }: { event: DashboardEvent }) {
+	const { slug, name } = event;
 	const roster = useRoster(slug);
 	const draw = useDraw(slug);
 	const checkedIn = useMemo(() => roster.filter((a) => a.checkedInAt), [roster]);
@@ -43,7 +49,7 @@ function PrizeDraw({ slug, name }: { slug: string; name: string }) {
 		const reveal = () => {
 			setSpinning(null);
 			setShowWinner(true);
-			addWinner(slug, winner.id);
+			addWinner(event, draw, winner.id).catch(() => showToast('Couldn’t save the winner. Check the connection and draw again.'));
 		};
 		if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
 			setSpinning('');
@@ -106,7 +112,7 @@ function PrizeDraw({ slug, name }: { slug: string; name: string }) {
 							<button
 								type="button"
 								onClick={() => {
-									markLatestNotHere(slug);
+									markLatestNotHere(event, draw).catch(() => showToast('Couldn’t save that. Try again.'));
 									drawWinner();
 								}}
 								disabled={stillIn === 0}
@@ -191,7 +197,7 @@ function PrizeDraw({ slug, name }: { slug: string; name: string }) {
 						<button
 							type="button"
 							onClick={() => {
-								resetDraw(slug);
+								resetDraw(event).catch(() => showToast('Couldn’t start over. Try again.'));
 								setShowWinner(true);
 								setConfirmStartOver(false);
 							}}
@@ -202,6 +208,10 @@ function PrizeDraw({ slug, name }: { slug: string; name: string }) {
 					</div>
 				</Dialog>
 			)}
+			{/* Only shows if saving a result fails */}
+			<div className="fixed inset-x-0 bottom-0">
+				<Toaster />
+			</div>
 		</main>
 	);
 }

@@ -17,7 +17,7 @@ import {
 	cleanSlug,
 	eventToForm,
 	formIsComplete,
-	formTimes,
+	formToInput,
 	selfWalkInsNote,
 	unsavedMessage,
 	type EventForm,
@@ -25,7 +25,7 @@ import {
 import { isSlugTaken, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
 import { useSession } from '../lib/auth';
 import { useCurrentOrganiser } from '../lib/organisers';
-import { nextWalkInTicket, useRoster } from '../lib/roster';
+import { nextWalkInTicket } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { showToast } from '../lib/toast';
 
@@ -40,7 +40,6 @@ export default function EventSettingsRoute() {
 function EventSettingsPage({ slug }: { slug: string }) {
 	// EventLayout has already redirected unknown slugs.
 	const event = useEvent(slug)!;
-	const roster = useRoster(slug);
 	const navigate = useNavigate();
 	const session = useSession();
 	const me = useCurrentOrganiser();
@@ -73,26 +72,14 @@ function EventSettingsPage({ slug }: { slug: string }) {
 
 	// Saving under a new link moves this page too: EventLayout follows the rename.
 	function save() {
-		const switched = form.selfCheckInOpen !== event.selfCheckInOpen;
-		const next: DashboardEvent = {
-			...event,
-			slug: newSlug,
-			name: form.name.trim(),
-			description: form.description.trim(),
-			...formTimes(form),
-			timeZone: form.timeZone,
-			team: form.team,
-			walkInTicketTitle: form.walkInTicketTitle.trim(),
-			walkInVenue: form.walkInVenue.trim(),
-			selfWalkIns: form.selfWalkIns,
-			selfCheckInOpen: form.selfCheckInOpen,
-			selfCheckInChangedBy: switched ? (me?.name ?? session?.email ?? null) : event.selfCheckInChangedBy,
-			selfCheckInChangedAt: switched ? new Date().toISOString() : event.selfCheckInChangedAt,
-		};
+		const input = formToInput(form, newSlug);
 		dirtyRef.current = false;
-		updateEvent(slug, next);
+		// Shows at once; the rules refuse a link another team's event has, which we can't see
+		updateEvent(event, input, me?.name ?? session?.email ?? 'An organiser').catch(() =>
+			showToast(`Couldn’t save the settings.${input.slug !== slug ? ' The new link may be taken: try another.' : ' Try again.'}`),
+		);
 		// Saving trims text, so take the saved values back or the form would still look changed
-		setForm(eventToForm(next));
+		setForm(eventToForm({ ...event, ...input }));
 		showToast('Settings saved');
 	}
 
@@ -112,8 +99,6 @@ function EventSettingsPage({ slug }: { slug: string }) {
 		navigate((inEvent ? pathname.replace(`/events/${slug}`, `/events/${newSlug}`) : pathname) + search + hash);
 	}
 
-	const team = teams.find((t) => t.name === form.team) ?? teams[0];
-	const prefix = team?.walkInTicketPrefix ?? 'WALKIN';
 	const linkLocked = event.selfCheckInOpen;
 
 	return (
@@ -167,14 +152,16 @@ function EventSettingsPage({ slug }: { slug: string }) {
 						<FormCard level={3} title="Team and walk-ins" description="Staff can always add walk-ins from the dashboard.">
 							<SelectField label="Team" value={form.team} onChange={(e) => update('team', e.target.value)}>
 								{teams.map((t) => (
-									<option key={t.slug}>{t.name}</option>
+									<option key={t.id} value={t.id}>
+										{t.name}
+									</option>
 								))}
 							</SelectField>
 							<TextField
 								label="Walk-in ticket title"
 								value={form.walkInTicketTitle}
 								onChange={(e) => update('walkInTicketTitle', e.target.value)}
-								hint={`Next walk-in ticket: ${nextWalkInTicket(roster, prefix)}`}
+								hint={`Next walk-in ticket: ${nextWalkInTicket(event)}`}
 							/>
 							<TextField label="Walk-in venue" value={form.walkInVenue} onChange={(e) => update('walkInVenue', e.target.value)} />
 							<SwitchRow

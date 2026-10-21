@@ -8,9 +8,8 @@ import ellipsis from '../assets/ellipsis-vertical.svg';
 import link from '../assets/link.svg';
 import sliders from '../assets/sliders.svg';
 import trash from '../assets/trash.svg';
-import { exportForBevy } from '../lib/bevy';
+import { exportAttendees } from '../lib/bevy';
 import { checkInUrl } from '../lib/config';
-import { useRoster } from '../lib/roster';
 import type { EventSummary } from '../lib/events';
 import { showToast } from '../lib/toast';
 import CheckInRing from './CheckInRing';
@@ -28,7 +27,6 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 	const { event, stats } = summary;
 	const status = statuses[checkInStatus({ open: event.selfCheckInOpen, startsAt: event.startsAt })];
 	const [deleting, setDeleting] = useState(false);
-	const roster = useRoster(event.slug);
 	return (
 		<article className="relative flex items-center justify-between gap-6 rounded-[10px] border border-med-blue bg-white px-[27px] py-6 hover:bg-off-white/60">
 			<div className="flex min-w-0 items-center gap-7.5">
@@ -67,7 +65,7 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 							icon: link,
 							onSelect: () => navigator.clipboard.writeText(checkInUrl(event.slug)).then(() => showToast('Check-in link copied')),
 						},
-						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event, roster) },
+						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
 						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
 					]}
 				>

@@ -2,14 +2,14 @@ import { buttonClass } from '@checkpad/shared/button';
 import { useState } from 'react';
 import x from '../assets/x.svg';
 import { deleteEvent, type DashboardEvent } from '../lib/events';
-import { useRoster } from '../lib/roster';
+import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
 import { TextField } from './Field';
 
 // Figma "Attendees – delete event". Typing the event name unlocks the delete button.
 // Pages showing the deleted event redirect themselves (EventLayout), so this only deletes.
 export default function DeleteEventDialog({ event, onClose }: { event: DashboardEvent; onClose: () => void }) {
-	const attendees = useRoster(event.slug).length;
+	const attendees = event.counts.registered;
 	const [confirm, setConfirm] = useState('');
 	const matches = confirm.trim() === event.name.trim();
 
@@ -30,7 +30,7 @@ export default function DeleteEventDialog({ event, onClose }: { event: Dashboard
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!matches) return;
-					deleteEvent(event.slug);
+					deleteEvent(event).catch(() => showToast(`Couldn’t delete ${event.name}. Try again.`));
 					onClose();
 				}}
 			>

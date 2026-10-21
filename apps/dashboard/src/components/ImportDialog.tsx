@@ -30,11 +30,14 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 
 	function runImport() {
 		if (!plan) return;
-		importAttendees(event.slug, plan);
 		const skipped = skippedCount(plan);
 		const count = importCount(plan);
 		const message = `Imported ${count} attendee${count === 1 ? '' : 's'}${skipped ? `. ${skipped} row${skipped === 1 ? '' : 's'} skipped` : ''}`;
-		showToast(message, skipped ? { label: 'Details', onClick: () => onImported?.(plan) } : undefined);
+		// The list shows them straight away; the toast waits until they're saved
+		importAttendees(event, roster, plan).then(
+			() => showToast(message, skipped ? { label: 'Details', onClick: () => onImported?.(plan) } : undefined),
+			() => showToast('The import stopped partway. Import the same file again to finish it.'),
+		);
 		onClose();
 	}
 

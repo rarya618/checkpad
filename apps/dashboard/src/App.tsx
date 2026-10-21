@@ -4,7 +4,8 @@ import MobileNav, { type MobileNavConfig } from './components/MobileNav';
 import Sidebar, { type SidebarItem } from './components/Sidebar';
 import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
-import { renamedSlug, useEvent } from './lib/events';
+import { useEvent, useEventsFor, useRenamedSlug } from './lib/events';
+import { useRosterLoading } from './lib/roster';
 import { useCurrentOrganiser } from './lib/organisers';
 import { useTeams } from './lib/teams';
 import { useIsDesktop } from './lib/useMediaQuery';
@@ -66,10 +67,14 @@ function EventLayout() {
 	const { pathname } = useLocation();
 	// Reactive: a deleted event leaves its pages, and one saved under a new link takes the page with it
 	const event = useEvent(slug);
+	const moved = useRenamedSlug(event ? undefined : slug);
+	// Every page here lists or counts the attendees: load them first, so none shows an empty list
+	const roster = useRosterLoading(slug ?? '');
 	if (!event) {
-		const moved = renamedSlug(slug);
+		if (moved === undefined) return <Loading />;
 		return <Navigate to={moved ? pathname.replace(`/events/${slug}`, `/events/${moved}`) : '/events'} replace />;
 	}
+	if (!roster) return <Loading />;
 	const base = `/events/${slug}`;
 	const attendees = { to: base, label: 'Attendees', end: true };
 	const checkIn = { to: `${base}/check-in`, label: 'Check in' };
@@ -91,15 +96,16 @@ function EventLayout() {
 }
 
 // Every dashboard page and display needs a signed-in organiser (docs/migration-plan.md).
-// Waits for the teams too, so pages can list them straight away.
+// Waits for the teams and events too, so pages can show them straight away.
 function RequireOrganiser() {
 	const session = useSession();
 	const me = useCurrentOrganiser();
 	const teams = useTeams(Boolean(me));
+	const events = useEventsFor(me);
 	const { pathname, search } = useLocation();
 	if (session === null) return <Navigate to={`/sign-in?${new URLSearchParams({ next: pathname + search })}`} replace />;
 	if (me === null) return <Navigate to="/no-access" replace />;
-	if (!me || !teams) return <Loading />;
+	if (!me || !teams || !events) return <Loading />;
 	return <Outlet />;
 }
 

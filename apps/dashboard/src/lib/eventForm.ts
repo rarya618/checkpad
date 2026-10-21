@@ -1,5 +1,5 @@
 // Form values for New event and Event settings, and the conversions to and from an event.
-import { isSlugTaken, type DashboardEvent } from './events';
+import { isSlugTaken, type DashboardEvent, type EventInput } from './events';
 
 export interface EventForm {
 	name: string;
@@ -10,6 +10,7 @@ export interface EventForm {
 	start: string;
 	end: string;
 	timeZone: string;
+	/** The team's ID; empty for none. */
 	team: string;
 	walkInTicketTitle: string;
 	walkInVenue: string;
@@ -104,7 +105,7 @@ export function eventToForm(event: DashboardEvent): EventForm {
 		start: start.time,
 		end: end.time,
 		timeZone: event.timeZone,
-		team: event.team,
+		team: event.teamId ?? '',
 		walkInTicketTitle: event.walkInTicketTitle,
 		walkInVenue: event.walkInVenue,
 		selfWalkIns: event.selfWalkIns,
@@ -115,6 +116,22 @@ export function eventToForm(event: DashboardEvent): EventForm {
 /** The note under the "Attendees can add themselves" switch. */
 export function selfWalkInsNote(on: boolean) {
 	return on ? 'Anyone not on the list can check in as a walk-in' : 'Anyone not on the list is sent to an organiser';
+}
+
+/** What to save from the form, under `slug` (the form's, without a trailing hyphen). */
+export function formToInput(form: EventForm, slug: string): EventInput {
+	return {
+		slug,
+		name: form.name.trim(),
+		description: form.description.trim(),
+		...formTimes(form),
+		timeZone: form.timeZone,
+		teamId: form.team || null,
+		walkInTicketTitle: form.walkInTicketTitle.trim(),
+		walkInVenue: form.walkInVenue.trim(),
+		selfWalkIns: form.selfWalkIns,
+		selfCheckInOpen: form.selfCheckInOpen,
+	};
 }
 
 /** Start and end as ISO timestamps; an end at or before the start finishes the next day. */

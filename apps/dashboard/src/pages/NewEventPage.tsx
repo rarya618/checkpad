@@ -6,9 +6,10 @@ import { LinkField, SelectField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
-import { cleanSlug, formIsComplete, formTimes, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
+import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
 import { createEvent, isSlugTaken } from '../lib/events';
 import { useTeams, type Team } from '../lib/teams';
+import { showToast } from '../lib/toast';
 
 const blank: EventForm = {
 	name: '',
@@ -29,7 +30,7 @@ const blank: EventForm = {
 export default function NewEventPage() {
 	const navigate = useNavigate();
 	const teams = useTeams() ?? [];
-	const [form, setForm] = useState(() => ({ ...blank, team: teams[0]?.name ?? '' }));
+	const [form, setForm] = useState(() => ({ ...blank, team: teams[0]?.id ?? '' }));
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
 	const [slugEdited, setSlugEdited] = useState(false);
@@ -43,31 +44,27 @@ export default function NewEventPage() {
 		});
 	}
 
-	const team: Team | undefined = teams.find((t) => t.name === form.team) ?? teams[0];
+	const team: Team | undefined = teams.find((t) => t.id === form.team) ?? teams[0];
 	const slug = form.slug.replace(/-+$/, '');
 	const slugTaken = slug !== '' && isSlugTaken(slug);
-	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined;
+	const [saving, setSaving] = useState(false);
+	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined && !saving;
 
 	return (
 		<form
-			onSubmit={(e) => {
+			onSubmit={async (e) => {
 				e.preventDefault();
 				if (!canCreate) return;
-				createEvent({
-					slug,
-					name: form.name.trim(),
-					description: form.description.trim(),
-					...formTimes(form),
-					timeZone: form.timeZone,
-					team: form.team,
-					walkInTicketTitle: form.walkInTicketTitle.trim(),
-					walkInVenue: form.walkInVenue.trim(),
-					selfWalkIns: form.selfWalkIns,
-					selfCheckInOpen: false,
-					selfCheckInChangedBy: null,
-					selfCheckInChangedAt: null,
-				});
-				navigate(`/events/${slug}`);
+				// Waits for the server: the event's pages can't read its attendees until it has the
+				// event. The rules refuse a link another team's event has, which we can't see.
+				setSaving(true);
+				try {
+					await createEvent(formToInput(form, slug));
+					navigate(`/events/${slug}`);
+				} catch {
+					showToast(`Couldn’t create ${form.name.trim()}. Its link may be taken: try another, or check the connection.`);
+					setSaving(false);
+				}
 			}}
 		>
 			{/* Sticks once 24px remains above it, like PageHeader */}
@@ -142,7 +139,9 @@ export default function NewEventPage() {
 							hint={team ? `${WEB_HOST}/team/${team.slug} will point here while this is the team’s next event.` : 'Add a team on the Organisers page first.'}
 						>
 							{teams.map((t) => (
-								<option key={t.slug}>{t.name}</option>
+								<option key={t.id} value={t.id}>
+									{t.name}
+								</option>
 							))}
 						</SelectField>
 					</FormCard>
