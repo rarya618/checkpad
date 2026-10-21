@@ -13,7 +13,7 @@ import { useCurrentOrganiser } from '../lib/organisers';
 // Figma "Sign in", "Sign in – check your email", "Sign in – link expired" and "No access",
 // at the dashboard's 75% scale: the logo above one card.
 
-function AuthLayout({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
+export function AuthLayout({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
 	return (
 		<main className="flex min-h-dvh items-center justify-center p-6">
 			<div className="flex w-full max-w-[390px] flex-col items-center gap-[30px]">
