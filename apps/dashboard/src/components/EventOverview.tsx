@@ -11,6 +11,7 @@ import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
 import { exportAttendees, type ImportPlan } from '../lib/bevy';
 import type { DashboardEvent } from '../lib/events';
+import { useCanEditEvents } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
 import ImportDialog from './ImportDialog';
 import Menu from './Menu';
@@ -22,6 +23,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const end = new Date(event.endsAt);
 	const [deleting, setDeleting] = useState(false);
 	const [sharing, setSharing] = useState(false);
+	const canEdit = useCanEditEvents();
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 	return (
@@ -49,9 +51,11 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				<CheckInLink url={checkInUrl(event.slug)} />
 			</div>
 			<div className="flex shrink-0 items-center gap-[15px]">
-				<Link to={`/events/${event.slug}/settings`} className={buttonClass('secondary')}>
-					Edit
-				</Link>
+				{canEdit && (
+					<Link to={`/events/${event.slug}/settings`} className={buttonClass('secondary')}>
+						Edit
+					</Link>
+				)}
 				<button type="button" onClick={() => setSharing(true)} className={buttonClass('primary')}>
 					Share
 				</button>
@@ -60,10 +64,10 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 					label="More event options"
 					buttonClassName="rounded-[10px] bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
 					items={[
-						{ label: 'Import from Bevy', icon: upload, onSelect: () => setImporting({}) },
+						...(canEdit ? [{ label: 'Import from Bevy', icon: upload, onSelect: () => setImporting({}) }] : []),
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
 						{ label: 'Open prize draw', icon: gift, onSelect: () => window.open(`/events/${event.slug}/prize-draw`, '_blank') },
-						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
+						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 					]}
 				>
 					<img src={ellipsis} alt="" width={18} height={18} />

@@ -84,6 +84,15 @@ export function useCurrentOrganiser() {
 	return meStore.use(useSession()?.email ?? null);
 }
 
+/**
+ * Whether the signed-in organiser can create, edit and delete events and import attendees:
+ * organisers and super admins. Team members check people in, add walk-ins and run the prize
+ * draw (firestore.rules), so the dashboard doesn't offer them the rest.
+ */
+export function useCanEditEvents() {
+	return useMe().role !== 'team-member';
+}
+
 /** The signed-in organiser, on pages RequireOrganiser (App.tsx) has let through. */
 export function useMe() {
 	const me = useCurrentOrganiser();

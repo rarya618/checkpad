@@ -11,6 +11,7 @@ import trash from '../assets/trash.svg';
 import { exportAttendees } from '../lib/bevy';
 import { checkInUrl } from '../lib/config';
 import type { EventSummary } from '../lib/events';
+import { useCanEditEvents } from '../lib/organisers';
 import { showToast } from '../lib/toast';
 import CheckInRing from './CheckInRing';
 import DeleteEventDialog from './DeleteEventDialog';
@@ -27,6 +28,7 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 	const { event, stats } = summary;
 	const status = statuses[checkInStatus({ open: event.selfCheckInOpen, startsAt: event.startsAt })];
 	const [deleting, setDeleting] = useState(false);
+	const canEdit = useCanEditEvents();
 	return (
 		<article className="relative flex items-center justify-between gap-6 rounded-[10px] border border-med-blue bg-white px-[27px] py-6 hover:bg-off-white/60">
 			<div className="flex min-w-0 items-center gap-7.5">
@@ -59,14 +61,14 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 					buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
 					items={[
 						{ label: 'Open event', icon: arrowRight, to: `/events/${event.slug}` },
-						{ label: 'Settings', icon: sliders, to: `/events/${event.slug}/settings` },
+						...(canEdit ? [{ label: 'Settings', icon: sliders, to: `/events/${event.slug}/settings` }] : []),
 						{
 							label: 'Copy check-in link',
 							icon: link,
 							onSelect: () => navigator.clipboard.writeText(checkInUrl(event.slug)).then(() => showToast('Check-in link copied')),
 						},
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
-						{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) },
+						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 					]}
 				>
 					<img src={ellipsis} alt="" width={18} height={18} />

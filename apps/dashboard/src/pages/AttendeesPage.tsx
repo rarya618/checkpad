@@ -13,6 +13,7 @@ import StatsCard from '../components/StatsCard';
 import { WalkInDialog } from '../components/WalkIn';
 import type { ImportPlan } from '../lib/bevy';
 import { useEvent } from '../lib/events';
+import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster } from '../lib/roster';
 
 export default function AttendeesPage() {
@@ -25,6 +26,7 @@ export default function AttendeesPage() {
 	// The walk-in dialog, prefilled with the search when it came from "no search results"
 	const [walkIn, setWalkIn] = useState<string | null>(null);
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
+	const canEdit = useCanEditEvents();
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
@@ -68,15 +70,21 @@ export default function AttendeesPage() {
 					<EmptyState
 						icon={users}
 						title="No attendees yet"
-						description="Import the attendee list from Bevy, or add walk-ins as people arrive."
+						description={
+							canEdit
+								? 'Import the attendee list from Bevy, or add walk-ins as people arrive.'
+								: 'Add walk-ins as people arrive. Your team’s organisers import the attendee list from Bevy.'
+						}
 						actions={
 							<>
-								<button type="button" onClick={() => setWalkIn('')} className={buttonClass('secondary')}>
+								<button type="button" onClick={() => setWalkIn('')} className={buttonClass(canEdit ? 'secondary' : 'primary')}>
 									Add walk-in
 								</button>
-								<button type="button" onClick={() => setImporting({})} className={buttonClass('primary')}>
-									Import from Bevy
-								</button>
+								{canEdit && (
+									<button type="button" onClick={() => setImporting({})} className={buttonClass('primary')}>
+										Import from Bevy
+									</button>
+								)}
 							</>
 						}
 					/>

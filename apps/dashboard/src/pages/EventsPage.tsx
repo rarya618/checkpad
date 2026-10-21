@@ -5,17 +5,21 @@ import EmptyState from '../components/EmptyState';
 import EventCard from '../components/EventCard';
 import PageHeader from '../components/PageHeader';
 import { useEventSummaries } from '../lib/events';
+import { useCanEditEvents } from '../lib/organisers';
 
 export default function EventsPage() {
 	const summaries = useEventSummaries();
+	const canEdit = useCanEditEvents();
 	return (
 		<>
 			<PageHeader
 				title="Events"
 				actions={
-					<Link to="/events/new" className={buttonClass('primary')}>
-						New event
-					</Link>
+					canEdit && (
+						<Link to="/events/new" className={buttonClass('primary')}>
+							New event
+						</Link>
+					)
 				}
 			/>
 			{summaries.length === 0 ? (
@@ -24,11 +28,17 @@ export default function EventsPage() {
 					<EmptyState
 						icon={calendar}
 						title="No events yet"
-						description="Create your first event, then share its link or QR code so attendees can check themselves in."
+						description={
+							canEdit
+								? 'Create your first event, then share its link or QR code so attendees can check themselves in.'
+								: 'When your team’s organisers create an event, it shows up here.'
+						}
 						actions={
-							<Link to="/events/new" className={buttonClass('primary')}>
-								New event
-							</Link>
+							canEdit && (
+								<Link to="/events/new" className={buttonClass('primary')}>
+									New event
+								</Link>
+							)
 						}
 					/>
 				</div>

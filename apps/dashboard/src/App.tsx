@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
 import Loading from './components/Loading';
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
@@ -6,7 +7,7 @@ import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
 import { useEvent, useEventsFor, useRenamedSlug } from './lib/events';
 import { useRosterLoading } from './lib/roster';
-import { useCurrentOrganiser } from './lib/organisers';
+import { useCanEditEvents, useCurrentOrganiser } from './lib/organisers';
 import { useTeams } from './lib/teams';
 import { useIsDesktop } from './lib/useMediaQuery';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -70,6 +71,7 @@ function EventLayout() {
 	const moved = useRenamedSlug(event ? undefined : slug);
 	// Every page here lists or counts the attendees: load them first, so none shows an empty list
 	const roster = useRosterLoading(slug ?? '');
+	const canEdit = useCanEditEvents();
 	if (!event) {
 		if (moved === undefined) return <Loading />;
 		return <Navigate to={moved ? pathname.replace(`/events/${slug}`, `/events/${moved}`) : '/events'} replace />;
@@ -81,11 +83,11 @@ function EventLayout() {
 	const settings = { to: `${base}/settings`, label: 'Settings' };
 	return (
 		<DashboardLayout
-			items={[attendees, checkIn, { to: `${base}/analytics`, label: 'Analytics' }, settings]}
+			items={[attendees, checkIn, { to: `${base}/analytics`, label: 'Analytics' }, ...(canEdit ? [settings] : [])]}
 			// Figma "Staff check in (mobile) – menu": no Analytics on phones
 			mobile={{
 				title: event.name,
-				items: [attendees, checkIn, settings],
+				items: [attendees, checkIn, ...(canEdit ? [settings] : [])],
 				extras: [
 					{ label: 'All events', to: '/events' },
 					{ label: 'Open prize draw', href: `${base}/prize-draw` },
@@ -93,6 +95,12 @@ function EventLayout() {
 			}}
 		/>
 	);
+}
+
+// Creating and editing events is for organisers and super admins: a team member who opens one
+// of these pages (from a bookmark, say) goes back to where they can work.
+function ForEditors({ children, back }: { children: ReactNode; back: string }) {
+	return useCanEditEvents() ? children : <Navigate to={back} relative="path" replace />;
 }
 
 // Every dashboard page and display needs a signed-in organiser (docs/migration-plan.md).
@@ -121,7 +129,14 @@ export default function App() {
 				<Route element={<DashboardLayout items={mainItems} mobile={{ title: 'Menu', items: mainItems, extras: [] }} />}>
 					<Route index element={<Navigate to="/events" replace />} />
 					<Route path="events" element={<EventsPage />} />
-					<Route path="events/new" element={<NewEventPage />} />
+					<Route
+						path="events/new"
+						element={
+							<ForEditors back="/events">
+								<NewEventPage />
+							</ForEditors>
+						}
+					/>
 					<Route path="organisers" element={<OrganisersPage />} />
 					<Route path="analytics" element={<AnalyticsPage />} />
 				</Route>
@@ -132,7 +147,14 @@ export default function App() {
 					<Route index element={<AttendeesPage />} />
 					<Route path="check-in" element={<CheckInPage />} />
 					<Route path="analytics" element={<EventAnalyticsPage />} />
-					<Route path="settings" element={<EventSettingsRoute />} />
+					<Route
+						path="settings"
+						element={
+							<ForEditors back="..">
+								<EventSettingsRoute />
+							</ForEditors>
+						}
+					/>
 				</Route>
 			</Route>
 			<Route path="*" element={<Navigate to="/events" replace />} />
