@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import divider from '../assets/divider.svg';
 import type { Attendee } from '@checkpad/shared/attendees';
 import { buttonClass } from '@checkpad/shared/button';
-import { checkInWindow, type CheckInWindow, type CheckpadEvent } from '@checkpad/shared/events';
+import { checkInStatus, type CheckInStatus, type CheckpadEvent } from '@checkpad/shared/events';
 import { formatDay, formatTime } from '@checkpad/shared/format';
 import { checkIn, checkInWalkIn } from '../lib/checkin';
 import StatusScreen from './StatusScreen';
@@ -31,10 +31,11 @@ function validateEmail(email: string) {
 }
 
 export default function CheckInFlow({ event, children }: Props) {
-	// The page is prerendered, so whether check-in is open can only be decided in the
-	// browser. Render nothing until then rather than flashing the wrong screen.
-	const [checkInState, setCheckInState] = useState<CheckInWindow | null>(null);
-	useEffect(() => setCheckInState(checkInWindow(event)), [event]);
+	// The page is prerendered, and whether a closed event shows "not open yet" or "closed"
+	// depends on the time, so it's decided in the browser. Render nothing until then
+	// rather than flashing the wrong screen.
+	const [checkInState, setCheckInState] = useState<CheckInStatus | null>(null);
+	useEffect(() => setCheckInState(checkInStatus(event)), [event]);
 
 	const [step, setStep] = useState<Step>({ name: 'email' });
 	const [email, setEmail] = useState('');
@@ -52,8 +53,8 @@ export default function CheckInFlow({ event, children }: Props) {
 		return (
 			<StatusScreen
 				title="Not open yet"
-				subtitle={`Check-in for ${event.name} opens at ${formatTime(startsAt, event.timeZone)}, ${formatDay(startsAt, event.timeZone)}.`}
-				body="Come back to this link when the event starts."
+				subtitle={`${event.name} starts at ${formatTime(startsAt, event.timeZone)}, ${formatDay(startsAt, event.timeZone)}.`}
+				body="The organisers open check-in at the event. Try this link again once you’re there."
 			/>
 		);
 	}
@@ -62,7 +63,7 @@ export default function CheckInFlow({ event, children }: Props) {
 		return (
 			<StatusScreen
 				title="Check-in closed"
-				subtitle={`${event.name} has finished.`}
+				subtitle={`Check-in for ${event.name} isn’t open.`}
 				body="If you’re still at the event, find one of the organisers."
 			/>
 		);

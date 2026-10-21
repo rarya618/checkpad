@@ -1,12 +1,14 @@
-import { checkInWindow, type CheckpadEvent, type Team } from '@checkpad/shared/events';
+import type { CheckpadEvent, Team } from '@checkpad/shared/events';
 import { useEffect, useState } from 'react';
 import StatusScreen from './StatusScreen';
 
-/** The team's event that is open for check-in, or else its next upcoming one. */
+/** The team's event that is open for check-in (the latest, if several are), or else its
+ *  next one that hasn't finished. Same rule as teamTarget in functions/src/checkin.ts. */
 function target(events: CheckpadEvent[], now: Date) {
+	const byStart = (a: CheckpadEvent, b: CheckpadEvent) => a.startsAt.localeCompare(b.startsAt);
 	return (
-		events.find((e) => checkInWindow(e, now) === 'open') ??
-		events.filter((e) => checkInWindow(e, now) === 'not-open').sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0]
+		events.filter((e) => e.selfCheckInOpen).sort(byStart).at(-1) ??
+		events.filter((e) => new Date(e.endsAt) > now).sort(byStart)[0]
 	);
 }
 

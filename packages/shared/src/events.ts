@@ -2,7 +2,7 @@ export interface CheckpadEvent {
 	slug: string;
 	name: string;
 	description: string;
-	/** ISO timestamps; check-in is open from startsAt until endsAt. */
+	/** ISO timestamps. They don't open or close check-in; selfCheckInOpen does. */
 	startsAt: string;
 	endsAt: string;
 	timeZone: string;
@@ -11,6 +11,9 @@ export interface CheckpadEvent {
 	/** Whether people who aren't on the list can add themselves as walk-ins on the check-in
 	 *  page. Staff can always add walk-ins from the dashboard. */
 	selfWalkIns: boolean;
+	/** The organiser's "Self check-in open" switch in Event settings. Attendees can only
+	 *  check themselves in while it's on; staff can always check people in. */
+	selfCheckInOpen: boolean;
 }
 
 export interface Team {
@@ -18,10 +21,11 @@ export interface Team {
 	name: string;
 }
 
-export type CheckInWindow = 'not-open' | 'open' | 'closed';
+export type CheckInStatus = 'not-open' | 'open' | 'closed';
 
-export function checkInWindow(event: CheckpadEvent, now = new Date()): CheckInWindow {
-	if (now < new Date(event.startsAt)) return 'not-open';
-	if (now > new Date(event.endsAt)) return 'closed';
-	return 'open';
+/** Open while the switch is on, whatever the time. While it's off, the start time only
+ *  decides whether attendees see "Not open yet" or "Check-in closed". */
+export function checkInStatus(event: CheckpadEvent, now = new Date()): CheckInStatus {
+	if (event.selfCheckInOpen) return 'open';
+	return now < new Date(event.startsAt) ? 'not-open' : 'closed';
 }

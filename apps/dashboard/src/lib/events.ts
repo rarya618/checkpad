@@ -21,8 +21,6 @@ export interface DashboardEvent extends CheckpadEvent {
 	team: string;
 	walkInTicketTitle: string;
 	walkInVenue: string;
-	/** The Event settings switch: whether attendees can check themselves in. */
-	selfCheckInOpen: boolean;
 	/** Who last opened or closed self check-in, and when (ISO). */
 	selfCheckInChangedBy: string | null;
 	selfCheckInChangedAt: string | null;
@@ -32,7 +30,6 @@ const defaults = {
 	team: teams[0].name,
 	walkInTicketTitle: 'General admission',
 	walkInVenue: 'Google Sydney, 1 Pirrama Rd, Pyrmont',
-	selfCheckInOpen: false,
 	selfCheckInChangedBy: null,
 	selfCheckInChangedAt: null,
 };

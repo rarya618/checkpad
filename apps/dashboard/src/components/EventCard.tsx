@@ -1,4 +1,4 @@
-import { checkInWindow, type CheckInWindow } from '@checkpad/shared/events';
+import { checkInStatus, type CheckInStatus } from '@checkpad/shared/events';
 import { formatDate } from '@checkpad/shared/format';
 import { useState } from 'react';
 import { Link } from 'react-router';
@@ -18,7 +18,7 @@ import DeleteEventDialog from './DeleteEventDialog';
 import Menu from './Menu';
 
 // Only "Closed" is in the Figma file; the other two are placeholders.
-const statuses: Record<CheckInWindow, { label: string; className: string }> = {
+const statuses: Record<CheckInStatus, { label: string; className: string }> = {
 	'not-open': { label: 'Upcoming', className: 'text-med-blue' },
 	open: { label: 'Open', className: 'font-medium text-dark-blue' },
 	closed: { label: 'Closed', className: 'text-med-blue' },
@@ -26,7 +26,7 @@ const statuses: Record<CheckInWindow, { label: string; className: string }> = {
 
 export default function EventCard({ summary }: { summary: EventSummary }) {
 	const { event, stats } = summary;
-	const status = statuses[checkInWindow(event)];
+	const status = statuses[checkInStatus(event)];
 	const [deleting, setDeleting] = useState(false);
 	const roster = useRoster(event.slug);
 	return (

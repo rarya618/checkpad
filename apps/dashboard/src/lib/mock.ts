@@ -58,6 +58,7 @@ const meetup = (slug: string, name: string, date: string): CheckpadEvent => ({
 	endsAt: `${date}T20:00:00+10:00`,
 	timeZone: 'Australia/Sydney',
 	selfWalkIns: true,
+	selfCheckInOpen: false,
 });
 export const pastEvents: CheckpadEvent[] = [
 	meetup('gdg-august-meetup', 'August Meetup', '2026-08-13'),
