@@ -110,7 +110,7 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 	return (
 		<Dialog
 			title={`Edit ${name}`}
-			description="Changes apply the next time they load a page."
+			description="Changes apply straight away."
 			onClose={onClose}
 			className="w-[450px]"
 			closeButton={<CloseButton onClose={onClose} />}
