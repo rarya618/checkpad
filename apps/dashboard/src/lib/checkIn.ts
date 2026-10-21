@@ -1,5 +1,6 @@
 // Staff check-in actions shared by the Check in page and the Attendees table.
-import { teams, type DashboardEvent } from './events';
+import type { DashboardEvent } from './events';
+import { allTeams } from './teams';
 import type { RosterAttendee } from './mock';
 import { addWalkIn, removeAttendee, setCheckedIn } from './roster';
 import { showToast } from './toast';
@@ -30,7 +31,8 @@ export function checkIn(eventSlug: string, attendee: RosterAttendee) {
 }
 
 export function walkInTicketPrefix(event: DashboardEvent) {
-	return (teams.find((team) => team.name === event.team) ?? teams[0]).walkInTicketPrefix;
+	const teams = allTeams();
+	return (teams.find((team) => team.name === event.team) ?? teams[0])?.walkInTicketPrefix ?? 'WALKIN';
 }
 
 /** Adds a walk-in, already checked in. Undo takes them off the list again. */

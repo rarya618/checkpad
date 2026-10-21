@@ -3,7 +3,6 @@ import { formatDate } from '@checkpad/shared/format';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import copyLink from '../assets/copy-link.svg';
-import mail from '../assets/mail.svg';
 import more from '../assets/more.svg';
 import shield from '../assets/shield.svg';
 import trash from '../assets/trash.svg';
@@ -13,9 +12,10 @@ import { AddOrganiserDialog, EditOrganiserDialog, RemoveOrganiserDialog } from '
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
 import { WEB_URL } from '../lib/config';
-import { useEvents, useTeams, type DashboardEvent, type Team } from '../lib/events';
+import { useEvents, type DashboardEvent } from '../lib/events';
 import { useSession } from '../lib/auth';
-import { initialsOf, roleLabel, roles, useOrganisers, type Organiser } from '../lib/organisers';
+import { initialsOf, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
+import { teamName, useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 
 // Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
@@ -30,13 +30,15 @@ export default function OrganisersPage() {
 		| null
 	>(null);
 	const close = () => setDialog(null);
+	// Only super admins change organisers and teams (firestore.rules)
+	const admin = useMe().role === 'super-admin';
 
 	return (
 		<>
 			<PageHeader
 				title="Organisers"
 				actions={
-					tab === 'people' ? (
+					!admin ? null : tab === 'people' ? (
 						<button type="button" onClick={() => setDialog({ kind: 'add' })} className={buttonClass('primary')}>
 							Add organiser
 						</button>
@@ -64,7 +66,7 @@ export default function OrganisersPage() {
 						</button>
 					))}
 				</div>
-				{tab === 'people' ? <People onEdit={(o) => setDialog({ kind: 'edit', organiser: o })} onRemove={(o) => setDialog({ kind: 'remove', organiser: o })} /> : <Teams onManage={(team) => setDialog({ kind: 'team', team })} />}
+				{tab === 'people' ? <People admin={admin} onEdit={(o) => setDialog({ kind: 'edit', organiser: o })} onRemove={(o) => setDialog({ kind: 'remove', organiser: o })} /> : <Teams admin={admin} onManage={(team) => setDialog({ kind: 'team', team })} />}
 			</div>
 
 			{dialog?.kind === 'add' && <AddOrganiserDialog onClose={close} />}
@@ -75,8 +77,9 @@ export default function OrganisersPage() {
 	);
 }
 
-function People({ onEdit, onRemove }: { onEdit: (o: Organiser) => void; onRemove: (o: Organiser) => void }) {
-	const organisers = useOrganisers();
+function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organiser) => void; onRemove: (o: Organiser) => void }) {
+	const organisers = useOrganisers(useMe()) ?? [];
+	const teams = useTeams();
 	return (
 		<>
 			<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
@@ -120,9 +123,9 @@ function People({ onEdit, onRemove }: { onEdit: (o: Organiser) => void; onRemove
 										{roleLabel(o.role)}
 									</span>
 								</td>
-								<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{o.team ?? 'All teams'}</td>
+								<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{teamName(teams, o.teamId)}</td>
 								<td className="py-[7.5px]">
-									<OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />
+									{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}
 								</td>
 							</tr>
 						))}
@@ -150,7 +153,6 @@ function OrganiserMenu({ organiser, onEdit, onRemove }: { organiser: Organiser; 
 			label={`Options for ${organiser.name ?? organiser.email}`}
 			buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
 			items={[
-				...(organiser.invited ? [{ label: 'Resend invite', icon: mail, onSelect: () => showToast(`Invite sent to ${organiser.email}`) }] : []),
 				{ label: 'Edit role and team', icon: shield, disabled: self, onSelect: () => onEdit(organiser) },
 				{ label: 'Remove organiser', icon: trash, separated: true, disabled: self, onSelect: () => onRemove(organiser) },
 			]}
@@ -170,18 +172,18 @@ function teamLinkTarget(team: Team, events: DashboardEvent[]) {
 	);
 }
 
-function Teams({ onManage }: { onManage: (team: Team) => void }) {
-	const teams = useTeams();
+function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => void }) {
+	const teams = useTeams() ?? [];
 	const events = useEvents();
-	const organisers = useOrganisers();
+	const organisers = useOrganisers(useMe()) ?? [];
 	return (
 		<>
 			{teams.map((team) => {
-				const members = organisers.filter((o) => o.team === team.name).length;
+				const members = organisers.filter((o) => o.teamId === team.id).length;
 				const target = teamLinkTarget(team, events);
 				const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
 				return (
-					<section key={team.slug} className="flex flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
+					<section key={team.id} className="flex flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
 						<div className="flex items-center gap-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-[4.5px]">
 								<h2 className="truncate font-display text-2xl leading-[1.2]">{team.name}</h2>
@@ -189,9 +191,11 @@ function Teams({ onManage }: { onManage: (team: Team) => void }) {
 									{members} member{members === 1 ? '' : 's'}
 								</p>
 							</div>
-							<button type="button" onClick={() => onManage(team)} className={buttonClass('secondary')}>
-								Manage
-							</button>
+							{admin && (
+								<button type="button" onClick={() => onManage(team)} className={buttonClass('secondary')}>
+									Manage
+								</button>
+							)}
 						</div>
 						<div className="flex items-center gap-3 rounded-[7.5px] bg-off-white px-[15px] py-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5] text-med-blue">

@@ -48,6 +48,16 @@ The first run on a machine needs Chromium: `npx playwright install chromium` fro
 npm run dev:dashboard
 ```
 
+That talks to production `checkpad-app`. To work against the emulators instead, start them with Auth too, seed them, then run the dashboard in emulator mode:
+
+```
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:start --project demo-checkpad --only auth,firestore,functions
+npm run seed -w @checkpad/functions
+npm run dev:emulators -w @checkpad/dashboard
+```
+
+Sign in as a seeded organiser (`russal@example.com` super admin, `priya@example.com` organiser, `tom@example.com` team member) with an email link: the emulator sends no email, so "Check your email" shows an "open the link" button instead. Any other email gets "No access".
+
 ### functions (Cloud Functions)
 
 The attendee check-in API, served on the Astro site at `/api` through a Hosting rewrite. Build with `npm run build -w @checkpad/functions`. The tests run against the Firestore and Functions emulators, which need Java 21 (`brew install openjdk@21`; it isn't the default `java`, so put it first on `PATH`):

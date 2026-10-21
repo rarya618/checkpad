@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import close from '../assets/close.svg';
 import menuIcon from '../assets/menu.svg';
-import { signOut, useCurrentOrganiser, useSession } from '../lib/auth';
-import { roleLabel } from '../lib/organisers';
+import { signOut, useSession } from '../lib/auth';
+import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import type { SidebarItem } from './Sidebar';
 
 export interface MobileNavConfig {

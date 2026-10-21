@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "dev:emulators": "VITE_USE_EMULATORS=1 vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },

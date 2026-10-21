@@ -5,7 +5,7 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { mockEvents, mockTeams } from '@checkpad/shared/mock-events';
-import type { AttendeeDoc, EventDoc } from '../src/model.ts';
+import type { AdminDoc, AttendeeDoc, EventDoc, TeamDoc } from '../src/model.ts';
 
 // A demo- project with the emulator host always set, so this can never write to production.
 // @checkpad/shared isn't a dependency of functions (Cloud Build can't install it); the
@@ -20,11 +20,28 @@ const attendees: [string, Omit<AttendeeDoc, 'checkedInAt' | 'source'>][] = [
 	['GOOGA263290115', { email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe' }],
 ];
 
+// Dashboard sign-ins, one per role (the Figma "Organisers" table). Sign in through the Auth
+// emulator's Google page or an email link with any of these; anyone else gets "No access".
+const admins: [string, Pick<AdminDoc, 'role' | 'teamId'> & { name?: string }][] = [
+	['russal@example.com', { role: 'super-admin', teamId: null, name: 'Russal Arya' }],
+	['priya@example.com', { role: 'organiser', teamId: 'gdg-sydney', name: 'Priya Natarajan' }],
+	['tom@example.com', { role: 'team-member', teamId: 'gdg-sydney', name: 'Tom Becker' }],
+	['sam@example.com', { role: 'organiser', teamId: 'gdg-sydney' }],
+];
+
 await fetch(`http://${FIRESTORE}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: 'DELETE' });
 const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
 
-for (const team of mockTeams) batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug });
+for (const team of mockTeams) {
+	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN' } satisfies TeamDoc);
+}
+const now = Timestamp.now();
+for (const [email, { name, ...access }] of admins) {
+	// Sam is still "Invited": no name or sign-in yet
+	const doc: AdminDoc = { ...access, invitedAt: now, invitedBy: 'russal@example.com', ...(name && { name, lastSignInAt: now }) };
+	batch.set(db.doc(`admins/${email}`), doc);
+}
 
 for (const event of mockEvents) {
 	const ref = db.doc(`events/${event.slug}`);
@@ -49,6 +66,7 @@ for (const event of mockEvents) {
 }
 
 await batch.commit();
-console.log(`Seeded ${mockEvents.length} events and ${mockTeams.length} team into ${PROJECT}. Try:`);
+console.log(`Seeded ${mockEvents.length} events, ${mockTeams.length} team and ${admins.length} organisers into ${PROJECT}. Try:`);
 for (const event of mockEvents) console.log(`  http://localhost:4321/${event.slug}  (${event.selfCheckInOpen ? 'open' : 'closed'})`);
 for (const team of mockTeams) console.log(`  http://localhost:4321/team/${team.slug}`);
+console.log(`Dashboard (npm run dev:emulators -w @checkpad/dashboard): sign in as ${admins.map(([email]) => email).join(', ')}`);

@@ -3,8 +3,8 @@ import { NavLink } from 'react-router';
 import ellipsis from '../assets/ellipsis-vertical.svg';
 import logout from '../assets/logout.svg';
 import switchIcon from '../assets/switch.svg';
-import { signOut, useCurrentOrganiser, useSession } from '../lib/auth';
-import { roleLabel } from '../lib/organisers';
+import { signOut, useSession } from '../lib/auth';
+import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import Menu from './Menu';
 
 export interface SidebarItem {

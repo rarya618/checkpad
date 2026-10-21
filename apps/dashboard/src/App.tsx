@@ -1,10 +1,12 @@
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
+import Loading from './components/Loading';
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
 import Sidebar, { type SidebarItem } from './components/Sidebar';
 import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
 import { renamedSlug, useEvent } from './lib/events';
-import { isOrganiser, useOrganisers } from './lib/organisers';
+import { useCurrentOrganiser } from './lib/organisers';
+import { useTeams } from './lib/teams';
 import { useIsDesktop } from './lib/useMediaQuery';
 import AnalyticsPage from './pages/AnalyticsPage';
 import AttendeesPage from './pages/AttendeesPage';
@@ -89,12 +91,15 @@ function EventLayout() {
 }
 
 // Every dashboard page and display needs a signed-in organiser (docs/migration-plan.md).
+// Waits for the teams too, so pages can list them straight away.
 function RequireOrganiser() {
 	const session = useSession();
+	const me = useCurrentOrganiser();
+	const teams = useTeams(Boolean(me));
 	const { pathname, search } = useLocation();
-	useOrganisers(); // re-check when the organiser list changes
-	if (!session) return <Navigate to={`/sign-in?${new URLSearchParams({ next: pathname + search })}`} replace />;
-	if (!isOrganiser(session.email)) return <Navigate to="/no-access" replace />;
+	if (session === null) return <Navigate to={`/sign-in?${new URLSearchParams({ next: pathname + search })}`} replace />;
+	if (me === null) return <Navigate to="/no-access" replace />;
+	if (!me || !teams) return <Loading />;
 	return <Outlet />;
 }
 

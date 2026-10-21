@@ -3,8 +3,8 @@ import { useState, type ReactNode } from 'react';
 import mail from '../assets/mail.svg';
 import x from '../assets/x.svg';
 import { looksLikeEmail } from '../lib/checkIn';
-import { useTeams } from '../lib/events';
-import { inviteOrganiser, isOrganiser, removeOrganiser, roles, updateOrganiser, type Organiser, type Role } from '../lib/organisers';
+import { inviteOrganiser, isOrganiser, removeOrganiser, roles, updateOrganiser, useMe, useOrganisers, type Organiser, type Role } from '../lib/organisers';
+import { teamName, useTeams } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
 import { SelectField, TextField } from './Field';
@@ -32,9 +32,9 @@ function Actions({ onCancel, submit, disabled }: { onCancel: () => void; submit:
 	);
 }
 
-/** Role and team selects; super admins see every team, so their team is fixed to "All teams". */
+/** Role and team selects (team IDs); super admins see every team, so their team is fixed to "All teams". */
 function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: string; setRole: (r: Role) => void; setTeam: (t: string) => void }) {
-	const teams = useTeams();
+	const teams = useTeams() ?? [];
 	return (
 		<>
 			<SelectField label="Role" value={role} onChange={(e) => setRole(e.target.value as Role)} hint={`${roles.find((r) => r.id === role)!.description}.`}>
@@ -47,7 +47,9 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 			<SelectField label="Team" value={role === 'super-admin' ? '' : team} disabled={role === 'super-admin'} onChange={(e) => setTeam(e.target.value)} className="has-disabled:opacity-60">
 				{role === 'super-admin' && <option value="">All teams</option>}
 				{teams.map((t) => (
-					<option key={t.slug}>{t.name}</option>
+					<option key={t.id} value={t.id}>
+						{t.name}
+					</option>
 				))}
 			</SelectField>
 		</>
@@ -55,12 +57,13 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 }
 
 export function AddOrganiserDialog({ onClose }: { onClose: () => void }) {
-	const teams = useTeams();
+	const teams = useTeams() ?? [];
+	const organisers = useOrganisers(useMe()) ?? [];
 	const [email, setEmail] = useState('');
 	const [role, setRole] = useState<Role>('organiser');
-	const [team, setTeam] = useState(teams[0]?.name ?? '');
-	const taken = looksLikeEmail(email) && isOrganiser(email);
-	const valid = looksLikeEmail(email) && !taken;
+	const [team, setTeam] = useState(teams[0]?.id ?? '');
+	const taken = looksLikeEmail(email) && isOrganiser(organisers, email);
+	const valid = looksLikeEmail(email) && !taken && (role === 'super-admin' || team !== '');
 
 	return (
 		<Dialog title="Add organiser" description="They can sign in once you add them." onClose={onClose} className="w-[450px]" closeButton={<CloseButton onClose={onClose} />}>
@@ -69,8 +72,9 @@ export function AddOrganiserDialog({ onClose }: { onClose: () => void }) {
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!valid) return;
-					inviteOrganiser(email, role, team);
-					showToast(`Invite sent to ${email.trim()}`);
+					const address = email.trim();
+					inviteOrganiser(address, role, team).catch(() => showToast(`Couldn’t add ${address}. Try again.`));
+					showToast(`${address} can sign in now`);
 					onClose();
 				}}
 			>
@@ -88,19 +92,19 @@ export function AddOrganiserDialog({ onClose }: { onClose: () => void }) {
 				<div className="flex items-center gap-[15px] rounded-[7.5px] bg-light-blue px-[18px] py-[15px]">
 					<img src={mail} alt="" width={18} height={18} />
 					<p className="min-w-0 flex-1 text-[13.5px] leading-[1.5] tracking-[-0.3px]">
-						We’ll email {looksLikeEmail(email) ? <strong className="font-bold">{email.trim()}</strong> : 'them'} an invite. They can sign in with Google or an email link.
+						Let {looksLikeEmail(email) ? <strong className="font-bold">{email.trim()}</strong> : 'them'} know they’ve been added. They can sign in with Google or an email link.
 					</p>
 				</div>
-				<Actions onCancel={onClose} submit="Send invite" disabled={!valid} />
+				<Actions onCancel={onClose} submit="Add organiser" disabled={!valid} />
 			</form>
 		</Dialog>
 	);
 }
 
 export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organiser; onClose: () => void }) {
-	const teams = useTeams();
+	const teams = useTeams() ?? [];
 	const [role, setRole] = useState<Role>(organiser.role);
-	const [team, setTeam] = useState(organiser.team ?? teams[0]?.name ?? '');
+	const [team, setTeam] = useState(organiser.teamId ?? teams[0]?.id ?? '');
 	const name = organiser.name ?? organiser.email;
 
 	return (
@@ -115,7 +119,7 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 				className="flex flex-col gap-[18px]"
 				onSubmit={(e) => {
 					e.preventDefault();
-					updateOrganiser(organiser.id, { role, team });
+					updateOrganiser(organiser.id, { role, teamId: team || null }).catch(() => showToast(`Couldn’t save ${name}’s changes. Try again.`));
 					onClose();
 				}}
 			>
@@ -135,7 +139,8 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 
 export function RemoveOrganiserDialog({ organiser, onClose }: { organiser: Organiser; onClose: () => void }) {
 	const name = organiser.name ?? organiser.email;
-	const scope = organiser.team ? `${organiser.team}’s events` : 'every event and team';
+	const teams = useTeams();
+	const scope = organiser.teamId ? `${teamName(teams, organiser.teamId)}’s events` : 'every event and team';
 	return (
 		<Dialog
 			title={`Remove ${name}?`}
@@ -147,7 +152,7 @@ export function RemoveOrganiserDialog({ organiser, onClose }: { organiser: Organ
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					removeOrganiser(organiser.id);
+					removeOrganiser(organiser.id).catch(() => showToast(`Couldn’t remove ${name}. Try again.`));
 					onClose();
 				}}
 			>

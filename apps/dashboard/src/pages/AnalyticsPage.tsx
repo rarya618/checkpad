@@ -5,8 +5,9 @@ import chevron from '../assets/chevron-small.svg';
 import { BarChart, StatTile, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
 import { eventResult, eventsInRange, monthSpan, percent, ranges, returningShare } from '../lib/analytics';
-import { teams, useEvents } from '../lib/events';
+import { useEvents } from '../lib/events';
 import { useAllRosters } from '../lib/roster';
+import { useTeams } from '../lib/teams';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
 
@@ -14,6 +15,7 @@ const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }]
 export default function AnalyticsPage() {
 	const events = useEvents();
 	const rosters = useAllRosters();
+	const teams = useTeams() ?? [];
 	const [team, setTeam] = useState(teams[0]?.name ?? '');
 	const [rangeId, setRangeId] = useState('6');
 	const range = ranges.find((r) => r.id === rangeId)!;

@@ -1,7 +1,24 @@
-// In-memory organiser store (Figma "Organisers"), like events.ts and roster.ts.
-// Swap for Firebase Auth users and their roles later.
-import { useSyncExternalStore } from 'react';
-import { currentUser } from './mock';
+// Organisers from Firestore (admins/{email}, Figma "Organisers"). Who can sign in and what they
+// can do; the security rules check the same documents, so hiding a button here is only a
+// convenience. Super admins see everyone, others only their own team.
+import { FirebaseError } from 'firebase/app';
+import {
+	collection,
+	deleteDoc,
+	doc,
+	onSnapshot,
+	query,
+	serverTimestamp,
+	setDoc,
+	updateDoc,
+	where,
+	writeBatch,
+	type DocumentSnapshot,
+} from 'firebase/firestore';
+import { useSession } from './auth';
+import { auth, db } from './firebase';
+import { liveStore } from './live';
+import { newTeamRef, teamData, type Team } from './teams';
 
 export type Role = 'super-admin' | 'organiser' | 'team-member';
 
@@ -14,73 +31,120 @@ export const roles: { id: Role; label: string; description: string }[] = [
 export const roleLabel = (role: Role) => roles.find((r) => r.id === role)!.label;
 
 export interface Organiser {
+	/** Their email, lowercase: the document ID. */
 	id: string;
 	/** Null until they first sign in. */
 	name: string | null;
 	email: string;
 	role: Role;
-	/** Team name; super admins see every team, so theirs is null. */
-	team: string | null;
+	/** Super admins see every team, so theirs is null. */
+	teamId: string | null;
 	/** Invited but hasn't signed in yet. */
 	invited: boolean;
 }
 
-// The people in the Figma table.
-let organisers: Organiser[] = [
-	{ id: 'o1', name: currentUser.name, email: 'russal@example.com', role: 'super-admin', team: null, invited: false },
-	{ id: 'o2', name: 'Priya Natarajan', email: 'priya@example.com', role: 'organiser', team: 'GDG Sydney', invited: false },
-	{ id: 'o3', name: 'Tom Becker', email: 'tom@example.com', role: 'team-member', team: 'GDG Sydney', invited: false },
-	{ id: 'o4', name: 'Mei Chen', email: 'mei@example.com', role: 'team-member', team: 'GDG Sydney', invited: false },
-	{ id: 'o5', name: null, email: 'sam@example.com', role: 'organiser', team: 'GDG Sydney', invited: true },
-];
-const listeners = new Set<() => void>();
-
-function subscribe(listener: () => void) {
-	listeners.add(listener);
-	return () => listeners.delete(listener);
+function toOrganiser(snap: DocumentSnapshot): Organiser {
+	// A sign-in being recorded reads as signed in already, not "Invited" until the server confirms it
+	const data = snap.data({ serverTimestamps: 'estimate' })!;
+	return {
+		id: snap.id,
+		name: data.name ?? null,
+		email: snap.id,
+		role: data.role,
+		teamId: data.teamId ?? null,
+		invited: !data.lastSignInAt,
+	};
 }
 
-function set(next: Organiser[]) {
-	organisers = next;
-	listeners.forEach((listener) => listener());
+// Signing in records your name and when, once per page load, which ends "Invited"
+let recorded: string | null = null;
+
+// Null when you're not on the list: the rules refuse to read a document that isn't there
+const meStore = liveStore<Organiser | null>((email, emit, fail) =>
+	onSnapshot(
+		doc(db, 'admins', email),
+		(snap) => {
+			// Not in this browser's cache isn't "not on the list": wait for the server
+			if (!snap.exists()) return snap.metadata.fromCache ? undefined : emit(null);
+			const me = toOrganiser(snap);
+			emit(me);
+			if (recorded !== email && !snap.metadata.fromCache) {
+				recorded = email;
+				updateDoc(snap.ref, { name: auth.currentUser?.displayName ?? me.name, lastSignInAt: serverTimestamp() }).catch(() => {
+					recorded = null;
+				});
+			}
+		},
+		(error) => (error instanceof FirebaseError && error.code === 'permission-denied' ? emit(null) : fail(error)),
+	),
+);
+
+/** The signed-in organiser: null if they're not on the list, undefined while loading. */
+export function useCurrentOrganiser() {
+	return meStore.use(useSession()?.email ?? null);
 }
 
-export function useOrganisers() {
-	return useSyncExternalStore(subscribe, () => organisers);
+/** The signed-in organiser, on pages RequireOrganiser (App.tsx) has let through. */
+export function useMe() {
+	const me = useCurrentOrganiser();
+	if (!me) throw new Error('useMe() outside RequireOrganiser');
+	return me;
 }
 
-export function isOrganiser(email: string) {
-	return organisers.some((o) => o.email.toLowerCase() === email.trim().toLowerCase());
+// Keyed "all" for super admins, or the team's ID
+const listStore = liveStore<Organiser[]>((key, emit, fail) => {
+	const admins = collection(db, 'admins');
+	return onSnapshot(
+		key === 'all' ? admins : query(admins, where('teamId', '==', key)),
+		(snap) => emit(snap.docs.map(toOrganiser).sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email))),
+		fail,
+	);
+});
+
+/** The organisers `me` can see; undefined while loading. */
+export function useOrganisers(me: Organiser) {
+	return listStore.use(me.role === 'super-admin' ? 'all' : me.teamId);
 }
 
-/** Adds someone as invited; the real app emails them a sign-in invite. */
-export function inviteOrganiser(email: string, role: Role, team: string | null) {
-	set([...organisers, { id: `o${Date.now()}`, name: null, email: email.trim(), role, team: role === 'super-admin' ? null : team, invited: true }]);
+export function isOrganiser(organisers: Organiser[], email: string) {
+	return organisers.some((o) => o.email === email.trim().toLowerCase());
 }
 
-/** First sign-in: no longer "Invited". */
-export function markSignedIn(email: string) {
-	if (organisers.some((o) => o.invited && o.email.toLowerCase() === email.toLowerCase())) {
-		set(organisers.map((o) => (o.email.toLowerCase() === email.toLowerCase() ? { ...o, invited: false } : o)));
-	}
+function invite(role: Role, teamId: string | null) {
+	return {
+		role,
+		teamId: role === 'super-admin' ? null : teamId,
+		invitedAt: serverTimestamp(),
+		invitedBy: auth.currentUser!.email!.toLowerCase(),
+	};
 }
 
-export function updateOrganiser(id: string, changes: Pick<Organiser, 'role' | 'team'>) {
-	set(organisers.map((o) => (o.id === id ? { ...o, ...changes, team: changes.role === 'super-admin' ? null : changes.team } : o)));
+/** Adds someone to the list. They can sign in straight away. */
+export function inviteOrganiser(email: string, role: Role, teamId: string | null) {
+	return setDoc(doc(db, 'admins', email.trim().toLowerCase()), invite(role, teamId));
+}
+
+export function updateOrganiser(id: string, changes: Pick<Organiser, 'role' | 'teamId'>) {
+	return updateDoc(doc(db, 'admins', id), { role: changes.role, teamId: changes.role === 'super-admin' ? null : changes.teamId });
 }
 
 export function removeOrganiser(id: string) {
-	set(organisers.filter((o) => o.id !== id));
+	return deleteDoc(doc(db, 'admins', id));
 }
 
-/** Manage team's Save: team renames, members taken off the team, and new invites in one go. */
-export function saveTeamMembers(previousName: string | null, name: string, removedIds: string[], invites: { email: string; role: Role }[]) {
-	set([
-		...organisers
-			.filter((o) => !removedIds.includes(o.id))
-			.map((o) => (previousName !== null && o.team === previousName ? { ...o, team: name } : o)),
-		...invites.map((invite, i) => ({ id: `o${Date.now()}-${i}`, name: null, email: invite.email, role: invite.role, team: name, invited: true })),
-	]);
+/**
+ * Manage team's Save: the team's name and link, members taken off the list, and new
+ * invites, in one write. A new team is saved first, because the rules only let an invite
+ * name a team that already exists.
+ */
+export async function saveTeamMembers(team: Team | null, changes: Pick<Team, 'name' | 'slug'>, removedIds: string[], invites: { email: string; role: Role }[]) {
+	const ref = team ? doc(db, 'teams', team.id) : newTeamRef();
+	const batch = writeBatch(db);
+	if (team) batch.set(ref, teamData(team, changes));
+	else await setDoc(ref, teamData(null, changes));
+	for (const id of removedIds) batch.delete(doc(db, 'admins', id));
+	for (const { email, role } of invites) batch.set(doc(db, 'admins', email), invite(role, ref.id));
+	await batch.commit();
 }
 
 export function initialsOf(o: Organiser) {

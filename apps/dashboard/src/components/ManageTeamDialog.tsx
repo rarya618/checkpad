@@ -5,8 +5,9 @@ import x from '../assets/x.svg';
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, slugify } from '../lib/eventForm';
-import { saveTeam, useTeams, type Team } from '../lib/events';
-import { initialsOf, isOrganiser, roleLabel, saveTeamMembers, useOrganisers } from '../lib/organisers';
+import { renameTeamEvents } from '../lib/events';
+import { initialsOf, isOrganiser, roleLabel, saveTeamMembers, useMe, useOrganisers } from '../lib/organisers';
+import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
 import { TextField } from './Field';
@@ -14,8 +15,8 @@ import { TextField } from './Field';
 // Figma "Organisers – manage team", at 75% scale. Also used for New team (not designed),
 // starting empty. Nothing changes until Save team.
 export default function ManageTeamDialog({ team, onClose }: { team: Team | null; onClose: () => void }) {
-	const teams = useTeams();
-	const organisers = useOrganisers();
+	const teams = useTeams() ?? [];
+	const organisers = useOrganisers(useMe()) ?? [];
 	const [name, setName] = useState(team?.name ?? '');
 	const [slug, setSlug] = useState(team?.slug ?? '');
 	const [slugEdited, setSlugEdited] = useState(team !== null);
@@ -23,13 +24,13 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 	const [invites, setInvites] = useState<string[]>([]);
 	const [newEmail, setNewEmail] = useState('');
 
-	const members = organisers.filter((o) => team && o.team === team.name && !removed.includes(o.id));
+	const members = organisers.filter((o) => team && o.teamId === team.id && !removed.includes(o.id));
 	const cleanName = name.trim();
 	const cleanSlugValue = slug.replace(/-+$/, '');
-	const nameTaken = teams.some((t) => t !== team && t.name.toLowerCase() === cleanName.toLowerCase());
-	const slugTaken = teams.some((t) => t !== team && t.slug === cleanSlugValue);
+	const nameTaken = teams.some((t) => t.id !== team?.id && t.name.toLowerCase() === cleanName.toLowerCase());
+	const slugTaken = teams.some((t) => t.id !== team?.id && t.slug === cleanSlugValue);
 	const valid = cleanName !== '' && cleanSlugValue !== '' && !nameTaken && !slugTaken;
-	const emailTaken = looksLikeEmail(newEmail) && (isOrganiser(newEmail) || invites.includes(newEmail.trim().toLowerCase()));
+	const emailTaken = looksLikeEmail(newEmail) && (isOrganiser(organisers, newEmail) || invites.includes(newEmail.trim().toLowerCase()));
 
 	function addMember() {
 		if (!looksLikeEmail(newEmail) || emailTaken) return;
@@ -54,9 +55,13 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!valid) return;
-					saveTeam(team?.name ?? null, { name: cleanName, slug: cleanSlugValue });
-					saveTeamMembers(team?.name ?? null, cleanName, removed, invites.map((email) => ({ email, role: 'team-member' })));
-					if (invites.length) showToast(invites.length === 1 ? `Invite sent to ${invites[0]}` : `Invites sent to ${invites.length} people`);
+					saveTeamMembers(team, { name: cleanName, slug: cleanSlugValue }, removed, invites.map((email) => ({ email, role: 'team-member' }))).then(
+						() => {
+							if (team) renameTeamEvents(team.name, cleanName);
+							if (invites.length) showToast(invites.length === 1 ? `${invites[0]} can sign in now` : `${invites.length} people can sign in now`);
+						},
+						() => showToast(`Couldn’t save ${cleanName}. Try again.`),
+					);
 					onClose();
 				}}
 			>
@@ -114,7 +119,7 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 									key={email}
 									initials={email.slice(0, 2).toUpperCase()}
 									name={email}
-									detail="Invited when you save"
+									detail="Added when you save"
 									invited
 									role={roleLabel('team-member')}
 									onRemove={() => setInvites(invites.filter((i) => i !== email))}

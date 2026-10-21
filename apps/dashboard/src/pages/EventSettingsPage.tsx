@@ -22,9 +22,11 @@ import {
 	unsavedMessage,
 	type EventForm,
 } from '../lib/eventForm';
-import { isSlugTaken, teams, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
-import { useCurrentOrganiser, useSession } from '../lib/auth';
+import { isSlugTaken, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
+import { useSession } from '../lib/auth';
+import { useCurrentOrganiser } from '../lib/organisers';
 import { nextWalkInTicket, useRoster } from '../lib/roster';
+import { useTeams } from '../lib/teams';
 import { showToast } from '../lib/toast';
 
 // Keyed by slug so moving between events (or saving a new link) starts a fresh form.
@@ -42,6 +44,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 	const navigate = useNavigate();
 	const session = useSession();
 	const me = useCurrentOrganiser();
+	const teams = useTeams() ?? [];
 	const saved = useMemo(() => eventToForm(event), [event]);
 	const [form, setForm] = useState(saved);
 
@@ -110,6 +113,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 	}
 
 	const team = teams.find((t) => t.name === form.team) ?? teams[0];
+	const prefix = team?.walkInTicketPrefix ?? 'WALKIN';
 	const linkLocked = event.selfCheckInOpen;
 
 	return (
@@ -170,7 +174,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								label="Walk-in ticket title"
 								value={form.walkInTicketTitle}
 								onChange={(e) => update('walkInTicketTitle', e.target.value)}
-								hint={`Next walk-in ticket: ${nextWalkInTicket(roster, team.walkInTicketPrefix)}`}
+								hint={`Next walk-in ticket: ${nextWalkInTicket(roster, prefix)}`}
 							/>
 							<TextField label="Walk-in venue" value={form.walkInVenue} onChange={(e) => update('walkInVenue', e.target.value)} />
 							<SwitchRow

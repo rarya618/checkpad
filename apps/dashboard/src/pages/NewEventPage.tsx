@@ -7,7 +7,8 @@ import FormCard from '../components/FormCard';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, formIsComplete, formTimes, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
-import { createEvent, isSlugTaken, teams } from '../lib/events';
+import { createEvent, isSlugTaken } from '../lib/events';
+import { useTeams, type Team } from '../lib/teams';
 
 const blank: EventForm = {
 	name: '',
@@ -17,7 +18,7 @@ const blank: EventForm = {
 	start: '17:00',
 	end: '20:00',
 	timeZone: 'Australia/Sydney',
-	team: teams[0].name,
+	team: '',
 	walkInTicketTitle: 'General admission',
 	walkInVenue: '',
 	selfWalkIns: true,
@@ -27,7 +28,8 @@ const blank: EventForm = {
 // Figma "New event". Placeholders show the example values from the design.
 export default function NewEventPage() {
 	const navigate = useNavigate();
-	const [form, setForm] = useState(blank);
+	const teams = useTeams() ?? [];
+	const [form, setForm] = useState(() => ({ ...blank, team: teams[0]?.name ?? '' }));
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
 	const [slugEdited, setSlugEdited] = useState(false);
@@ -41,10 +43,10 @@ export default function NewEventPage() {
 		});
 	}
 
-	const team = teams.find((t) => t.name === form.team) ?? teams[0];
+	const team: Team | undefined = teams.find((t) => t.name === form.team) ?? teams[0];
 	const slug = form.slug.replace(/-+$/, '');
 	const slugTaken = slug !== '' && isSlugTaken(slug);
-	const canCreate = formIsComplete(form) && !slugTaken;
+	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined;
 
 	return (
 		<form
@@ -137,7 +139,7 @@ export default function NewEventPage() {
 							label="Team"
 							value={form.team}
 							onChange={(e) => update('team', e.target.value)}
-							hint={`${WEB_HOST}/team/${team.slug} will point here while this is the team’s next event.`}
+							hint={team ? `${WEB_HOST}/team/${team.slug} will point here while this is the team’s next event.` : 'Add a team on the Organisers page first.'}
 						>
 							{teams.map((t) => (
 								<option key={t.slug}>{t.name}</option>
@@ -146,7 +148,7 @@ export default function NewEventPage() {
 					</FormCard>
 					<FormCard
 						title="Walk-ins"
-						description={`Walk-ins get the next ticket number: ${team.walkInTicketPrefix}0001, ${team.walkInTicketPrefix}0002, and so on. Staff can always add them.`}
+						description={`Walk-ins get the next ticket number: ${team?.walkInTicketPrefix ?? ''}0001, ${team?.walkInTicketPrefix ?? ''}0002, and so on. Staff can always add them.`}
 						className="flex-1"
 					>
 						<TextField

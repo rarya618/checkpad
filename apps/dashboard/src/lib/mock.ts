@@ -12,8 +12,6 @@ export interface RosterAttendee extends Attendee {
 	walkIn: boolean;
 }
 
-export const currentUser = { name: 'Russal Arya', role: 'Super admin' };
-
 // Small seeded PRNG so the mock list is identical on every load.
 function random(seed: number) {
 	return () => {
