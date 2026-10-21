@@ -11,6 +11,7 @@
     "build": "tsc",
     "test": "node --test --test-concurrency=1 test/*.test.ts",
     "seed": "node scripts/seed-emulator.ts",
+    "load-test": "node --experimental-transform-types scripts/load-test.ts"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
