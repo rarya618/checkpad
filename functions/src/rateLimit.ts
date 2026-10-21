@@ -2,8 +2,10 @@
 // attempts per network per event in ten-minute windows.
 //
 // The limit is generous on purpose: a whole room on the venue's Wi-Fi shares one IP address,
-// so a tight limit would lock out real attendees. It stops a script trying thousands of
-// emails, not a person trying a few. Counters live in rateLimits/{hash}, which a Firestore
+// so a tight limit would lock out real attendees. The old app's busiest event checked in 23
+// people in one minute, and a walk-in takes two attempts (the lookup, then the walk-in), so
+// 500 leaves room for typos, retries and bigger events. It stops a script trying thousands
+// of emails, not a person trying a few. Counters live in rateLimits/{hash}, which a Firestore
 // TTL policy on expireAt deletes (firestore.indexes.json); the hash keeps raw IPs out of
 // the database.
 import { createHash } from 'node:crypto';
@@ -12,7 +14,7 @@ import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 const WINDOW_MS = 10 * 60 * 1000;
 
 /** Attempts allowed per network, per event, per window. Override with CHECKIN_RATE_LIMIT. */
-export const rateLimit = () => Number(process.env.CHECKIN_RATE_LIMIT) || 200;
+export const rateLimit = () => Number(process.env.CHECKIN_RATE_LIMIT) || 500;
 
 export async function allowAttempt(db: Firestore, ip: string, eventSlug: string, now = Date.now()) {
 	const windowStart = Math.floor(now / WINDOW_MS) * WINDOW_MS;
