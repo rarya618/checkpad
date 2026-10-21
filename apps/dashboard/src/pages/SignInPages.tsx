@@ -7,6 +7,7 @@ import { TextField } from '../components/Field';
 import Loading from '../components/Loading';
 import { completeSignInLink, emulatorSignInLink, lastLinkEmail, sendSignInLink, signInWithGoogle, signOut, useSession } from '../lib/auth';
 import { looksLikeEmail } from '../lib/checkIn';
+import { WEB_URL } from '../lib/config';
 import { usingEmulators } from '../lib/firebase';
 import { useCurrentOrganiser } from '../lib/organisers';
 
@@ -31,6 +32,14 @@ export function AuthLayout({ title, description, children }: { title: string; de
 }
 
 const footnote = 'text-xs leading-[1.5] text-med-blue';
+
+// The marketing site's waitlist, for people who aren't organisers yet. Offered to everyone, never
+// based on whether an email is on the list, so these pages can't be used to look up organisers.
+const waitlist = (
+	<a href={`${WEB_URL.replace(/\/$/, '')}/#waitlist`} className="font-semibold underline">
+		Join the waitlist
+	</a>
+);
 
 /** Where to go after signing in: back to the page that asked, else Events. */
 function useNext() {
@@ -98,7 +107,9 @@ export function SignInPage() {
 					Email me a sign-in link
 				</button>
 			</form>
-			<p className={footnote}>Checking in to an event? You don’t need to sign in. Use the link from your organiser.</p>
+			<p className={footnote}>
+				Checking in to an event? You don’t need to sign in. Use the link from your organiser. New to Checkpad? {waitlist}.
+			</p>
 		</AuthLayout>
 	);
 }
@@ -142,6 +153,9 @@ export function CheckEmailPage() {
 					</button>
 				)}
 				{wait > 0 ? '' : '.'}
+			</p>
+			<p className={footnote}>
+				Nothing after a few minutes? Use the address your organiser added, or ask a super admin to add you. New to Checkpad? {waitlist}.
 			</p>
 			{error && (
 				<p role="alert" className="text-[13.5px] leading-[1.5] text-error">
@@ -239,7 +253,9 @@ export function NoAccessPage() {
 			<button type="button" onClick={signOut} className={`w-full ${buttonClass('primary')}`}>
 				Use another account
 			</button>
-			<p className={footnote}>Signed in with the wrong account? Sign out and try again.</p>
+			<p className={footnote}>
+				Signed in with the wrong account? Sign out and try again. Not part of an organising team? {waitlist}.
+			</p>
 		</AuthLayout>
 	);
 }
