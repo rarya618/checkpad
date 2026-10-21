@@ -5,7 +5,7 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { mockEvents, mockTeams } from '@checkpad/shared/mock-events';
-import type { AdminDoc, AttendeeDoc, EventDoc, TeamDoc } from '../src/model.ts';
+import type { AdminDoc, AttendeeDoc, EventDoc, SlugDoc, TeamDoc } from '../src/model.ts';
 
 // A demo- project with the emulator host always set, so this can never write to production.
 // @checkpad/shared isn't a dependency of functions (Cloud Build can't install it); the
@@ -54,12 +54,17 @@ for (const event of mockEvents) {
 		endsAt: Timestamp.fromDate(new Date(event.endsAt)),
 		timeZone: event.timeZone,
 		teamIds: event.teamSlug ? [event.teamSlug] : [],
-		counts: { registered: attendees.length, checkedIn: 0, walkIns: 0 },
+		// The countAttendees trigger counts the attendees written below
+		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
 		walkInTicketPrefix: 'GDGWALKIN',
 		selfWalkIns: event.selfWalkIns,
+		walkInTicketTitle: 'General admission',
+		walkInVenue: 'Google Sydney, 1 Pirrama Rd, Pyrmont',
 	};
 	batch.set(ref, doc);
+	// Claims the link, as the dashboard does when it creates an event (firestore.rules)
+	batch.set(db.doc(`slugs/${event.slug}`), { eventId: ref.id } satisfies SlugDoc);
 	for (const [ticket, person] of attendees) {
 		batch.set(ref.collection('attendees').doc(ticket), { ...person, source: 'bevy', checkedInAt: null } satisfies AttendeeDoc);
 	}
