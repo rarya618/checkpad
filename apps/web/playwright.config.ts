@@ -12,6 +12,8 @@ export default defineConfig({
 	// Every test reseeds the one emulator database, so they can't run side by side
 	workers: 1,
 	forbidOnly: !!process.env.CI,
+	// On CI, also an HTML report, which the workflow keeps when a test fails
+	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
 	use: { baseURL: `http://localhost:${PORT}`, ...devices['Pixel 7'] },
 	// --ignore-lock keeps it in the foreground, where Playwright can manage it (Astro otherwise
 	// backgrounds itself when an AI agent runs it), and away from a dev server's lock file

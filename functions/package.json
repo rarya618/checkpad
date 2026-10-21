@@ -9,10 +9,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node --test test/*.test.ts",
-    "seed": "node scripts/seed-emulator.ts"
+    "test": "node --test --test-concurrency=1 test/*.test.ts",
+    "seed": "node scripts/seed-emulator.ts",
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
     "typescript": "^7.0.2"
   },
   "dependencies": {
