@@ -1,33 +1,304 @@
 rules_version = '2';
 
-// Assumed data model
+// Data model: docs/migration-plan.md (Backend approach).
 //
-// waitlist/{entryId}   Product waitlist from the marketing site (apps/web), auto IDs.
-//   email: string    required, lowercase
-//   createdAt: timestamp   required, set by the server (serverTimestamp())
+// Organisers sign in to the dashboard with Google or an emailed link. What they can do comes
+// from admins/{email}, matched against their verified sign-in email:
+//   super-admin   every event and team, and manages organisers and teams
+//   organiser     creates, edits and deletes their team's events, and imports attendees
+//   team-member   checks people in at their team's events, adds walk-ins and runs the prize draw
+// Anyone not on the list, signed in or not, can only join the waitlist.
 //
-// Signing up twice adds a second entry; dedupe by email when exporting.
-//
-// Browsers can only add an entry. Nobody can read, change or delete an entry
-// from a browser; organisers read the list in the Firebase console.
-//
-// Everything else is locked until the dashboard's sign-in and roles are built.
-// Attendee check-in runs on the server with the Admin SDK, which bypasses these
-// rules, so browsers never need read access to attendees.
+// Attendee check-in runs on the server with the Admin SDK (functions/), which bypasses these
+// rules, so the public never reads attendees. The event counts are kept by a function too
+// (functions/src/triggers.ts): no browser writes them.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /{document=**} {
       allow read, write: if false;
     }
 
+    // Organisers
+
+    function doc(collection, id) {
+      return /databases/$(database)/documents/$(collection)/$(id);
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function isOrganiser() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && exists(doc('admins', myEmail()));
+    }
+
+    function me() {
+      return get(doc('admins', myEmail())).data;
+    }
+
+    function isSuperAdmin() {
+      return isOrganiser() && me().role == 'super-admin';
+    }
+
+    /** Anyone on one of these teams; super admins are on every team. */
+    function onTeam(teamIds) {
+      return isOrganiser() && (me().role == 'super-admin' || me().get('teamId', null) in teamIds);
+    }
+
+    /** Organisers of one of these teams, and super admins. */
+    function runsTeam(teamIds) {
+      return isOrganiser()
+        && (me().role == 'super-admin' || (me().role == 'organiser' && me().get('teamId', null) in teamIds));
+    }
+
+    function changes() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function isText(value, max) {
+      return value is string && value.size() <= max;
+    }
+
+    function isName(value) {
+      return value is string && value.trim().size() > 0 && value.size() <= 100;
+    }
+
+    // Same pattern as the dashboard and apps/web/src/lib/waitlist.ts
+    function isEmail(value) {
+      return value is string
+        && value == value.lower()
+        && value.size() <= 254
+        && value.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    // Event links: lowercase words joined by single hyphens, and not one of the attendee
+    // site's own pages (RESERVED_SLUGS in packages/shared/src/events.ts)
+    function isSlug(value) {
+      return value is string
+        && value.size() <= 100
+        && value.matches('^[a-z0-9]+(-[a-z0-9]+)*$')
+        && !(value in ['api', 'check-in', 'team']);
+    }
+
+    // admins/{email}: role, teamId (null for super admins), invitedAt, invitedBy,
+    // and name and lastSignInAt once they sign in
+
+    function isAdminEntry(email, data) {
+      return isEmail(email)
+        && data.role in ['super-admin', 'organiser', 'team-member']
+        && (data.role == 'super-admin'
+          ? data.teamId == null
+          : data.teamId is string && exists(doc('teams', data.teamId)));
+    }
+
+    match /admins/{email} {
+      // Yourself, your team, or everyone if you're a super admin. Team lists must ask
+      // for one team (where teamId == yours).
+      allow read: if isOrganiser()
+        && (email == myEmail()
+          || me().role == 'super-admin'
+          || (me().get('teamId', null) != null && resource.data.teamId == me().teamId));
+
+      // Super admins add, change and remove other people, never themselves, so the
+      // last super admin can't lock everyone out
+      allow create: if isSuperAdmin()
+        && email != myEmail()
+        && request.resource.data.keys().hasOnly(['role', 'teamId', 'invitedAt', 'invitedBy'])
+        && isAdminEntry(email, request.resource.data)
+        && request.resource.data.invitedAt == request.time
+        && request.resource.data.invitedBy == myEmail();
+      allow update: if isSuperAdmin()
+        && email != myEmail()
+        && changes().hasOnly(['role', 'teamId'])
+        && isAdminEntry(email, request.resource.data);
+      allow delete: if isSuperAdmin() && email != myEmail();
+
+      // Signing in records your name and when, which ends "Invited"
+      allow update: if isOrganiser()
+        && email == myEmail()
+        && changes().hasOnly(['name', 'lastSignInAt'])
+        && (request.resource.data.get('name', null) == null || isText(request.resource.data.name, 200))
+        && request.resource.data.lastSignInAt == request.time;
+    }
+
+    // teams/{teamId}: name, slug, walkInTicketPrefix. Every organiser sees every team's
+    // name (for menus); only super admins change them.
+
+    function isTeam(data) {
+      return data.keys().hasOnly(['name', 'slug', 'walkInTicketPrefix', 'globalAccess'])
+        && isName(data.name)
+        && isSlug(data.slug)
+        && data.walkInTicketPrefix is string
+        && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$');
+    }
+
+    match /teams/{teamId} {
+      allow read: if isOrganiser();
+      allow create, update: if isSuperAdmin() && isTeam(request.resource.data);
+    }
+
+    // slugs/{slug}: { eventId }. Claims an event link, so no two events share one. Saved
+    // with the event in one batch. A renamed event keeps its old links, which the dashboard
+    // follows and nobody else can take, so printed links never open someone else's event.
+    // A function deletes them with the event.
+
+    match /slugs/{slug} {
+      allow read: if isOrganiser();
+      allow create: if isSlug(slug)
+        && request.resource.data.keys().hasOnly(['eventId'])
+        && getAfter(doc('events', request.resource.data.eventId)).data.slug == slug
+        && runsTeam(getAfter(doc('events', request.resource.data.eventId)).data.teamIds);
+    }
+
+    // events/{eventId}
+
+    function isEvent(data) {
+      return data.keys().hasAll(['slug', 'name', 'description', 'status', 'startsAt', 'endsAt', 'timeZone', 'teamIds',
+          'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns'])
+        && data.keys().hasOnly(['slug', 'name', 'description', 'status', 'startsAt', 'endsAt', 'timeZone', 'teamIds',
+          'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns', 'walkInTicketTitle', 'walkInVenue',
+          'statusChangedBy', 'statusChangedAt', 'legacyId'])
+        && isSlug(data.slug)
+        && isName(data.name)
+        && isText(data.description, 500)
+        && data.status in ['open', 'closed']
+        && data.startsAt is timestamp
+        && data.endsAt is timestamp
+        && data.endsAt > data.startsAt
+        && isText(data.timeZone, 64)
+        && data.teamIds is list
+        && data.teamIds.size() <= 1
+        && data.walkInCounter is int
+        && data.walkInTicketPrefix is string
+        && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$')
+        && data.selfWalkIns is bool
+        && isText(data.get('walkInTicketTitle', ''), 100)
+        && isText(data.get('walkInVenue', ''), 200);
+    }
+
+    /** The event's link is claimed for it in the same write. */
+    function claimsSlug(eventId, slug) {
+      return getAfter(doc('slugs', slug)).data.eventId == eventId;
+    }
+
+    function eventTeams(eventId) {
+      return get(doc('events', eventId)).data.teamIds;
+    }
+
+    match /events/{eventId} {
+      // Organisers who aren't super admins must ask for their team's events
+      // (where teamIds array-contains their team).
+      allow read: if onTeam(resource.data.teamIds);
+
+      allow create: if runsTeam(request.resource.data.teamIds)
+        && isEvent(request.resource.data)
+        && request.resource.data.counts == { 'registered': 0, 'checkedIn': 0, 'walkIns': 0 }
+        && request.resource.data.walkInCounter == 0
+        && claimsSlug(eventId, request.resource.data.slug);
+
+      // Organisers edit the settings, and can move the event only between teams they run
+      allow update: if runsTeam(resource.data.teamIds)
+        && runsTeam(request.resource.data.teamIds)
+        && isEvent(request.resource.data)
+        && !changes().hasAny(['counts', 'legacyId'])
+        && request.resource.data.walkInCounter in [resource.data.walkInCounter, resource.data.walkInCounter + 1]
+        && (request.resource.data.slug == resource.data.slug || claimsSlug(eventId, request.resource.data.slug));
+
+      // Anyone on the team takes the next walk-in number (with the attendee, below)
+      allow update: if onTeam(resource.data.teamIds)
+        && changes().hasOnly(['walkInCounter'])
+        && request.resource.data.walkInCounter == resource.data.walkInCounter + 1;
+
+      allow delete: if runsTeam(resource.data.teamIds);
+
+      // events/{eventId}/attendees/{ticket}
+
+      function isAttendee(ticket, data) {
+        return data.keys().hasAll(['firstName', 'lastName', 'email', 'source', 'checkedInAt'])
+          && data.keys().hasOnly(['firstName', 'lastName', 'email', 'source', 'checkedInAt', 'checkedInBy', 'jobTitle',
+            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber'])
+          && ticket.size() <= 100
+          && isName(data.firstName)
+          && isText(data.lastName, 100)
+          && isEmail(data.email)
+          && data.source in ['bevy', 'walk-in']
+          && isText(data.get('ticketType', ''), 100);
+      }
+
+      /** Checked in now by whoever is signed in, or not checked in. */
+      function isCheckInChange(data) {
+        return (data.checkedInAt == request.time && data.checkedInBy == myEmail())
+          || (data.checkedInAt == null && data.get('checkedInBy', null) == null);
+      }
+
+      match /attendees/{ticket} {
+        allow read: if onTeam(eventTeams(eventId));
+
+        // Staff check people in and undo it
+        allow update: if onTeam(eventTeams(eventId))
+          && changes().hasOnly(['checkedInAt', 'checkedInBy'])
+          && isCheckInChange(request.resource.data);
+
+        // A walk-in, checked in as they're added, with the event's next walk-in number:
+        // the counter goes up in the same write
+        allow create: if onTeam(eventTeams(eventId))
+          && isAttendee(ticket, request.resource.data)
+          && request.resource.data.source == 'walk-in'
+          && request.resource.data.checkedInAt == request.time
+          && request.resource.data.checkedInBy == myEmail()
+          && ticket.matches('^' + get(doc('events', eventId)).data.walkInTicketPrefix + '[0-9]{4,}$')
+          && getAfter(doc('events', eventId)).data.walkInCounter == get(doc('events', eventId)).data.walkInCounter + 1;
+
+        // Bevy imports add people who haven't arrived and update names and ticket types
+        allow create: if runsTeam(eventTeams(eventId))
+          && isAttendee(ticket, request.resource.data)
+          && request.resource.data.source == 'bevy'
+          && request.resource.data.checkedInAt == null
+          && !('checkedInBy' in request.resource.data);
+        allow update: if runsTeam(eventTeams(eventId))
+          && changes().hasOnly(['firstName', 'lastName', 'ticketType'])
+          && isAttendee(ticket, request.resource.data);
+
+        // Organisers remove anyone; staff can undo a walk-in they added
+        allow delete: if runsTeam(eventTeams(eventId))
+          || (onTeam(eventTeams(eventId)) && resource.data.source == 'walk-in' && resource.data.checkedInBy == myEmail());
+      }
+
+      // events/{eventId}/draw/{ticket}: prize draw results, so a refresh or a second
+      // laptop doesn't lose a winner or draw them again
+
+      match /draw/{ticket} {
+        allow read, delete: if onTeam(eventTeams(eventId));
+        allow create: if onTeam(eventTeams(eventId))
+          && request.resource.data.keys().hasOnly(['result', 'drawnAt', 'winnerNumber'])
+          && request.resource.data.result == 'won'
+          && request.resource.data.drawnAt == request.time
+          && request.resource.data.winnerNumber is int;
+        // "Not here": the winner is drawn again and stays out of the draw
+        allow update: if onTeam(eventTeams(eventId))
+          && changes().hasOnly(['result'])
+          && resource.data.result == 'won'
+          && request.resource.data.result == 'not-here';
+      }
+    }
+
+    // Waitlist
+
+    // waitlist/{entryId}: product waitlist from the marketing site (apps/web), auto IDs.
+    //   email: string    required, lowercase
+    //   createdAt: timestamp   required, set by the server (serverTimestamp())
+    //
+    // Signing up twice adds a second entry; dedupe by email when exporting. Browsers can
+    // only add an entry. Nobody can read, change or delete one from a browser; organisers
+    // read the list in the Firebase console.
+
     // Same pattern as EMAIL_PATTERN in apps/web/src/lib/waitlist.ts; keep them in step.
     function isValidWaitlistEntry() {
       let data = request.resource.data;
       return data.keys().hasOnly(['email', 'createdAt'])
-        && data.email is string
-        && data.email == data.email.lower()
-        && data.email.size() <= 254
-        && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+        && isEmail(data.email)
         && data.createdAt == request.time;
     }
 

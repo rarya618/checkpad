@@ -1,6 +1,6 @@
 // Firestore documents the check-in API reads and writes. Matches the data model in
-// docs/migration-plan.md (Backend approach). Only the Admin SDK touches these: the
-// security rules deny all browser access.
+// docs/migration-plan.md (Backend approach). Browsers reach them only through the
+// dashboard, as signed-in organisers (firestore.rules).
 import type { Timestamp } from 'firebase-admin/firestore';
 
 /** events/{eventId} */
@@ -22,6 +22,12 @@ export interface EventDoc {
 	/** Whether people not on the list can add themselves as walk-ins. Staff always can. */
 	selfWalkIns: boolean;
 	legacyId?: string;
+	/** Shown on walk-ins' tickets in the Bevy export. */
+	walkInTicketTitle?: string;
+	walkInVenue?: string;
+	/** Who last opened or closed self check-in, and when: "Opened by Priya at 16:45". */
+	statusChangedBy?: string;
+	statusChangedAt?: Timestamp;
 }
 
 /** events/{eventId}/attendees/{ticket} */
@@ -32,6 +38,8 @@ export interface AttendeeDoc {
 	email: string;
 	source: 'bevy' | 'walk-in';
 	checkedInAt: Timestamp | null;
+	/** The organiser who checked them in from the dashboard; absent for self check-in. */
+	checkedInBy?: string | null;
 	jobTitle?: string;
 	company?: string;
 	ticketType?: string;
@@ -44,5 +52,24 @@ export interface AttendeeDoc {
 export interface TeamDoc {
 	name: string;
 	slug: string;
+	/** New events copy it: GDGWALKIN */
+	walkInTicketPrefix: string;
 	globalAccess?: boolean;
+}
+
+/** admins/{email}: who can sign in to the dashboard, and what they can do (firestore.rules). */
+export interface AdminDoc {
+	role: 'super-admin' | 'organiser' | 'team-member';
+	/** Null for super admins, who see every team. */
+	teamId: string | null;
+	invitedAt: Timestamp;
+	invitedBy: string;
+	/** Set when they sign in; "Invited" until then. */
+	name?: string | null;
+	lastSignInAt?: Timestamp;
+}
+
+/** slugs/{slug}: claims an event link (firestore.rules). */
+export interface SlugDoc {
+	eventId: string;
 }
