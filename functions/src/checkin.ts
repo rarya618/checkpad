@@ -2,7 +2,6 @@
 // show: never the attendee list, and never anyone's email or last name.
 import type { ApiErrorCode, CheckedIn, CheckInResponse, PublicEvent, TeamTarget, WalkInResponse } from '@checkpad/shared/api';
 import {
-	FieldValue,
 	Timestamp,
 	type DocumentReference,
 	type Firestore,
@@ -71,10 +70,10 @@ const attendeesWithEmail = (eventRef: DocumentReference<EventDoc>, email: string
 
 /**
  * Checks in one of the tickets registered to this email, within a transaction whose reads
- * are done. If any of them is already checked in, that's the answer, so a double tap or a
+ * are done. The event's counts follow by themselves (countAttendees in triggers.ts). If any of them is already checked in, that's the answer, so a double tap or a
  * refresh never uses up a second ticket. Returns null when the email isn't on the list.
  */
-function checkInFrom(tx: Transaction, eventRef: DocumentReference<EventDoc>, matches: QuerySnapshot): CheckedIn | null {
+function checkInFrom(tx: Transaction, matches: QuerySnapshot): CheckedIn | null {
 	if (matches.empty) return null;
 	const docs = [...matches.docs].sort((a, b) => a.id.localeCompare(b.id));
 	const used = docs.find((d) => (d.data() as AttendeeDoc).checkedInAt);
@@ -85,7 +84,6 @@ function checkInFrom(tx: Transaction, eventRef: DocumentReference<EventDoc>, mat
 	const doc = docs[0];
 	const now = Timestamp.now();
 	tx.update(doc.ref, { checkedInAt: now });
-	tx.update(eventRef, { 'counts.checkedIn': FieldValue.increment(1) });
 	return { status: 'checked-in', firstName: (doc.data() as AttendeeDoc).firstName, ticket: doc.id, checkedInAt: now.toDate().toISOString(), alreadyCheckedIn: false };
 }
 
@@ -93,7 +91,7 @@ export async function checkIn(db: Firestore, slug: string, body: { email?: unkno
 	const email = parseEmail(body.email);
 	const { ref, event } = await findEvent(db, slug);
 	requireOpen(event);
-	const result = await db.runTransaction(async (tx) => checkInFrom(tx, ref, await tx.get(attendeesWithEmail(ref, email))));
+	const result = await db.runTransaction(async (tx) => checkInFrom(tx, await tx.get(attendeesWithEmail(ref, email))));
 	return result ?? { status: 'not-registered', selfWalkIns: event.selfWalkIns };
 }
 
@@ -114,7 +112,7 @@ export async function walkIn(db: Firestore, slug: string, body: { email?: unknow
 		requireOpen(event);
 		if (!event.selfWalkIns) throw new ApiFailure('walk-ins-off', 403);
 		// Registered after all (or added by staff a moment ago): check them in under their own ticket
-		const existing = checkInFrom(tx, ref, matches);
+		const existing = checkInFrom(tx, matches);
 		if (existing) return existing;
 
 		const number = (event.walkInCounter ?? 0) + 1;
@@ -122,12 +120,7 @@ export async function walkIn(db: Firestore, slug: string, body: { email?: unknow
 		const now = Timestamp.now();
 		const attendee: AttendeeDoc = { firstName, lastName, email, source: 'walk-in', checkedInAt: now };
 		tx.create(ref.collection('attendees').doc(ticket), attendee);
-		tx.update(ref, {
-			walkInCounter: number,
-			'counts.registered': FieldValue.increment(1),
-			'counts.walkIns': FieldValue.increment(1),
-			'counts.checkedIn': FieldValue.increment(1),
-		});
+		tx.update(ref, { walkInCounter: number });
 		return { status: 'checked-in', firstName, ticket, checkedInAt: now.toDate().toISOString(), alreadyCheckedIn: false };
 	});
 }

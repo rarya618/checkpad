@@ -3,9 +3,11 @@
 //   npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm test -w @checkpad/functions"
 // demo-checkpad is a demo project: the emulators never connect it to production.
 import assert from 'node:assert/strict';
-import { beforeEach, describe, test } from 'node:test';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { afterEach, beforeEach, describe, test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { clearFirestore } from '../scripts/emulator.ts';
 
 const PROJECT = 'demo-checkpad';
 const FIRESTORE = process.env.FIRESTORE_EMULATOR_HOST;
@@ -26,7 +28,8 @@ function event(slug: string, fields: Record<string, unknown> = {}) {
 		endsAt: at(2 * hour),
 		timeZone: 'Australia/Sydney',
 		teamIds: ['team-test'],
-		counts: { registered: 2, checkedIn: 1, walkIns: 0 },
+		// The countAttendees trigger counts the attendees written below
+		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
 		walkInTicketPrefix: 'TESTWALKIN',
 		selfWalkIns: true,
@@ -34,10 +37,15 @@ function event(slug: string, fields: Record<string, unknown> = {}) {
 	};
 }
 
+// A new ID for the main event in every test, so triggers from the last test's writes (and
+// from wiping them) can't land in this one's counts
+let e1 = '';
+
 beforeEach(async () => {
-	await fetch(`http://${FIRESTORE}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: 'DELETE' });
+	await clearFirestore(PROJECT);
+	e1 = `e1-${Date.now()}`;
 	const batch = db.batch();
-	const meetup = db.doc('events/e1');
+	const meetup = db.doc(`events/${e1}`);
 	batch.set(meetup, event('test-meetup'));
 	batch.set(meetup.collection('attendees').doc('GOOGA001'), { firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', source: 'bevy', checkedInAt: null });
 	batch.set(meetup.collection('attendees').doc('GOOGA002'), { firstName: 'Sam', lastName: 'Lee', email: 'sam@example.com', source: 'bevy', checkedInAt: at(-10 * 60 * 1000) });
@@ -53,7 +61,38 @@ async function call(path: string, body?: object) {
 	return { status: res.status, body: await res.json(), cache: res.headers.get('cache-control') };
 }
 
-const counts = async (id = 'e1') => (await db.doc(`events/${id}`).get()).get('counts');
+const counts = async (id = e1) => (await db.doc(`events/${id}`).get()).get('counts');
+
+/** Waits for the countAttendees trigger to catch up: until `check` stops throwing, or 10 seconds. */
+async function eventually(check: () => Promise<void>) {
+	for (let tries = 0; ; tries++) {
+		try {
+			return await check();
+		} catch (error) {
+			if (tries > 50) throw error;
+			await sleep(200);
+		}
+	}
+}
+
+/** Counts once the trigger has caught up with every attendee write so far. */
+async function settledCounts(id = e1) {
+	let settled: Record<string, number> = {};
+	await eventually(async () => {
+		const attendees = (await db.collection(`events/${id}/attendees`).get()).docs.map((d) => d.data());
+		settled = await counts(id);
+		assert.deepEqual(settled, {
+			registered: attendees.length,
+			checkedIn: attendees.filter((a) => a.checkedInAt).length,
+			walkIns: attendees.filter((a) => a.source === 'walk-in').length,
+		});
+	});
+	return settled;
+}
+
+// Each test starts once the seeded attendees are counted, and ends once its own writes are
+beforeEach(() => settledCounts());
+afterEach(() => settledCounts());
 
 describe('GET /events/:slug', () => {
 	test('returns only the public details', async () => {
@@ -82,7 +121,7 @@ describe('POST /events/:slug/check-in', () => {
 		assert.equal(body.ticket, 'GOOGA001');
 		assert.equal(body.alreadyCheckedIn, false);
 		assert.deepEqual(Object.keys(body).sort(), ['alreadyCheckedIn', 'checkedInAt', 'firstName', 'status', 'ticket']);
-		assert.equal((await counts()).checkedIn, 2);
+		assert.equal((await settledCounts()).checkedIn, 2);
 	});
 
 	test('a second check-in reports the first one and counts once', async () => {
@@ -90,7 +129,7 @@ describe('POST /events/:slug/check-in', () => {
 		const second = (await call('/events/test-meetup/check-in', { email: 'jane@example.com' })).body;
 		assert.equal(second.alreadyCheckedIn, true);
 		assert.equal(second.checkedInAt, first.checkedInAt);
-		assert.equal((await counts()).checkedIn, 2);
+		assert.equal((await settledCounts()).checkedIn, 2);
 	});
 
 	test('someone not on the list is told so, with whether they can add themselves', async () => {
@@ -126,11 +165,11 @@ describe('POST /events/:slug/walk-in', () => {
 		assert.equal(status, 200);
 		assert.equal(body.ticket, 'TESTWALKIN0001');
 		assert.equal(body.firstName, 'Ada');
-		const saved = (await db.doc('events/e1/attendees/TESTWALKIN0001').get()).data()!;
+		const saved = (await db.doc(`events/${e1}/attendees/TESTWALKIN0001`).get()).data()!;
 		assert.equal(saved.source, 'walk-in');
 		assert.equal(saved.email, 'new@example.com');
 		assert.ok(saved.checkedInAt);
-		assert.deepEqual(await counts(), { registered: 3, checkedIn: 2, walkIns: 1 });
+		assert.deepEqual(await settledCounts(), { registered: 3, checkedIn: 2, walkIns: 1 });
 	});
 
 	test('walk-ins added at the same moment never share a ticket', async () => {
@@ -139,13 +178,13 @@ describe('POST /events/:slug/walk-in', () => {
 		);
 		const tickets = results.map((r) => r.body.ticket).sort();
 		assert.deepEqual(tickets, ['TESTWALKIN0001', 'TESTWALKIN0002', 'TESTWALKIN0003', 'TESTWALKIN0004', 'TESTWALKIN0005']);
-		assert.equal((await db.doc('events/e1').get()).get('walkInCounter'), 5);
+		assert.equal((await db.doc(`events/${e1}`).get()).get('walkInCounter'), 5);
 	});
 
 	test('someone already on the list is checked in under their own ticket', async () => {
 		const { body } = await call('/events/test-meetup/walk-in', { ...person, email: 'jane@example.com' });
 		assert.equal(body.ticket, 'GOOGA001');
-		assert.equal((await db.doc('events/e1').get()).get('walkInCounter'), 0);
+		assert.equal((await db.doc(`events/${e1}`).get()).get('walkInCounter'), 0);
 	});
 
 	test('refuses when the event has self-serve walk-ins off', async () => {
@@ -167,7 +206,7 @@ describe('GET /teams/:slug', () => {
 	});
 
 	test('falls back to the next event when none is open', async () => {
-		await db.doc('events/e1').update({ status: 'closed', endsAt: at(-hour) });
+		await db.doc(`events/${e1}`).update({ status: 'closed', endsAt: at(-hour) });
 		assert.equal((await call('/teams/gdg-test')).body.eventSlug, 'closed-meetup');
 	});
 

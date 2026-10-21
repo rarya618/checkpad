@@ -1,8 +1,9 @@
 // Load test for a rush of check-ins at the start of an event, against real Firestore (the
 // emulator doesn't model contention). Runs the API's own code: every attempt first bumps the
 // rate limit counter, then checks someone in or adds a walk-in, all from one IP address as on
-// venue Wi-Fi. That makes two documents everyone writes to: the event (its counts and
-// walk-in counter) and the rate limit counter.
+// venue Wi-Fi. That makes two documents everyone writes to: the event (its walk-in counter)
+// and the rate limit counter. The event's counts are kept by a trigger (countAttendees), which
+// doesn't run here; it uses increments, which don't contend.
 //
 // Needs a Firestore database you can throw away, and gcloud application default credentials:
 //   npx -y firebase-tools@latest firestore:databases:create loadtest --location australia-southeast1 --project checkpad-app
@@ -101,4 +102,5 @@ const walkInsOk = order.filter((i) => i >= registered).length;
 
 console.log(`Outcomes: ${outcomes.join(', ')}`);
 console.log(`Latency: p50 ${pct(50)}ms, p95 ${pct(95)}ms, p99 ${pct(99)}ms, max ${pct(100)}ms`);
-console.log(`Counts: checkedIn ${event.counts.checkedIn} (expected ${succeeded}), walkIns ${event.counts.walkIns}, walkInCounter ${event.walkInCounter} (expected ${walkInsOk} if all succeeded)`);
+const checkedIn = (await ref.collection('attendees').where('checkedInAt', '!=', null).count().get()).data().count;
+console.log(`Checked in: ${checkedIn} (expected ${succeeded}), walkInCounter ${event.walkInCounter} (expected ${walkInsOk} if all succeeded)`);
