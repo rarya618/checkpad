@@ -38,21 +38,21 @@ Checkpad replaces gdg-check-in, the app GDG Sydney built for its own meetups. GD
 
 ## What it does today
 
-Status matters: copy can only state as fact what the product does now. Everything below is designed and built, but **it runs on mock data in the browser until the backend ships** (migration plan, phases 2–4). Until then, describe these as what Checkpad does, and don't claim usage numbers, uptime or speed.
+Status matters: copy can only state as fact what the product does now. Since 22 October 2026 everything below runs on the real backend (Firestore, Cloud Functions) and is deployed, but no real event has run on it yet. Describe these as what Checkpad does, and don't claim usage numbers, uptime or speed.
 
 | Capability | Status |
 |---|---|
-| Attendee self check-in: scan the QR or open the link, type email, see a confirmation with their ticket number | Built, mock data |
-| Staff check-in by email or ticket number, from a laptop or a phone | Built, mock data |
-| Walk-ins get the next ticket number (e.g. GDGWALKIN0005) and are checked in on the spot | Built, mock data. "No two walk-ins get the same ticket" needs the server transaction (phase 2) before it's strictly true |
-| Per-event switch for whether attendees can add themselves as walk-ins; staff can always add them | Built, mock data |
-| Attendees dashboard: live count, pre-registered vs walk-ins, search, undo | Built, mock data. "Live" and "in seconds" need Firestore live updates (phase 4) |
+| Attendee self check-in: scan the QR or open the link, type email, see a confirmation with their ticket number | Live |
+| Staff check-in by email or ticket number, from a laptop or a phone | Live. Built to keep working when venue Wi-Fi drops and save when it's back, but [NEED: test with Wi-Fi off] before copy says so |
+| Walk-ins get the next ticket number (e.g. GDGWALKIN0005) and are checked in on the spot | Live. No two walk-ins get the same ticket, even from two devices (a server transaction). Adding one needs a connection |
+| Per-event switch for whether attendees can add themselves as walk-ins; staff can always add them | Live |
+| Attendees dashboard: live count, pre-registered vs walk-ins, search, undo | Live, with live updates. Still don't claim "in seconds" until it's been timed at a real event |
 | Import the attendee CSV from Bevy; export for Bevy's bulk upload | Built. The export's columns are a guess: [NEED: confirm against Bevy's bulk upload] |
 | Venue QR display for a screen or printed sign | Built |
-| Permanent team link (checkpad.app/team/<slug>) that always opens the team's current or next event | Built, mock data |
-| Prize draw on the projector: names only, no repeat winners, "Not here" skips someone | Built. "Saved if you refresh" needs results stored in Firestore (phase 2–4) |
-| Event analytics (arrivals every 15 minutes, turnout by ticket type) and analytics across events | Built, mock data |
-| Organisers and teams, with sign-in by Google or an emailed link | Screens built; sign-in and roles are mocks |
+| Permanent team link (checkpad.app/team/<slug>) that always opens the team's current or next event | Live |
+| Prize draw on the projector: names only, no repeat winners, "Not here" skips someone | Live. Results are saved, so a refresh or a second laptop keeps the winners |
+| Event analytics (arrivals every 15 minutes, turnout by ticket type) and analytics across events | Live |
+| Organisers and teams, with sign-in by Google or an emailed link | Live. Roles: super admin, organiser (edits the team's events), team member (checks people in, can't change the event). New organisers get an invite email |
 
 The prize draw is a nice extra, not a reason people choose Checkpad. Don't lead with it (decided 21 October 2026).
 
@@ -105,7 +105,7 @@ Attendees also land on checkpad.app when they scan a QR at a venue. The site tel
 
 - Hero: "Attendees check themselves in." / "They scan a QR code when they arrive and type their email. You watch the room fill up from your laptop or phone."
 - Sections: How it works (three steps), Features (six cards), Walk-ins, Analytics, call to action with the waitlist form.
-- Still open: "Watch arrivals live" and "A live dashboard" depend on live updates (phase 4).
+- "Watch arrivals live" and "A live dashboard" are true since live updates shipped (22 October 2026).
 - Meta description: "Attendees check themselves in at your meetup with a QR code and their email. You track arrivals and walk-ins on a dashboard. Join the waitlist."
 
 ## Learnings
@@ -117,3 +117,4 @@ Angles and claims already tried, and what happened. Add to this as copy ships.
 - 21 October 2026, copywriting pass: hero changed from "A real-time self check-in app." (a category label that fails the swap test) to "Attendees check themselves in." "Let attendees check themselves in." was tried and dropped because it broke as "Let attendees / check / themselves in." at desktop width. Removed "in seconds" and "saved if you refresh" until the backend makes them true. Kept "watch the room fill up" and "Know how the night went."
 - 21 October 2026: "door" was overused as shorthand for check-in ("Doors open in three steps", "Everything for the door", "Run your next door"). It read oddly. Use it only literally, for where the QR code goes, and at most once on a page. "Door" was never confirmed as an organiser's word; it came from the old page copy.
 - 21 October 2026: added Used by (GDG Sydney, GDG UTS, names only), Supported platforms (Bevy supported, five planned) and Supported venues (what a venue needs) sections.
+- 22 October 2026, copywriting pass after the backend shipped: no rewrite (the page's voice was already right). Changed only what the new facts allow or require: the prize draw card adds "even after a refresh"; the Teams card names what volunteers can do instead of "share events with co-organisers"; the walk-ins point adds "with no repeats across devices"; the waitlist call to action drops "soon", which promised a timeline we don't have. Offline staff check-in left out until it's tested with Wi-Fi off.
