@@ -2,16 +2,16 @@
 // attendee site can be tried locally against the real check-in API. Wipes the emulator's
 // data first. Run with the emulators going (see CLAUDE.md):
 //   npm run seed -w @checkpad/functions
-import assert from 'node:assert/strict';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { mockEvents, mockTeams } from '@checkpad/shared/mock-events';
 import type { AttendeeDoc, EventDoc } from '../src/model.ts';
 
+// A demo- project with the emulator host always set, so this can never write to production.
+// @checkpad/shared isn't a dependency of functions (Cloud Build can't install it); the
+// workspace makes it importable here.
 const PROJECT = 'demo-checkpad';
 const FIRESTORE = (process.env.FIRESTORE_EMULATOR_HOST ??= '127.0.0.1:8080');
-// Never let this run against a real project
-assert.ok(PROJECT.startsWith('demo-'));
 
 // The same three people on every event: try these emails, or any other for a walk-in
 const attendees: [string, Omit<AttendeeDoc, 'checkedInAt' | 'source'>][] = [
