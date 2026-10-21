@@ -1,0 +1,7 @@
+Sign in to Checkpad
+
+Use this link to sign in to the dashboard as {{{ADDRESS}}}. It works once and expires in 1 hour. Open it on the device you asked from:
+
+{{{LINK}}}
+
+Didn’t ask to sign in? You can ignore this email. Nobody can sign in without the link.

@@ -28,7 +28,7 @@ Event links (`/<slug>`) and team links (`/team/<slug>`) load from the check-in A
 
 ```
 npm run build -w @checkpad/functions
-PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:start --project demo-checkpad --only firestore,functions
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:start --project demo-checkpad --only auth,firestore,functions
 npm run seed -w @checkpad/functions
 ```
 
@@ -37,7 +37,7 @@ The seed script prints the links to try; `attendee@sample.com`, `attendee-2@samp
 The Playwright tests (`apps/web/e2e`) cover the check-in and team pages against the same emulators. They start their own dev server on port 4322 and reseed before every test. Build the functions first, then from the repo root:
 
 ```
-PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm run test:e2e -w @checkpad/web"
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only auth,firestore,functions "npm run test:e2e -w @checkpad/web"
 ```
 
 The first run on a machine needs Chromium: `npx playwright install chromium` from `apps/web`.
@@ -60,13 +60,15 @@ Sign in as a seeded organiser (`russal@example.com` super admin, `priya@example.
 
 ### functions (Cloud Functions)
 
-The attendee check-in API, served on the Astro site at `/api` through a Hosting rewrite. Build with `npm run build -w @checkpad/functions`. The tests run against the Firestore and Functions emulators, which need Java 21 (`brew install openjdk@21`; it isn't the default `java`, so put it first on `PATH`):
+The attendee check-in API and the dashboard's emails, served at `/api` on both sites through Hosting rewrites. Build with `npm run build -w @checkpad/functions`. The tests run against the Auth, Firestore and Functions emulators, which need Java 21 (`brew install openjdk@21`; it isn't the default `java`, so put it first on `PATH`):
 
 ```
-PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm test -w @checkpad/functions"
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only auth,firestore,functions "npm test -w @checkpad/functions"
 ```
 
 `demo-checkpad` is an emulator-only project, so tests never touch production.
+
+Emails (dashboard sign-in links and organiser invites) go through Resend from `noreply@checkpad.app`. Their templates are in `functions/emails/`, published to Resend and sent by ID (`functions/src/email.ts` says how to update one). Production reads a sending-only key from the `RESEND_API_KEY` secret; the emulators never send, and record each email in the `emulatorOutbox` collection instead.
 
 ## Documentation
 

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { beforeEach, describe, test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, type DocumentData } from 'firebase-admin/firestore';
 import { clearFirestore } from '../scripts/emulator.ts';
 
 const PROJECT = 'demo-checkpad';
@@ -80,5 +80,38 @@ describe('cleanUpDeletedEvent', () => {
 			assert.equal((await event.collection('draw').get()).size, 0);
 			assert.deepEqual((await db.collection('slugs').get()).docs.map((d) => d.id), ['someone-else']);
 		});
+	});
+});
+
+describe('inviteOrganiser', () => {
+	// The emulators record emails in emulatorOutbox instead of sending them (email.ts)
+	async function invitesTo(email: string) {
+		let invites: DocumentData[] = [];
+		await eventually(async () => {
+			invites = (await db.collection('emulatorOutbox').where('to', '==', email).get()).docs.map((d) => d.data());
+			assert.equal(invites.length, 1);
+		});
+		return invites;
+	}
+
+	test('emails someone added from the dashboard, saying who added them and what they can do', async () => {
+		await db.doc('admins/russal@example.com').set({ role: 'super-admin', teamId: null, name: 'Russal Arya' });
+		await db.doc('teams/team-invite').set({ name: 'GDG Invite', slug: 'gdg-invite', walkInTicketPrefix: 'GDGWALKIN' });
+		await db.doc('admins/new@example.com').set({ role: 'team-member', teamId: 'team-invite', invitedAt: Timestamp.now(), invitedBy: 'russal@example.com' });
+		const [invite] = await invitesTo('new@example.com');
+		assert.equal(invite.template, 'invite');
+		assert.deepEqual(invite.variables, {
+			INVITER: 'Russal Arya',
+			ROLE: 'a team member',
+			ACCESS: 'You can check people in at GDG Invite’s events.',
+			ADDRESS: 'new@example.com',
+			LINK: 'https://manage.checkpad.app/sign-in',
+		});
+	});
+
+	test('sends nothing for organisers added outside the dashboard', async () => {
+		await db.doc('admins/seeded@example.com').set({ role: 'organiser', teamId: 'team-invite', invitedAt: Timestamp.now() });
+		await sleep(1500);
+		assert.equal((await db.collection('emulatorOutbox').where('to', '==', 'seeded@example.com').get()).size, 0);
 	});
 });

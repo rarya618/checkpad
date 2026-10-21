@@ -1,6 +1,6 @@
 // End-to-end tests for the check-in API against the Firestore and Functions emulators.
 // Run from the repo root (needs Java 21 on PATH for the Firestore emulator):
-//   npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm test -w @checkpad/functions"
+//   npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only auth,firestore,functions "npm test -w @checkpad/functions"
 // demo-checkpad is a demo project: the emulators never connect it to production.
 import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -216,5 +216,64 @@ describe('GET /teams/:slug', () => {
 
 	test('404s for an unknown team', async () => {
 		assert.equal((await call('/teams/nope')).status, 404);
+	});
+});
+
+describe('POST /auth/sign-in-link', () => {
+	const DASHBOARD = 'http://localhost:5173';
+
+	async function askForLink(body: object, origin = DASHBOARD) {
+		const res = await fetch(`${API}/auth/sign-in-link`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json', origin },
+			body: JSON.stringify(body),
+		});
+		return { status: res.status, body: await res.json() };
+	}
+
+	// The emulators record emails in emulatorOutbox instead of sending them (email.ts)
+	const sentTo = async (email: string) => (await db.collection('emulatorOutbox').where('to', '==', email).get()).docs.map((d) => d.data());
+
+	beforeEach(async () => {
+		await db.doc('admins/priya@example.com').set({ role: 'organiser', teamId: 'team-test', invitedAt: at(0) });
+	});
+
+	test('emails an organiser a link back to the page they asked from', async () => {
+		assert.deepEqual(await askForLink({ email: ' Priya@Example.com ', next: '/events/test-meetup' }), { status: 200, body: { status: 'sent' } });
+		const [email] = await sentTo('priya@example.com');
+		assert.equal(email.template, 'sign-in');
+		assert.equal(email.variables.ADDRESS, 'priya@example.com');
+		const link = new URL(email.variables.LINK);
+		assert.equal(link.searchParams.get('mode'), 'signIn');
+		assert.ok(link.searchParams.get('oobCode'));
+		const back = new URL(link.searchParams.get('continueUrl')!);
+		assert.equal(back.origin + back.pathname, `${DASHBOARD}/sign-in/link`);
+		assert.equal(back.searchParams.get('next'), '/events/test-meetup');
+	});
+
+	test('answers the same for someone not on the list, but sends nothing', async () => {
+		assert.deepEqual(await askForLink({ email: 'stranger@example.com' }), { status: 200, body: { status: 'sent' } });
+		assert.deepEqual(await sentTo('stranger@example.com'), []);
+	});
+
+	test('only links back to the dashboard', async () => {
+		assert.deepEqual(await askForLink({ email: 'priya@example.com' }, 'https://evil.example'), { status: 400, body: { error: 'invalid' } });
+		assert.deepEqual(await sentTo('priya@example.com'), []);
+	});
+
+	test('never returns somewhere off the dashboard', async () => {
+		await askForLink({ email: 'priya@example.com', next: '//evil.example' });
+		const [email] = await sentTo('priya@example.com');
+		const back = new URL(new URL(email.variables.LINK).searchParams.get('continueUrl')!);
+		assert.equal(back.searchParams.get('next'), '/events');
+	});
+
+	test('needs an email address', async () => {
+		assert.deepEqual(await askForLink({ email: 'not an email' }), { status: 400, body: { error: 'invalid' } });
+	});
+
+	test('limits links to one address', async () => {
+		for (let i = 0; i < 5; i++) assert.equal((await askForLink({ email: 'priya@example.com' })).status, 200);
+		assert.deepEqual(await askForLink({ email: 'priya@example.com' }), { status: 429, body: { error: 'rate-limited' } });
 	});
 });

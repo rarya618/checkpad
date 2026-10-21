@@ -120,7 +120,7 @@ export function CheckEmailPage() {
 	return (
 		<AuthLayout
 			title="Check your email"
-			description={`We sent a sign-in link to ${email}. Open it on this device to finish signing in. It expires in 1 hour.`}
+			description={`If ${email} is on the organiser list, we’ve sent it a sign-in link. Open it on this device to finish signing in. It expires in 1 hour.`}
 		>
 			<Link to={`/sign-in?${new URLSearchParams({ next })}`} className={`w-full ${buttonClass('secondary')}`}>
 				Use a different email

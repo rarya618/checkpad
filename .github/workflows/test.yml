@@ -48,7 +48,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Test the API, rules and attendee site
-        run: npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm test -w @checkpad/functions && npm run test:e2e -w @checkpad/web"
+        run: npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only auth,firestore,functions "npm test -w @checkpad/functions && npm run test:e2e -w @checkpad/web"
         env:
           CI: true
 

@@ -1,11 +1,11 @@
-// Sign-in with Firebase Auth: Google, or a link emailed to the organiser (no passwords).
+// Sign-in with Firebase Auth: Google, or a link emailed to the organiser (no passwords). The
+// link comes from our own email (functions/src/organisers.ts), not Firebase's.
 // Signing in doesn't grant anything by itself: access comes from the organiser list
 // (organisers.ts), which the security rules check too.
 import { FirebaseError } from 'firebase/app';
 import {
 	isSignInWithEmailLink,
 	onAuthStateChanged,
-	sendSignInLinkToEmail,
 	signInWithEmailLink,
 	signInWithPopup,
 	signOut as firebaseSignOut,
@@ -72,20 +72,25 @@ export async function signInWithGoogle(): Promise<string | null> {
 // The email the link was sent to, so opening it on this device can finish signing in
 const LINK_EMAIL = 'checkpad:sign-in-email';
 
-/** Emails a one-time sign-in link that returns to `next`. Resolves with an error message, or null. */
+/**
+ * Emails a one-time sign-in link that returns to `next`, through the check-in API
+ * (functions/src/organisers.ts), which sends Checkpad's own email and only to organisers.
+ * Resolves with an error message, or null.
+ */
 export async function sendSignInLink(email: string, next: string): Promise<string | null> {
 	const address = email.trim().toLowerCase();
 	try {
-		await sendSignInLinkToEmail(auth, address, {
-			url: `${location.origin}/sign-in/link?${new URLSearchParams({ next })}`,
-			handleCodeInApp: true,
+		const res = await fetch('/api/auth/sign-in-link', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ email: address, next }),
 		});
+		if (res.status === 400) return 'That doesn’t look like an email address.';
+		if (res.status === 429) return 'Too many sign-in emails for now. Try again in a few minutes, or use Google.';
+		if (!res.ok) throw new Error(`Sign-in link: HTTP ${res.status}`);
 		localStorage.setItem(LINK_EMAIL, address);
 		return null;
-	} catch (error) {
-		const code = error instanceof FirebaseError ? error.code : '';
-		if (code === 'auth/invalid-email') return 'That doesn’t look like an email address.';
-		if (code === 'auth/quota-exceeded' || code === 'auth/too-many-requests') return 'Too many sign-in emails for now. Try again later, or use Google.';
+	} catch {
 		return 'Couldn’t send the link. Check your connection and try again.';
 	}
 }

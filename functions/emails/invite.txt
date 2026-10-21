@@ -1,0 +1,9 @@
+You’ve been added to Checkpad
+
+{{{INVITER}}} added you as {{{ROLE}}}. {{{ACCESS}}}
+
+Sign in with Google or an email link, using {{{ADDRESS}}}:
+
+{{{LINK}}}
+
+Checkpad is how your team checks people in at its events. Not expecting this? You can ignore it.

@@ -74,7 +74,7 @@ export function AddOrganiserDialog({ onClose }: { onClose: () => void }) {
 					if (!valid) return;
 					const address = email.trim();
 					inviteOrganiser(address, role, team).catch(() => showToast(`Couldn’t add ${address}. Try again.`));
-					showToast(`${address} can sign in now`);
+					showToast(`Invite sent to ${address}`);
 					onClose();
 				}}
 			>
@@ -92,10 +92,10 @@ export function AddOrganiserDialog({ onClose }: { onClose: () => void }) {
 				<div className="flex items-center gap-[15px] rounded-[7.5px] bg-light-blue px-[18px] py-[15px]">
 					<img src={mail} alt="" width={18} height={18} />
 					<p className="min-w-0 flex-1 text-[13.5px] leading-[1.5] tracking-[-0.3px]">
-						Let {looksLikeEmail(email) ? <strong className="font-bold">{email.trim()}</strong> : 'them'} know they’ve been added. They can sign in with Google or an email link.
+						We’ll email {looksLikeEmail(email) ? <strong className="font-bold">{email.trim()}</strong> : 'them'} an invite. They can sign in with Google or an email link.
 					</p>
 				</div>
-				<Actions onCancel={onClose} submit="Add organiser" disabled={!valid} />
+				<Actions onCancel={onClose} submit="Send invite" disabled={!valid} />
 			</form>
 		</Dialog>
 	);

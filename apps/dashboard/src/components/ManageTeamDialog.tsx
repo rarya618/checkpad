@@ -56,7 +56,7 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 					if (!valid) return;
 					saveTeamMembers(team, { name: cleanName, slug: cleanSlugValue }, removed, invites.map((email) => ({ email, role: 'team-member' }))).then(
 						() => {
-							if (invites.length) showToast(invites.length === 1 ? `${invites[0]} can sign in now` : `${invites.length} people can sign in now`);
+							if (invites.length) showToast(invites.length === 1 ? `Invite sent to ${invites[0]}` : `Invites sent to ${invites.length} people`);
 						},
 						() => showToast(`Couldn’t save ${cleanName}. Try again.`),
 					);
@@ -117,7 +117,7 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 									key={email}
 									initials={email.slice(0, 2).toUpperCase()}
 									name={email}
-									detail="Added when you save"
+									detail="Invited when you save"
 									invited
 									role={roleLabel('team-member')}
 									onRemove={() => setInvites(invites.filter((i) => i !== email))}

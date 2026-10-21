@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>You’ve been added to Checkpad</title>
+</head>
+<!-- Sent when a super admin adds an organiser (functions/src/email.ts). Like the dashboard's
+     sign-in card: the logo above one white card. Variables: INVITER, ROLE, ACCESS, ADDRESS, LINK. -->
+<body style="margin:0;padding:0;background:#f9f7f7;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9f7f7;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;">
+<tr><td align="center" style="padding-bottom:28px;">
+<img src="https://checkpad.app/email/checkpad-logo.png" width="201" height="48" alt="checkpad" style="display:block;border:0;">
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #3f72af;border-radius:12px;padding:36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<h1 style="margin:0 0 10px;font-size:26px;line-height:1.2;color:#112d4e;font-weight:700;">You’ve been added to Checkpad</h1>
+<p style="margin:0 0 12px;font-size:16px;line-height:1.5;color:#112d4e;">{{{INVITER}}} added you as {{{ROLE}}}. {{{ACCESS}}}</p>
+<p style="margin:0 0 26px;font-size:16px;line-height:1.5;color:#3f72af;">Sign in with Google or an email link, using {{{ADDRESS}}}.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="border-radius:9px;background:#112d4e;">
+<a href="{{{LINK}}}" style="display:block;padding:14px 24px;font-size:17px;font-weight:600;line-height:1.3;color:#ffffff;text-decoration:none;border-radius:9px;">Open the dashboard</a>
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:20px 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3f72af;text-align:center;">
+Checkpad is how your team checks people in at its events. Not expecting this? You can ignore it.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

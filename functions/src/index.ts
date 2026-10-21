@@ -1,10 +1,13 @@
 // Cloud Functions for checkpad-app. Deployed with:
 //   npx -y firebase-tools@latest deploy --only functions
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { onDocumentDeleted, onDocumentWritten } from 'firebase-functions/firestore';
+import { onDocumentCreated, onDocumentDeleted, onDocumentWritten } from 'firebase-functions/firestore';
 import { onRequest } from 'firebase-functions/https';
 import { createHandler } from './api.js';
+import { mailer, resendApiKey } from './email.js';
+import { sendInvite } from './organisers.js';
 import { cleanUpEvent, countChange } from './triggers.js';
 
 initializeApp();
@@ -16,8 +19,8 @@ const db = getFirestore();
  * At most 10 instances, so a traffic spike or abuse can't run up the bill.
  */
 export const api = onRequest(
-	{ region: 'australia-southeast1', invoker: 'public', maxInstances: 10, memory: '256MiB' },
-	createHandler(db),
+	{ region: 'australia-southeast1', invoker: 'public', maxInstances: 10, memory: '256MiB', secrets: [resendApiKey] },
+	createHandler(db, getAuth(), () => mailer(db)),
 );
 
 // Next to the database in Sydney. Every check-in runs this, so it's capped like the API.
@@ -31,3 +34,7 @@ export const countAttendees = onDocumentWritten({ ...trigger, document: 'events/
 /** Deletes a deleted event's attendees, prize draw and links (triggers.ts). */
 export const cleanUpDeletedEvent = onDocumentDeleted({ ...trigger, document: 'events/{eventId}' }, (event) => cleanUpEvent(db, event.params.eventId));
 
+/** Emails an organiser added from the dashboard (organisers.ts). */
+export const inviteOrganiser = onDocumentCreated({ ...trigger, document: 'admins/{email}', secrets: [resendApiKey] }, (event) =>
+	sendInvite(db, mailer(db), { id: event.id, email: event.params.email, admin: event.data?.data() }),
+);

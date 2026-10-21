@@ -1,17 +1,26 @@
-// Routes for the check-in API. The attendee site reaches it at /api/... through a Hosting
-// rewrite (firebase.json), so requests arrive with the /api prefix; called directly (or in
-// the emulator) they don't. Both work.
+// Routes for the check-in API, and the dashboard's sign-in links (organisers.ts). Both sites
+// reach it at /api/... through a Hosting rewrite (firebase.json), so requests arrive with the
+// /api prefix; called directly (or in the emulator) they don't. Both work.
 import type { ApiError } from '@checkpad/shared/api';
+import type { Auth } from 'firebase-admin/auth';
 import type { Firestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import type { Request, Response } from 'firebase-functions/https';
 import { ApiFailure, checkIn, getEvent, teamTarget, walkIn } from './checkin.js';
+import type { Mailer } from './email.js';
+import { sendSignInLink } from './organisers.js';
 import { allowAttempt } from './rateLimit.js';
 
 const SLUG = '([a-z0-9-]+)';
 const EVENT_ROUTE = new RegExp(`^/events/${SLUG}/?$`);
 const ACTION_ROUTE = new RegExp(`^/events/${SLUG}/(check-in|walk-in)/?$`);
 const TEAM_ROUTE = new RegExp(`^/teams/${SLUG}/?$`);
+const SIGN_IN_ROUTE = /^\/auth\/sign-in-link\/?$/;
+
+// Sign-in links per network and per address in ten minutes: plenty for organisers who mistype
+// or ask again, and few enough that the endpoint can't be used to flood someone's inbox
+const SIGN_IN_LIMIT_PER_IP = 30;
+const SIGN_IN_LIMIT_PER_EMAIL = 5;
 
 /** The attendee's address: Hosting's CDN passes it on; otherwise the first forwarded hop. */
 function clientIp(req: Request) {
@@ -23,7 +32,8 @@ function fail(res: Response, status: number, error: ApiError['error']) {
 	res.status(status).json({ error } satisfies ApiError);
 }
 
-export function createHandler(db: Firestore) {
+/** `mail` gives the mailer when a request needs one (email.ts): secrets can only be read then. */
+export function createHandler(db: Firestore, auth: Auth, mail: () => Mailer) {
 	return async (req: Request, res: Response) => {
 		const path = req.path.replace(/^\/api(?=\/)/, '');
 		try {
@@ -43,6 +53,17 @@ export function createHandler(db: Firestore) {
 				if (!(await allowAttempt(db, clientIp(req), slug))) return fail(res, 429, 'rate-limited');
 				const body = (req.body ?? {}) as Record<string, unknown>;
 				return void res.json(action === 'check-in' ? await checkIn(db, slug, body) : await walkIn(db, slug, body));
+			}
+			if (SIGN_IN_ROUTE.test(path)) {
+				if (req.method !== 'POST') return fail(res, 405, 'invalid');
+				res.set('Cache-Control', 'no-store');
+				const body = (req.body ?? {}) as Record<string, unknown>;
+				const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+				const allowed =
+					(await allowAttempt(db, clientIp(req), 'sign-in', Date.now(), SIGN_IN_LIMIT_PER_IP)) &&
+					(await allowAttempt(db, email, 'sign-in', Date.now(), SIGN_IN_LIMIT_PER_EMAIL));
+				if (!allowed) return fail(res, 429, 'rate-limited');
+				return void res.json(await sendSignInLink(db, auth, mail(), body, [req.headers.origin].flat()[0]));
 			}
 			return fail(res, 404, 'not-found');
 		} catch (error) {
