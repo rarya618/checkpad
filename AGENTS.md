@@ -24,6 +24,16 @@ cd apps/web && npx astro dev --background
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
 
+Event links (`/<slug>`) and team links (`/team/<slug>`) load from the check-in API, which the dev server proxies at `/api` to the Functions emulator in `demo-checkpad`. Start the emulators and fill them with the demo events first (Java 21 as below):
+
+```
+npm run build -w @checkpad/functions
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:start --project demo-checkpad --only firestore,functions
+npm run seed -w @checkpad/functions
+```
+
+The seed script prints the links to try; `attendee@sample.com`, `attendee-2@sample.com` and `jane@example.com` are on every event's list.
+
 ### apps/dashboard (Vite)
 
 ```

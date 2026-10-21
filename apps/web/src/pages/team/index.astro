@@ -1,0 +1,10 @@
+---
+// One page for every team's permanent link: Hosting rewrites /team/<slug> here
+// (firebase.json), and so does the dev server (astro.config.mjs).
+import TeamLink from '../../components/TeamLink';
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Check in · checkpad" noindex>
+	<TeamLink client:load />
+</Layout>

@@ -1,0 +1,13 @@
+---
+// One page for every event's check-in link: Hosting rewrites /<slug> here (firebase.json),
+// and so does the dev server (astro.config.mjs). The page asks the API for the event.
+import EventCheckIn from '../components/EventCheckIn';
+import PoweredBy from '../components/PoweredBy.astro';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Check in · checkpad" noindex>
+	<EventCheckIn client:load>
+		<PoweredBy />
+	</EventCheckIn>
+</Layout>

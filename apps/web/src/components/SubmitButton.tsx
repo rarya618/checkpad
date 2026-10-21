@@ -25,7 +25,7 @@ export default function SubmitButton({ loading, loadingLabel = 'Checking in', va
 	);
 }
 
-function Spinner() {
+export function Spinner() {
 	// 9px radius, 2px ring; the arc covers 3/8 of the circle like the Figma spinner.
 	const circumference = 2 * Math.PI * 9;
 	return (

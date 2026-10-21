@@ -1,6 +1,6 @@
 // In-memory event store, like roster.ts, so creating, editing and deleting an event
 // shows up on every page. Swap for Firestore later.
-import type { CheckpadEvent } from '@checkpad/shared/events';
+import { RESERVED_SLUGS, type CheckpadEvent } from '@checkpad/shared/events';
 import { mockEvents } from '@checkpad/shared/mock-events';
 import { useMemo, useSyncExternalStore } from 'react';
 import { pastEvents } from './mock';
@@ -90,8 +90,9 @@ export function renamedSlug(slug: string | undefined) {
 	return current || undefined;
 }
 
+/** Whether another event has this link, or the attendee site needs it for a page. */
 export function isSlugTaken(slug: string, except?: string) {
-	return slug !== except && events.some((event) => event.slug === slug);
+	return slug !== except && (RESERVED_SLUGS.has(slug) || events.some((event) => event.slug === slug));
 }
 
 export function createEvent(event: DashboardEvent) {

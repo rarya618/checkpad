@@ -27,6 +27,7 @@
       "target": "web",
       "public": "apps/web/dist",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "trailingSlash": false,
       "rewrites": [
         {
           "source": "/api/**",
@@ -34,6 +35,14 @@
             "functionId": "api",
             "region": "australia-southeast1"
           }
+        },
+        {
+          "source": "/team/*",
+          "destination": "/team/index.html"
+        },
+        {
+          "source": "/*",
+          "destination": "/check-in/index.html"
         }
       ]
     }

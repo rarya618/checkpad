@@ -25,7 +25,11 @@ export type CheckInStatus = 'not-open' | 'open' | 'closed';
 
 /** Open while the switch is on, whatever the time. While it's off, the start time only
  *  decides whether attendees see "Not open yet" or "Check-in closed". */
-export function checkInStatus(event: CheckpadEvent, now = new Date()): CheckInStatus {
-	if (event.selfCheckInOpen) return 'open';
-	return now < new Date(event.startsAt) ? 'not-open' : 'closed';
+export function checkInStatus({ open, startsAt }: { open: boolean; startsAt: string }, now = new Date()): CheckInStatus {
+	if (open) return 'open';
+	return now < new Date(startsAt) ? 'not-open' : 'closed';
 }
+
+/** Event links that would clash with the attendee site's own pages, which Hosting serves
+ *  before its event-link rewrite (firebase.json), so an event there could never be opened. */
+export const RESERVED_SLUGS = new Set(['api', 'check-in', 'team']);

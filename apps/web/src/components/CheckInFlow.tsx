@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import divider from '../assets/divider.svg';
-import type { Attendee } from '@checkpad/shared/attendees';
+import type { CheckedIn, PublicEvent } from '@checkpad/shared/api';
 import { buttonClass } from '@checkpad/shared/button';
-import { checkInStatus, type CheckInStatus, type CheckpadEvent } from '@checkpad/shared/events';
+import { checkInStatus } from '@checkpad/shared/events';
 import { formatDay, formatTime } from '@checkpad/shared/format';
-import { checkIn, checkInWalkIn } from '../lib/checkin';
+import { ApiFailure, checkIn, checkInWalkIn } from '../lib/api';
+import LinkNotFound from './LinkNotFound';
 import StatusScreen from './StatusScreen';
 import SubmitButton from './SubmitButton';
 import TextField from './TextField';
@@ -14,10 +15,10 @@ type Step =
 	| { name: 'walk-in' }
 	// Not on the list, and the event doesn't let people add themselves
 	| { name: 'not-registered' }
-	| { name: 'done'; attendee: Attendee; alreadyCheckedIn: boolean };
+	| { name: 'done'; result: CheckedIn };
 
 interface Props {
-	event: CheckpadEvent;
+	event: PublicEvent;
 	/** Static footer ("powered by checkpad") rendered under the form and confirmation. */
 	children?: ReactNode;
 }
@@ -31,12 +32,10 @@ function validateEmail(email: string) {
 }
 
 export default function CheckInFlow({ event, children }: Props) {
-	// The page is prerendered, and whether a closed event shows "not open yet" or "closed"
-	// depends on the time, so it's decided in the browser. Render nothing until then
-	// rather than flashing the wrong screen.
-	const [checkInState, setCheckInState] = useState<CheckInStatus | null>(null);
-	useEffect(() => setCheckInState(checkInStatus(event)), [event]);
-
+	// The API refuses check-ins once an organiser closes self check-in, or deletes the event,
+	// even if it was open when this page loaded.
+	const [closed, setClosed] = useState(false);
+	const [gone, setGone] = useState(false);
 	const [step, setStep] = useState<Step>({ name: 'email' });
 	const [email, setEmail] = useState('');
 	const [emailError, setEmailError] = useState<string | null>(null);
@@ -46,7 +45,9 @@ export default function CheckInFlow({ event, children }: Props) {
 	const [requestError, setRequestError] = useState<string | null>(null);
 	const emailInput = useRef<HTMLInputElement>(null);
 
-	if (checkInState === null) return null;
+	if (gone) return <LinkNotFound />;
+
+	const checkInState = checkInStatus({ open: event.open && !closed, startsAt: event.startsAt });
 
 	if (checkInState === 'not-open') {
 		const startsAt = new Date(event.startsAt);
@@ -74,8 +75,15 @@ export default function CheckInFlow({ event, children }: Props) {
 		setRequestError(null);
 		try {
 			await action();
-		} catch {
-			setRequestError('Something went wrong. Check your connection and try again.');
+		} catch (error) {
+			const code = error instanceof ApiFailure ? error.code : 'network';
+			if (code === 'closed') setClosed(true);
+			else if (code === 'not-found') setGone(true);
+			// Turned off since the page loaded
+			else if (code === 'walk-ins-off') setStep({ name: 'not-registered' });
+			else if (code === 'rate-limited') setRequestError('Too many check-ins from this network. Wait a few minutes and try again, or find one of the organisers.');
+			else if (code === 'invalid') setRequestError('Check your details and try again.');
+			else setRequestError('Something went wrong. Check your connection and try again.');
 		} finally {
 			setSubmitting(false);
 		}
@@ -90,11 +98,11 @@ export default function CheckInFlow({ event, children }: Props) {
 			return;
 		}
 		return submit(async () => {
-			const result = await checkIn(event.slug, email);
+			const result = await checkIn(event.slug, email.trim());
 			setStep(
 				result.status === 'checked-in'
-					? { name: 'done', attendee: result.attendee, alreadyCheckedIn: result.alreadyCheckedIn }
-					: event.selfWalkIns
+					? { name: 'done', result }
+					: result.selfWalkIns
 						? { name: 'walk-in' }
 						: { name: 'not-registered' },
 			);
@@ -104,15 +112,15 @@ export default function CheckInFlow({ event, children }: Props) {
 	const submitWalkIn = (e: FormEvent) => {
 		e.preventDefault();
 		return submit(async () => {
-			const attendee = await checkInWalkIn(event.slug, { email, firstName, lastName });
-			setStep({ name: 'done', attendee, alreadyCheckedIn: false });
+			const result = await checkInWalkIn(event.slug, { email: email.trim(), firstName: firstName.trim(), lastName: lastName.trim() });
+			setStep({ name: 'done', result });
 		});
 	};
 
 	return (
 		<main className="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-center gap-7.5 px-6 py-12">
 			{step.name === 'done' ? (
-				<Confirmation event={event} attendee={step.attendee} alreadyCheckedIn={step.alreadyCheckedIn} />
+				<Confirmation event={event} result={step.result} />
 			) : (
 				<>
 					<header className="flex flex-col items-center gap-2 text-center">
@@ -208,7 +216,8 @@ export default function CheckInFlow({ event, children }: Props) {
 	);
 }
 
-function Confirmation({ event, attendee, alreadyCheckedIn }: { event: CheckpadEvent; attendee: Attendee; alreadyCheckedIn: boolean }) {
+function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn }) {
+	const { firstName, ticket, checkedInAt, alreadyCheckedIn } = result;
 	const note = 'Show this to one of the organisers';
 	return (
 		// Inset further than the forms in Figma (36px vs 24px page padding).
@@ -219,18 +228,18 @@ function Confirmation({ event, attendee, alreadyCheckedIn }: { event: CheckpadEv
 			<div className="flex w-full flex-col items-center gap-7.5">
 				<div className="flex flex-col items-center gap-1">
 					<p className="text-2xl text-med-blue">{alreadyCheckedIn ? 'You’re already checked in' : 'You’re checked in'}</p>
-					<h1 className="font-display text-5xl break-words">{attendee.firstName}</h1>
+					<h1 className="font-display text-5xl break-words">{firstName}</h1>
 				</div>
 				{/* Figma "Checked in with ticket (mobile-first)" */}
-				{attendee.ticket && (
+				{ticket && (
 					<div className="flex flex-col items-center gap-1 rounded-[10px] bg-off-white px-5 py-3">
 						<p className="text-base text-med-blue">Ticket</p>
-						<p className="font-mono text-[22px] leading-[1.5]">{attendee.ticket}</p>
+						<p className="font-mono text-[22px] leading-[1.5]">{ticket}</p>
 					</div>
 				)}
 				<p className="text-lg tracking-[-0.45px] text-med-blue">
-					{alreadyCheckedIn && attendee.checkedInAt
-						? `Checked in at ${formatTime(attendee.checkedInAt, event.timeZone)}. ${note}`
+					{alreadyCheckedIn
+						? `Checked in at ${formatTime(new Date(checkedInAt), event.timeZone)}. ${note}`
 						: note}
 				</p>
 			</div>

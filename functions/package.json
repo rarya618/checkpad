@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test test/*.test.ts",
+    "seed": "node scripts/seed-emulator.ts"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

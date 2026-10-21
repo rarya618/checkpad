@@ -26,7 +26,7 @@ const statuses: Record<CheckInStatus, { label: string; className: string }> = {
 
 export default function EventCard({ summary }: { summary: EventSummary }) {
 	const { event, stats } = summary;
-	const status = statuses[checkInStatus(event)];
+	const status = statuses[checkInStatus({ open: event.selfCheckInOpen, startsAt: event.startsAt })];
 	const [deleting, setDeleting] = useState(false);
 	const roster = useRoster(event.slug);
 	return (
