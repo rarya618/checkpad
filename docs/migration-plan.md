@@ -54,7 +54,7 @@ What to do:
 
 - [x] Read the live rules: fully open for reads and writes (18 October 2026)
 - Not doing: locking down the rules or turning off the past-event autofill; the old app is left unchanged until it's retired
-- [ ] Export the old database as JSON soon and keep it private (Data migration, step 1); with open writes, anyone could delete it before the migration
+- [x] Export the old database as JSON and keep it private (21 October 2026): 14 events, 2,595 attendees (1,040 checked in, 461 walk-ins), 10 admins and 4 teams, kept outside the repo. Export again at cutover, since check-ins keep landing in the old database until then
 - [ ] When the old app is retired, lock down or delete its database; taking the app down alone leaves the data public
 - [ ] Decide whether the exposure needs a notice to attendees under your privacy obligations
 
@@ -147,7 +147,7 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 
 Migration script:
 
-1. Export the old project's (`gdg-syd-check-in`) Realtime Database as JSON from the Firebase console. Do this early and keep a dated copy: its rules allow anyone to change or delete the data.
+1. Export the old project's (`gdg-syd-check-in`) Realtime Database as JSON (`firebase database:get / --project gdg-syd-check-in --instance gdg-syd-check-in-default-rtdb`) and keep a dated copy outside the repo: its rules allow anyone to change or delete the data. First export done 21 October 2026; the final one comes once the old app is read-only (step 5).
 2. Transform it with a script in this repo: create slugs and IDs, convert dates, map fields, keep the old IDs for redirects.
 3. Write it into Firestore in `checkpad-app` with the Admin SDK: a test project or the emulator first, then production.
 4. Check counts per event (attendees, checked in, walk-ins) against the old app.
@@ -196,7 +196,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 
 ## Phased plan
 
-1. **The old project.** Rules checked: fully open. Not changing the old app (decision, 18 October 2026); export its data early instead.
+1. **The old project.** Rules checked: fully open. Not changing the old app (decision, 18 October 2026); its data was exported on 21 October 2026 instead.
 2. **Backend foundation in `checkpad-app`.** Firestore data model, server check-in endpoint, Firestore rules, Google and email-link sign-in with roles.
 3. **Attendee flow on real data.** Replace the per-event prebuilt pages (`getStaticPaths` over the mock events) with one check-in page and one team page, plus Hosting rewrites; wire them to the endpoint; add the old-URL redirects.
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates.
