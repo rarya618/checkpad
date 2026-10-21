@@ -34,6 +34,14 @@ npm run seed -w @checkpad/functions
 
 The seed script prints the links to try; `attendee@sample.com`, `attendee-2@sample.com` and `jane@example.com` are on every event's list.
 
+The Playwright tests (`apps/web/e2e`) cover the check-in and team pages against the same emulators. They start their own dev server on port 4322 and reseed before every test. Build the functions first, then from the repo root:
+
+```
+PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only firestore,functions "npm run test:e2e -w @checkpad/web"
+```
+
+The first run on a machine needs Chromium: `npx playwright install chromium` from `apps/web`.
+
 ### apps/dashboard (Vite)
 
 ```

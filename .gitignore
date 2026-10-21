@@ -19,6 +19,10 @@ firestore-debug.log*
 # firebase cache
 .firebase/
 
+# playwright output
+test-results/
+playwright-report/
+
 
 # environment variables
 .env
