@@ -1,6 +1,7 @@
 # build output
 dist/
 functions/lib/
+*.tsbuildinfo
 # generated types
 .astro/
 
