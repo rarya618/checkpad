@@ -143,7 +143,8 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 | `checkinDate` (ISO string) | `checkedInAt` (Date) | |
 | `jobTitle`, `company`, `ticketType`, `ticketTitle`, `ticketVenue`, `bevyOrderNumber` | — | Not in Checkpad's types yet; add them or keep them as extra fields so the Bevy export still works |
 | `cloudCreditsUrl`, `cloudCreditsClickedAt` | — | Not carried over: cloud credits are dropped |
-| `admins`, `teams`, `assignedTeams`, `members` | — | No Checkpad equivalent yet |
+| `admins`, `members` | — | Not migrated: organisers are added again from the dashboard (below) |
+| `teams`, `assignedTeams` | event `teamIds` | Mapped to teams that already exist in `checkpad-app`, not created by the script (below) |
 
 Migration script:
 
@@ -154,6 +155,10 @@ Migration script:
 5. Make the old app read-only during cutover, so no check-ins land in the old database after the export.
 
 Sign-in accounts don't move between projects. Neither Google sign-in nor an emailed sign-in link uses passwords, so admins sign in again on `checkpad-app` and get their role from the migrated admins list, matched by email.
+
+**Organisers aren't migrated** (decided 22 October 2026). A super admin adds each one again from the Organisers page, choosing their role and team, which also emails them an invite to `manage.checkpad.app`. The old list was in a database anyone could edit, its roles don't map one-to-one onto Checkpad's, and it's about ten people; nothing else in the old data refers to them.
+
+**Teams are mapped, not created.** Each old team is created in the dashboard first (GDG Sydney already exists in production), and the script takes a map from old team IDs to Checkpad team IDs to set each event's `teamIds`. An old team with no mapping stops the script rather than creating a duplicate.
 
 ## Backend approach
 
@@ -203,7 +208,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates. Built 22 October 2026: sign-in, organisers, teams, events, attendees, check-in, walk-ins, Bevy import and export, and the prize draw all read and write Firestore with live updates. Check-ins queue up offline; adding a walk-in and creating an event need a connection, because they wait for the server. Events and Analytics use the counts the trigger keeps; Returning attendees still loads every list of the team's past events. A page that can't load shows "Can't load this page" (not in Figma) with Reload and Sign out; if the rules refuse it, it says your access may have changed.
 5. **Build the designed screens.** Done ahead of phases 2–4, on mock data (October 2026): every designed screen is built (see the feature map). They move to real data in phases 3 and 4.
 6. **Data migration.** Run the script against a copy, check the counts, then production.
-7. **Cutover.** Point the Checkpad domains at `checkpad-app`, switch the old project's hosting to redirects only, lock the old database down (it's fully open today), then retire it. The redirects don't need the database, so it can be locked as soon as the data is migrated.
+7. **Cutover.** Point the Checkpad domains at `checkpad-app`, add the organisers again from the dashboard (each gets an invite to `manage.checkpad.app`), switch the old project's hosting to redirects only, lock the old database down (it's fully open today), then retire it. The redirects don't need the database, so it can be locked as soon as the data is migrated.
 
 ## Open questions
 
