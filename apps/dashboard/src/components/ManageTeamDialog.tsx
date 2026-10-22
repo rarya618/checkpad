@@ -72,7 +72,7 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 								setName(e.target.value);
 								if (!slugEdited) setSlug(slugify(e.target.value));
 							}}
-							placeholder="GDG Sydney"
+							placeholder="Tech Meetup"
 							error={nameTaken ? 'Another team has this name.' : null}
 							className="min-w-0 flex-1"
 							data-autofocus
@@ -84,7 +84,7 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 								setSlugEdited(true);
 								setSlug(cleanSlug(e.target.value));
 							}}
-							placeholder="gdg-sydney"
+							placeholder="tech-meetup"
 							spellCheck={false}
 							error={slugTaken ? 'Another team uses this link.' : null}
 							className="min-w-0 flex-1"

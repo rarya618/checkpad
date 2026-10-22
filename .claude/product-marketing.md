@@ -79,7 +79,7 @@ The prize draw is a nice extra, not a reason people choose Checkpad. Don't lead 
 
 ## Proof available
 
-- **Used by:** GDG Sydney and GDG UTS run check-in on the original app. The page lists their names under "Used by", with no explanation line (cut as too wordy, 21 October 2026). Checkpad itself isn't live yet, so keep any longer claim accurate: they use the app Checkpad grew out of. Their logos can't go up until approved by the Google contact. [NEED: logo approval from Google]
+- **Used by:** GDG Sydney and GDG UTS run check-in on the original app. The page doesn't name them: the "Used by" section was taken out on 22 October 2026 until they give permission to be named. Don't name either group anywhere that's published (the site, the dashboard or screenshots) until then. Checkpad itself isn't live yet, so once allowed, keep any claim accurate: they use the app Checkpad grew out of. Their logos also need approval from the Google contact. [NEED: permission from GDG Sydney and GDG UTS to be named; logo approval from Google]
 
 Nothing else yet. Everything in the screenshots is sample data ("September Meetup", 41 of 109 checked in), so never quote those numbers as results.
 
@@ -118,3 +118,4 @@ Angles and claims already tried, and what happened. Add to this as copy ships.
 - 21 October 2026: "door" was overused as shorthand for check-in ("Doors open in three steps", "Everything for the door", "Run your next door"). It read oddly. Use it only literally, for where the QR code goes, and at most once on a page. "Door" was never confirmed as an organiser's word; it came from the old page copy.
 - 21 October 2026: added Used by (GDG Sydney, GDG UTS, names only), Supported platforms (Bevy supported, five planned) and Supported venues (what a venue needs) sections.
 - 22 October 2026, copywriting pass after the backend shipped: no rewrite (the page's voice was already right). Changed only what the new facts allow or require: the prize draw card adds "even after a refresh"; the Teams card names what volunteers can do instead of "share events with co-organisers"; the walk-ins point adds "with no repeats across devices"; the waitlist call to action drops "soon", which promised a timeline we don't have. Offline staff check-in left out until it's tested with Wi-Fi off.
+- 22 October 2026: removed the Used by section until GDG Sydney and GDG UTS give permission to be named.

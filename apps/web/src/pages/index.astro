@@ -29,10 +29,6 @@ const features: { icon: IconName; title: string; body: string }[] = [
 	{ icon: 'users', title: 'Teams and organisers', body: 'Give each chapter a permanent check-in link. Add co-organisers, and volunteers who can check people in without changing the event.' },
 ];
 
-// Groups running their meetups on gdg-check-in, the app Checkpad replaces. Names only:
-// their logos need approval from Google first.
-const usedBy = ['GDG Sydney', 'GDG UTS'];
-
 // Only Bevy's CSV import is built. Keep the others marked as planned until they ship.
 const platforms: { name: string; supported: boolean }[] = [
 	{ name: 'Bevy', supported: true },
@@ -96,18 +92,6 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 						class="absolute top-[52px] left-8 w-[168px] rounded-3xl border-[5px] border-dark-blue md:top-20 md:left-16 md:w-[210px] md:border-[6px] shadow-[0_16px_36px_rgb(17_45_78/0.22)] xl:top-[190px] xl:left-0 xl:w-[210px] xl:rounded-[28px] xl:border-[6px] xl:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
 					/>
 				</div>
-			</div>
-		</section>
-
-		<!-- Used by -->
-		<section aria-labelledby="used-by">
-			<div class={`${container} flex flex-col gap-3 pb-18 md:flex-row md:items-baseline md:gap-6 xl:pb-24`}>
-				<h2 id="used-by" class="text-base leading-6 font-semibold text-med-blue">Used by</h2>
-				<ul class="flex flex-wrap gap-x-8 gap-y-1">
-					{usedBy.map((name) => (
-						<li class="font-display text-2xl xl:text-3xl">{name}</li>
-					))}
-				</ul>
 			</div>
 		</section>
 
