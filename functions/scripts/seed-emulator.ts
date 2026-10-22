@@ -1,15 +1,13 @@
-// Fills the Firestore emulator with the demo events (packages/shared mock-events), so the
+// Fills the Firestore emulator with the demo events (demo-events.ts), so the
 // attendee site can be tried locally against the real check-in API. Wipes the emulator's
 // data first. Run with the emulators going (see CLAUDE.md):
 //   npm run seed -w @checkpad/functions
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { mockEvents, mockTeams } from '@checkpad/shared/mock-events';
+import { demoEvents, demoTeams } from './demo-events.ts';
 import type { AdminDoc, AttendeeDoc, EventDoc, SlugDoc, TeamDoc } from '../src/model.ts';
 
 // A demo- project with the emulator host always set, so this can never write to production.
-// @checkpad/shared isn't a dependency of functions (Cloud Build can't install it); the
-// workspace makes it importable here.
 const PROJECT = 'demo-checkpad';
 const FIRESTORE = (process.env.FIRESTORE_EMULATOR_HOST ??= '127.0.0.1:8080');
 
@@ -33,7 +31,7 @@ await fetch(`http://${FIRESTORE}/emulator/v1/projects/${PROJECT}/databases/(defa
 const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
 
-for (const team of mockTeams) {
+for (const team of demoTeams) {
 	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN' } satisfies TeamDoc);
 }
 const now = Timestamp.now();
@@ -43,7 +41,7 @@ for (const [email, { name, ...access }] of admins) {
 	batch.set(db.doc(`admins/${email}`), doc);
 }
 
-for (const event of mockEvents) {
+for (const event of demoEvents) {
 	const ref = db.doc(`events/${event.slug}`);
 	const doc: EventDoc = {
 		slug: event.slug,
@@ -71,7 +69,7 @@ for (const event of mockEvents) {
 }
 
 await batch.commit();
-console.log(`Seeded ${mockEvents.length} events, ${mockTeams.length} team and ${admins.length} organisers into ${PROJECT}. Try:`);
-for (const event of mockEvents) console.log(`  http://localhost:4321/${event.slug}  (${event.selfCheckInOpen ? 'open' : 'closed'})`);
-for (const team of mockTeams) console.log(`  http://localhost:4321/team/${team.slug}`);
+console.log(`Seeded ${demoEvents.length} events, ${demoTeams.length} team and ${admins.length} organisers into ${PROJECT}. Try:`);
+for (const event of demoEvents) console.log(`  http://localhost:4321/${event.slug}  (${event.selfCheckInOpen ? 'open' : 'closed'})`);
+for (const team of demoTeams) console.log(`  http://localhost:4321/team/${team.slug}`);
 console.log(`Dashboard (npm run dev:emulators -w @checkpad/dashboard): sign in as ${admins.map(([email]) => email).join(', ')}`);

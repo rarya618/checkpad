@@ -10,7 +10,6 @@
     "./attendees": "./src/attendees.ts",
     "./format": "./src/format.ts",
     "./checkpad-logo.svg": "./assets/checkpad-logo.svg",
-    "./mock-events": "./src/mock-events.ts",
     "./api": "./src/api.ts"
   }
 }

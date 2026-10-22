@@ -1,11 +1,12 @@
-import type { CheckpadEvent, Team } from './events';
+// @checkpad/shared isn't a dependency of functions (Cloud Build can't install it); the
+// workspace makes it importable here.
+import type { CheckpadEvent, Team } from '@checkpad/shared/events';
 
-export const mockTeams: Team[] = [{ slug: 'gdg-sydney', name: 'GDG Sydney' }];
+export const demoTeams: Team[] = [{ slug: 'gdg-sydney', name: 'GDG Sydney' }];
 
-// Sample data shared by both apps until there's a backend. The first mirrors the
-// event in the Figma dashboards (now finished); the others exist so every
-// check-in state can be seen.
-export const mockEvents: CheckpadEvent[] = [
+// The demo events seed-emulator.ts loads into the emulators. The first mirrors the
+// event in the Figma dashboards; the others exist so every check-in state can be seen.
+export const demoEvents: CheckpadEvent[] = [
 	{
 		slug: 'gdg-september-meetup',
 		name: 'September Meetup',
