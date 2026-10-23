@@ -158,7 +158,9 @@ Sign-in accounts don't move between projects. Neither Google sign-in nor an emai
 
 **Organisers aren't migrated** (decided 22 October 2026). A super admin adds each one again from the Organisers page, choosing their role and team, which also emails them an invite to `manage.checkpad.app`. The old list was in a database anyone could edit, its roles don't map one-to-one onto Checkpad's, and it's about ten people; nothing else in the old data refers to them.
 
-**Teams are mapped, not created.** Each old team is created in the dashboard first (GDG Sydney already exists in production), and the script takes a map from old team IDs to Checkpad team IDs to set each event's `teamIds`. An old team with no mapping stops the script rather than creating a duplicate.
+**Teams are mapped, not created.** Each old team is created in the dashboard first (GDG Sydney already exists in production), and the script takes a map from old team IDs to Checkpad team IDs to set each event's `teamIds`. An old team that an event uses but that has no mapping stops the script rather than creating a duplicate. In the 21 October export only GDG Sydney (12 events) and GDG on Campus UTS (1 event) have events; GDG Melbourne and GDG Brisbane have none, so they need no mapping and can be created later if wanted.
+
+**The "Test" event isn't migrated** (decided 23 October 2026). It's the one event with no team (3 May 2026, 140 attendees); the script skips it. Without it, the 21 October export has 13 events, 2,455 attendees, 1,026 checked in and 457 walk-ins to check the migrated counts against.
 
 ## Backend approach
 
