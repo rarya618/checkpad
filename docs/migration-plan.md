@@ -134,7 +134,7 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 | --- | --- | --- |
 | `events/{id}` key | `id` (new) + `slug` | Generate the slug from the name, unique; keep the old ID for redirects |
 | `date` | `startsAt`, `endsAt` | Old events have no times: pick a default (e.g. 17:00–20:00) or leave them blank |
-| — | `timeZone` | New; default `Australia/Sydney` unless events run elsewhere |
+| — | `timeZone` | New; `Australia/Sydney` for every migrated event (decided 23 October 2026), since both teams with events are in Sydney |
 | — | `selfWalkIns` | New; `true` for migrated events, matching the old app, where anyone not on the list could add themselves |
 | `status` | `status` | The manual switch (decision 1); `selfCheckInOpen` in Checkpad's types |
 | `description` | `description` | Optional in the old app, required in Checkpad's type |
@@ -222,7 +222,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 - [ ] Prize draw "Not here": keep the person out for the night (as designed), or return them to the pool like the old app?
 - [x] Design Analytics, or take it out of the sidebar for now? Designed
 - [ ] Keep "Returning attendees" in the first analytics build, given it needs a cross-event email query?
-- [ ] Default start and end times and time zone for migrated events
+- [ ] Default start and end times for migrated events (time zone: `Australia/Sydney`, 23 October 2026)
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
 - [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?
