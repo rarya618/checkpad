@@ -29,7 +29,7 @@ const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, clas
 	>
 		<div class="flex flex-1 flex-col gap-8 xl:gap-5">
 			<SectionHeader eyebrow={eyebrow} title={title} subtitle={body} />
-			<ul class="flex flex-col gap-2.5 xl:gap-3 xl:pt-2">
+			<ul data-reveal style="--reveal-delay: 80ms" class="flex flex-col gap-2.5 xl:gap-3 xl:pt-2">
 				{points.map((p) => (
 					<li class="flex items-center gap-2.5 text-base font-medium xl:gap-3 xl:text-lg">
 						<Icon name="check" size={22} strokeWidth={2.5} class="shrink-0 text-med-blue" />
@@ -43,6 +43,8 @@ const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, clas
 			alt={imageAlt}
 			widths={[640, 960, 1280]}
 			sizes="(min-width: 1280px) 640px, (min-width: 768px) 720px, 100vw"
+			data-reveal={reverse ? 'from-left' : 'from-right'}
+			style="--reveal-delay: 120ms"
 			class="w-full shrink-0 rounded-xl border md:max-w-[720px] border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:w-[640px] xl:rounded-2xl"
 		/>
 	</div>

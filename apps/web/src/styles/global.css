@@ -58,3 +58,82 @@ section[id] {
 html {
 	scrollbar-gutter: stable;
 }
+
+/* Marketing page entrances (index.astro). [data-intro] plays on load; [data-reveal] plays
+   when the page's observer marks it [data-revealed]. Each fills only backwards, so once it
+   ends it lets go of translate and hover effects (the feature cards' lift) work as normal.
+   --reveal-delay staggers items in a list. */
+@media (prefers-reduced-motion: no-preference) {
+	:root {
+		--ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+
+	@keyframes reveal {
+		from {
+			opacity: 0;
+			translate: var(--reveal-from, 0 16px);
+		}
+	}
+
+	@keyframes phone-in {
+		from {
+			opacity: 0;
+			translate: 0 32px;
+			rotate: -6deg;
+			scale: 0.94;
+		}
+	}
+
+	@keyframes draw {
+		from {
+			scale: var(--draw-from);
+		}
+	}
+
+	[data-intro],
+	[data-revealed] {
+		animation: reveal 700ms var(--ease-out-soft) var(--reveal-delay, 0ms) backwards;
+	}
+
+	[data-intro='dashboard'] {
+		--reveal-from: 48px 0;
+		--reveal-delay: 200ms;
+		animation-duration: 900ms;
+	}
+
+	[data-intro='phone'] {
+		animation: phone-in 800ms var(--ease-out-soft) 550ms backwards;
+	}
+
+	[data-reveal='from-right'] {
+		--reveal-from: 40px 0;
+	}
+
+	[data-reveal='from-left'] {
+		--reveal-from: -40px 0;
+	}
+
+	/* Keep [data-reveal] hidden until it's revealed, but only when the observer can run */
+	@media (scripting: enabled) {
+		[data-reveal]:not([data-revealed]) {
+			opacity: 0;
+		}
+	}
+
+	/* How it works: each step's connector draws towards the next once the step is in */
+	[data-line] {
+		--draw-from: 1 0;
+		transform-origin: top;
+	}
+
+	@media (min-width: 64rem) {
+		[data-line] {
+			--draw-from: 0 1;
+			transform-origin: left;
+		}
+	}
+
+	[data-revealed] [data-line] {
+		animation: draw 600ms var(--ease-out-soft) calc(var(--reveal-delay, 0ms) + 350ms) backwards;
+	}
+}
