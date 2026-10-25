@@ -33,6 +33,13 @@ export function undoCheckIn(event: DashboardEvent, attendee: RosterAttendee) {
 	setCheckedIn(event, attendee.id, false).catch(() => showToast(`Couldn’t undo ${fullName(attendee)}’s check-in. Try again.`));
 }
 
+/** Takes a walk-in off the list, and out of the counts. */
+export function removeWalkIn(event: DashboardEvent, attendee: RosterAttendee) {
+	const name = fullName(attendee);
+	removeAttendee(event, attendee.id).catch(() => showToast(`Couldn’t remove ${name}. Try again.`));
+	showToast(`${name} removed`);
+}
+
 /**
  * Adds a walk-in, already checked in. Undo takes them off the list again. Taking the next
  * ticket number needs a connection, so offline it fails straight away and says so.

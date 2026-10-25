@@ -126,8 +126,8 @@ export default function AttendeesPage() {
 }
 
 // Not in Figma: shown until the first check-in, so organisers try the attendee side before the
-// night. It says to use an email on the list, since a check-in can be undone here but a self
-// walk-in can't be removed. Dismissing it is remembered on this device only.
+// night. Only organisers can remove a self walk-in (firestore.rules), so team members are told
+// who to ask. Dismissing it is remembered on this device only.
 function RehearsalNote({ event, canEdit }: { event: DashboardEvent; canEdit: boolean }) {
 	const key = `rehearsal-dismissed:${event.id}`;
 	const [dismissed, setDismissed] = useState(() => {
@@ -152,7 +152,10 @@ function RehearsalNote({ event, canEdit }: { event: DashboardEvent; canEdit: boo
 				<p className="text-[15px] font-bold">Try it before the night</p>
 				<p className="text-[13.5px]">
 					Scan the QR code from Share with your own phone and check in as someone on this list, then undo it in the table below so it
-					doesn’t count. Don’t use an email that isn’t on the list: that adds a walk-in you can’t remove.
+					doesn’t count.
+					{canEdit
+						? ' If you use an email that isn’t on the list, remove the walk-in it adds from its ⋮ menu.'
+						: ' If you use an email that isn’t on the list, an organiser will need to remove the walk-in it adds.'}
 					{!event.selfCheckInOpen &&
 						(canEdit ? ' Self check-in is off for this event, so turn it on in Edit first.' : ' Self check-in is off for this event, so ask an organiser to turn it on first.')}
 				</p>

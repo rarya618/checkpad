@@ -1,10 +1,15 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { formatClockTime } from '@checkpad/shared/format';
 import { useEffect, useRef } from 'react';
+import more from '../assets/more.svg';
+import trash from '../assets/trash.svg';
 import undo from '../assets/undo.png';
-import { checkIn, undoCheckIn } from '../lib/checkIn';
+import { myEmail } from '../lib/auth';
+import { checkIn, removeWalkIn, undoCheckIn } from '../lib/checkIn';
 import type { DashboardEvent } from '../lib/events';
+import { useCanEditEvents } from '../lib/organisers';
 import type { RosterAttendee } from '../lib/roster';
+import Menu from './Menu';
 
 interface Props {
 	event: DashboardEvent;
@@ -13,6 +18,10 @@ interface Props {
 
 // The page shows Figma's empty states instead of an empty table.
 export default function AttendeeTable({ event, attendees }: Props) {
+	// Organisers remove any walk-in; staff only the ones they added (firestore.rules)
+	const canEdit = useCanEditEvents();
+	const me = myEmail();
+	const canRemove = (a: RosterAttendee) => a.walkIn && (canEdit || a.addedBy === me);
 	return (
 		<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
 			<table className="w-full table-fixed">
@@ -20,17 +29,21 @@ export default function AttendeeTable({ event, attendees }: Props) {
 					<col />
 					<col className="w-[165px]" />
 					<col className="w-[106px]" />
+					<col className="w-[42px]" />
 				</colgroup>
 				<thead>
 					<tr className="text-left font-display text-[15px] text-black">
 						<th className="pr-2 pb-[7.5px]">Attendee</th>
 						<th className="pr-2 pb-[7.5px]">Ticket</th>
 						<th className="pb-[7.5px]">Action</th>
+						<th className="pb-[7.5px]">
+							<span className="sr-only">Options</span>
+						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{attendees.map((attendee) => (
-						<AttendeeRow key={attendee.id} event={event} attendee={attendee} />
+						<AttendeeRow key={attendee.id} event={event} attendee={attendee} removable={canRemove(attendee)} />
 					))}
 				</tbody>
 			</table>
@@ -38,7 +51,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 	);
 }
 
-function AttendeeRow({ event, attendee }: { event: DashboardEvent; attendee: RosterAttendee }) {
+function AttendeeRow({ event, attendee, removable }: { event: DashboardEvent; attendee: RosterAttendee; removable: boolean }) {
 	const { timeZone } = event;
 	const name = `${attendee.firstName} ${attendee.lastName}`;
 	const initials = `${attendee.firstName[0] ?? ''}${attendee.lastName[0] ?? ''}`.toUpperCase();
@@ -108,6 +121,18 @@ function AttendeeRow({ event, attendee }: { event: DashboardEvent; attendee: Ros
 					>
 						Check in
 					</button>
+				)}
+			</td>
+			{/* Not in Figma: the toast's Undo is the only other way to take a walk-in off the list */}
+			<td className="py-[7.5px] pl-3 text-right">
+				{removable && (
+					<Menu
+						label={`Options for ${name}`}
+						buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
+						items={[{ label: 'Remove walk-in', icon: trash, onSelect: () => removeWalkIn(event, attendee) }]}
+					>
+						<img src={more} alt="" width={18} height={18} />
+					</Menu>
 				)}
 			</td>
 		</tr>

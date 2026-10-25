@@ -29,6 +29,8 @@ export interface RosterAttendee extends Attendee {
 	/** Bevy's ticket title, e.g. "General admission"; set by imports. */
 	ticketType?: string;
 	walkIn: boolean;
+	/** Walk-ins staff added: who added them. Self walk-ins from the check-in page have none. */
+	addedBy?: string;
 }
 
 const EMPTY: RosterAttendee[] = [];
@@ -46,6 +48,7 @@ function toAttendee(snap: QueryDocumentSnapshot): RosterAttendee {
 		checkedInAt: data.checkedInAt?.toDate() ?? null,
 		...(data.ticketType && { ticketType: data.ticketType }),
 		walkIn: data.source === 'walk-in',
+		...(data.source === 'walk-in' && data.checkedInBy && { addedBy: data.checkedInBy }),
 	};
 }
 
