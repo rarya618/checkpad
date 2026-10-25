@@ -1,15 +1,16 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { formatClockTime } from '@checkpad/shared/format';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import more from '../assets/more.svg';
 import trash from '../assets/trash.svg';
 import undo from '../assets/undo.png';
 import { myEmail } from '../lib/auth';
-import { checkIn, removeWalkIn, undoCheckIn } from '../lib/checkIn';
+import { checkIn, undoCheckIn } from '../lib/checkIn';
 import type { DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import type { RosterAttendee } from '../lib/roster';
 import Menu from './Menu';
+import RemoveWalkInDialog from './RemoveWalkInDialog';
 
 interface Props {
 	event: DashboardEvent;
@@ -55,6 +56,7 @@ function AttendeeRow({ event, attendee, removable }: { event: DashboardEvent; at
 	const { timeZone } = event;
 	const name = `${attendee.firstName} ${attendee.lastName}`;
 	const initials = `${attendee.firstName[0] ?? ''}${attendee.lastName[0] ?? ''}`.toUpperCase();
+	const [removing, setRemoving] = useState(false);
 
 	// The action button swaps between "Check in" and undo; keep keyboard focus on it.
 	const actionRef = useRef<HTMLButtonElement>(null);
@@ -129,11 +131,12 @@ function AttendeeRow({ event, attendee, removable }: { event: DashboardEvent; at
 					<Menu
 						label={`Options for ${name}`}
 						buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
-						items={[{ label: 'Remove walk-in', icon: trash, onSelect: () => removeWalkIn(event, attendee) }]}
+						items={[{ label: 'Remove walk-in', icon: trash, onSelect: () => setRemoving(true) }]}
 					>
 						<img src={more} alt="" width={18} height={18} />
 					</Menu>
 				)}
+				{removing && <RemoveWalkInDialog event={event} attendee={attendee} onClose={() => setRemoving(false)} />}
 			</td>
 		</tr>
 	);
