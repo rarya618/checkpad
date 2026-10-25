@@ -2,6 +2,13 @@ import { useId, useState, type FormEvent } from 'react';
 import { EMAIL_PATTERN, joinWaitlist, MAX_EMAIL_LENGTH, normaliseEmail } from '../../lib/waitlist';
 import SubmitButton from '../SubmitButton';
 
+declare global {
+	interface Window {
+		/** Google Analytics, in production builds only (Analytics.astro). */
+		gtag?: (...args: unknown[]) => void;
+	}
+}
+
 // Sits on the dark blue call-to-action card on the marketing page. Not in Figma yet.
 function validateEmail(email: string) {
 	if (!email.trim()) return 'Enter your email address';
@@ -27,6 +34,7 @@ export default function WaitlistForm() {
 		setSubmitting(true);
 		try {
 			await joinWaitlist(email);
+			window.gtag?.('event', 'join_waitlist');
 			setJoined(normaliseEmail(email));
 		} catch {
 			setError('Something went wrong. Check your connection and try again.');

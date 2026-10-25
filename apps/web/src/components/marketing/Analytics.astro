@@ -1,0 +1,23 @@
+---
+// Google Analytics (GA4, the checkpad-app Firebase project's property), on the marketing page
+// only: attendees type their email on the check-in pages, so those stay untracked. Production
+// builds only, so dev servers and the Playwright tests send nothing. WaitlistForm sends
+// join_waitlist when a signup saves, without the email.
+const id = import.meta.env.PROD ? import.meta.env.PUBLIC_GA_MEASUREMENT_ID : undefined;
+---
+
+{
+	id && (
+		<>
+			<script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${id}`} />
+			<script is:inline define:vars={{ id }}>
+				window.dataLayer = window.dataLayer || [];
+				window.gtag = function () {
+					dataLayer.push(arguments);
+				};
+				gtag('js', new Date());
+				gtag('config', id);
+			</script>
+		</>
+	)
+}

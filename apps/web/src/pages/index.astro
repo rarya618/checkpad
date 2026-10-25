@@ -5,6 +5,7 @@ import attendeesDashboard from '../assets/screens/attendees-dashboard.png';
 import checkedInPhone from '../assets/screens/checked-in-phone.png';
 import eventAnalytics from '../assets/screens/event-analytics.png';
 import staffCheckIn from '../assets/screens/staff-check-in.png';
+import Analytics from '../components/marketing/Analytics.astro';
 import Footer from '../components/marketing/Footer.astro';
 import Icon, { type IconName } from '../components/marketing/Icon.astro';
 import Nav from '../components/marketing/Nav.astro';
@@ -52,6 +53,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 	title="Checkpad · Self check-in for community meetups"
 	description="Attendees check themselves in at your meetup with a QR code and their email. You track arrivals and walk-ins on a dashboard. Join the waitlist."
 >
+	<Analytics slot="head" />
 	<Nav />
 	<main>
 		<!-- Hero -->
