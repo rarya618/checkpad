@@ -15,7 +15,7 @@ import Layout from '../layouts/Layout.astro';
 
 // Copy and layout follow the Figma "Marketing site – desktop" and "– mobile" frames.
 const steps: { title: string; body: string }[] = [
-	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy. Checkpad matches people by ticket number, so you can import again when more register.' },
+	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy, the first platform we support. Checkpad matches people by ticket number, so you can import again when more register.' },
 	{ title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
 	{ title: 'Watch arrivals live', body: 'Your dashboard counts who’s in, who hasn’t arrived yet and how many walk-ins you’ve had.' },
 ];
@@ -26,7 +26,7 @@ const features: { icon: IconName; title: string; body: string }[] = [
 	{ icon: 'layout-dashboard', title: 'A live dashboard', body: 'See who’s arrived, undo a mistake and search the list while the room fills up.' },
 	{ icon: 'gift', title: 'Prize draw on the projector', body: 'Draw winners from everyone checked in. The projector shows names only, and nobody wins twice, even after a refresh.' },
 	{ icon: 'bar-chart', title: 'Analytics', body: 'Arrivals every 15 minutes, turnout by ticket type and trends across your events.' },
-	{ icon: 'users', title: 'Teams and organisers', body: 'Give each chapter a permanent check-in link. Add co-organisers, and volunteers who can check people in without changing the event.' },
+	{ icon: 'users', title: 'Teams and organisers', body: 'Give each group a permanent check-in link. Add co-organisers, and volunteers who can check people in without changing the event.' },
 ];
 
 // Only Bevy's CSV import is built. Keep the others marked as planned until they ship.
@@ -100,7 +100,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 		<!-- How it works -->
 		<section id="how-it-works" class="bg-white">
 			<div class={`${container} flex flex-col gap-8 py-18 xl:gap-14 xl:py-30`}>
-				<SectionHeader eyebrow="How it works" title="Three steps from your Bevy list to check-in." />
+				<SectionHeader eyebrow="How it works" title="Three steps from your attendee list to check-in." />
 				{/* A timeline: each number is joined to the next by a line, down the page on
 				    phones and tablets and across it in three columns on large screens. */}
 				<ol class="grid lg:grid-cols-3">
@@ -155,7 +155,7 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 			eyebrow="Walk-ins"
 			title="Walk-ins get a ticket too."
 			body="Staff look people up by email or ticket number from a laptop or phone. Anyone who didn’t register gets the next walk-in ticket and is checked in on the spot."
-			points={['Tickets count up from GDGWALKIN0001, with no repeats across devices', 'Walk-ins show separately in your counts', 'Choose per event if attendees can add themselves']}
+			points={['Numbered walk-in tickets, with no repeats across devices', 'Walk-ins show separately in your counts', 'Choose per event if attendees can add themselves']}
 			image={staffCheckIn}
 			imageAlt="The staff Check in page offering to add an unregistered email as walk-in GDGWALKIN0005"
 		/>
@@ -177,8 +177,8 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 				<div class="flex-1">
 					<SectionHeader
 						eyebrow="Supported platforms"
-						title="Bring your attendee list from Bevy."
-						subtitle="Export the attendee CSV from Bevy and import it before the event. Imports from other platforms are planned."
+						title="Import from Bevy today, with more platforms planned."
+						subtitle="Export the attendee CSV from Bevy and import it before the event. Using another platform? You can still join the waitlist."
 					/>
 				</div>
 				<ul class="flex flex-col xl:w-[640px] xl:shrink-0">
