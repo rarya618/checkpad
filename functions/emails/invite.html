@@ -7,7 +7,7 @@
 <title>You’ve been added to Checkpad</title>
 </head>
 <!-- Sent when a super admin adds an organiser (functions/src/email.ts). Like the dashboard's
-     sign-in card: the logo above one white card. Variables: INVITER, ROLE, ACCESS, ADDRESS, LINK. -->
+     sign-in card: the logo above one white card. Variables: INVITER, ROLE, ACCESS, NEXT, ADDRESS, LINK. -->
 <body style="margin:0;padding:0;background:#f9f7f7;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9f7f7;">
 <tr><td align="center" style="padding:40px 16px;">
@@ -22,6 +22,7 @@
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="border-radius:9px;background:#112d4e;">
 <a href="{{{LINK}}}" style="display:block;padding:14px 24px;font-size:17px;font-weight:600;line-height:1.3;color:#ffffff;text-decoration:none;border-radius:9px;">Open the dashboard</a>
 </td></tr></table>
+<p style="margin:26px 0 0;font-size:15px;line-height:1.5;color:#112d4e;">{{{NEXT}}}</p>
 </td></tr>
 <tr><td style="padding:20px 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3f72af;text-align:center;">
 Checkpad is how your team checks people in at its events. Not expecting this? You can ignore it.

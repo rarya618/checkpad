@@ -24,7 +24,7 @@ interface TemplateVariables {
 	/** functions/emails/sign-in.html */
 	'sign-in': { ADDRESS: string; LINK: string };
 	/** functions/emails/invite.html */
-	invite: { INVITER: string; ROLE: string; ACCESS: string; ADDRESS: string; LINK: string };
+	invite: { INVITER: string; ROLE: string; ACCESS: string; NEXT: string; ADDRESS: string; LINK: string };
 }
 
 export type TemplateName = keyof TemplateVariables;

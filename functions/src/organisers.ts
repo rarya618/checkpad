@@ -47,6 +47,15 @@ function access(role: AdminDoc['role'], team: string) {
 	return `You can check people in at ${team}’s events.`;
 }
 
+/** What to do first, so the first time they see check-in from an attendee's side isn't on the night. */
+function firstSteps(role: AdminDoc['role']) {
+	if (role === 'super-admin') return 'Start on the Events page, or add organisers from Organisers.';
+	if (role === 'organiser') {
+		return 'For your first event: create it, import the attendee CSV from Bevy, then scan its QR code with your own phone and check in as someone on the list. You can undo that check-in on the Attendees page.';
+	}
+	return 'Before the night, open the event, scan its QR code with your own phone and check in as someone on the list, so you know what attendees see. You can undo that check-in on the Attendees page.';
+}
+
 /**
  * After an organiser is added from the dashboard: tells them, and how to sign in. `runId` is the
  * trigger's event ID, so a repeat delivery of the trigger sends nothing new. Documents written
@@ -66,6 +75,7 @@ export async function sendInvite(db: Firestore, mail: Mailer, run: { id: string;
 			INVITER: inviter.get('name') ?? admin.invitedBy,
 			ROLE: ROLES[admin.role],
 			ACCESS: access(admin.role, (team?.data() as TeamDoc | undefined)?.name ?? 'your team'),
+			NEXT: firstSteps(admin.role),
 			ADDRESS: run.email,
 			LINK: `${DASHBOARD_URL}/sign-in`,
 		},

@@ -6,4 +6,6 @@ Sign in with Google or an email link, using {{{ADDRESS}}}:
 
 {{{LINK}}}
 
+{{{NEXT}}}
+
 Checkpad is how your team checks people in at its events. Not expecting this? You can ignore it.

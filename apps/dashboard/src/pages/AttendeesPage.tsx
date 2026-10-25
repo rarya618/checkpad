@@ -1,6 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
+import close from '../assets/close.svg';
 import magnifyingGlass from '../assets/magnifying-glass.svg';
 import searchEmpty from '../assets/search-empty.svg';
 import users from '../assets/users.svg';
@@ -12,7 +13,7 @@ import PageHeader from '../components/PageHeader';
 import StatsCard from '../components/StatsCard';
 import { WalkInDialog } from '../components/WalkIn';
 import type { ImportPlan } from '../lib/bevy';
-import { useEvent } from '../lib/events';
+import { useEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster } from '../lib/roster';
 
@@ -90,6 +91,7 @@ export default function AttendeesPage() {
 					/>
 				) : (
 					<>
+						{stats.checkedIn === 0 && new Date(event.endsAt) > new Date() && <RehearsalNote event={event} canEdit={canEdit} />}
 						<StatsCard stats={stats} />
 						{filtered.length === 0 ? (
 							// Figma "Attendees – no search results"
@@ -120,5 +122,44 @@ export default function AttendeesPage() {
 				<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
 			)}
 		</>
+	);
+}
+
+// Not in Figma: shown until the first check-in, so organisers try the attendee side before the
+// night. It says to use an email on the list, since a check-in can be undone here but a self
+// walk-in can't be removed. Dismissing it is remembered on this device only.
+function RehearsalNote({ event, canEdit }: { event: DashboardEvent; canEdit: boolean }) {
+	const key = `rehearsal-dismissed:${event.id}`;
+	const [dismissed, setDismissed] = useState(() => {
+		try {
+			return localStorage.getItem(key) === '1';
+		} catch {
+			return false;
+		}
+	});
+	if (dismissed) return null;
+	function dismiss() {
+		setDismissed(true);
+		try {
+			localStorage.setItem(key, '1');
+		} catch {
+			// Storage blocked: it comes back next visit
+		}
+	}
+	return (
+		<aside aria-label="Try check-in" className="flex items-start gap-3 rounded-[9px] bg-light-blue py-[15px] pr-[15px] pl-[18px] leading-[1.5]">
+			<div className="flex min-w-0 flex-1 flex-col gap-[4.5px]">
+				<p className="text-[15px] font-bold">Try it before the night</p>
+				<p className="text-[13.5px]">
+					Scan the QR code from Share with your own phone and check in as someone on this list, then undo it in the table below so it
+					doesn’t count. Don’t use an email that isn’t on the list: that adds a walk-in you can’t remove.
+					{!event.selfCheckInOpen &&
+						(canEdit ? ' Self check-in is off for this event, so turn it on in Edit first.' : ' Self check-in is off for this event, so ask an organiser to turn it on first.')}
+				</p>
+			</div>
+			<button type="button" aria-label="Dismiss" onClick={dismiss} className="shrink-0 rounded p-0.5 hover:bg-white/60">
+				<img src={close} alt="" width={18} height={18} />
+			</button>
+		</aside>
 	);
 }
