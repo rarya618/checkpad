@@ -12,8 +12,8 @@ import Dialog from './Dialog';
 import { TextField } from './Field';
 
 // Figma "Organisers – manage team", at 75% scale. Also used for New team (not designed),
-// starting empty. Nothing changes until Save team.
-export default function ManageTeamDialog({ team, onClose }: { team: Team | null; onClose: () => void }) {
+// starting empty. Nothing changes until Save team. Delete team (not designed) opens its own dialog.
+export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Team | null; onClose: () => void; onDelete: () => void }) {
 	const teams = useTeams() ?? [];
 	const organisers = useOrganisers(useMe()) ?? [];
 	const [name, setName] = useState(team?.name ?? '');
@@ -150,10 +150,15 @@ export default function ManageTeamDialog({ team, onClose }: { team: Team | null;
 				</div>
 
 				<div className="flex justify-end gap-3">
-					<button type="button" onClick={onClose} className={buttonClass('secondary')}>
+					{team && (
+						<button type="button" onClick={onDelete} className={`${buttonClass('secondary')} mr-auto whitespace-nowrap`}>
+							Delete team
+						</button>
+					)}
+					<button type="button" onClick={onClose} className={`${buttonClass('secondary')} whitespace-nowrap`}>
 						Cancel
 					</button>
-					<button type="submit" disabled={!valid} className={`${buttonClass('primary')} disabled:opacity-50`}>
+					<button type="submit" disabled={!valid} className={`${buttonClass('primary')} whitespace-nowrap disabled:opacity-50`}>
 						{team ? 'Save team' : 'Create team'}
 					</button>
 				</div>

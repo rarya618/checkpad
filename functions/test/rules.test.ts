@@ -393,6 +393,10 @@ describe('organisers and teams', () => {
 		await assertSucceeds(updateDoc(doc(boss(), 'teams/perth'), { name: 'GDG Perth City' }));
 		await assertFails(setDoc(doc(boss(), 'teams/bad'), { ...team, walkInTicketPrefix: 'per walk' }));
 	});
+
+	test('nobody deletes a team from a browser, super admins included: the API does', async () => {
+		await assertFails(deleteDoc(doc(boss(), 'teams/melbourne')));
+	});
 });
 
 describe('joining the waitlist', () => {
@@ -430,12 +434,19 @@ describe('joining the waitlist', () => {
 		await assertFails(setDoc(doc(visitor(), 'waitlist/w1'), { email: 'new@example.com', createdAt: serverTimestamp() }));
 	});
 
-	test('nobody reads, changes or deletes entries, organisers included', async () => {
-		for (const db of [visitor, boss]) {
+	test('only super admins read or delete entries', async () => {
+		for (const db of [visitor, priya, tom]) {
 			await assertFails(getDoc(doc(db(), 'waitlist/w1')));
 			await assertFails(getDocs(collection(db(), 'waitlist')));
-			await assertFails(updateDoc(doc(db(), 'waitlist/w1'), { email: 'other@example.com' }));
 			await assertFails(deleteDoc(doc(db(), 'waitlist/w1')));
+		}
+		await assertSucceeds(getDocs(collection(boss(), 'waitlist')));
+		await assertSucceeds(deleteDoc(doc(boss(), 'waitlist/w1')));
+	});
+
+	test('nobody changes an entry, super admins included', async () => {
+		for (const db of [visitor, boss]) {
+			await assertFails(updateDoc(doc(db(), 'waitlist/w1'), { email: 'other@example.com' }));
 		}
 	});
 });

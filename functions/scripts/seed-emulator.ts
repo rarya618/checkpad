@@ -27,6 +27,9 @@ const admins: [string, Pick<AdminDoc, 'role' | 'teamId'> & { name?: string }][] 
 	['sam@example.com', { role: 'organiser', teamId: 'gdg-sydney' }],
 ];
 
+// The marketing site's waitlist, which super admins see on the Organisers page. Alex signed up twice.
+const waitlist = ['alex@example.com', 'casey@example.com', 'alex@example.com', 'devi@example.com'];
+
 await fetch(`http://${FIRESTORE}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: 'DELETE' });
 const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
@@ -34,7 +37,10 @@ const batch = db.batch();
 for (const team of demoTeams) {
 	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN' } satisfies TeamDoc);
 }
+// A team with no events or members, which Manage team can delete
+batch.set(db.doc('teams/gdg-melbourne'), { name: 'GDG Melbourne', slug: 'gdg-melbourne', walkInTicketPrefix: 'MELWALKIN' } satisfies TeamDoc);
 const now = Timestamp.now();
+waitlist.forEach((email, i) => batch.set(db.collection('waitlist').doc(), { email, createdAt: Timestamp.fromMillis(now.toMillis() - (waitlist.length - i) * 86_400_000) }));
 for (const [email, { name, ...access }] of admins) {
 	// Sam is still "Invited": no name or sign-in yet
 	const doc: AdminDoc = { ...access, invitedAt: now, invitedBy: 'russal@example.com', ...(name && { name, lastSignInAt: now }) };
@@ -69,7 +75,7 @@ for (const event of demoEvents) {
 }
 
 await batch.commit();
-console.log(`Seeded ${demoEvents.length} events, ${demoTeams.length} team and ${admins.length} organisers into ${PROJECT}. Try:`);
+console.log(`Seeded ${demoEvents.length} events, ${demoTeams.length + 1} teams, ${admins.length} organisers and ${waitlist.length} waitlist signups into ${PROJECT}. Try:`);
 for (const event of demoEvents) console.log(`  http://localhost:4321/${event.slug}  (${event.selfCheckInOpen ? 'open' : 'closed'})`);
 for (const team of demoTeams) console.log(`  http://localhost:4321/team/${team.slug}`);
 console.log(`Dashboard (npm run dev:emulators -w @checkpad/dashboard): sign in as ${admins.map(([email]) => email).join(', ')}`);

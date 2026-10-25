@@ -46,6 +46,8 @@ export type ApiErrorCode =
 	| 'walk-ins-off' // the event doesn't let attendees add themselves
 	| 'invalid' // missing or malformed fields
 	| 'rate-limited' // too many attempts from one network; try again shortly
+	| 'forbidden' // the dashboard's admin routes: not signed in as a super admin
+	| 'in-use' // a team that events or organisers still use can't be deleted
 	| 'server';
 
 export interface ApiError {

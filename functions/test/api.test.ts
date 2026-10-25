@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { afterEach, beforeEach, describe, test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { clearFirestore } from '../scripts/emulator.ts';
 
@@ -275,5 +276,65 @@ describe('POST /auth/sign-in-link', () => {
 	test('limits links to one address', async () => {
 		for (let i = 0; i < 5; i++) assert.equal((await askForLink({ email: 'priya@example.com' })).status, 200);
 		assert.deepEqual(await askForLink({ email: 'priya@example.com' }), { status: 429, body: { error: 'rate-limited' } });
+	});
+});
+
+describe('DELETE /admin/teams/:teamId', () => {
+	const AUTH = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+
+	/** An ID token for `email`, from the Auth emulator, as the dashboard sends it. */
+	async function tokenFor(email: string, emailVerified = true) {
+		await getAuth().createUser({ email, emailVerified, password: 'password' });
+		const res = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ email, password: 'password', returnSecureToken: true }),
+		});
+		return ((await res.json()) as { idToken: string }).idToken;
+	}
+
+	async function deleteTeam(teamId: string, token?: string) {
+		const res = await fetch(`${API}/admin/teams/${teamId}`, { method: 'DELETE', headers: token ? { authorization: `Bearer ${token}` } : {} });
+		return { status: res.status, body: await res.json() };
+	}
+
+	const teamExists = async (teamId: string) => (await db.doc(`teams/${teamId}`).get()).exists;
+
+	beforeEach(async () => {
+		assert.ok(AUTH, 'Run with the Auth emulator so FIREBASE_AUTH_EMULATOR_HOST is set');
+		await fetch(`http://${AUTH}/emulator/v1/projects/${PROJECT}/accounts`, { method: 'DELETE' });
+		await db.doc('admins/boss@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0) });
+		await db.doc('admins/priya@example.com').set({ role: 'organiser', teamId: 'team-test', invitedAt: at(0) });
+	});
+
+	test('a super admin deletes a team nothing uses', async () => {
+		assert.deepEqual(await deleteTeam('team-empty', await tokenFor('boss@example.com')), { status: 200, body: { status: 'deleted' } });
+		assert.equal(await teamExists('team-empty'), false);
+	});
+
+	test('keeps a team that an event uses', async () => {
+		await db.doc('admins/priya@example.com').delete();
+		assert.deepEqual(await deleteTeam('team-test', await tokenFor('boss@example.com')), { status: 409, body: { error: 'in-use' } });
+		assert.equal(await teamExists('team-test'), true);
+	});
+
+	test('keeps a team that an organiser is on', async () => {
+		await db.doc('admins/tom@example.com').set({ role: 'team-member', teamId: 'team-empty', invitedAt: at(0) });
+		assert.deepEqual(await deleteTeam('team-empty', await tokenFor('boss@example.com')), { status: 409, body: { error: 'in-use' } });
+		assert.equal(await teamExists('team-empty'), true);
+	});
+
+	test('says when the team is already gone', async () => {
+		assert.deepEqual(await deleteTeam('nope', await tokenFor('boss@example.com')), { status: 404, body: { error: 'not-found' } });
+	});
+
+	test('only for super admins', async () => {
+		assert.deepEqual(await deleteTeam('team-empty'), { status: 401, body: { error: 'forbidden' } });
+		assert.deepEqual(await deleteTeam('team-empty', 'not-a-token'), { status: 401, body: { error: 'forbidden' } });
+		assert.deepEqual(await deleteTeam('team-empty', await tokenFor('priya@example.com')), { status: 403, body: { error: 'forbidden' } });
+		assert.deepEqual(await deleteTeam('team-empty', await tokenFor('stranger@example.com')), { status: 403, body: { error: 'forbidden' } });
+		await db.doc('admins/unverified@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0) });
+		assert.deepEqual(await deleteTeam('team-empty', await tokenFor('unverified@example.com', false)), { status: 401, body: { error: 'forbidden' } });
+		assert.equal(await teamExists('team-empty'), true);
 	});
 });

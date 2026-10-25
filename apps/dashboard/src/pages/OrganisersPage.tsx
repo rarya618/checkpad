@@ -3,35 +3,45 @@ import { formatDate } from '@checkpad/shared/format';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import copyLink from '../assets/copy-link.svg';
+import mail from '../assets/mail.svg';
 import more from '../assets/more.svg';
 import shield from '../assets/shield.svg';
 import trash from '../assets/trash.svg';
+import DeleteTeamDialog from '../components/DeleteTeamDialog';
 import ManageTeamDialog from '../components/ManageTeamDialog';
 import Menu from '../components/Menu';
 import { AddOrganiserDialog, EditOrganiserDialog, RemoveOrganiserDialog } from '../components/OrganiserDialogs';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
 import { WEB_URL } from '../lib/config';
-import { useEvents, type DashboardEvent } from '../lib/events';
 import { useSession } from '../lib/auth';
-import { initialsOf, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
+import { downloadCsv } from '../lib/csv';
+import { useEvents, type DashboardEvent } from '../lib/events';
+import { initialsOf, isOrganiser, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
 import { teamName, useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
+import { removeFromWaitlist, useWaitlist, type WaitlistSignup } from '../lib/waitlist';
 
-// Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
-// the URL (?tab=teams) so it survives a reload.
+type Tab = 'people' | 'teams' | 'waitlist';
+const tabLabels: Record<Tab, string> = { people: 'People', teams: 'Teams', waitlist: 'Waitlist' };
+
+// Figma "Organisers" (People) and "Organisers – teams", at 75% scale, and the marketing site's
+// waitlist for super admins (not designed). The tab lives in the URL (?tab=teams) so it
+// survives a reload.
 export default function OrganisersPage() {
 	const [params, setParams] = useSearchParams();
-	const tab = params.get('tab') === 'teams' ? 'teams' : 'people';
 	const [dialog, setDialog] = useState<
-		| { kind: 'add' }
+		| { kind: 'add'; email?: string }
 		| { kind: 'edit' | 'remove'; organiser: Organiser }
 		| { kind: 'team'; team: Team | null }
+		| { kind: 'delete-team'; team: Team }
 		| null
 	>(null);
 	const close = () => setDialog(null);
-	// Only super admins change organisers and teams (firestore.rules)
+	// Only super admins change organisers and teams, and read the waitlist (firestore.rules)
 	const admin = useMe().role === 'super-admin';
+	const tabs: Tab[] = admin ? ['people', 'teams', 'waitlist'] : ['people', 'teams'];
+	const tab = tabs.find((t) => t !== 'people' && t === params.get('tab')) ?? 'people';
 
 	return (
 		<>
@@ -42,37 +52,48 @@ export default function OrganisersPage() {
 						<button type="button" onClick={() => setDialog({ kind: 'add' })} className={buttonClass('primary')}>
 							Add organiser
 						</button>
-					) : (
+					) : tab === 'teams' ? (
 						<button type="button" onClick={() => setDialog({ kind: 'team', team: null })} className={buttonClass('primary')}>
 							New team
 						</button>
+					) : (
+						<WaitlistDownload />
 					)
 				}
 			/>
 			<div className="flex flex-col gap-[21px] px-6 pb-[27px]">
 				<div role="tablist" aria-label="Organisers" className="flex gap-[3px] self-start rounded-[9px] bg-light-blue p-[3px]">
-					{(['people', 'teams'] as const).map((t) => (
+					{tabs.map((t) => (
 						<button
 							key={t}
 							type="button"
 							role="tab"
 							aria-selected={tab === t}
-							onClick={() => setParams(t === 'teams' ? { tab: 'teams' } : {}, { replace: true })}
+							onClick={() => setParams(t === 'people' ? {} : { tab: t }, { replace: true })}
 							className={`rounded-[6.75px] px-[18px] py-[7.5px] font-display text-[15px] leading-[1.5] transition-colors ${
 								tab === t ? 'bg-dark-blue text-white' : 'hover:bg-white/50'
 							}`}
 						>
-							{t === 'people' ? 'People' : 'Teams'}
+							{tabLabels[t]}
 						</button>
 					))}
 				</div>
-				{tab === 'people' ? <People admin={admin} onEdit={(o) => setDialog({ kind: 'edit', organiser: o })} onRemove={(o) => setDialog({ kind: 'remove', organiser: o })} /> : <Teams admin={admin} onManage={(team) => setDialog({ kind: 'team', team })} />}
+				{tab === 'people' ? (
+					<People admin={admin} onEdit={(o) => setDialog({ kind: 'edit', organiser: o })} onRemove={(o) => setDialog({ kind: 'remove', organiser: o })} />
+				) : tab === 'teams' ? (
+					<Teams admin={admin} onManage={(team) => setDialog({ kind: 'team', team })} />
+				) : (
+					<Waitlist onInvite={(email) => setDialog({ kind: 'add', email })} />
+				)}
 			</div>
 
-			{dialog?.kind === 'add' && <AddOrganiserDialog onClose={close} />}
+			{dialog?.kind === 'add' && <AddOrganiserDialog email={dialog.email} onClose={close} />}
 			{dialog?.kind === 'edit' && <EditOrganiserDialog organiser={dialog.organiser} onClose={close} />}
 			{dialog?.kind === 'remove' && <RemoveOrganiserDialog organiser={dialog.organiser} onClose={close} />}
-			{dialog?.kind === 'team' && <ManageTeamDialog team={dialog.team} onClose={close} />}
+			{dialog?.kind === 'team' && (
+				<ManageTeamDialog team={dialog.team} onClose={close} onDelete={() => dialog.team && setDialog({ kind: 'delete-team', team: dialog.team })} />
+			)}
+			{dialog?.kind === 'delete-team' && <DeleteTeamDialog team={dialog.team} onClose={close} />}
 		</>
 	);
 }
@@ -230,5 +251,91 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 			})}
 			<p className="text-[13.5px] leading-[1.5] text-med-blue">A team link opens the team’s event that is open for check-in, or else its next upcoming event.</p>
 		</>
+	);
+}
+
+const SYDNEY = 'Australia/Sydney';
+
+function WaitlistDownload() {
+	const waitlist = useWaitlist();
+	return (
+		<button
+			type="button"
+			disabled={!waitlist?.length}
+			onClick={() => downloadCsv('checkpad-waitlist.csv', [['Email', 'Signed up'], ...waitlist!.map((s) => [s.email, s.signedUpAt])])}
+			className={`${buttonClass('primary')} disabled:opacity-50`}
+		>
+			Download CSV
+		</button>
+	);
+}
+
+// The marketing site's waitlist, one row per email, newest first. Super admins only.
+function Waitlist({ onInvite }: { onInvite: (email: string) => void }) {
+	const waitlist = useWaitlist();
+	const organisers = useOrganisers(useMe()) ?? [];
+	if (!waitlist) return null;
+	if (!waitlist.length) return <p className="text-[15px] leading-[1.5] text-med-blue">Nobody’s on the waitlist yet.</p>;
+	return (
+		<>
+			<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
+				<table className="w-full table-fixed">
+					<colgroup>
+						<col />
+						<col className="w-[280px]" />
+						<col className="w-[30px]" />
+					</colgroup>
+					<thead>
+						<tr className="text-left font-display text-[15px] leading-[1.5] text-black">
+							<th className="pr-[18px] pb-1.5">Email</th>
+							<th className="pr-[18px] pb-1.5">Signed up</th>
+							<th className="pb-1.5">
+								<span className="sr-only">Options</span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						{waitlist.map((s) => (
+							<tr key={s.email} className="text-[15px] leading-[1.5] text-black">
+								<td className="truncate py-[7.5px] pr-[18px]">
+									{s.email}
+									{isOrganiser(organisers, s.email) && <span className="text-med-blue"> · organiser</span>}
+								</td>
+								<td className="py-[7.5px] pr-[18px] whitespace-nowrap">
+									{formatDate(new Date(s.signedUpAt), SYDNEY)}
+									{s.entryIds.length > 1 && <span className="text-med-blue"> · {s.entryIds.length} times</span>}
+								</td>
+								<td className="py-[7.5px]">
+									<WaitlistMenu signup={s} invited={isOrganiser(organisers, s.email)} onInvite={onInvite} />
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+			<p className="text-[13.5px] leading-[1.5] text-med-blue">
+				{waitlist.length} {waitlist.length === 1 ? 'person' : 'people'} from the sign-up form on the Checkpad site. Inviting someone doesn’t take them off the list.
+			</p>
+		</>
+	);
+}
+
+function WaitlistMenu({ signup, invited, onInvite }: { signup: WaitlistSignup; invited: boolean; onInvite: (email: string) => void }) {
+	return (
+		<Menu
+			label={`Options for ${signup.email}`}
+			buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
+			items={[
+				{ label: 'Invite as organiser', icon: mail, disabled: invited, onSelect: () => onInvite(signup.email) },
+				{
+					label: 'Remove from waitlist',
+					icon: trash,
+					separated: true,
+					onSelect: () => removeFromWaitlist(signup).catch(() => showToast(`Couldn’t remove ${signup.email}. Try again.`)),
+				},
+			]}
+		>
+			<img src={more} alt="" width={18} height={18} />
+		</Menu>
 	);
 }

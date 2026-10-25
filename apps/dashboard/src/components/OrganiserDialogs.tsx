@@ -56,10 +56,11 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 	);
 }
 
-export function AddOrganiserDialog({ onClose }: { onClose: () => void }) {
+/** `email` fills in the address, for someone invited from the waitlist. */
+export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { email?: string; onClose: () => void }) {
 	const teams = useTeams() ?? [];
 	const organisers = useOrganisers(useMe()) ?? [];
-	const [email, setEmail] = useState('');
+	const [email, setEmail] = useState(initialEmail);
 	const [role, setRole] = useState<Role>('organiser');
 	const [team, setTeam] = useState(teams[0]?.id ?? '');
 	const taken = looksLikeEmail(email) && isOrganiser(organisers, email);

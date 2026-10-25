@@ -4,7 +4,7 @@ rules_version = '2';
 //
 // Organisers sign in to the dashboard with Google or an emailed link. What they can do comes
 // from admins/{email}, matched against their verified sign-in email:
-//   super-admin   every event and team, and manages organisers and teams
+//   super-admin   every event and team, manages organisers and teams, and reads the waitlist
 //   organiser     creates, edits and deletes their team's events, and imports attendees
 //   team-member   checks people in at their team's events, adds walk-ins and runs the prize draw
 // Anyone not on the list, signed in or not, can only join the waitlist.
@@ -124,7 +124,9 @@ service cloud.firestore {
     }
 
     // teams/{teamId}: name, slug, walkInTicketPrefix. Every organiser sees every team's
-    // name (for menus); only super admins change them.
+    // name (for menus); only super admins change them. Nobody deletes one from a browser:
+    // the rules can't see whether an event or organiser still uses it, so the API does it
+    // (functions/src/teams.ts).
 
     function isTeam(data) {
       return data.keys().hasOnly(['name', 'slug', 'walkInTicketPrefix', 'globalAccess'])
@@ -290,9 +292,8 @@ service cloud.firestore {
     //   email: string    required, lowercase
     //   createdAt: timestamp   required, set by the server (serverTimestamp())
     //
-    // Signing up twice adds a second entry; dedupe by email when exporting. Browsers can
-    // only add an entry. Nobody can read, change or delete one from a browser; organisers
-    // read the list in the Firebase console.
+    // Signing up twice adds a second entry; the dashboard groups them by email. Anyone can
+    // add an entry; only super admins read or delete them, and nobody changes one.
 
     // Same pattern as EMAIL_PATTERN in apps/web/src/lib/waitlist.ts; keep them in step.
     function isValidWaitlistEntry() {
@@ -304,6 +305,7 @@ service cloud.firestore {
 
     match /waitlist/{entryId} {
       allow create: if isValidWaitlistEntry();
+      allow read, delete: if isSuperAdmin();
     }
   }
 }
