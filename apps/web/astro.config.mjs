@@ -4,6 +4,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 
 import react from '@astrojs/react';
+import { RESERVED_SLUGS } from '@checkpad/shared/events';
 
 // The check-in API in the Functions emulator (see CLAUDE.md for starting it). demo-checkpad
 // is emulator-only, so local check-ins never reach production.
@@ -12,6 +13,7 @@ const API_EMULATOR = 'http://127.0.0.1:5001/demo-checkpad/australia-southeast1/a
 /**
  * Serves event and team links from their shared pages in development, as the Hosting
  * rewrites in firebase.json do once deployed: /<slug> → /check-in, /team/<slug> → /team.
+ * The site's own pages (RESERVED_SLUGS) are left alone, as Hosting serves them first.
  * @returns {import('vite').Plugin}
  */
 function checkInRewrites() {
@@ -22,7 +24,7 @@ function checkInRewrites() {
         const [path, query = ''] = (req.url ?? '').split('?');
         const search = query ? `?${query}` : '';
         if (/^\/team\/[a-z0-9-]+\/?$/.test(path)) req.url = `/team${search}`;
-        else if (/^\/[a-z0-9-]+\/?$/.test(path) && !['/api', '/check-in', '/team'].includes(path.replace(/\/$/, ''))) {
+        else if (/^\/[a-z0-9-]+\/?$/.test(path) && !RESERVED_SLUGS.has(path.replace(/^\/|\/$/g, ''))) {
           req.url = `/check-in${search}`;
         }
         next();
