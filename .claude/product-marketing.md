@@ -23,7 +23,7 @@ Checkpad replaces gdg-check-in, the app GDG Sydney built for its own meetups. GD
 - They report attendance back to Bevy afterwards (hence "Export for Bevy").
 - Assumed, not confirmed: events are free, so many registered people don't come, and check-in is run by one or two volunteers. [NEED: confirm both before copy relies on them]
 
-**Secondary:** other community event organisers (the page says "For community event organisers"). [NEED: confirm whether non-Bevy and non-GDG organisers are actually in scope for the waitlist, and which platforms they register people on]
+**Secondary:** other community event organisers (the page says "For community event organisers"). Organisers outside GDG are in scope for the waitlist (confirmed 25 October 2026). Many won't register people on Bevy, the only import today. [NEED: which platforms they register people on]
 
 **Not for:** paid ticketing, conferences with badge printing, or events that need payment on entry. Checkpad doesn't sell tickets or take payments. Say so when it helps someone self-select out.
 
