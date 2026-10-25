@@ -30,9 +30,13 @@ function group(docs: QueryDocumentSnapshot[]) {
 
 const store = liveStore<WaitlistSignup[]>((_key, emit, fail) => onSnapshot(collection(db, 'waitlist'), (snap) => emit(group(snap.docs)), fail));
 
-/** Everyone on the waitlist, newest first; undefined while loading. Super admins only. */
+/**
+ * Everyone on the waitlist, newest first (undefined while loading), and why it couldn't load.
+ * Super admins only. Doesn't throw, so a failure shows in the Waitlist tab, not over the page.
+ */
 export function useWaitlist() {
-	return store.use('all');
+	const { value, error } = store.useResult('all');
+	return { signups: value, error };
 }
 
 /** Takes someone off the list: every entry for their email. */

@@ -20,6 +20,7 @@ interface Entry<T> {
 }
 
 const KEEP_MS = 30_000;
+const EMPTY: State<never> = { value: undefined, error: null };
 
 export function liveStore<T>(start: Start<T>) {
 	const entries = new Map<string, Entry<T>>();
@@ -52,15 +53,20 @@ export function liveStore<T>(start: Start<T>) {
 		};
 	}
 
+	/** The latest value and error for `key`, for a part of a page that shows its own error. */
+	function useResult(key: string | null): State<T> {
+		const sub = useCallback((listener: () => void) => (key ? subscribe(key, listener) : () => {}), [key]);
+		return useSyncExternalStore(sub, () => (key ? entries.get(key)?.state : undefined)) ?? EMPTY;
+	}
+
 	/**
 	 * The latest value for `key`, or undefined while it loads (or when `key` is null). A
 	 * listener that fails throws here, for the nearest error boundary.
 	 */
 	function use(key: string | null): T | undefined {
-		const sub = useCallback((listener: () => void) => (key ? subscribe(key, listener) : () => {}), [key]);
-		const state = useSyncExternalStore(sub, () => (key ? entries.get(key)?.state : undefined));
-		if (state?.error) throw state.error;
-		return state?.value;
+		const state = useResult(key);
+		if (state.error) throw state.error;
+		return state.value;
 	}
 
 	/** The latest value for `key` outside React, if something is reading it. */
@@ -68,5 +74,5 @@ export function liveStore<T>(start: Start<T>) {
 		return entries.get(key)?.state.value;
 	}
 
-	return { use, peek };
+	return { use, useResult, peek };
 }

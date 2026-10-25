@@ -7,7 +7,7 @@ import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
 import { useEvent, useEventsFor, useRenamedSlug } from './lib/events';
 import { useRosterLoading } from './lib/roster';
-import { useCanEditEvents, useCurrentOrganiser } from './lib/organisers';
+import { useCanEditEvents, useCurrentOrganiser, useMe } from './lib/organisers';
 import { useTeams } from './lib/teams';
 import { useIsDesktop } from './lib/useMediaQuery';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -21,12 +21,14 @@ import OrganisersPage from './pages/OrganisersPage';
 import PrizeDrawPage from './pages/PrizeDrawPage';
 import { CheckEmailPage, NoAccessPage, SignInLinkPage, SignInPage } from './pages/SignInPages';
 import VenueDisplayPage from './pages/VenueDisplayPage';
+import WaitlistPage from './pages/WaitlistPage';
 
 const mainItems: SidebarItem[] = [
 	{ to: '/events', label: 'Events' },
 	{ to: '/organisers', label: 'Organisers' },
 	{ to: '/analytics', label: 'Analytics' },
 ];
+const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Waitlist' }];
 
 // The window never scrolls: the sidebar is locked in place and only the content
 // column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and
@@ -97,6 +99,18 @@ function EventLayout() {
 	);
 }
 
+// The main menu, with the waitlist for super admins. The main menu on phones isn't designed;
+// it reuses the sidebar's items.
+function MainLayout() {
+	const items = useMe().role === 'super-admin' ? adminItems : mainItems;
+	return <DashboardLayout items={items} mobile={{ title: 'Menu', items, extras: [] }} />;
+}
+
+/** Super admins only: anyone else who opens the page (from a bookmark, say) goes to Events. */
+function ForSuperAdmins({ children }: { children: ReactNode }) {
+	return useMe().role === 'super-admin' ? children : <Navigate to="/events" replace />;
+}
+
 // Creating and editing events is for organisers and super admins: a team member who opens one
 // of these pages (from a bookmark, say) goes back to where they can work.
 function ForEditors({ children, back }: { children: ReactNode; back: string }) {
@@ -125,8 +139,7 @@ export default function App() {
 			<Route path="sign-in/link" element={<SignInLinkPage />} />
 			<Route path="no-access" element={<NoAccessPage />} />
 			<Route element={<RequireOrganiser />}>
-				{/* The main menu on phones isn't designed; it reuses the sidebar's items */}
-				<Route element={<DashboardLayout items={mainItems} mobile={{ title: 'Menu', items: mainItems, extras: [] }} />}>
+				<Route element={<MainLayout />}>
 					<Route index element={<Navigate to="/events" replace />} />
 					<Route path="events" element={<EventsPage />} />
 					<Route
@@ -139,6 +152,14 @@ export default function App() {
 					/>
 					<Route path="organisers" element={<OrganisersPage />} />
 					<Route path="analytics" element={<AnalyticsPage />} />
+					<Route
+						path="waitlist"
+						element={
+							<ForSuperAdmins>
+								<WaitlistPage />
+							</ForSuperAdmins>
+						}
+					/>
 				</Route>
 				{/* Full screen, no sidebar: shown on the venue's projector */}
 				<Route path="events/:slug/display" element={<VenueDisplayPage />} />
