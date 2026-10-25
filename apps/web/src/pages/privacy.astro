@@ -1,0 +1,93 @@
+---
+import Footer from '../components/marketing/Footer.astro';
+import Nav from '../components/marketing/Nav.astro';
+import Layout from '../layouts/Layout.astro';
+
+// Not in Figma. Keep it true to the code: what each part of Checkpad stores is in
+// firestore.rules, and analytics is in components/marketing/Analytics.astro. Update the date
+// whenever the substance changes. "privacy" is a reserved event link (RESERVED_SLUGS).
+const updated = '25 October 2026';
+/** Where people send privacy requests. Production builds fail until it's set. */
+const contact = '';
+/** Who runs Checkpad, as it should appear in "Checkpad is run by …". */
+const operator = '';
+if (import.meta.env.PROD && !contact) throw new Error('Set the contact email in src/pages/privacy.astro before building for production.');
+
+const email = contact || '[contact email]';
+
+const sections: { title: string; paragraphs: string[] }[] = [
+	{
+		title: 'If you join the waitlist',
+		paragraphs: [
+			'We store your email address and when you signed up. We use it to tell you when you can set up your first event, and for nothing else.',
+			'It stays on the list until you ask us to remove it.',
+		],
+	},
+	{
+		title: 'If you check in at an event',
+		paragraphs: [
+			'The organiser of the event imports their attendee list from the platform you registered on, such as Bevy. That list has your name, email address, ticket number and ticket type.',
+			'When you check in, we record the time. If a volunteer checks you in, we also record which volunteer. If you weren’t on the list and you or a volunteer add you as a walk-in, we store the name and email address given.',
+			'The event’s organisers and volunteers can see this. They use it to check people in, count who came, run the prize draw and report attendance back to their registration platform.',
+			'The organiser decides how long their event stays in Checkpad. Deleting an event deletes its attendee list. For questions about a particular event, contact its organiser.',
+		],
+	},
+	{
+		title: 'If you’re an organiser or volunteer',
+		paragraphs: [
+			'We store your email address, your name, your role, your team, who invited you and when you last signed in. You sign in with Google or with a link we email you.',
+		],
+	},
+	{
+		title: 'Analytics',
+		paragraphs: [
+			'This home page uses Google Analytics to count visits and waitlist signups. Google Analytics sets cookies in your browser. It never receives your email address.',
+			'If you visit from the European Economic Area, the United Kingdom or Switzerland, Google Analytics doesn’t set cookies for you.',
+			'Event check-in pages and the organiser dashboard don’t use analytics.',
+		],
+	},
+	{
+		title: 'Where it’s stored',
+		paragraphs: [
+			'Checkpad runs on Google Firebase. The database is in Sydney. Sign-in is handled by Firebase Authentication, and emails are sent through Resend. Some of these services process data outside Australia.',
+			'We don’t sell your information or use it for advertising.',
+		],
+	},
+	{
+		title: 'Seeing, changing or removing your information',
+		paragraphs: [
+			`Email ${email} to ask what we hold about you, to correct it or to have it removed. If it’s about a particular event, we may pass your request to its organiser.`,
+		],
+	},
+];
+---
+
+<Layout title="Privacy · Checkpad" description="What Checkpad stores about waitlist signups, event attendees and organisers, and how to have it removed.">
+	<Nav />
+	<main>
+		<article class="mx-auto flex w-full max-w-[760px] flex-col gap-10 px-6 pt-10 pb-18 md:px-12 xl:pt-16 xl:pb-30">
+			<header class="flex flex-col gap-3">
+				<h1 class="font-display text-5xl xl:text-6xl">Privacy</h1>
+				<p class="text-lg text-dark-blue/85 xl:text-xl">
+					What Checkpad stores, who sees it and how to have it removed.{operator && ` Checkpad is run by ${operator}.`}
+				</p>
+				<p class="text-base text-med-blue">Last updated {updated}</p>
+			</header>
+			{sections.map((s) => (
+				<section class="flex flex-col gap-3">
+					<h2 class="font-display text-2xl">{s.title}</h2>
+					{s.paragraphs.map((p) => (
+						<p class="text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8">{p}</p>
+					))}
+				</section>
+			))}
+			<section class="flex flex-col gap-3">
+				<h2 class="font-display text-2xl">Changes</h2>
+				<p class="text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8">
+					If what we store changes, we’ll update this page and its date.
+				</p>
+			</section>
+		</article>
+	</main>
+	<Footer />
+</Layout>

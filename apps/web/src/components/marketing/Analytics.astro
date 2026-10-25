@@ -3,18 +3,35 @@
 // only: attendees type their email on the check-in pages, so those stay untracked. Production
 // builds only, so dev servers and the Playwright tests send nothing. WaitlistForm sends
 // join_waitlist when a signup saves, without the email.
+//
+// There's no cookie banner: Australia doesn't require one. Visitors from the EEA, the UK and
+// Switzerland, where consent is needed first, get Consent Mode's cookieless pings instead of
+// cookies (the privacy page says so). Add a banner before marketing to Europe.
 const id = import.meta.env.PROD ? import.meta.env.PUBLIC_GA_MEASUREMENT_ID : undefined;
+
+// prettier-ignore
+const noCookies = [
+	'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI',
+	'LT', 'LU', 'LV', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'GB', 'CH',
+];
 ---
 
 {
 	id && (
 		<>
 			<script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${id}`} />
-			<script is:inline define:vars={{ id }}>
+			<script is:inline define:vars={{ id, noCookies }}>
 				window.dataLayer = window.dataLayer || [];
 				window.gtag = function () {
 					dataLayer.push(arguments);
 				};
+				gtag('consent', 'default', {
+					analytics_storage: 'denied',
+					ad_storage: 'denied',
+					ad_user_data: 'denied',
+					ad_personalization: 'denied',
+					region: noCookies,
+				});
 				gtag('js', new Date());
 				gtag('config', id);
 			</script>
