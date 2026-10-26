@@ -54,7 +54,7 @@ const FIRST_EVENT =
 /** What to do first, so the first time they see check-in from an attendee's side isn't on the night. */
 function firstSteps(role: AdminDoc['role'], newTeam: boolean) {
 	if (role === 'super-admin') return 'Start on the Events page, or add organisers from Organisers.';
-	if (role === 'organiser') return newTeam ? `When you first sign in, name your team and choose its country. ${FIRST_EVENT}` : FIRST_EVENT;
+	if (role === 'organiser') return newTeam ? `When you first sign in, name your team and say where it meets. ${FIRST_EVENT}` : FIRST_EVENT;
 	return 'Before the night, open the event, scan its QR code with your own phone and check in as someone on the list, so you know what attendees see. You can undo that check-in on the Attendees page.';
 }
 

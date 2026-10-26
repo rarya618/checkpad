@@ -1,7 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { useState } from 'react';
 import { TextField } from '../components/Field';
-import { CountryField } from '../components/ManageTeamDialog';
+import TeamPlaceFields from '../components/TeamPlaceFields';
 import { signOut, useSession } from '../lib/auth';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, slugify } from '../lib/eventForm';
@@ -9,7 +9,7 @@ import { setUpTeam, useTeams } from '../lib/teams';
 import { AuthLayout } from './SignInPages';
 
 // Not in Figma. The first time an organiser invited to start a new team signs in, they name it
-// and choose its country before anything else (RequireOrganiser, App.tsx). Laid out like the
+// and say where it meets before anything else (RequireOrganiser, App.tsx). Laid out like the
 // sign-in pages: the logo above one card.
 export default function OnboardingPage() {
 	const session = useSession();
@@ -17,7 +17,7 @@ export default function OnboardingPage() {
 	const [name, setName] = useState('');
 	const [slug, setSlug] = useState('');
 	const [slugEdited, setSlugEdited] = useState(false);
-	const [country, setCountry] = useState('');
+	const [place, setPlace] = useState({ country: '', city: '', timeZone: '' });
 	const [busy, setBusy] = useState(false);
 	// What the server refused, for the value it refused
 	const [refused, setRefused] = useState<{ name?: string; slug?: string; failed?: boolean }>({});
@@ -26,7 +26,7 @@ export default function OnboardingPage() {
 	const cleanSlugValue = slug.replace(/-+$/, '');
 	const nameTaken = refused.name === cleanName || teams.some((t) => t.name.toLowerCase() === cleanName.toLowerCase());
 	const slugTaken = refused.slug === cleanSlugValue || teams.some((t) => t.slug === cleanSlugValue);
-	const valid = cleanName !== '' && cleanSlugValue !== '' && country !== '' && !nameTaken && !slugTaken;
+	const valid = cleanName !== '' && cleanSlugValue !== '' && place.country !== '' && !nameTaken && !slugTaken;
 
 	return (
 		<AuthLayout title="Set up your team" description="Name the team you run events for. Attendees see its name when they check in.">
@@ -36,7 +36,7 @@ export default function OnboardingPage() {
 					e.preventDefault();
 					if (!valid || busy) return;
 					setBusy(true);
-					const error = await setUpTeam({ name: cleanName, slug: cleanSlugValue, country });
+					const error = await setUpTeam({ name: cleanName, slug: cleanSlugValue, ...place, city: place.city.trim() });
 					// Saved: your entry updates with the team and the dashboard takes over from here
 					if (!error) return;
 					setBusy(false);
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
 					hint={`Printed signs will use ${WEB_HOST}/team/${cleanSlugValue || 'link-name'}.`}
 					error={slugTaken ? 'Another team uses this link.' : null}
 				/>
-				<CountryField value={country} onChange={setCountry} required />
+				<TeamPlaceFields value={place} onChange={setPlace} required />
 				{refused.failed && (
 					<p role="alert" className="text-[13.5px] leading-[1.5] text-error">
 						Couldn’t create your team. Check your connection and try again.

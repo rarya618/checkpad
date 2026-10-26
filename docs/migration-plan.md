@@ -179,7 +179,8 @@ events/{eventId}/draw/{ticket}       result ('won' | 'not-here'), drawnAt, winne
 admins/{email}                       role, teamId?, invitedAt, invitedBy, lastSignInAt?
                                      (teamId null for super admins, and for an organiser invited
                                      to start a new team until they set it up on first sign-in)
-teams/{teamId}                       name, slug, walkInTicketPrefix, country?, globalAccess
+teams/{teamId}                       name, slug, walkInTicketPrefix, country?, city?, timeZone?,
+                                     globalAccess
 rateLimits/{hash}                    count, expireAt (check-in attempts per network; a TTL policy deletes them)
 ```
 

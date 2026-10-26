@@ -37,9 +37,9 @@ const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
 
 for (const team of demoTeams) {
-	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN', country: 'AU' } satisfies TeamDoc);
+	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN', country: 'AU', city: 'Sydney', timeZone: 'Australia/Sydney' } satisfies TeamDoc);
 }
-// A team with no events or members, which Manage team can delete. No country, like a team
+// A team with no events or members, which Manage team can delete. Nowhere set, like a team
 // from before teams had one: its new events start in Sydney time.
 batch.set(db.doc('teams/gdg-melbourne'), { name: 'GDG Melbourne', slug: 'gdg-melbourne', walkInTicketPrefix: 'MELWALKIN' } satisfies TeamDoc);
 const now = Timestamp.now();

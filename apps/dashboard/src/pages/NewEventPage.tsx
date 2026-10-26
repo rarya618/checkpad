@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { defaultTimeZone } from '@checkpad/shared/countries';
+import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { DateTimeFields } from '../components/EventFields';
@@ -36,13 +36,13 @@ export default function NewEventPage() {
 	// Your own team; super admins start with the first
 	const [form, setForm] = useState(() => {
 		const team = teams.find((t) => t.id === me.teamId) ?? teams[0];
-		return { ...blank, team: team?.id ?? '', timeZone: defaultTimeZone(team?.country) };
+		return { ...blank, team: team?.id ?? '', timeZone: teamTimeZone(team) };
 	});
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
 	const [slugEdited, setSlugEdited] = useState(false);
 	const [suffix] = useState(randomSuffix);
-	// The time zone follows the team's country until someone picks one
+	// The time zone follows the team's until someone picks one
 	const [timeZoneEdited, setTimeZoneEdited] = useState(false);
 
 	function update<K extends keyof EventForm>(key: K, value: EventForm[K]) {
@@ -50,7 +50,7 @@ export default function NewEventPage() {
 		setForm((f) => {
 			const next = { ...f, [key]: value };
 			if (!slugEdited && key === 'name') next.slug = suggestedSlug(next.name, suffix);
-			if (!timeZoneEdited && key === 'team') next.timeZone = defaultTimeZone(teams.find((t) => t.id === value)?.country);
+			if (!timeZoneEdited && key === 'team') next.timeZone = teamTimeZone(teams.find((t) => t.id === value));
 			return next;
 		});
 	}

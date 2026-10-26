@@ -12,8 +12,12 @@ export interface Team {
 	/** Walk-in tickets count up from here: GDGWALKIN0001, GDGWALKIN0002, … */
 	walkInTicketPrefix: string;
 	globalAccess?: boolean;
-	/** ISO code: "AU". New events start in its time zone (@checkpad/shared/countries). */
+	/** Where it meets. ISO code: "AU" (@checkpad/shared/countries). */
 	country?: string;
+	/** For the record: "Wollongong". */
+	city?: string;
+	/** One of the country's; new events start in it (teamTimeZone). */
+	timeZone?: string;
 }
 
 /** New teams' walk-in tickets: the link's first word, GDG for gdg-sydney. */
@@ -36,6 +40,8 @@ const store = liveStore<Team[]>((_key, emit, fail) =>
 							walkInTicketPrefix: data.walkInTicketPrefix ?? defaultPrefix(data.slug),
 							...(data.globalAccess !== undefined && { globalAccess: data.globalAccess }),
 							...(data.country !== undefined && { country: data.country }),
+							...(data.city !== undefined && { city: data.city }),
+							...(data.timeZone !== undefined && { timeZone: data.timeZone }),
 						};
 					})
 					.sort((a, b) => a.name.localeCompare(b.name)),
@@ -61,13 +67,15 @@ export const teamName = (teams: Team[] | undefined, teamId: string | null) =>
 export const newTeamRef = () => doc(collection(db, 'teams'));
 
 /** The fields to save for a new or changed team; keeps an existing team's walk-in prefix. */
-export function teamData(existing: Team | null, team: Pick<Team, 'name' | 'slug' | 'country'>) {
+export function teamData(existing: Team | null, team: Pick<Team, 'name' | 'slug' | 'country' | 'city' | 'timeZone'>) {
 	return {
 		name: team.name,
 		slug: team.slug,
 		walkInTicketPrefix: existing?.walkInTicketPrefix ?? defaultPrefix(team.slug),
 		...(existing?.globalAccess !== undefined && { globalAccess: existing.globalAccess }),
 		...(team.country && { country: team.country }),
+		...(team.city && { city: team.city }),
+		...(team.timeZone && { timeZone: team.timeZone }),
 	};
 }
 
@@ -96,7 +104,7 @@ export async function deleteTeam(team: Team): Promise<string | null> {
  * link. Resolves with what's wrong, or null once the team is saved; the organiser's own entry
  * then updates with the team, which takes them into the dashboard.
  */
-export async function setUpTeam(team: Required<Pick<Team, 'name' | 'slug' | 'country'>>): Promise<'name-taken' | 'slug-taken' | 'failed' | null> {
+export async function setUpTeam(team: Required<Pick<Team, 'name' | 'slug' | 'country' | 'timeZone'>> & Pick<Team, 'city'>): Promise<'name-taken' | 'slug-taken' | 'failed' | null> {
 	try {
 		const res = await fetch('/api/onboarding/team', {
 			method: 'POST',

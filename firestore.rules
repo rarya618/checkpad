@@ -124,19 +124,21 @@ service cloud.firestore {
         && request.resource.data.lastSignInAt == request.time;
     }
 
-    // teams/{teamId}: name, slug, walkInTicketPrefix, and country (ISO 3166-1 alpha-2, which
-    // picks new events' time zone). Every organiser sees every team's name (for menus); only
+    // teams/{teamId}: name, slug, walkInTicketPrefix, and where it meets: country (ISO 3166-1
+    // alpha-2), city, and timeZone, which new events start in. Every organiser sees every team's name (for menus); only
     // super admins change them. A new organiser's own team is set up through the API, and
     // nobody deletes one from a browser: the rules can't see whether another team has the
     // link, or whether an event or organiser still uses it (functions/src/teams.ts).
 
     function isTeam(data) {
-      return data.keys().hasOnly(['name', 'slug', 'walkInTicketPrefix', 'globalAccess', 'country'])
+      return data.keys().hasOnly(['name', 'slug', 'walkInTicketPrefix', 'globalAccess', 'country', 'city', 'timeZone'])
         && isName(data.name)
         && isSlug(data.slug)
         && data.walkInTicketPrefix is string
         && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$')
-        && (!('country' in data) || (data.country is string && data.country.matches('^[A-Z]{2}$')));
+        && (!('country' in data) || (data.country is string && data.country.matches('^[A-Z]{2}$')))
+        && (!('city' in data) || isName(data.city))
+        && isText(data.get('timeZone', ''), 64);
     }
 
     match /teams/{teamId} {

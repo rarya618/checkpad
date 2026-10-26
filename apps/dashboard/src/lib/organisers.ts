@@ -155,7 +155,7 @@ export function removeOrganiser(id: string) {
  * invites, in one write. A new team is saved first, because the rules only let an invite
  * name a team that already exists.
  */
-export async function saveTeamMembers(team: Team | null, changes: Pick<Team, 'name' | 'slug' | 'country'>, removedIds: string[], invites: { email: string; role: Role }[]) {
+export async function saveTeamMembers(team: Team | null, changes: Pick<Team, 'name' | 'slug' | 'country' | 'city' | 'timeZone'>, removedIds: string[], invites: { email: string; role: Role }[]) {
 	const ref = team ? doc(db, 'teams', team.id) : newTeamRef();
 	const batch = writeBatch(db);
 	if (team) batch.set(ref, teamData(team, changes));

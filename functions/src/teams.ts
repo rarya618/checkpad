@@ -50,21 +50,32 @@ const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const RESERVED_SLUGS = ['api', 'check-in', 'privacy', 'team'];
 const COUNTRY = /^[A-Z]{2}$/;
 
+/** A time zone the server knows: Intl refuses anything else. */
+function isTimeZone(value: string) {
+	try {
+		new Intl.DateTimeFormat('en', { timeZone: value });
+		return value.length <= 64;
+	} catch {
+		return false;
+	}
+}
+
 /** Same as the dashboard's default (apps/dashboard/src/lib/teams.ts): GDGWALKIN for gdg-sydney. */
 const walkInPrefix = (slug: string) => `${slug.split('-')[0].toUpperCase().slice(0, 14)}WALKIN`;
 
-function parseTeam(body: { name?: unknown; slug?: unknown; country?: unknown }): Pick<TeamDoc, 'name' | 'slug' | 'country'> {
-	const name = typeof body.name === 'string' ? body.name.trim() : '';
-	const slug = typeof body.slug === 'string' ? body.slug : '';
-	const country = typeof body.country === 'string' ? body.country : '';
-	if (!name || name.length > 100 || slug.length > 100 || !SLUG.test(slug) || RESERVED_SLUGS.includes(slug) || !COUNTRY.test(country)) {
-		throw new ApiFailure('invalid', 400);
-	}
-	return { name, slug, country };
+const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+function parseTeam(body: Record<string, unknown>): Pick<TeamDoc, 'name' | 'slug' | 'country' | 'city' | 'timeZone'> {
+	const [name, city] = [text(body.name), text(body.city)];
+	const [slug, country, timeZone] = [body.slug, body.country, body.timeZone].map((v) => (typeof v === 'string' ? v : ''));
+	if (!name || name.length > 100 || city.length > 100) throw new ApiFailure('invalid', 400);
+	if (slug.length > 100 || !SLUG.test(slug) || RESERVED_SLUGS.includes(slug)) throw new ApiFailure('invalid', 400);
+	if (!COUNTRY.test(country) || !isTimeZone(timeZone)) throw new ApiFailure('invalid', 400);
+	return { name, slug, country, timeZone, ...(city && { city }) };
 }
 
 /**
- * POST /api/onboarding/team with { name, slug, country }: an organiser invited to start a new
+ * POST /api/onboarding/team with { name, slug, country, timeZone, city? }: an organiser invited to start a new
  * team (teamId null) creates it and joins it, once. Checked and saved in one transaction, so a
  * team saved at the same moment can't take the same name or link.
  */

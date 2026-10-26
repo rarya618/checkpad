@@ -411,11 +411,13 @@ describe('organisers and teams', () => {
 		await assertFails(setDoc(doc(boss(), 'teams/bad'), { ...team, walkInTicketPrefix: 'per walk' }));
 	});
 
-	test('a team’s country is a two-letter code', async () => {
+	test('where a team meets: a two-letter country, a city and a time zone', async () => {
 		const team = { name: 'GDG Perth', slug: 'gdg-perth', walkInTicketPrefix: 'PERWALKIN' };
-		await assertSucceeds(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'AU' }));
+		await assertSucceeds(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'AU', city: 'Perth', timeZone: 'Australia/Perth' }));
 		await assertFails(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'Australia' }));
 		await assertFails(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'au' }));
+		await assertFails(setDoc(doc(boss(), 'teams/perth'), { ...team, city: ' ' }));
+		await assertFails(setDoc(doc(boss(), 'teams/perth'), { ...team, timeZone: 8 }));
 	});
 
 	test('nobody deletes a team from a browser, super admins included: the API does', async () => {

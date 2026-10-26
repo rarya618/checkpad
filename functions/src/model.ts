@@ -55,8 +55,12 @@ export interface TeamDoc {
 	/** New events copy it: GDGWALKIN */
 	walkInTicketPrefix: string;
 	globalAccess?: boolean;
-	/** ISO 3166-1 alpha-2: "AU". New events start in its time zone (packages/shared/src/countries.ts). */
+	/** Where it meets. ISO 3166-1 alpha-2: "AU" (packages/shared/src/countries.ts). */
 	country?: string;
+	/** For the record: "Wollongong". */
+	city?: string;
+	/** IANA, one of the country's: new events start in it. */
+	timeZone?: string;
 }
 
 /** admins/{email}: who can sign in to the dashboard, and what they can do (firestore.rules). */

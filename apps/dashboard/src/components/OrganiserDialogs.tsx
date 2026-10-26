@@ -68,7 +68,7 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 				value={role === 'super-admin' ? '' : team}
 				disabled={role === 'super-admin'}
 				onChange={(e) => setTeam(e.target.value)}
-				hint={role === 'organiser' && team === NEW_TEAM ? 'They’ll name the team and choose its country when they first sign in.' : undefined}
+				hint={role === 'organiser' && team === NEW_TEAM ? 'They’ll name the team and say where it meets when they first sign in.' : undefined}
 				className="has-disabled:opacity-60"
 			>
 				{role === 'super-admin' && <option value="">All teams</option>}

@@ -1,8 +1,8 @@
-// Countries a team can meet in, each with the time zones its events can use. A team's country
-// picks the time zone new events start with: the first one listed, the country's largest city.
-// Only the dashboard reads this list. The functions can't import it at runtime, so the API and
-// the rules only check that a country is two capital letters; an unknown one falls back to
-// DEFAULT_TIME_ZONE. To add a country, add it here by name; codes are ISO 3166-1 alpha-2.
+// Countries a team can meet in, each with the time zones its events can use. A team's time zone
+// (one of its country's) is what new events start with; a team with a country but no time zone
+// gets the country's first, its largest city.
+// Only the dashboard reads this list. The functions can't import it at runtime, so the API only
+// checks that a country is two capital letters and a time zone is one the server knows. To add a country, add it here by name; codes are ISO 3166-1 alpha-2.
 
 export interface TimeZone {
 	/** IANA ID: "Australia/Sydney". */
@@ -94,5 +94,6 @@ export const DEFAULT_TIME_ZONE = 'Australia/Sydney';
 
 export const findCountry = (code: string | undefined) => countries.find((c) => c.code === code);
 
-/** The time zone a team's new events start in. */
-export const defaultTimeZone = (countryCode: string | undefined) => findCountry(countryCode)?.timeZones[0].id ?? DEFAULT_TIME_ZONE;
+/** The time zone a team's new events start in: its own, else its country's first, else Sydney. */
+export const teamTimeZone = (team: { country?: string; timeZone?: string } | undefined) =>
+	team?.timeZone ?? findCountry(team?.country)?.timeZones[0].id ?? DEFAULT_TIME_ZONE;
