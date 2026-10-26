@@ -8,7 +8,7 @@ import Menu from '../components/Menu';
 import { AddOrganiserDialog } from '../components/OrganiserDialogs';
 import PageHeader from '../components/PageHeader';
 import { downloadCsv } from '../lib/csv';
-import { isOrganiser, useMe, useOrganisers } from '../lib/organisers';
+import { useMe, useOrganisers } from '../lib/organisers';
 import { showToast } from '../lib/toast';
 import { removeFromWaitlist, useWaitlist, type WaitlistSignup } from '../lib/waitlist';
 
@@ -61,37 +61,56 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 	return (
 		<>
 			<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
+				{/* Laid out like the Organisers table: avatar and two lines per person, status as a pill */}
 				<table className="w-full table-fixed">
 					<colgroup>
 						<col />
-						<col className="w-[280px]" />
+						<col className="w-[183px]" />
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
 						<tr className="text-left font-display text-[15px] leading-[1.5] text-black">
-							<th className="pr-[18px] pb-1.5">Email</th>
-							<th className="pr-[18px] pb-1.5">Signed up</th>
+							<th className="pr-[18px] pb-1.5">Person</th>
+							<th className="pr-[18px] pb-1.5">Status</th>
 							<th className="pb-1.5">
 								<span className="sr-only">Options</span>
 							</th>
 						</tr>
 					</thead>
 					<tbody>
-						{waitlist.map((s) => (
-							<tr key={s.email} className="text-[15px] leading-[1.5] text-black">
-								<td className="truncate py-[7.5px] pr-[18px]">
-									{s.email}
-									{isOrganiser(organisers, s.email) && <span className="text-med-blue"> · organiser</span>}
-								</td>
-								<td className="py-[7.5px] pr-[18px] whitespace-nowrap">
-									{formatDate(new Date(s.signedUpAt), SYDNEY)}
-									{s.entryIds.length > 1 && <span className="text-med-blue"> · {s.entryIds.length} times</span>}
-								</td>
-								<td className="py-[7.5px]">
-									<WaitlistMenu signup={s} invited={isOrganiser(organisers, s.email)} onInvite={onInvite} />
-								</td>
-							</tr>
-						))}
+						{waitlist.map((s) => {
+							const organiser = organisers.find((o) => o.email === s.email.trim().toLowerCase());
+							return (
+								<tr key={s.email}>
+									<td className="py-[7.5px] pr-[18px]">
+										<div className="flex items-center gap-3">
+											<span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[15px]">
+												{s.email.slice(0, 2).toUpperCase()}
+											</span>
+											<div className="flex min-w-0 flex-col gap-[3px] leading-[1.5]">
+												<p className="truncate font-display text-lg text-black">{s.email}</p>
+												<p className="truncate text-[15px] text-med-blue">
+													Signed up {formatDate(new Date(s.signedUpAt), SYDNEY)}
+													{s.entryIds.length > 1 && ` · ${s.entryIds.length} times`}
+												</p>
+											</div>
+										</div>
+									</td>
+									<td className="py-[7.5px] pr-[18px]">
+										<span
+											className={`inline-block rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
+												organiser ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
+											}`}
+										>
+											{!organiser ? 'Waiting' : organiser.invited ? 'Invited' : 'Organiser'}
+										</span>
+									</td>
+									<td className="py-[7.5px]">
+										<WaitlistMenu signup={s} invited={!!organiser} onInvite={onInvite} />
+									</td>
+								</tr>
+							);
+						})}
 					</tbody>
 				</table>
 			</div>
