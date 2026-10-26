@@ -87,9 +87,9 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 											<span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[15px]">
 												{s.email.slice(0, 2).toUpperCase()}
 											</span>
-											<div className="flex min-w-0 flex-col gap-[3px] leading-[1.5]">
-												<p className="truncate font-display text-lg text-black">{s.email}</p>
-												<p className="truncate text-[15px] text-med-blue">
+											<div className="flex min-w-0 flex-col gap-0.5 leading-[1.5]">
+												<p className="truncate font-display text-lg leading-[1.2] text-black">{s.email}</p>
+												<p className="truncate text-[13.5px] text-med-blue">
 													Signed up {formatDate(new Date(s.signedUpAt), SYDNEY)}
 													{s.entryIds.length > 1 && ` · ${s.entryIds.length} times`}
 												</p>

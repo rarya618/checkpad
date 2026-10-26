@@ -117,9 +117,9 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 										<span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[15px]">
 											{initialsOf(o)}
 										</span>
-										<div className="flex min-w-0 flex-col gap-[3px] leading-[1.5]">
-											<p className="truncate font-display text-lg text-black">{o.name ?? o.email}</p>
-											<p className={`truncate text-[15px] ${o.invited ? 'text-med-blue' : 'text-black'}`}>{o.invited ? 'Invited · hasn’t signed in yet' : o.email}</p>
+										<div className="flex min-w-0 flex-col gap-0.5 leading-[1.5]">
+											<p className="truncate font-display text-lg leading-[1.2] text-black">{o.name ?? o.email}</p>
+											<p className={`truncate text-[13.5px] ${o.invited ? 'text-med-blue' : 'text-black'}`}>{o.invited ? 'Invited · hasn’t signed in yet' : o.email}</p>
 										</div>
 									</div>
 								</td>
