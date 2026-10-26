@@ -5,15 +5,18 @@ import TeamPlaceFields from '../components/TeamPlaceFields';
 import { signOut, useSession } from '../lib/auth';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, slugify } from '../lib/eventForm';
+import { useMe } from '../lib/organisers';
 import { setUpTeam, useTeams } from '../lib/teams';
 import { AuthLayout } from './SignInPages';
 
-// Not in Figma. The first time an organiser invited to start a new team signs in, they name it
-// and say where it meets before anything else (RequireOrganiser, App.tsx). Laid out like the
-// sign-in pages: the logo above one card.
+// Not in Figma. The first time an organiser invited to start a new team signs in, they give
+// their name, then name the team and say where it meets, before anything else (RequireOrganiser,
+// App.tsx). Laid out like the sign-in pages: the logo above one card.
 export default function OnboardingPage() {
 	const session = useSession();
 	const teams = useTeams() ?? [];
+	// Filled in from Google, if they signed in with it; an email link leaves it empty
+	const [yourName, setYourName] = useState(useMe().name ?? '');
 	const [name, setName] = useState('');
 	const [slug, setSlug] = useState('');
 	const [slugEdited, setSlugEdited] = useState(false);
@@ -26,17 +29,17 @@ export default function OnboardingPage() {
 	const cleanSlugValue = slug.replace(/-+$/, '');
 	const nameTaken = refused.name === cleanName || teams.some((t) => t.name.toLowerCase() === cleanName.toLowerCase());
 	const slugTaken = refused.slug === cleanSlugValue || teams.some((t) => t.slug === cleanSlugValue);
-	const valid = cleanName !== '' && cleanSlugValue !== '' && place.country !== '' && !nameTaken && !slugTaken;
+	const valid = yourName.trim() !== '' && cleanName !== '' && cleanSlugValue !== '' && place.country !== '' && !nameTaken && !slugTaken;
 
 	return (
-		<AuthLayout title="Set up your team" description="Name the team you run events for. Attendees see its name when they check in.">
+		<AuthLayout title="Set up your team" description="Tell us who you are and the team you run events for. Attendees see the team’s name when they check in.">
 			<form
 				className="flex flex-col gap-[18px]"
 				onSubmit={async (e) => {
 					e.preventDefault();
 					if (!valid || busy) return;
 					setBusy(true);
-					const error = await setUpTeam({ name: cleanName, slug: cleanSlugValue, ...place, city: place.city.trim() });
+					const error = await setUpTeam(yourName.trim(), { name: cleanName, slug: cleanSlugValue, ...place, city: place.city.trim() });
 					// Saved: your entry updates with the team and the dashboard takes over from here
 					if (!error) return;
 					setBusy(false);
@@ -46,6 +49,15 @@ export default function OnboardingPage() {
 				}}
 			>
 				<TextField
+					label="Your name"
+					value={yourName}
+					onChange={(e) => setYourName(e.target.value)}
+					placeholder="Jane Doe"
+					autoComplete="name"
+					maxLength={200}
+					autoFocus={!yourName}
+				/>
+				<TextField
 					label="Team name"
 					value={name}
 					onChange={(e) => {
@@ -54,7 +66,8 @@ export default function OnboardingPage() {
 					}}
 					placeholder="Tech Meetup"
 					error={nameTaken ? 'Another team has this name.' : null}
-					autoFocus
+					// Your name's already there from Google: start on the team
+					autoFocus={Boolean(yourName)}
 				/>
 				<TextField
 					label="Link name"

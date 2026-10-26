@@ -341,7 +341,7 @@ describe('DELETE /admin/teams/:teamId', () => {
 });
 
 describe('POST /onboarding/team', () => {
-	const team = { name: 'Sam’s Meetup', slug: 'sams-meetup', country: 'NZ', city: 'Wellington', timeZone: 'Pacific/Auckland' };
+	const team = { organiserName: 'Sam Lee', name: 'Sam’s Meetup', slug: 'sams-meetup', country: 'NZ', city: 'Wellington', timeZone: 'Pacific/Auckland' };
 
 	async function setUp(body: object, token?: string) {
 		const res = await fetch(`${API}/onboarding/team`, {
@@ -361,12 +361,14 @@ describe('POST /onboarding/team', () => {
 		await db.doc('admins/priya@example.com').set({ role: 'organiser', teamId: 'team-test', invitedAt: at(0) });
 	});
 
-	test('a new organiser creates their team and joins it', async () => {
+	test('a new organiser saves their name, creates their team and joins it', async () => {
 		const { status, body } = await setUp(team, await tokenFor('sam@example.com'));
 		assert.equal(status, 200);
 		assert.equal(body.status, 'created');
 		assert.equal(await teamOf('sam@example.com'), body.teamId);
-		assert.deepEqual((await db.doc(`teams/${body.teamId}`).get()).data(), { ...team, walkInTicketPrefix: 'SAMSWALKIN' });
+		assert.equal((await db.doc('admins/sam@example.com').get()).get('name'), 'Sam Lee');
+		const { organiserName: _, ...saved } = team;
+		assert.deepEqual((await db.doc(`teams/${body.teamId}`).get()).data(), { ...saved, walkInTicketPrefix: 'SAMSWALKIN' });
 	});
 
 	test('trims the name and city', async () => {
@@ -389,16 +391,17 @@ describe('POST /onboarding/team', () => {
 		assert.equal((await db.doc(`teams/${body.teamId}`).get()).get('city'), undefined);
 	});
 
-	test('refuses a bad link, a missing name, a long city, a country that isn’t a code or an unknown time zone', async () => {
+	test('refuses a missing organiser name, a bad link, a missing name, a long city, a country that isn’t a code or an unknown time zone', async () => {
 		const token = await tokenFor('sam@example.com');
 		const bad = [
+			{ ...team, organiserName: ' ' },
 			{ ...team, slug: 'Sams Meetup' },
 			{ ...team, slug: 'team' },
 			{ ...team, name: ' ' },
 			{ ...team, city: 'x'.repeat(101) },
 			{ ...team, country: 'New Zealand' },
 			{ ...team, timeZone: 'Middle/Earth' },
-			{ name: 'x', slug: 'x' },
+			{ organiserName: 'x', name: 'x', slug: 'x' },
 		];
 		for (const body of bad) {
 			assert.deepEqual(await setUp(body, token), { status: 400, body: { error: 'invalid' } }, JSON.stringify(body));

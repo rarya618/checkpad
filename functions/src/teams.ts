@@ -65,6 +65,13 @@ const walkInPrefix = (slug: string) => `${slug.split('-')[0].toUpperCase().slice
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
 
+/** The organiser's own name: the same limit as signing in records (firestore.rules). */
+function parseOrganiserName(body: Record<string, unknown>) {
+	const name = text(body.organiserName);
+	if (!name || name.length > 200) throw new ApiFailure('invalid', 400);
+	return name;
+}
+
 function parseTeam(body: Record<string, unknown>): Pick<TeamDoc, 'name' | 'slug' | 'country' | 'city' | 'timeZone'> {
 	const [name, city] = [text(body.name), text(body.city)];
 	const [slug, country, timeZone] = [body.slug, body.country, body.timeZone].map((v) => (typeof v === 'string' ? v : ''));
@@ -75,12 +82,14 @@ function parseTeam(body: Record<string, unknown>): Pick<TeamDoc, 'name' | 'slug'
 }
 
 /**
- * POST /api/onboarding/team with { name, slug, country, timeZone, city? }: an organiser invited to start a new
- * team (teamId null) creates it and joins it, once. Checked and saved in one transaction, so a
- * team saved at the same moment can't take the same name or link.
+ * POST /api/onboarding/team with { organiserName, name, slug, country, timeZone, city? }: an
+ * organiser invited to start a new team (teamId null) saves their own name, then creates the team
+ * and joins it, once. Checked and saved in one transaction, so a team saved at the same moment
+ * can't take the same name or link.
  */
 export async function setUpTeam(db: Firestore, auth: Auth, authorization: string | undefined, body: Record<string, unknown>) {
 	const email = await signedInEmail(auth, authorization);
+	const organiserName = parseOrganiserName(body);
 	const fields = parseTeam(body);
 	return db.runTransaction(async (tx) => {
 		const me = db.doc(`admins/${email}`);
@@ -92,7 +101,7 @@ export async function setUpTeam(db: Firestore, auth: Auth, authorization: string
 		if (others.some((t) => t.name.toLowerCase() === fields.name.toLowerCase())) throw new ApiFailure('name-taken', 409);
 		const team = db.collection('teams').doc();
 		tx.create(team, { ...fields, walkInTicketPrefix: walkInPrefix(fields.slug) } satisfies TeamDoc);
-		tx.update(me, { teamId: team.id });
+		tx.update(me, { teamId: team.id, name: organiserName });
 		return { status: 'created' as const, teamId: team.id };
 	});
 }

@@ -99,17 +99,17 @@ export async function deleteTeam(team: Team): Promise<string | null> {
 }
 
 /**
- * Onboarding: an organiser invited to start a new team creates it and joins it. Through the API
+ * Onboarding: an organiser invited to start a new team saves their name, then creates the team and joins it. Through the API
  * (functions/src/teams.ts), because the rules can't check that no other team has the name or
  * link. Resolves with what's wrong, or null once the team is saved; the organiser's own entry
  * then updates with the team, which takes them into the dashboard.
  */
-export async function setUpTeam(team: Required<Pick<Team, 'name' | 'slug' | 'country' | 'timeZone'>> & Pick<Team, 'city'>): Promise<'name-taken' | 'slug-taken' | 'failed' | null> {
+export async function setUpTeam(organiserName: string, team: Required<Pick<Team, 'name' | 'slug' | 'country' | 'timeZone'>> & Pick<Team, 'city'>): Promise<'name-taken' | 'slug-taken' | 'failed' | null> {
 	try {
 		const res = await fetch('/api/onboarding/team', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json', authorization: `Bearer ${await auth.currentUser!.getIdToken()}` },
-			body: JSON.stringify(team),
+			body: JSON.stringify({ organiserName, ...team }),
 		});
 		if (res.ok) return null;
 		const { error } = (await res.json().catch(() => ({}))) as { error?: string };

@@ -56,7 +56,8 @@ function toOrganiser(snap: DocumentSnapshot): Organiser {
 	};
 }
 
-// Signing in records your name and when, once per page load, which ends "Invited"
+// Signing in records when, once per page load, which ends "Invited", and your name from Google
+// if there isn't one yet: a name typed on onboarding stays
 let recorded: string | null = null;
 
 // Null when you're not on the list: the rules refuse to read a document that isn't there
@@ -70,7 +71,7 @@ const meStore = liveStore<Organiser | null>((email, emit, fail) =>
 			emit(me);
 			if (recorded !== email && !snap.metadata.fromCache) {
 				recorded = email;
-				updateDoc(snap.ref, { name: auth.currentUser?.displayName ?? me.name, lastSignInAt: serverTimestamp() }).catch(() => {
+				updateDoc(snap.ref, { name: me.name ?? auth.currentUser?.displayName ?? null, lastSignInAt: serverTimestamp() }).catch(() => {
 					recorded = null;
 				});
 			}

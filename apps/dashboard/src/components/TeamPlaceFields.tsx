@@ -36,7 +36,7 @@ export default function TeamPlaceFields({ value, onChange, required = false }: {
 				label="City (optional)"
 				value={value.city}
 				onChange={(e) => onChange({ ...value, city: e.target.value })}
-				placeholder={country?.timeZones[0].city ?? 'Sydney'}
+				placeholder={zone?.city ?? 'Sydney'}
 				maxLength={100}
 			/>
 			{country && country.timeZones.length > 1 && (
