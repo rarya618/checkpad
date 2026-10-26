@@ -19,17 +19,17 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-[18px] border border-med-blue bg-light-blue px-[15px] pt-7.5 pb-[15px]">
 			<div className="flex w-full flex-col gap-[21px]">
 				<div className="px-3 py-[3px]">
-					<img src={logo} alt="checkpad" width={176} height={42} />
+					<img src={logo} alt="checkpad" width={151} height={36} />
 				</div>
 				<nav aria-label="Main">
-					<ul className="flex flex-col gap-1.5">
+					<ul className="flex flex-col gap-1">
 						{items.map((item) => (
 							<li key={item.to}>
 								<NavLink
 									to={item.to}
 									end={item.end}
 									className={({ isActive }) =>
-										`block rounded-[6px] px-[21px] py-[9px] text-lg ${
+										`block rounded-[6px] px-[21px] py-1.5 text-lg ${
 											isActive ? 'bg-dark-blue font-display text-off-white' : 'tracking-[-0.45px] hover:bg-white/50'
 										}`
 									}
