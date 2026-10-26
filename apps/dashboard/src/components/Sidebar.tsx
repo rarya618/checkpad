@@ -29,8 +29,8 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
 									to={item.to}
 									end={item.end}
 									className={({ isActive }) =>
-										`block rounded-[6px] px-[21px] py-1.5 text-lg ${
-											isActive ? 'bg-dark-blue font-display text-off-white' : 'tracking-[-0.45px] hover:bg-white/50'
+										`block rounded-[6px] px-[21px] py-1.5 text-base ${
+											isActive ? 'bg-dark-blue font-display text-off-white' : 'tracking-[-0.4px] hover:bg-white/50'
 										}`
 									}
 								>
