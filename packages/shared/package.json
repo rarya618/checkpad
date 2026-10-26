@@ -7,6 +7,7 @@
     "./theme.css": "./theme.css",
     "./button": "./src/button.ts",
     "./events": "./src/events.ts",
+    "./countries": "./src/countries.ts",
     "./attendees": "./src/attendees.ts",
     "./format": "./src/format.ts",
     "./checkpad-logo.svg": "./assets/checkpad-logo.svg",

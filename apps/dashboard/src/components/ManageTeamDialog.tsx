@@ -1,4 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
+import { countries } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import xSmall from '../assets/x-small.svg';
 import x from '../assets/x.svg';
@@ -9,7 +10,7 @@ import { initialsOf, isOrganiser, roleLabel, saveTeamMembers, useMe, useOrganise
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
-import { TextField } from './Field';
+import { SelectField, TextField } from './Field';
 
 // Figma "Organisers – manage team", at 75% scale. Also used for New team (not designed),
 // starting empty. Nothing changes until Save team. Delete team (not designed) opens its own dialog.
@@ -19,6 +20,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 	const [name, setName] = useState(team?.name ?? '');
 	const [slug, setSlug] = useState(team?.slug ?? '');
 	const [slugEdited, setSlugEdited] = useState(team !== null);
+	const [country, setCountry] = useState(team?.country ?? '');
 	const [removed, setRemoved] = useState<string[]>([]);
 	const [invites, setInvites] = useState<string[]>([]);
 	const [newEmail, setNewEmail] = useState('');
@@ -54,7 +56,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!valid) return;
-					saveTeamMembers(team, { name: cleanName, slug: cleanSlugValue }, removed, invites.map((email) => ({ email, role: 'team-member' }))).then(
+					saveTeamMembers(team, { name: cleanName, slug: cleanSlugValue, country }, removed, invites.map((email) => ({ email, role: 'team-member' }))).then(
 						() => {
 							if (invites.length) showToast(invites.length === 1 ? `Invite sent to ${invites[0]}` : `Invites sent to ${invites.length} people`);
 						},
@@ -96,6 +98,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 							: `Printed signs will use ${WEB_HOST}/team/${cleanSlugValue || 'link-name'}.`}
 					</p>
 				</div>
+				<CountryField value={country} onChange={setCountry} />
 
 				{(members.length > 0 || invites.length > 0) && (
 					<div className="flex flex-col gap-[3px]">
@@ -182,5 +185,28 @@ function Member({ initials, name, detail, invited, role, onRemove }: { initials:
 				<img src={xSmall} alt="" width={15} height={15} />
 			</button>
 		</li>
+	);
+}
+
+/**
+ * Also on onboarding (OnboardingPage), where it's `required`. Empty for a team from before teams
+ * had a country, whose new events start in Sydney time.
+ */
+export function CountryField({ value, onChange, required = false }: { value: string; onChange: (code: string) => void; required?: boolean }) {
+	const country = countries.find((c) => c.code === value);
+	const hint = country
+		? `New events start in ${country.timeZones[0].city} time. You can change it on each event.`
+		: required
+			? 'New events start in its time zone.'
+			: 'New events start in Sydney time until you choose one.';
+	return (
+		<SelectField label="Country" value={value} onChange={(e) => onChange(e.target.value)} hint={hint} required={required}>
+			{!country && <option value="">Choose a country</option>}
+			{countries.map((c) => (
+				<option key={c.code} value={c.code}>
+					{c.name}
+				</option>
+			))}
+		</SelectField>
 	);
 }

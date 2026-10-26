@@ -18,7 +18,7 @@ import {
 import { useSession } from './auth';
 import { auth, db } from './firebase';
 import { liveStore } from './live';
-import { newTeamRef, teamData, type Team } from './teams';
+import { newTeamRef, teamData, teamName, type Team } from './teams';
 
 export type Role = 'super-admin' | 'organiser' | 'team-member';
 
@@ -37,7 +37,7 @@ export interface Organiser {
 	name: string | null;
 	email: string;
 	role: Role;
-	/** Super admins see every team, so theirs is null. */
+	/** Null for super admins, who see every team, and for an organiser who hasn't set up their new team yet. */
 	teamId: string | null;
 	/** Invited but hasn't signed in yet. */
 	invited: boolean;
@@ -115,10 +115,19 @@ export function useOrganisers(me: Organiser) {
 	return listStore.use(me.role === 'super-admin' ? 'all' : me.teamId);
 }
 
+/** Invited to start a new team and hasn't set it up yet: the dashboard shows onboarding until they do. */
+export const needsTeam = (o: Pick<Organiser, 'role' | 'teamId'>) => o.role === 'organiser' && o.teamId === null;
+
+/** Their team’s name for the Organisers page: "All teams" for super admins, "New team" until an invited organiser sets theirs up. */
+export function organiserTeam(teams: Team[] | undefined, o: Pick<Organiser, 'role' | 'teamId'>) {
+	return needsTeam(o) ? 'New team' : teamName(teams, o.teamId);
+}
+
 export function isOrganiser(organisers: Organiser[], email: string) {
 	return organisers.some((o) => o.email === email.trim().toLowerCase());
 }
 
+/** `teamId` null for an organiser invites them to set up a new team when they first sign in. */
 function invite(role: Role, teamId: string | null) {
 	return {
 		role,
@@ -146,7 +155,7 @@ export function removeOrganiser(id: string) {
  * invites, in one write. A new team is saved first, because the rules only let an invite
  * name a team that already exists.
  */
-export async function saveTeamMembers(team: Team | null, changes: Pick<Team, 'name' | 'slug'>, removedIds: string[], invites: { email: string; role: Role }[]) {
+export async function saveTeamMembers(team: Team | null, changes: Pick<Team, 'name' | 'slug' | 'country'>, removedIds: string[], invites: { email: string; role: Role }[]) {
 	const ref = team ? doc(db, 'teams', team.id) : newTeamRef();
 	const batch = writeBatch(db);
 	if (team) batch.set(ref, teamData(team, changes));

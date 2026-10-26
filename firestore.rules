@@ -82,15 +82,16 @@ service cloud.firestore {
         && !(value in ['api', 'check-in', 'privacy', 'team']);
     }
 
-    // admins/{email}: role, teamId (null for super admins), invitedAt, invitedBy,
-    // and name and lastSignInAt once they sign in
+    // admins/{email}: role, teamId, invitedAt, invitedBy, and name and lastSignInAt once they
+    // sign in. teamId is null for super admins, and for an organiser invited to start a new
+    // team until they set it up when they first sign in, through the API (functions/src/teams.ts)
 
     function isAdminEntry(email, data) {
       return isEmail(email)
         && data.role in ['super-admin', 'organiser', 'team-member']
         && (data.role == 'super-admin'
           ? data.teamId == null
-          : data.teamId is string && exists(doc('teams', data.teamId)));
+          : (data.teamId is string && exists(doc('teams', data.teamId))) || (data.role == 'organiser' && data.teamId == null));
     }
 
     match /admins/{email} {
@@ -123,17 +124,19 @@ service cloud.firestore {
         && request.resource.data.lastSignInAt == request.time;
     }
 
-    // teams/{teamId}: name, slug, walkInTicketPrefix. Every organiser sees every team's
-    // name (for menus); only super admins change them. Nobody deletes one from a browser:
-    // the rules can't see whether an event or organiser still uses it, so the API does it
-    // (functions/src/teams.ts).
+    // teams/{teamId}: name, slug, walkInTicketPrefix, and country (ISO 3166-1 alpha-2, which
+    // picks new events' time zone). Every organiser sees every team's name (for menus); only
+    // super admins change them. A new organiser's own team is set up through the API, and
+    // nobody deletes one from a browser: the rules can't see whether another team has the
+    // link, or whether an event or organiser still uses it (functions/src/teams.ts).
 
     function isTeam(data) {
-      return data.keys().hasOnly(['name', 'slug', 'walkInTicketPrefix', 'globalAccess'])
+      return data.keys().hasOnly(['name', 'slug', 'walkInTicketPrefix', 'globalAccess', 'country'])
         && isName(data.name)
         && isSlug(data.slug)
         && data.walkInTicketPrefix is string
-        && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$');
+        && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$')
+        && (!('country' in data) || (data.country is string && data.country.matches('^[A-Z]{2}$')));
     }
 
     match /teams/{teamId} {

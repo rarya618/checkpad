@@ -7,7 +7,7 @@ import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
 import { useEvent, useEventsFor, useRenamedSlug } from './lib/events';
 import { useRosterLoading } from './lib/roster';
-import { useCanEditEvents, useCurrentOrganiser, useMe } from './lib/organisers';
+import { needsTeam, useCanEditEvents, useCurrentOrganiser, useMe } from './lib/organisers';
 import { useTeams } from './lib/teams';
 import { useIsDesktop } from './lib/useMediaQuery';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -17,6 +17,7 @@ import EventAnalyticsPage from './pages/EventAnalyticsPage';
 import EventSettingsRoute from './pages/EventSettingsPage';
 import EventsPage from './pages/EventsPage';
 import NewEventPage from './pages/NewEventPage';
+import OnboardingPage from './pages/OnboardingPage';
 import OrganisersPage from './pages/OrganisersPage';
 import PrizeDrawPage from './pages/PrizeDrawPage';
 import { CheckEmailPage, NoAccessPage, SignInLinkPage, SignInPage } from './pages/SignInPages';
@@ -118,7 +119,9 @@ function ForEditors({ children, back }: { children: ReactNode; back: string }) {
 }
 
 // Every dashboard page and display needs a signed-in organiser (docs/migration-plan.md).
-// Waits for the teams and events too, so pages can show them straight away.
+// Waits for the teams and events too, so pages can show them straight away. An organiser
+// invited to start a new team sets it up first, whatever page they opened; once it's saved,
+// that page shows.
 function RequireOrganiser() {
 	const session = useSession();
 	const me = useCurrentOrganiser();
@@ -127,7 +130,9 @@ function RequireOrganiser() {
 	const { pathname, search } = useLocation();
 	if (session === null) return <Navigate to={`/sign-in?${new URLSearchParams({ next: pathname + search })}`} replace />;
 	if (me === null) return <Navigate to="/no-access" replace />;
-	if (!me || !teams || !events) return <Loading />;
+	if (!me || !teams) return <Loading />;
+	if (needsTeam(me)) return <OnboardingPage />;
+	if (!events) return <Loading />;
 	return <Outlet />;
 }
 

@@ -375,9 +375,26 @@ describe('organisers and teams', () => {
 		await assertFails(invite(boss(), 'Sam@Example.com', 'organiser', 'sydney'));
 		await assertFails(invite(boss(), 'sam@example.com', 'owner', 'sydney'));
 		await assertFails(invite(boss(), 'sam@example.com', 'organiser', 'nowhere'));
-		await assertFails(invite(boss(), 'sam@example.com', 'organiser', null));
+		await assertFails(invite(boss(), 'sam@example.com', 'team-member', null));
 		await assertFails(invite(boss(), 'sam@example.com', 'super-admin', 'sydney'));
 		await assertSucceeds(invite(boss(), 'sam@example.com', 'super-admin', null));
+	});
+
+	test('an organiser can be invited to start a new team, then sees no events or people', async () => {
+		await assertSucceeds(invite(boss(), 'sam@example.com', 'organiser', null));
+		const sam = as('sam@example.com');
+		await assertSucceeds(getDoc(doc(sam, 'admins/sam@example.com')));
+		await assertSucceeds(getDocs(collection(sam, 'teams')));
+		await assertFails(getDoc(doc(sam, 'events/syd')));
+		await assertFails(getDoc(doc(sam, 'admins/priya@example.com')));
+		await assertFails(createEvent(sam, 'new', event('sams-meetup', [])));
+	});
+
+	test('a new organiser can’t set up their team from a browser, or join someone else’s: the API does', async () => {
+		await env.withSecurityRulesDisabled((context) => setDoc(doc(context.firestore(), 'admins/sam@example.com'), admin('organiser', null)));
+		const sam = as('sam@example.com');
+		await assertFails(setDoc(doc(sam, 'teams/sams'), { name: 'Sam’s Meetup', slug: 'sams-meetup', walkInTicketPrefix: 'SAMSWALKIN', country: 'AU' }));
+		await assertFails(updateDoc(doc(sam, 'admins/sam@example.com'), { teamId: 'sydney' }));
 	});
 
 	test('signing in records your name and the time, on your own entry only', async () => {
@@ -392,6 +409,13 @@ describe('organisers and teams', () => {
 		await assertSucceeds(setDoc(doc(boss(), 'teams/perth'), team));
 		await assertSucceeds(updateDoc(doc(boss(), 'teams/perth'), { name: 'GDG Perth City' }));
 		await assertFails(setDoc(doc(boss(), 'teams/bad'), { ...team, walkInTicketPrefix: 'per walk' }));
+	});
+
+	test('a team’s country is a two-letter code', async () => {
+		const team = { name: 'GDG Perth', slug: 'gdg-perth', walkInTicketPrefix: 'PERWALKIN' };
+		await assertSucceeds(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'AU' }));
+		await assertFails(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'Australia' }));
+		await assertFails(setDoc(doc(boss(), 'teams/perth'), { ...team, country: 'au' }));
 	});
 
 	test('nobody deletes a team from a browser, super admins included: the API does', async () => {

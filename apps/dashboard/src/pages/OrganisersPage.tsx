@@ -15,8 +15,8 @@ import StatusBadge from '../components/StatusBadge';
 import { WEB_URL } from '../lib/config';
 import { useSession } from '../lib/auth';
 import { useEvents, type DashboardEvent } from '../lib/events';
-import { initialsOf, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
-import { teamName, useTeams, type Team } from '../lib/teams';
+import { initialsOf, organiserTeam, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
+import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 
 // Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
@@ -132,7 +132,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 										{roleLabel(o.role)}
 									</span>
 								</td>
-								<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{teamName(teams, o.teamId)}</td>
+								<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{organiserTeam(teams, o)}</td>
 								<td className="py-[7.5px]">
 									{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}
 								</td>

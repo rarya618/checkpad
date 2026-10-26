@@ -56,7 +56,7 @@ npm run seed -w @checkpad/functions
 npm run dev:emulators -w @checkpad/dashboard
 ```
 
-Sign in as a seeded organiser (`russal@example.com` super admin, `priya@example.com` organiser, `tom@example.com` team member) with an email link: the emulator sends no email, so "Check your email" shows an "open the link" button instead. Any other email gets "No access".
+Sign in as a seeded organiser (`russal@example.com` super admin, `priya@example.com` organiser, `tom@example.com` team member, `nina@example.com` organiser invited to start a new team, who sees onboarding) with an email link: the emulator sends no email, so "Check your email" shows an "open the link" button instead. Any other email gets "No access".
 
 ### functions (Cloud Functions)
 

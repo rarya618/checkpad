@@ -25,6 +25,8 @@ const admins: [string, Pick<AdminDoc, 'role' | 'teamId'> & { name?: string }][] 
 	['priya@example.com', { role: 'organiser', teamId: 'gdg-sydney', name: 'Priya Natarajan' }],
 	['tom@example.com', { role: 'team-member', teamId: 'gdg-sydney', name: 'Tom Becker' }],
 	['sam@example.com', { role: 'organiser', teamId: 'gdg-sydney' }],
+	// Invited to start a new team: signing in shows onboarding
+	['nina@example.com', { role: 'organiser', teamId: null }],
 ];
 
 // The marketing site's waitlist, which super admins see on the Organisers page. Alex signed up twice.
@@ -35,14 +37,15 @@ const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
 
 for (const team of demoTeams) {
-	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN' } satisfies TeamDoc);
+	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN', country: 'AU' } satisfies TeamDoc);
 }
-// A team with no events or members, which Manage team can delete
+// A team with no events or members, which Manage team can delete. No country, like a team
+// from before teams had one: its new events start in Sydney time.
 batch.set(db.doc('teams/gdg-melbourne'), { name: 'GDG Melbourne', slug: 'gdg-melbourne', walkInTicketPrefix: 'MELWALKIN' } satisfies TeamDoc);
 const now = Timestamp.now();
 waitlist.forEach((email, i) => batch.set(db.collection('waitlist').doc(), { email, createdAt: Timestamp.fromMillis(now.toMillis() - (waitlist.length - i) * 86_400_000) }));
 for (const [email, { name, ...access }] of admins) {
-	// Sam is still "Invited": no name or sign-in yet
+	// Sam and Nina are still "Invited": no name or sign-in yet
 	const doc: AdminDoc = { ...access, invitedAt: now, invitedBy: 'russal@example.com', ...(name && { name, lastSignInAt: now }) };
 	batch.set(db.doc(`admins/${email}`), doc);
 }

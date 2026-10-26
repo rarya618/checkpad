@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import mail from '../assets/mail.svg';
 import x from '../assets/x.svg';
 import { looksLikeEmail } from '../lib/checkIn';
-import { inviteOrganiser, isOrganiser, removeOrganiser, roles, updateOrganiser, useMe, useOrganisers, type Organiser, type Role } from '../lib/organisers';
+import { inviteOrganiser, isOrganiser, needsTeam, removeOrganiser, roles, updateOrganiser, useMe, useOrganisers, type Organiser, type Role } from '../lib/organisers';
 import { teamName, useTeams } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
@@ -32,20 +32,47 @@ function Actions({ onCancel, submit, disabled }: { onCancel: () => void; submit:
 	);
 }
 
-/** Role and team selects (team IDs); super admins see every team, so their team is fixed to "All teams". */
+// The Team select's "New team" option (not in Figma): an organiser invited to start their own
+// team, which they name when they first sign in (OnboardingPage)
+const NEW_TEAM = 'new';
+
+/** The team ID to save for the Team select's value. */
+const teamIdFor = (team: string) => (team === NEW_TEAM || team === '' ? null : team);
+
+/**
+ * Role and team selects (team IDs, or NEW_TEAM); super admins see every team, so their team is
+ * fixed to "All teams". Only organisers can start a new team: team members join an existing one.
+ */
 function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: string; setRole: (r: Role) => void; setTeam: (t: string) => void }) {
 	const teams = useTeams() ?? [];
 	return (
 		<>
-			<SelectField label="Role" value={role} onChange={(e) => setRole(e.target.value as Role)} hint={`${roles.find((r) => r.id === role)!.description}.`}>
+			<SelectField
+				label="Role"
+				value={role}
+				onChange={(e) => {
+					const next = e.target.value as Role;
+					setRole(next);
+					if (next === 'team-member' && team === NEW_TEAM) setTeam(teams[0]?.id ?? '');
+				}}
+				hint={`${roles.find((r) => r.id === role)!.description}.`}
+			>
 				{roles.map((r) => (
 					<option key={r.id} value={r.id}>
 						{r.label}
 					</option>
 				))}
 			</SelectField>
-			<SelectField label="Team" value={role === 'super-admin' ? '' : team} disabled={role === 'super-admin'} onChange={(e) => setTeam(e.target.value)} className="has-disabled:opacity-60">
+			<SelectField
+				label="Team"
+				value={role === 'super-admin' ? '' : team}
+				disabled={role === 'super-admin'}
+				onChange={(e) => setTeam(e.target.value)}
+				hint={role === 'organiser' && team === NEW_TEAM ? 'They’ll name the team and choose its country when they first sign in.' : undefined}
+				className="has-disabled:opacity-60"
+			>
 				{role === 'super-admin' && <option value="">All teams</option>}
+				{role === 'organiser' && <option value={NEW_TEAM}>New team</option>}
 				{teams.map((t) => (
 					<option key={t.id} value={t.id}>
 						{t.name}
@@ -56,13 +83,13 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 	);
 }
 
-/** `email` fills in the address, for someone invited from the waitlist. */
+/** `email` fills in the address, for someone invited from the waitlist, who starts a new team. */
 export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { email?: string; onClose: () => void }) {
 	const teams = useTeams() ?? [];
 	const organisers = useOrganisers(useMe()) ?? [];
 	const [email, setEmail] = useState(initialEmail);
 	const [role, setRole] = useState<Role>('organiser');
-	const [team, setTeam] = useState(teams[0]?.id ?? '');
+	const [team, setTeam] = useState(initialEmail ? NEW_TEAM : (teams[0]?.id ?? ''));
 	const taken = looksLikeEmail(email) && isOrganiser(organisers, email);
 	const valid = looksLikeEmail(email) && !taken && (role === 'super-admin' || team !== '');
 
@@ -74,7 +101,7 @@ export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { emai
 					e.preventDefault();
 					if (!valid) return;
 					const address = email.trim();
-					inviteOrganiser(address, role, team).catch(() => showToast(`Couldn’t add ${address}. Try again.`));
+					inviteOrganiser(address, role, teamIdFor(team)).catch(() => showToast(`Couldn’t add ${address}. Try again.`));
 					showToast(`Invite sent to ${address}`);
 					onClose();
 				}}
@@ -105,7 +132,7 @@ export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { emai
 export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organiser; onClose: () => void }) {
 	const teams = useTeams() ?? [];
 	const [role, setRole] = useState<Role>(organiser.role);
-	const [team, setTeam] = useState(organiser.teamId ?? teams[0]?.id ?? '');
+	const [team, setTeam] = useState(organiser.teamId ?? (needsTeam(organiser) ? NEW_TEAM : (teams[0]?.id ?? '')));
 	const name = organiser.name ?? organiser.email;
 
 	return (
@@ -120,7 +147,7 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 				className="flex flex-col gap-[18px]"
 				onSubmit={(e) => {
 					e.preventDefault();
-					updateOrganiser(organiser.id, { role, teamId: team || null }).catch(() => showToast(`Couldn’t save ${name}’s changes. Try again.`));
+					updateOrganiser(organiser.id, { role, teamId: teamIdFor(team) }).catch(() => showToast(`Couldn’t save ${name}’s changes. Try again.`));
 					onClose();
 				}}
 			>
@@ -141,7 +168,8 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 export function RemoveOrganiserDialog({ organiser, onClose }: { organiser: Organiser; onClose: () => void }) {
 	const name = organiser.name ?? organiser.email;
 	const teams = useTeams();
-	const scope = organiser.teamId ? `${teamName(teams, organiser.teamId)}’s events` : 'every event and team';
+	const scope =
+		organiser.role === 'super-admin' ? 'every event and team' : organiser.teamId ? `${teamName(teams, organiser.teamId)}’s events` : 'the dashboard';
 	return (
 		<Dialog
 			title={`Remove ${name}?`}

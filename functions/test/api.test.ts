@@ -279,19 +279,20 @@ describe('POST /auth/sign-in-link', () => {
 	});
 });
 
-describe('DELETE /admin/teams/:teamId', () => {
-	const AUTH = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+const AUTH = process.env.FIREBASE_AUTH_EMULATOR_HOST;
 
-	/** An ID token for `email`, from the Auth emulator, as the dashboard sends it. */
-	async function tokenFor(email: string, emailVerified = true) {
-		await getAuth().createUser({ email, emailVerified, password: 'password' });
-		const res = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ email, password: 'password', returnSecureToken: true }),
-		});
-		return ((await res.json()) as { idToken: string }).idToken;
-	}
+/** An ID token for `email`, from the Auth emulator, as the dashboard sends it. */
+async function tokenFor(email: string, emailVerified = true) {
+	await getAuth().createUser({ email, emailVerified, password: 'password' });
+	const res = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-key`, {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({ email, password: 'password', returnSecureToken: true }),
+	});
+	return ((await res.json()) as { idToken: string }).idToken;
+}
+
+describe('DELETE /admin/teams/:teamId', () => {
 
 	async function deleteTeam(teamId: string, token?: string) {
 		const res = await fetch(`${API}/admin/teams/${teamId}`, { method: 'DELETE', headers: token ? { authorization: `Bearer ${token}` } : {} });
@@ -336,5 +337,70 @@ describe('DELETE /admin/teams/:teamId', () => {
 		await db.doc('admins/unverified@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0) });
 		assert.deepEqual(await deleteTeam('team-empty', await tokenFor('unverified@example.com', false)), { status: 401, body: { error: 'forbidden' } });
 		assert.equal(await teamExists('team-empty'), true);
+	});
+});
+
+describe('POST /onboarding/team', () => {
+	const team = { name: 'Sam’s Meetup', slug: 'sams-meetup', country: 'NZ' };
+
+	async function setUp(body: object, token?: string) {
+		const res = await fetch(`${API}/onboarding/team`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json', ...(token && { authorization: `Bearer ${token}` }) },
+			body: JSON.stringify(body),
+		});
+		return { status: res.status, body: await res.json() };
+	}
+
+	const teamOf = async (email: string) => (await db.doc(`admins/${email}`).get()).get('teamId');
+
+	beforeEach(async () => {
+		assert.ok(AUTH, 'Run with the Auth emulator so FIREBASE_AUTH_EMULATOR_HOST is set');
+		await fetch(`http://${AUTH}/emulator/v1/projects/${PROJECT}/accounts`, { method: 'DELETE' });
+		await db.doc('admins/sam@example.com').set({ role: 'organiser', teamId: null, invitedAt: at(0) });
+		await db.doc('admins/priya@example.com').set({ role: 'organiser', teamId: 'team-test', invitedAt: at(0) });
+	});
+
+	test('a new organiser creates their team and joins it', async () => {
+		const { status, body } = await setUp(team, await tokenFor('sam@example.com'));
+		assert.equal(status, 200);
+		assert.equal(body.status, 'created');
+		assert.equal(await teamOf('sam@example.com'), body.teamId);
+		assert.deepEqual((await db.doc(`teams/${body.teamId}`).get()).data(), { ...team, walkInTicketPrefix: 'SAMSWALKIN' });
+	});
+
+	test('trims the name', async () => {
+		const { body } = await setUp({ ...team, name: '  Sam’s Meetup ' }, await tokenFor('sam@example.com'));
+		assert.equal((await db.doc(`teams/${body.teamId}`).get()).get('name'), 'Sam’s Meetup');
+	});
+
+	test('refuses a link or name another team has', async () => {
+		const token = await tokenFor('sam@example.com');
+		assert.deepEqual(await setUp({ ...team, slug: 'gdg-test' }, token), { status: 409, body: { error: 'slug-taken' } });
+		assert.deepEqual(await setUp({ ...team, name: 'gdg TEST' }, token), { status: 409, body: { error: 'name-taken' } });
+		assert.equal(await teamOf('sam@example.com'), null);
+	});
+
+	test('refuses a bad link, a missing name or a country that isn’t a code', async () => {
+		const token = await tokenFor('sam@example.com');
+		for (const body of [{ ...team, slug: 'Sams Meetup' }, { ...team, slug: 'team' }, { ...team, name: ' ' }, { ...team, country: 'New Zealand' }, { name: 'x', slug: 'x' }]) {
+			assert.deepEqual(await setUp(body, token), { status: 400, body: { error: 'invalid' } }, JSON.stringify(body));
+		}
+	});
+
+	test('only once, and only for an organiser invited without a team', async () => {
+		const sam = await tokenFor('sam@example.com');
+		assert.equal((await setUp(team, sam)).status, 200);
+		assert.deepEqual(await setUp({ ...team, name: 'Second', slug: 'second' }, sam), { status: 403, body: { error: 'forbidden' } });
+		assert.deepEqual(await setUp({ ...team, name: 'Other', slug: 'other' }, await tokenFor('priya@example.com')), { status: 403, body: { error: 'forbidden' } });
+		assert.deepEqual(await setUp({ ...team, name: 'Other', slug: 'other' }, await tokenFor('stranger@example.com')), { status: 403, body: { error: 'forbidden' } });
+		assert.deepEqual(await setUp({ ...team, name: 'Other', slug: 'other' }), { status: 401, body: { error: 'forbidden' } });
+	});
+
+	test('not for team members or super admins', async () => {
+		await db.doc('admins/tom@example.com').set({ role: 'team-member', teamId: null, invitedAt: at(0) });
+		await db.doc('admins/boss@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0) });
+		assert.deepEqual(await setUp(team, await tokenFor('tom@example.com')), { status: 403, body: { error: 'forbidden' } });
+		assert.deepEqual(await setUp(team, await tokenFor('boss@example.com')), { status: 403, body: { error: 'forbidden' } });
 	});
 });

@@ -55,12 +55,17 @@ export interface TeamDoc {
 	/** New events copy it: GDGWALKIN */
 	walkInTicketPrefix: string;
 	globalAccess?: boolean;
+	/** ISO 3166-1 alpha-2: "AU". New events start in its time zone (packages/shared/src/countries.ts). */
+	country?: string;
 }
 
 /** admins/{email}: who can sign in to the dashboard, and what they can do (firestore.rules). */
 export interface AdminDoc {
 	role: 'super-admin' | 'organiser' | 'team-member';
-	/** Null for super admins, who see every team. */
+	/**
+	 * Null for super admins, who see every team, and for an organiser invited to start a new
+	 * team, until they set it up when they first sign in (teams.ts).
+	 */
 	teamId: string | null;
 	invitedAt: Timestamp;
 	invitedBy: string;

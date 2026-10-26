@@ -1,4 +1,5 @@
 // Form values for New event and Event settings, and the conversions to and from an event.
+import { countries } from '@checkpad/shared/countries';
 import { isSlugTaken, type DashboardEvent, type EventInput } from './events';
 
 export interface EventForm {
@@ -18,15 +19,7 @@ export interface EventForm {
 	selfCheckInOpen: boolean;
 }
 
-export const timeZones = [
-	{ id: 'Australia/Sydney', city: 'Sydney' },
-	{ id: 'Australia/Melbourne', city: 'Melbourne' },
-	{ id: 'Australia/Brisbane', city: 'Brisbane' },
-	{ id: 'Australia/Adelaide', city: 'Adelaide' },
-	{ id: 'Australia/Hobart', city: 'Hobart' },
-	{ id: 'Australia/Perth', city: 'Perth' },
-	{ id: 'Pacific/Auckland', city: 'Auckland' },
-];
+const timeZones = countries.flatMap((c) => c.timeZones);
 
 /** "Sydney (AEST)", with the abbreviation in effect on `date` (AEDT in summer). */
 export function timeZoneLabel(timeZone: string, date = new Date()) {

@@ -1,4 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
+import { defaultTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { DateTimeFields } from '../components/EventFields';
@@ -8,6 +9,7 @@ import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
 import { createEvent, isSlugTaken } from '../lib/events';
+import { useMe } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 
@@ -18,7 +20,7 @@ const blank: EventForm = {
 	date: '',
 	start: '17:00',
 	end: '20:00',
-	timeZone: 'Australia/Sydney',
+	timeZone: '',
 	team: '',
 	walkInTicketTitle: 'General admission',
 	walkInVenue: '',
@@ -30,16 +32,25 @@ const blank: EventForm = {
 export default function NewEventPage() {
 	const navigate = useNavigate();
 	const teams = useTeams() ?? [];
-	const [form, setForm] = useState(() => ({ ...blank, team: teams[0]?.id ?? '' }));
+	const me = useMe();
+	// Your own team; super admins start with the first
+	const [form, setForm] = useState(() => {
+		const team = teams.find((t) => t.id === me.teamId) ?? teams[0];
+		return { ...blank, team: team?.id ?? '', timeZone: defaultTimeZone(team?.country) };
+	});
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
 	const [slugEdited, setSlugEdited] = useState(false);
 	const [suffix] = useState(randomSuffix);
+	// The time zone follows the team's country until someone picks one
+	const [timeZoneEdited, setTimeZoneEdited] = useState(false);
 
 	function update<K extends keyof EventForm>(key: K, value: EventForm[K]) {
+		if (key === 'timeZone') setTimeZoneEdited(true);
 		setForm((f) => {
 			const next = { ...f, [key]: value };
 			if (!slugEdited && key === 'name') next.slug = suggestedSlug(next.name, suffix);
+			if (!timeZoneEdited && key === 'team') next.timeZone = defaultTimeZone(teams.find((t) => t.id === value)?.country);
 			return next;
 		});
 	}

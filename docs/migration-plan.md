@@ -177,7 +177,9 @@ events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), sou
                                      bevyOrderNumber?
 events/{eventId}/draw/{ticket}       result ('won' | 'not-here'), drawnAt, winnerNumber?
 admins/{email}                       role, teamId?, invitedAt, invitedBy, lastSignInAt?
-teams/{teamId}                       name, slug, globalAccess
+                                     (teamId null for super admins, and for an organiser invited
+                                     to start a new team until they set it up on first sign-in)
+teams/{teamId}                       name, slug, walkInTicketPrefix, country?, globalAccess
 rateLimits/{hash}                    count, expireAt (check-in attempts per network; a TTL policy deletes them)
 ```
 

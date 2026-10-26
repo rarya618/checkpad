@@ -41,18 +41,20 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 
 const ROLES: Record<AdminDoc['role'], string> = { 'super-admin': 'a super admin', organiser: 'an organiser', 'team-member': 'a team member' };
 
-function access(role: AdminDoc['role'], team: string) {
+/** `team` is null for an organiser who sets up a new team when they first sign in. */
+function access(role: AdminDoc['role'], team: string | null) {
 	if (role === 'super-admin') return 'You can see and run every team’s events, and manage organisers.';
-	if (role === 'organiser') return `You can create and edit ${team}’s events.`;
-	return `You can check people in at ${team}’s events.`;
+	if (role === 'organiser') return team ? `You can create and edit ${team}’s events.` : 'You can set up your team and create and edit its events.';
+	return `You can check people in at ${team ?? 'your team'}’s events.`;
 }
 
+const FIRST_EVENT =
+	'For your first event: create it, import the attendee CSV from Bevy, then scan its QR code with your own phone and check in as someone on the list. You can undo that check-in on the Attendees page.';
+
 /** What to do first, so the first time they see check-in from an attendee's side isn't on the night. */
-function firstSteps(role: AdminDoc['role']) {
+function firstSteps(role: AdminDoc['role'], newTeam: boolean) {
 	if (role === 'super-admin') return 'Start on the Events page, or add organisers from Organisers.';
-	if (role === 'organiser') {
-		return 'For your first event: create it, import the attendee CSV from Bevy, then scan its QR code with your own phone and check in as someone on the list. You can undo that check-in on the Attendees page.';
-	}
+	if (role === 'organiser') return newTeam ? `When you first sign in, name your team and choose its country. ${FIRST_EVENT}` : FIRST_EVENT;
 	return 'Before the night, open the event, scan its QR code with your own phone and check in as someone on the list, so you know what attendees see. You can undo that check-in on the Attendees page.';
 }
 
@@ -74,8 +76,8 @@ export async function sendInvite(db: Firestore, mail: Mailer, run: { id: string;
 		variables: {
 			INVITER: inviter.get('name') ?? admin.invitedBy,
 			ROLE: ROLES[admin.role],
-			ACCESS: access(admin.role, (team?.data() as TeamDoc | undefined)?.name ?? 'your team'),
-			NEXT: firstSteps(admin.role),
+			ACCESS: access(admin.role, admin.teamId ? ((team?.data() as TeamDoc | undefined)?.name ?? 'your team') : null),
+			NEXT: firstSteps(admin.role, !admin.teamId),
 			ADDRESS: run.email,
 			LINK: `${DASHBOARD_URL}/sign-in`,
 		},

@@ -12,6 +12,8 @@ export interface Team {
 	/** Walk-in tickets count up from here: GDGWALKIN0001, GDGWALKIN0002, … */
 	walkInTicketPrefix: string;
 	globalAccess?: boolean;
+	/** ISO code: "AU". New events start in its time zone (@checkpad/shared/countries). */
+	country?: string;
 }
 
 /** New teams' walk-in tickets: the link's first word, GDG for gdg-sydney. */
@@ -33,6 +35,7 @@ const store = liveStore<Team[]>((_key, emit, fail) =>
 							slug: data.slug,
 							walkInTicketPrefix: data.walkInTicketPrefix ?? defaultPrefix(data.slug),
 							...(data.globalAccess !== undefined && { globalAccess: data.globalAccess }),
+							...(data.country !== undefined && { country: data.country }),
 						};
 					})
 					.sort((a, b) => a.name.localeCompare(b.name)),
@@ -58,12 +61,13 @@ export const teamName = (teams: Team[] | undefined, teamId: string | null) =>
 export const newTeamRef = () => doc(collection(db, 'teams'));
 
 /** The fields to save for a new or changed team; keeps an existing team's walk-in prefix. */
-export function teamData(existing: Team | null, team: Pick<Team, 'name' | 'slug'>) {
+export function teamData(existing: Team | null, team: Pick<Team, 'name' | 'slug' | 'country'>) {
 	return {
 		name: team.name,
 		slug: team.slug,
 		walkInTicketPrefix: existing?.walkInTicketPrefix ?? defaultPrefix(team.slug),
 		...(existing?.globalAccess !== undefined && { globalAccess: existing.globalAccess }),
+		...(team.country && { country: team.country }),
 	};
 }
 
@@ -83,5 +87,26 @@ export async function deleteTeam(team: Team): Promise<string | null> {
 		return null;
 	} catch {
 		return `Couldn’t delete ${team.name}. Check your connection and try again.`;
+	}
+}
+
+/**
+ * Onboarding: an organiser invited to start a new team creates it and joins it. Through the API
+ * (functions/src/teams.ts), because the rules can't check that no other team has the name or
+ * link. Resolves with what's wrong, or null once the team is saved; the organiser's own entry
+ * then updates with the team, which takes them into the dashboard.
+ */
+export async function setUpTeam(team: Required<Pick<Team, 'name' | 'slug' | 'country'>>): Promise<'name-taken' | 'slug-taken' | 'failed' | null> {
+	try {
+		const res = await fetch('/api/onboarding/team', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json', authorization: `Bearer ${await auth.currentUser!.getIdToken()}` },
+			body: JSON.stringify(team),
+		});
+		if (res.ok) return null;
+		const { error } = (await res.json().catch(() => ({}))) as { error?: string };
+		return error === 'name-taken' || error === 'slug-taken' ? error : 'failed';
+	} catch {
+		return 'failed';
 	}
 }
