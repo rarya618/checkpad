@@ -34,7 +34,8 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 	// Close after following a link
 	useEffect(() => setOpen(false), [pathname]);
 
-	const item = 'block rounded-lg px-5 py-2.5 text-lg leading-[1.5]';
+	// The sidebar's text sizes, with slightly taller rows to tap
+	const item = 'block rounded-lg px-5 py-2 text-base leading-[1.5]';
 	const idle = 'tracking-tight hover:bg-white/50';
 
 	return (
@@ -53,9 +54,9 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 				onClick={(e) => e.target === e.currentTarget && setOpen(false)}
 				className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-light-blue p-0 text-dark-blue backdrop:bg-dark-blue/45"
 			>
-				<div className="flex flex-col gap-1 px-4 pt-5 pb-6">
+				<div className="flex min-h-[70dvh] flex-col gap-1 px-4 pt-5 pb-6">
 					<div className="flex items-center pb-2 pl-3">
-						<p className="min-w-0 flex-1 truncate font-display text-xl leading-[1.5]">{title}</p>
+						<p className="min-w-0 flex-1 truncate font-display text-lg leading-[1.5]">{title}</p>
 						<button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="-m-1 rounded p-1 hover:bg-white/50">
 							<img src={close} alt="" width={28} height={28} />
 						</button>
@@ -75,6 +76,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 							))}
 						</ul>
 					</nav>
+					<div className="flex-1" />
 					<div className="my-2 h-px bg-med-blue/40" />
 					<ul className="flex flex-col gap-1">
 						{[...extras, { label: 'Sign out', onSelect: signOut }].map((x) => (
