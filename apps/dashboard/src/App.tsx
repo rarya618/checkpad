@@ -33,7 +33,7 @@ const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Wait
 
 // The window never scrolls: the sidebar is locked in place and only the content
 // column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and
-// a slide-in menu instead, and the page scrolls normally.
+// a menu that slides up from the bottom instead, and the page scrolls normally.
 function DashboardLayout({ items, mobile }: { items: SidebarItem[]; mobile: MobileNavConfig }) {
 	const desktop = useIsDesktop();
 	if (!desktop) {

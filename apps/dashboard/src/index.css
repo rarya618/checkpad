@@ -62,7 +62,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 }
 
-/* Phone menu (MobileNav) slides in from the right instead of the dialogs' fade and scale */
+/* Phone menu (MobileNav) slides up from the bottom instead of the dialogs' fade and scale */
 @media (prefers-reduced-motion: no-preference) {
   dialog[data-drawer][open] {
     scale: none;
@@ -73,7 +73,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     dialog[data-drawer][open] {
       opacity: 1;
       scale: none;
-      translate: 100% 0;
+      translate: 0 100%;
     }
   }
 }
