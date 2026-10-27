@@ -50,4 +50,14 @@
 @utility font-display {
   font-weight: 800;
   font-variation-settings: "opsz" 96;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Bold text is tightened like the display font; these add to Tailwind's own utilities */
+@utility font-bold {
+  letter-spacing: var(--tracking-tight);
+}
+
+@utility font-semibold {
+  letter-spacing: var(--tracking-tight);
 }

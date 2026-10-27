@@ -44,7 +44,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				</nav>
 				<div className="flex flex-col gap-[4.5px]">
 					<h1 className="font-display text-3xl">{event.name}</h1>
-					<p className="text-[15px] font-semibold tracking-tight text-black">
+					<p className="text-[15px] font-semibold text-black">
 						{formatDate(start, event.timeZone)}, {formatTimeRange(start, end, event.timeZone)}
 					</p>
 				</div>
@@ -96,7 +96,7 @@ function CheckInLink({ url }: { url: string }) {
 				href={url}
 				target="_blank"
 				rel="noreferrer"
-				className="truncate text-[15px] font-semibold tracking-tight text-med-blue underline"
+				className="truncate text-[15px] font-semibold text-med-blue underline"
 			>
 				{url.replace(/^https?:\/\//, '')}
 			</a>
