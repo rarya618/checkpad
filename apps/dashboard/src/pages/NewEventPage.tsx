@@ -94,7 +94,7 @@ export default function NewEventPage() {
 							</li>
 						</ol>
 					</nav>
-					<h1 className="font-display text-3xl">New event</h1>
+					<h1 className="font-display text-2xl md:text-3xl">New event</h1>
 				</div>
 				<div className="flex shrink-0 items-center gap-[15px]">
 					<Link to="/events" className={buttonClass('secondary')}>

@@ -28,7 +28,7 @@ export default function PageHeader({ title, actions, titleAddon, level = 1, clas
 			{/* As tall as the sidebar logo (36px), which the title fills; taller buttons overhang it evenly */}
 			<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-3 md:h-9 md:flex-nowrap">
 				<div className="flex min-w-0 items-center gap-3">
-					<Heading className="font-display text-3xl">{title}</Heading>
+					<Heading className="font-display text-2xl md:text-3xl">{title}</Heading>
 					{titleAddon}
 				</div>
 				{actions}

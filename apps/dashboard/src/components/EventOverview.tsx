@@ -44,7 +44,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 					</ol>
 				</nav>
 				<div className="flex flex-col gap-[4.5px]">
-					<h1 className="font-display text-3xl">{event.name}</h1>
+					<h1 className="font-display text-2xl md:text-3xl">{event.name}</h1>
 					<p className="text-[15px] font-semibold text-black">
 						{formatDate(start, event.timeZone)}, {formatTimeRange(start, end, event.timeZone)}
 					</p>
