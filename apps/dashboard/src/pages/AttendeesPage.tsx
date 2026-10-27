@@ -41,6 +41,7 @@ export default function AttendeesPage() {
 		<>
 			<EventOverview event={event} />
 			<PageHeader
+				actionsRowOnPhones
 				level={2}
 				title="Attendees"
 				// 40.5px above (the gap below the event details); sticks with 24px left, like the page headers

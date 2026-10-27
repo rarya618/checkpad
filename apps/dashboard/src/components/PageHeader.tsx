@@ -15,14 +15,41 @@ interface Props {
 	 * and 15px below, like the event pages' headers.
 	 */
 	className?: string;
+	/**
+	 * Phones: the actions don't fit beside the title, so they get a row of their own that sticks
+	 * while the title scrolls away (a search box, Save, filters), keeping the stuck part short.
+	 */
+	actionsRowOnPhones?: boolean;
 }
 
-export default function PageHeader({ title, actions, titleAddon, level = 1, className = 'top-[-34px] pt-[58px] pb-[15px]' }: Props) {
+export default function PageHeader({
+	title,
+	actions,
+	titleAddon,
+	level = 1,
+	className = 'top-[-34px] pt-[58px] pb-[15px]',
+	actionsRowOnPhones = false,
+}: Props) {
 	const Heading = level === 1 ? 'h1' : 'h2';
+	const desktop = useIsDesktop();
 	// Phones have no sidebar logo to line up with: a page title sits just below the top bar's
-	// logo, and a section title 24px below what's above it. Actions that don't fit beside the
-	// title wrap onto a line of their own.
-	const spacing = useIsDesktop() ? className : `top-0 pb-[15px] ${level === 1 ? 'pt-3' : 'pt-6'}`;
+	// logo, and a section title 24px below what's above it.
+	const above = level === 1 ? 'pt-3' : 'pt-6';
+	if (!desktop && actionsRowOnPhones) {
+		return (
+			<>
+				<header className={`px-6 ${above}`}>
+					<div className="flex min-h-9 min-w-0 items-center gap-3">
+						<Heading className="font-display text-2xl">{title}</Heading>
+						{titleAddon}
+					</div>
+				</header>
+				<div className="sticky top-0 z-10 bg-off-white px-6 pt-3 pb-[15px]">{actions}</div>
+			</>
+		);
+	}
+	// Otherwise actions that don't fit beside the title wrap onto a line of their own
+	const spacing = desktop ? className : `top-0 pb-[15px] ${above}`;
 	return (
 		<header className={`sticky z-10 bg-off-white px-6 ${spacing}`}>
 			{/* As tall as the sidebar logo (36px), which the title fills; taller buttons overhang it evenly */}

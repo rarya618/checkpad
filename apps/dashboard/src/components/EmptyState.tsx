@@ -17,7 +17,7 @@ export default function EmptyState({
 	compact?: boolean;
 }) {
 	return (
-		<section className={`flex flex-col items-center gap-[18px] rounded-xl border border-med-blue bg-white px-9 text-center ${compact ? 'py-9' : 'py-[54px]'}`}>
+		<section className={`flex flex-col items-center gap-[18px] rounded-xl border border-med-blue bg-white px-6 text-center md:px-9 ${compact ? 'py-9' : 'py-[54px]'}`}>
 			<span className="flex size-[66px] items-center justify-center rounded-full bg-light-blue">
 				<img src={icon} alt="" width={30} height={30} />
 			</span>
@@ -25,7 +25,8 @@ export default function EmptyState({
 				<h2 className="font-display text-2xl leading-[1.2] break-words">{title}</h2>
 				<p className="text-[15px] leading-[1.5] text-med-blue">{description}</p>
 			</div>
-			<div className="flex gap-3">{actions}</div>
+			{/* Buttons keep their labels on one line, and wrap onto a second row on phones if they must */}
+			<div className="flex flex-wrap justify-center gap-3 *:whitespace-nowrap">{actions}</div>
 		</section>
 	);
 }

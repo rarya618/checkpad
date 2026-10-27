@@ -42,6 +42,7 @@ export default function AnalyticsPage() {
 	return (
 		<>
 			<PageHeader
+				actionsRowOnPhones
 				title="Analytics"
 				actions={
 					<div className="flex items-center gap-[9px] max-md:w-full max-md:*:flex-1">

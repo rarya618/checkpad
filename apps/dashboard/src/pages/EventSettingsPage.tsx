@@ -111,6 +111,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 				}}
 			>
 				<PageHeader
+					actionsRowOnPhones
 					level={2}
 					title="Settings"
 					// 24px above (the gap below the event details); sticks with 24px left, like the page headers
@@ -192,7 +193,8 @@ function EventSettingsPage({ slug }: { slug: string }) {
 
 			{blocker.state === 'blocked' && (
 				<Dialog title="Leave without saving?" description={unsavedMessage(changed)} onClose={() => blocker.reset()} className="w-[624px]">
-					<div className="flex justify-end gap-3">
+					{/* Stacked on phones, with Save and leave on top */}
+					<div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end">
 						<button type="button" onClick={() => blocker.reset()} className={buttonClass('secondary')}>
 							Keep editing
 						</button>

@@ -30,7 +30,8 @@ export default function EventAnalyticsPage() {
 			<EventOverview event={event} />
 			<PageHeader level={2} title="Analytics" className="top-0 pt-6 pb-[15px]" />
 			<div className="flex flex-col gap-[15px] px-6 pb-[27px]">
-				<div className="flex gap-[15px]">
+				{/* Phones: the tiles two by two, and the charts one above the other */}
+				<div className="grid grid-cols-2 gap-[15px] md:flex">
 					<StatTile label="Checked in" value={String(stats.checkedIn)} note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total}`} />
 					<StatTile label="Pre-registered" value={String(stats.preRegistered)} note={`of ${roster.filter((a) => !a.walkIn).length} from Bevy`} />
 					<StatTile
@@ -44,7 +45,7 @@ export default function EventAnalyticsPage() {
 						note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrivals` : 'No check-ins yet'}
 					/>
 				</div>
-				<div className="flex items-start gap-[15px]">
+				<div className="flex flex-col gap-[15px] md:flex-row md:items-start">
 					<section className="flex min-w-0 flex-1 flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
 						<div className="flex items-start gap-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5]">
@@ -66,7 +67,7 @@ export default function EventAnalyticsPage() {
 							}))}
 						/>
 					</section>
-					<section className="flex w-[285px] shrink-0 flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
+					<section className="flex shrink-0 flex-col md:w-[285px] gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
 						<div className="flex flex-col gap-[3px] leading-[1.5]">
 							<h3 className="font-display text-lg">By ticket type</h3>
 							<p className="text-xs text-med-blue">Checked in of registered</p>

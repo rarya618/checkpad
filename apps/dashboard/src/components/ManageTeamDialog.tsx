@@ -154,9 +154,14 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 					</button>
 				</div>
 
-				<div className="flex justify-end gap-3">
+				{/* Phones: no room for all three on a line, so Delete team gets its own below */}
+				<div className="flex flex-wrap justify-end gap-3">
 					{team && (
-						<button type="button" onClick={onDelete} className={`${buttonClass('secondary')} mr-auto whitespace-nowrap`}>
+						<button
+							type="button"
+							onClick={onDelete}
+							className={`${buttonClass('secondary')} whitespace-nowrap max-md:order-last max-md:basis-full md:mr-auto`}
+						>
 							Delete team
 						</button>
 					)}

@@ -37,7 +37,11 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 		if (open) {
 			// Reopened mid-close: drop the closing slide so the sheet stays put
 			closing.current.forEach((a) => a.cancel());
-			if (!d.open) d.showModal();
+			if (!d.open) {
+				d.showModal();
+				// Focus the sheet, not its first button, so the close button doesn't open with a focus ring
+				d.focus();
+			}
 			return;
 		}
 		if (!d.open) return;
@@ -85,6 +89,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 				ref={dialog}
 				data-drawer
 				aria-label="More"
+				tabIndex={-1}
 				onClose={() => setOpen(false)}
 				// Escape slides it away too, instead of closing at once
 				onCancel={(e) => {
@@ -92,7 +97,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 					setOpen(false);
 				}}
 				onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-				className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-light-blue p-0 text-dark-blue backdrop:bg-dark-blue/45"
+				className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-light-blue p-0 text-dark-blue outline-none backdrop:bg-dark-blue/45"
 			>
 				<div className="flex flex-col gap-1 px-4 pt-5 pb-6">
 					<div className="flex items-center pb-2 pl-3">

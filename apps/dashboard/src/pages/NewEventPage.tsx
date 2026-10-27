@@ -11,6 +11,7 @@ import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, 
 import { createEvent, isSlugTaken } from '../lib/events';
 import { useMe } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
+import { useIsDesktop } from '../lib/useMediaQuery';
 import { showToast } from '../lib/toast';
 
 const blank: EventForm = {
@@ -60,6 +61,17 @@ export default function NewEventPage() {
 	const slugTaken = slug !== '' && isSlugTaken(slug);
 	const [saving, setSaving] = useState(false);
 	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined && !saving;
+	const desktop = useIsDesktop();
+	const buttons = (
+		<div className="flex shrink-0 items-center gap-[15px]">
+			<Link to="/events" className={buttonClass('secondary')}>
+				Cancel
+			</Link>
+			<button type="submit" disabled={!canCreate} className={`${buttonClass('primary')} disabled:opacity-50`}>
+				Create event
+			</button>
+		</div>
+	);
 
 	return (
 		<form
@@ -78,9 +90,9 @@ export default function NewEventPage() {
 				}
 			}}
 		>
-			{/* Sticks once 24px remains above it, like PageHeader. On phones the buttons go below the title. */}
-			<header className="sticky top-0 z-10 flex flex-wrap items-end gap-3 bg-off-white px-6 pt-3 pb-[15px] md:top-[-30px] md:flex-nowrap md:pt-[54px]">
-				<div className="flex w-full min-w-0 flex-col gap-3.5 md:w-auto md:flex-1">
+			{/* Sticks once 24px remains above it, like PageHeader */}
+			<header className="flex items-end gap-3 bg-off-white px-6 pt-3 md:sticky md:top-[-30px] md:z-10 md:pt-[54px] md:pb-[15px]">
+				<div className="flex min-w-0 flex-1 flex-col gap-3.5">
 					<nav aria-label="Breadcrumb">
 						<ol className="flex items-center gap-1.5 text-[15px] text-black">
 							<li>
@@ -96,15 +108,10 @@ export default function NewEventPage() {
 					</nav>
 					<h1 className="font-display text-2xl md:text-3xl">New event</h1>
 				</div>
-				<div className="flex shrink-0 items-center gap-[15px]">
-					<Link to="/events" className={buttonClass('secondary')}>
-						Cancel
-					</Link>
-					<button type="submit" disabled={!canCreate} className={`${buttonClass('primary')} disabled:opacity-50`}>
-						Create event
-					</button>
-				</div>
+				{desktop && buttons}
 			</header>
+			{/* Phones: only the buttons stick, on their own row, while the title scrolls away */}
+			{!desktop && <div className="sticky top-0 z-10 bg-off-white px-6 pt-3 pb-[15px]">{buttons}</div>}
 
 			<div className="grid grid-cols-1 gap-[18px] px-6 pt-[15px] pb-[27px] lg:grid-cols-2">
 				<div className="flex flex-col gap-[18px]">
