@@ -85,7 +85,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 							const organiser = organisers.find((o) => o.email === s.email.trim().toLowerCase());
 							const status = (
 								<span
-									className={`inline-block shrink-0 rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
+									className={`inline-block shrink-0 rounded-full px-3.5 py-1.5 text-base leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
 										organiser ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 									}`}
 								>

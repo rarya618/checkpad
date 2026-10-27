@@ -53,11 +53,11 @@
   letter-spacing: var(--tracking-tight);
 }
 
-/* Bold text is tightened like the display font; these add to Tailwind's own utilities */
-@utility font-bold {
-  letter-spacing: var(--tracking-tight);
-}
-
-@utility font-semibold {
-  letter-spacing: var(--tracking-tight);
+/* Bold text is tightened like the display font. In the base layer, so a tracking-* utility
+   overrides it (Figma's badges have no letter spacing). */
+@layer base {
+  .font-bold,
+  .font-semibold {
+    letter-spacing: var(--tracking-tight);
+  }
 }

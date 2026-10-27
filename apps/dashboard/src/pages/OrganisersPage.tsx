@@ -168,10 +168,11 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 	);
 }
 
+// Figma "Organisers" role pill: full size on phones (as in "Organisers (mobile)"), 75% from md up
 function RoleBadge({ organiser }: { organiser: Organiser }) {
 	return (
 		<span
-			className={`inline-block shrink-0 rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
+			className={`inline-block shrink-0 rounded-full px-3.5 py-1.5 text-base leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
 				organiser.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 			}`}
 		>

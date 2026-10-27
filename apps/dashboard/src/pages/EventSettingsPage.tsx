@@ -118,8 +118,9 @@ function EventSettingsPage({ slug }: { slug: string }) {
 					className="top-0 pt-6 pb-[15px]"
 					titleAddon={
 						dirty && (
-							<span className="flex shrink-0 items-center gap-1.5 rounded-full bg-light-blue py-[4.5px] pr-[10.5px] pl-[9px] text-xs leading-[1.5] font-bold">
-								<span aria-hidden="true" className="size-1.5 rounded-full bg-med-blue" />
+							// Figma "Event settings – unsaved changes": full size on phones, 75% from md up
+							<span className="flex shrink-0 items-center gap-2 rounded-full bg-light-blue py-1.5 pr-3.5 pl-3 text-base leading-[1.5] font-bold tracking-normal md:gap-1.5 md:py-[4.5px] md:pr-[10.5px] md:pl-[9px] md:text-xs">
+								<span aria-hidden="true" className="size-2 rounded-full bg-med-blue md:size-1.5" />
 								Unsaved changes
 							</span>
 						)

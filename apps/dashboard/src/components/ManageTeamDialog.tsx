@@ -187,7 +187,7 @@ function Member({ initials, name, detail, invited, role, onRemove }: { initials:
 				<p className="truncate text-[13.5px] font-bold text-black">{name}</p>
 				<p className={`truncate text-xs ${invited ? 'text-med-blue' : 'text-black'}`}>{detail}</p>
 			</div>
-			<span className="shrink-0 rounded-full bg-light-blue px-[9px] py-[3px] text-[10.5px] leading-[1.5] font-bold">{role}</span>
+			<span className="shrink-0 rounded-full bg-light-blue px-[9px] py-[3px] text-[10.5px] leading-[1.5] font-bold tracking-normal">{role}</span>
 			<button type="button" aria-label={`Remove ${name} from the team`} onClick={onRemove} className="shrink-0 rounded p-0.5 hover:bg-light-blue/60">
 				<img src={xSmall} alt="" width={15} height={15} />
 			</button>
