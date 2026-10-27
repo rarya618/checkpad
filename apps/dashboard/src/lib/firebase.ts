@@ -2,7 +2,14 @@
 // (see .env.example). With VITE_USE_EMULATORS set it talks to the local Auth and Firestore
 // emulators in demo-checkpad instead (CLAUDE.md), so development never touches production.
 import { initializeApp } from 'firebase/app';
-import { connectAuthEmulator, getAuth, GoogleAuthProvider } from 'firebase/auth';
+import {
+	browserLocalPersistence,
+	browserSessionPersistence,
+	connectAuthEmulator,
+	GoogleAuthProvider,
+	indexedDBLocalPersistence,
+	initializeAuth,
+} from 'firebase/auth';
 import {
 	connectFirestoreEmulator,
 	initializeFirestore,
@@ -31,7 +38,10 @@ export const app = initializeApp(
 			},
 );
 
-export const auth = getAuth(app);
+// getAuth() without its popup helper: given one, Safari waits for its iframe (from the
+// authDomain, a third party to Safari) before saying who's signed in, which held the dashboard
+// on "Signing you in". The Google button brings it instead (auth.ts).
+export const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence] });
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 

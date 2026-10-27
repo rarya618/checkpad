@@ -5,7 +5,16 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import google from '../assets/google.svg';
 import { TextField } from '../components/Field';
 import Loading from '../components/Loading';
-import { completeSignInLink, emulatorSignInLink, lastLinkEmail, sendSignInLink, signInWithGoogle, signOut, useSession } from '../lib/auth';
+import {
+	completeSignInLink,
+	emulatorSignInLink,
+	lastLinkEmail,
+	prepareGoogleSignIn,
+	sendSignInLink,
+	signInWithGoogle,
+	signOut,
+	useSession,
+} from '../lib/auth';
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_URL } from '../lib/config';
 import { usingEmulators } from '../lib/firebase';
@@ -56,6 +65,7 @@ export function SignInPage() {
 	const [busy, setBusy] = useState(false);
 	const [googleError, setGoogleError] = useState<string | null>(null);
 	const [emailError, setEmailError] = useState<string | null>(null);
+	useEffect(prepareGoogleSignIn, []);
 	if (session === undefined) return <Loading />;
 	if (session) return <Navigate to={next} replace />;
 

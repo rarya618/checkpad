@@ -4,6 +4,8 @@
 // (organisers.ts), which the security rules check too.
 import { FirebaseError } from 'firebase/app';
 import {
+	browserPopupRedirectResolver,
+	getRedirectResult,
 	isSignInWithEmailLink,
 	onAuthStateChanged,
 	signInWithEmailLink,
@@ -55,10 +57,19 @@ export function myEmail() {
 	return email.toLowerCase();
 }
 
+/**
+ * Loads the popup helper's iframe while the sign-in page shows, so the Google button opens its
+ * window straight away: Safari blocks a popup that opens long after the click. Nothing else
+ * signs in through it, so the rest of the dashboard never waits for it (firebase.ts).
+ */
+export function prepareGoogleSignIn() {
+	getRedirectResult(auth, browserPopupRedirectResolver).catch(() => {});
+}
+
 /** Opens Google's account picker. Resolves with an error message, or null. */
 export async function signInWithGoogle(): Promise<string | null> {
 	try {
-		await signInWithPopup(auth, googleProvider);
+		await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
 		return null;
 	} catch (error) {
 		const code = error instanceof FirebaseError ? error.code : '';
