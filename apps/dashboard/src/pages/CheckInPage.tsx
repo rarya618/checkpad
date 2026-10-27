@@ -241,7 +241,7 @@ function MobileCheckIn(p: MobileProps) {
 	return (
 		<div className="flex flex-col gap-6 px-5 pb-6">
 			<section className="flex flex-col gap-2">
-				<h1 className="font-display text-[28px] leading-[1.2]">{p.event.name}</h1>
+				<h1 className="font-display text-2xl leading-[1.2]">{p.event.name}</h1>
 				<div className="flex items-center gap-2.5">
 					<p className="flex min-w-0 flex-1 items-baseline gap-1.5 leading-[1.5] whitespace-nowrap">
 						<span className="font-display text-2xl">{p.checkedIn}</span>
