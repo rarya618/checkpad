@@ -25,11 +25,30 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 	const session = useSession();
 	const me = useCurrentOrganiser();
 	const dialog = useRef<HTMLDialogElement>(null);
+	const closing = useRef<Animation[]>([]);
 	const { pathname } = useLocation();
 
 	useEffect(() => {
-		if (open) dialog.current?.showModal();
-		else dialog.current?.close();
+		const d = dialog.current;
+		if (!d) return;
+		if (open) {
+			// Reopened mid-close: drop the closing slide so the sheet stays put
+			closing.current.forEach((a) => a.cancel());
+			if (!d.open) d.showModal();
+			return;
+		}
+		if (!d.open) return;
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			d.close();
+			return;
+		}
+		// Slides back down with its scrim (opening is CSS: index.css), then closes
+		const timing = { duration: 220, easing: 'cubic-bezier(0.4, 0, 1, 1)' };
+		closing.current = [
+			d.animate({ translate: ['0 0', '0 100%'] }, timing),
+			d.animate({ opacity: [1, 0] }, { ...timing, pseudoElement: '::backdrop' }),
+		];
+		closing.current[0].finished.then(() => d.close(), () => {});
 	}, [open]);
 	// Close after following a link
 	useEffect(() => setOpen(false), [pathname]);
@@ -51,6 +70,11 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 				data-drawer
 				aria-label="Menu"
 				onClose={() => setOpen(false)}
+				// Escape slides it away too, instead of closing at once
+				onCancel={(e) => {
+					e.preventDefault();
+					setOpen(false);
+				}}
 				onClick={(e) => e.target === e.currentTarget && setOpen(false)}
 				className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-light-blue p-0 text-dark-blue backdrop:bg-dark-blue/45"
 			>
