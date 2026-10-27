@@ -1,4 +1,10 @@
 import type { ReactNode } from 'react';
+import calendar from './assets/calendar.svg';
+import chart from './assets/chart.svg';
+import checkCircle from './assets/check-circle.svg';
+import list from './assets/list.svg';
+import sliders from './assets/sliders.svg';
+import users from './assets/users.svg';
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
 import Loading, { LoadingSteps } from './components/Loading';
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
@@ -25,25 +31,26 @@ import VenueDisplayPage from './pages/VenueDisplayPage';
 import WaitlistPage from './pages/WaitlistPage';
 
 const mainItems: SidebarItem[] = [
-	{ to: '/events', label: 'Events' },
-	{ to: '/organisers', label: 'Organisers' },
-	{ to: '/analytics', label: 'Analytics' },
+	{ to: '/events', label: 'Events', icon: calendar },
+	{ to: '/organisers', label: 'Organisers', icon: users },
+	{ to: '/analytics', label: 'Analytics', icon: chart },
 ];
-const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Waitlist' }];
+const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Waitlist', icon: list }];
 
 // The window never scrolls: the sidebar is locked in place and only the content
-// column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and
-// a menu that slides up from the bottom instead, and the page scrolls normally.
+// column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and a
+// tab bar along the bottom instead (MobileNav), and the page scrolls normally.
 function DashboardLayout({ items, mobile }: { items: SidebarItem[]; mobile: MobileNavConfig }) {
 	const desktop = useIsDesktop();
 	if (!desktop) {
 		return (
 			<div className="min-h-dvh">
 				<MobileNav {...mobile} />
-				<main>
+				{/* Clear of the tab bar, which the toasts sit above too */}
+				<main className="pb-24">
 					<Outlet />
 				</main>
-				<div className="fixed inset-x-0 bottom-0">
+				<div className="fixed inset-x-0 bottom-[84px]">
 					<Toaster />
 				</div>
 			</div>
@@ -81,9 +88,9 @@ function EventLayout() {
 	}
 	if (!roster) return <Loading />;
 	const base = `/events/${slug}`;
-	const attendees = { to: base, label: 'Attendees', end: true };
-	const checkIn = { to: `${base}/check-in`, label: 'Check in' };
-	const settings = { to: `${base}/settings`, label: 'Settings' };
+	const attendees = { to: base, label: 'Attendees', end: true, icon: users };
+	const checkIn = { to: `${base}/check-in`, label: 'Check in', icon: checkCircle };
+	const settings = { to: `${base}/settings`, label: 'Settings', icon: sliders };
 	return (
 		<DashboardLayout
 			items={[attendees, checkIn, { to: `${base}/analytics`, label: 'Analytics' }, ...(canEdit ? [settings] : [])]}
@@ -104,7 +111,7 @@ function EventLayout() {
 // it reuses the sidebar's items.
 function MainLayout() {
 	const items = useMe().role === 'super-admin' ? adminItems : mainItems;
-	return <DashboardLayout items={items} mobile={{ title: 'Menu', items, extras: [] }} />;
+	return <DashboardLayout items={items} mobile={{ title: 'More', items, extras: [] }} />;
 }
 
 /** Super admins only: anyone else who opens the page (from a bookmark, say) goes to Events. */

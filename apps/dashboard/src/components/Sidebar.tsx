@@ -12,6 +12,8 @@ export interface SidebarItem {
 	label: string;
 	/** Only highlight on an exact URL match (for an item whose URL prefixes others). */
 	end?: boolean;
+	/** Shown in the phones' tab bar; the sidebar is text only. */
+	icon?: string;
 }
 
 export default function Sidebar({ items }: { items: SidebarItem[] }) {
