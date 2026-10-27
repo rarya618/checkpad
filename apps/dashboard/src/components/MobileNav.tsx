@@ -65,12 +65,12 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 			<header className="px-5 pt-5 pb-6">
 				<img src={logo} alt="checkpad" width={134} height={32} />
 			</header>
-			{/* A card like the sidebar, inset 20px like the logo: App.tsx keeps the page and toasts
-			    clear of its 84px. Hidden while typing, so it doesn't ride up above the keyboard. */}
+			{/* A card like the sidebar, inset 24px like the page: App.tsx keeps the page and toasts
+			    clear of its 88px. Hidden while typing, so it doesn't ride up above the keyboard. */}
 			<nav
 				aria-label="Main"
 				hidden={typing}
-				className="fixed inset-x-5 bottom-5 z-20 flex h-16 rounded-[18px] border border-med-blue bg-light-blue px-1.5"
+				className="fixed inset-x-6 bottom-6 z-20 flex h-16 rounded-[18px] border border-med-blue bg-light-blue px-1.5"
 			>
 				{items.map((i) => (
 					<NavLink key={i.to} to={i.to} end={i.end} className={tab}>
