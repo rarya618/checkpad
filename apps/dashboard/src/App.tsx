@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
-import Loading from './components/Loading';
+import Loading, { LoadingSteps } from './components/Loading';
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
 import Sidebar, { type SidebarItem } from './components/Sidebar';
 import Toaster from './components/Toaster';
@@ -130,9 +130,19 @@ function RequireOrganiser() {
 	const { pathname, search } = useLocation();
 	if (session === null) return <Navigate to={`/sign-in?${new URLSearchParams({ next: pathname + search })}`} replace />;
 	if (me === null) return <Navigate to="/no-access" replace />;
-	if (!me || !teams) return <Loading />;
+	const loading = (
+		<LoadingSteps
+			steps={[
+				{ label: 'Signing you in', done: Boolean(session) },
+				{ label: 'Checking your access', done: Boolean(me) },
+				{ label: 'Loading teams', done: Boolean(teams) },
+				{ label: 'Loading events', done: Boolean(events) },
+			]}
+		/>
+	);
+	if (!me || !teams) return loading;
 	if (needsTeam(me)) return <OnboardingPage />;
-	if (!events) return <Loading />;
+	if (!events) return loading;
 	return <Outlet />;
 }
 
