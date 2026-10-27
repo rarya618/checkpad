@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 export function StatTile({ label, value, note }: { label: string; value: string; note?: string }) {
 	return (
-		<div className="flex min-w-0 flex-1 flex-col gap-[3px] rounded-xl border border-med-blue bg-white px-[21px] py-[18px]">
+		<div className="flex min-w-0 flex-1 flex-col gap-[3px] rounded-xl border border-med-blue bg-white px-[18px] py-[15px] md:px-[21px] md:py-[18px]">
 			<p className="truncate text-[13.5px] leading-[1.5] text-med-blue">{label}</p>
 			<p className="font-display text-4xl leading-[1.2]">{value}</p>
 			{note && <p className="truncate text-xs leading-[1.5] text-med-blue">{note}</p>}

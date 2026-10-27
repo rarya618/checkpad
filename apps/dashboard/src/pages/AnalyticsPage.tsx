@@ -8,10 +8,12 @@ import { eventResult, eventsInRange, monthSpan, percent, ranges, returningShare 
 import { useEvents } from '../lib/events';
 import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
+import { useIsDesktop } from '../lib/useMediaQuery';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
 
-// Figma "Analytics" (across events) at 75% scale.
+// Figma "Analytics" (across events) at 75% scale. Phones get the tiles two by two, and a
+// table of just the event (with its date) and turnout.
 export default function AnalyticsPage() {
 	const events = useEvents();
 	const teams = useTeams() ?? [];
@@ -33,6 +35,8 @@ export default function AnalyticsPage() {
 	const latest = results[results.length - 1];
 	const top = Math.max(75, Math.ceil(Math.max(0, ...results.map((r) => r.turnout)) / 25) * 25);
 	const ticks = Array.from({ length: top / 25 + 1 }, (_, i) => i * 25);
+	const desktop = useIsDesktop();
+	const date = (r: (typeof results)[number]) => formatDay(new Date(r.event.startsAt), r.event.timeZone).replace(' ', ', ');
 	const month = (r: (typeof results)[number]) => new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: r.event.timeZone }).format(new Date(r.event.startsAt));
 
 	return (
@@ -40,7 +44,7 @@ export default function AnalyticsPage() {
 			<PageHeader
 				title="Analytics"
 				actions={
-					<div className="flex items-center gap-[9px]">
+					<div className="flex items-center gap-[9px] max-md:w-full max-md:*:flex-1">
 						<Filter label="Team" value={team} onChange={setTeam}>
 							{teams.map((t) => (
 								<option key={t.id} value={t.id}>
@@ -59,7 +63,7 @@ export default function AnalyticsPage() {
 				}
 			/>
 			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
-				<div className="flex gap-[15px]">
+				<div className="grid grid-cols-2 gap-[15px] md:flex">
 					<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
 					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${registered} registered`} />
 					<StatTile label="Average turnout" value={`${percent(checkIns, registered)}%`} note="checked in of registered" />
@@ -91,24 +95,32 @@ export default function AnalyticsPage() {
 				</section>
 
 				{results.length > 0 && (
-					<div className="rounded-xl border border-med-blue bg-white px-6 py-[15px]">
+					<div className="rounded-xl border border-med-blue bg-white px-4 py-[15px] md:px-6">
 						<table className="w-full table-fixed text-[13.5px] leading-[1.5]">
 							<colgroup>
 								<col />
-								<col className="w-[150px]" />
-								<col className="w-[97.5px]" />
-								<col className="w-[97.5px]" />
+								{desktop && (
+									<>
+										<col className="w-[150px]" />
+										<col className="w-[97.5px]" />
+										<col className="w-[97.5px]" />
+									</>
+								)}
 								<col className="w-[82.5px]" />
-								<col className="w-[75px]" />
+								{desktop && <col className="w-[75px]" />}
 							</colgroup>
 							<thead>
 								<tr className="font-display text-black">
 									<th className="pt-[3px] pb-[7.5px] text-left">Event</th>
-									<th className="pt-[3px] pb-[7.5px] text-left">Date</th>
-									<th className="pt-[3px] pb-[7.5px] text-right">Registered</th>
-									<th className="pt-[3px] pb-[7.5px] text-right">Checked in</th>
+									{desktop && (
+										<>
+											<th className="pt-[3px] pb-[7.5px] text-left">Date</th>
+											<th className="pt-[3px] pb-[7.5px] text-right">Registered</th>
+											<th className="pt-[3px] pb-[7.5px] text-right">Checked in</th>
+										</>
+									)}
 									<th className="pt-[3px] pb-[7.5px] text-right">Turnout</th>
-									<th className="pt-[3px] pb-[7.5px] text-right">Walk-ins</th>
+									{desktop && <th className="pt-[3px] pb-[7.5px] text-right">Walk-ins</th>}
 								</tr>
 							</thead>
 							<tbody>
@@ -118,12 +130,21 @@ export default function AnalyticsPage() {
 											<Link to={`/events/${r.event.slug}/analytics`} className="hover:underline">
 												{r.event.name}
 											</Link>
+											{!desktop && (
+												<span className="block truncate font-normal text-med-blue">
+													{date(r)} · {r.checkedIn} of {r.registered}
+												</span>
+											)}
 										</td>
-										<td className="py-[9px]">{formatDay(new Date(r.event.startsAt), r.event.timeZone).replace(' ', ', ')}</td>
-										<td className="py-[9px] text-right">{r.registered}</td>
-										<td className="py-[9px] text-right">{r.checkedIn}</td>
+										{desktop && (
+											<>
+												<td className="py-[9px]">{date(r)}</td>
+												<td className="py-[9px] text-right">{r.registered}</td>
+												<td className="py-[9px] text-right">{r.checkedIn}</td>
+											</>
+										)}
 										<td className="py-[9px] text-right">{r.turnout}%</td>
-										<td className="py-[9px] text-right">{r.walkIns}</td>
+										{desktop && <td className="py-[9px] text-right">{r.walkIns}</td>}
 									</tr>
 								))}
 							</tbody>
@@ -143,7 +164,7 @@ function Filter({ label, value, onChange, children }: { label: string; value: st
 			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="appearance-none rounded-[9px] border border-med-blue bg-white py-[9px] pr-[34px] pl-[13.5px] text-[13.5px] leading-[1.5] font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
+				className="w-full appearance-none rounded-[9px] border border-med-blue bg-white py-[9px] pr-[34px] pl-[13.5px] text-[13.5px] leading-[1.5] font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
 			>
 				{children}
 			</select>

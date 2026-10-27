@@ -17,7 +17,8 @@ import ImportDialog from './ImportDialog';
 import Menu from './Menu';
 import ShareDialog from './ShareDialog';
 
-// Top of an event's pages: breadcrumbs, event name, date, check-in link, actions.
+// Top of an event's pages: breadcrumbs, event name, date, check-in link, actions. On phones
+// the actions go below, just under the top bar's logo instead of level with the sidebar's.
 export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
@@ -27,8 +28,8 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 	return (
-		<section className="flex items-center gap-3 px-6 pt-[54px]">
-			<div className="flex min-w-0 flex-1 flex-col gap-3.5 py-px">
+		<section className="flex flex-col items-start gap-[15px] px-6 pt-3 md:flex-row md:items-center md:gap-3 md:pt-[54px]">
+			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px">
 				<nav aria-label="Breadcrumb">
 					<ol className="flex items-center gap-1.5 text-[15px] text-black">
 						<li>

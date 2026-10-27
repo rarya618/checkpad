@@ -134,7 +134,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 						</div>
 					}
 				/>
-				<div className="grid gap-[18px] px-6 pb-[27px] lg:grid-cols-2">
+				<div className="grid grid-cols-1 gap-[18px] px-6 pb-[27px] lg:grid-cols-2">
 					<div className="flex flex-col gap-[15px]">
 						<FormCard
 							level={3}

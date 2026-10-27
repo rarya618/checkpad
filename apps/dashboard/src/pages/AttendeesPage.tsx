@@ -46,8 +46,8 @@ export default function AttendeesPage() {
 				// 40.5px above (the gap below the event details); sticks with 24px left, like the page headers
 				className="top-[-16.5px] pt-[40.5px] pb-[15px]"
 				actions={
-					<div className="flex items-center gap-[15px]">
-						<label className="flex h-[42px] w-[230px] items-center gap-[15px] rounded-[10px] border border-dark-blue/32 px-[15px] focus-within:outline-2 focus-within:outline-med-blue">
+					<div className="flex w-full items-center gap-[15px] md:w-auto">
+						<label className="flex h-[42px] min-w-0 flex-1 items-center md:w-[230px] md:flex-none gap-[15px] rounded-[10px] border border-dark-blue/32 px-[15px] focus-within:outline-2 focus-within:outline-med-blue">
 							<img src={magnifyingGlass} alt="" width={15} height={15} />
 							<span className="sr-only">Search attendees</span>
 							<input
@@ -59,7 +59,7 @@ export default function AttendeesPage() {
 							/>
 						</label>
 						{/* Figma "Attendees – add walk-in" */}
-						<button type="button" onClick={() => setWalkIn('')} className={buttonClass('primary')}>
+						<button type="button" onClick={() => setWalkIn('')} className={`${buttonClass('primary')} shrink-0`}>
 							Add attendee
 						</button>
 					</div>

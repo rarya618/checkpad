@@ -18,9 +18,11 @@ import { useEvents, type DashboardEvent } from '../lib/events';
 import { initialsOf, organiserTeam, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
+import { useIsDesktop } from '../lib/useMediaQuery';
 
 // Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
-// the URL (?tab=teams) so it survives a reload.
+// the URL (?tab=teams) so it survives a reload. On phones each person's role and team go
+// under their name instead of in columns.
 export default function OrganisersPage() {
 	const [params, setParams] = useSearchParams();
 	const tab = params.get('tab') === 'teams' ? 'teams' : 'people';
@@ -89,21 +91,30 @@ export default function OrganisersPage() {
 function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organiser) => void; onRemove: (o: Organiser) => void }) {
 	const organisers = useOrganisers(useMe()) ?? [];
 	const teams = useTeams();
+	const desktop = useIsDesktop();
 	return (
 		<>
-			<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
+			<div className="rounded-[15px] bg-white px-4 py-[18px] md:px-[22.5px]">
 				<table className="w-full table-fixed">
 					<colgroup>
 						<col />
-						<col className="w-[168px]" />
-						<col className="w-[183px]" />
+						{desktop && (
+							<>
+								<col className="w-[168px]" />
+								<col className="w-[183px]" />
+							</>
+						)}
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
 						<tr className="text-left font-display text-[15px] leading-[1.5] text-black">
 							<th className="pr-[18px] pb-1.5">Person</th>
-							<th className="pr-[18px] pb-1.5">Role</th>
-							<th className="pr-[18px] pb-1.5">Team</th>
+							{desktop && (
+								<>
+									<th className="pr-[18px] pb-1.5">Role</th>
+									<th className="pr-[18px] pb-1.5">Team</th>
+								</>
+							)}
 							<th className="pb-1.5">
 								<span className="sr-only">Options</span>
 							</th>
@@ -120,19 +131,23 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 										<div className="flex min-w-0 flex-col gap-0.5 leading-[1.5]">
 											<p className="truncate font-display text-lg leading-[1.2] text-black">{o.name ?? o.email}</p>
 											<p className={`truncate text-[13.5px] ${o.invited ? 'text-med-blue' : 'text-black'}`}>{o.invited ? 'Invited · hasn’t signed in yet' : o.email}</p>
+											{!desktop && (
+												<p className="flex min-w-0 items-center gap-1.5 pt-1 text-[13.5px] text-black">
+													<RoleBadge organiser={o} />
+													<span className="truncate">{organiserTeam(teams, o)}</span>
+												</p>
+											)}
 										</div>
 									</div>
 								</td>
-								<td className="py-[7.5px] pr-[18px]">
-									<span
-										className={`inline-block rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
-											o.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
-										}`}
-									>
-										{roleLabel(o.role)}
-									</span>
-								</td>
-								<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{organiserTeam(teams, o)}</td>
+								{desktop && (
+									<>
+										<td className="py-[7.5px] pr-[18px]">
+											<RoleBadge organiser={o} />
+										</td>
+										<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{organiserTeam(teams, o)}</td>
+									</>
+								)}
 								<td className="py-[7.5px]">
 									{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}
 								</td>
@@ -141,7 +156,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					</tbody>
 				</table>
 			</div>
-			<dl className="flex gap-6 pl-[3px] leading-[1.5]">
+			<dl className="flex flex-col gap-3 pl-[3px] leading-[1.5] md:flex-row md:gap-6">
 				{roles.map((r) => (
 					<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-[3px]">
 						<dt className="text-[13.5px] font-bold">{r.label}</dt>
@@ -150,6 +165,18 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 				))}
 			</dl>
 		</>
+	);
+}
+
+function RoleBadge({ organiser }: { organiser: Organiser }) {
+	return (
+		<span
+			className={`inline-block shrink-0 rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
+				organiser.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
+			}`}
+		>
+			{roleLabel(organiser.role)}
+		</span>
 	);
 }
 

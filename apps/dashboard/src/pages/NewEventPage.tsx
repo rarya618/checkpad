@@ -78,9 +78,9 @@ export default function NewEventPage() {
 				}
 			}}
 		>
-			{/* Sticks once 24px remains above it, like PageHeader */}
-			<header className="sticky top-[-30px] z-10 flex items-end gap-3 bg-off-white px-6 pt-[54px] pb-[15px]">
-				<div className="flex min-w-0 flex-1 flex-col gap-3.5">
+			{/* Sticks once 24px remains above it, like PageHeader. On phones the buttons go below the title. */}
+			<header className="sticky top-0 z-10 flex flex-wrap items-end gap-3 bg-off-white px-6 pt-3 pb-[15px] md:top-[-30px] md:flex-nowrap md:pt-[54px]">
+				<div className="flex w-full min-w-0 flex-col gap-3.5 md:w-auto md:flex-1">
 					<nav aria-label="Breadcrumb">
 						<ol className="flex items-center gap-1.5 text-[15px] text-black">
 							<li>
@@ -106,7 +106,7 @@ export default function NewEventPage() {
 				</div>
 			</header>
 
-			<div className="grid gap-[18px] px-6 pt-[15px] pb-[27px] lg:grid-cols-2">
+			<div className="grid grid-cols-1 gap-[18px] px-6 pt-[15px] pb-[27px] lg:grid-cols-2">
 				<div className="flex flex-col gap-[18px]">
 					<FormCard title="Details">
 						<TextField

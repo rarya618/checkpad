@@ -30,12 +30,15 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 	const [deleting, setDeleting] = useState(false);
 	const canEdit = useCanEditEvents();
 	return (
-		<article className="relative flex items-center justify-between gap-6 rounded-[10px] border border-med-blue bg-white px-[27px] py-6 hover:bg-off-white/60">
+		<article className="relative flex items-start justify-between gap-3 rounded-[10px] border border-med-blue bg-white px-5 py-[18px] hover:bg-off-white/60 md:items-center md:gap-6 md:px-[27px] md:py-6">
 			<div className="flex min-w-0 items-center gap-7.5">
-				<CheckInRing checkedIn={stats.checkedIn} total={stats.total} />
-				<div className="flex min-w-0 flex-col items-start gap-[27px] pb-1">
+				{/* Phones have no room for the ring: they get its count as a line instead */}
+				<div className="hidden md:block">
+					<CheckInRing checkedIn={stats.checkedIn} total={stats.total} />
+				</div>
+				<div className="flex min-w-0 flex-col items-start gap-3 md:gap-[27px] md:pb-1">
 					<div className="flex flex-col items-start gap-1.5">
-						<h2 className="font-display text-[27px]">
+						<h2 className="font-display text-2xl md:text-[27px]">
 							{/* Stretched link: the whole card opens the event, except the options button */}
 							<Link to={`/events/${event.slug}`} className="after:absolute after:inset-0 after:rounded-[10px]">
 								{event.name}
@@ -52,6 +55,9 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 						</div>
 					</div>
 					<p className="text-[15px] text-black">{event.description}</p>
+					<p className="text-[15px] text-med-blue md:hidden">
+						<span className="font-display text-dark-blue">{stats.checkedIn}</span> of {stats.total} checked in
+					</p>
 				</div>
 			</div>
 			{/* Figma "Events – card menu". relative lifts it above the card's stretched link. */}

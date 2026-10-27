@@ -9,6 +9,7 @@ import { checkIn, undoCheckIn } from '../lib/checkIn';
 import type { DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import type { RosterAttendee } from '../lib/roster';
+import { useIsDesktop } from '../lib/useMediaQuery';
 import Menu from './Menu';
 import RemoveWalkInDialog from './RemoveWalkInDialog';
 
@@ -17,25 +18,27 @@ interface Props {
 	attendees: RosterAttendee[];
 }
 
-// The page shows Figma's empty states instead of an empty table.
+// The page shows Figma's empty states instead of an empty table. Phones leave out the ticket
+// column (search still finds tickets) to give names room.
 export default function AttendeeTable({ event, attendees }: Props) {
 	// Organisers remove any walk-in; staff only the ones they added (firestore.rules)
 	const canEdit = useCanEditEvents();
 	const me = myEmail();
 	const canRemove = (a: RosterAttendee) => a.walkIn && (canEdit || a.addedBy === me);
+	const desktop = useIsDesktop();
 	return (
-		<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
+		<div className="rounded-[15px] bg-white px-4 py-[18px] md:px-[22.5px]">
 			<table className="w-full table-fixed">
 				<colgroup>
 					<col />
-					<col className="w-[165px]" />
+					{desktop && <col className="w-[165px]" />}
 					<col className="w-[106px]" />
-					<col className="w-[42px]" />
+					<col className={desktop ? 'w-[42px]' : 'w-[30px]'} />
 				</colgroup>
 				<thead>
 					<tr className="text-left font-display text-[15px] text-black">
 						<th className="pr-2 pb-[7.5px]">Attendee</th>
-						<th className="pr-2 pb-[7.5px]">Ticket</th>
+						{desktop && <th className="pr-2 pb-[7.5px]">Ticket</th>}
 						<th className="pb-[7.5px]">Action</th>
 						<th className="pb-[7.5px]">
 							<span className="sr-only">Options</span>
@@ -44,7 +47,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 				</thead>
 				<tbody>
 					{attendees.map((attendee) => (
-						<AttendeeRow key={attendee.id} event={event} attendee={attendee} removable={canRemove(attendee)} />
+						<AttendeeRow key={attendee.id} event={event} attendee={attendee} removable={canRemove(attendee)} showTicket={desktop} />
 					))}
 				</tbody>
 			</table>
@@ -52,7 +55,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 	);
 }
 
-function AttendeeRow({ event, attendee, removable }: { event: DashboardEvent; attendee: RosterAttendee; removable: boolean }) {
+function AttendeeRow({ event, attendee, removable, showTicket }: { event: DashboardEvent; attendee: RosterAttendee; removable: boolean; showTicket: boolean }) {
 	const { timeZone } = event;
 	const name = `${attendee.firstName} ${attendee.lastName}`;
 	const initials = `${attendee.firstName[0] ?? ''}${attendee.lastName[0] ?? ''}`.toUpperCase();
@@ -88,10 +91,12 @@ function AttendeeRow({ event, attendee, removable }: { event: DashboardEvent; at
 					</div>
 				</div>
 			</td>
-			<td className="py-[7.5px] pr-2 font-mono text-[15px] text-black">
-				{/* Walk-ins added before tickets were numbered have none */}
-				{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
-			</td>
+			{showTicket && (
+				<td className="py-[7.5px] pr-2 font-mono text-[15px] text-black">
+					{/* Walk-ins added before tickets were numbered have none */}
+					{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
+				</td>
+			)}
 			<td className="py-[7.5px]">
 				{attendee.checkedInAt ? (
 					<div className="flex items-center justify-end gap-3">
@@ -126,7 +131,7 @@ function AttendeeRow({ event, attendee, removable }: { event: DashboardEvent; at
 				)}
 			</td>
 			{/* Not in Figma: the toast's Undo is the only other way to take a walk-in off the list */}
-			<td className="py-[7.5px] pl-3 text-right">
+			<td className="py-[7.5px] pl-1 text-right md:pl-3">
 				{removable && (
 					<Menu
 						label={`Options for ${name}`}

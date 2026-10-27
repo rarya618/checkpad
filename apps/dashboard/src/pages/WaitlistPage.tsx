@@ -10,6 +10,7 @@ import PageHeader from '../components/PageHeader';
 import { downloadCsv } from '../lib/csv';
 import { useMe, useOrganisers } from '../lib/organisers';
 import { showToast } from '../lib/toast';
+import { useIsDesktop } from '../lib/useMediaQuery';
 import { removeFromWaitlist, useWaitlist, type WaitlistSignup } from '../lib/waitlist';
 
 // The marketing site's waitlist (not in Figma), one row per email, newest first. Super admins
@@ -46,6 +47,7 @@ function WaitlistDownload() {
 function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 	const { signups: waitlist, error } = useWaitlist();
 	const organisers = useOrganisers(useMe()) ?? [];
+	const desktop = useIsDesktop();
 	if (error) {
 		return (
 			<div role="alert" className="flex flex-col items-start gap-3 rounded-[15px] bg-white px-[22.5px] py-[18px] text-[15px] leading-[1.5]">
@@ -60,18 +62,19 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 	if (!waitlist.length) return <p className="text-[15px] leading-[1.5] text-med-blue">Nobody’s on the waitlist yet.</p>;
 	return (
 		<>
-			<div className="rounded-[15px] bg-white px-[22.5px] py-[18px]">
-				{/* Laid out like the Organisers table: avatar and two lines per person, status as a pill */}
+			<div className="rounded-[15px] bg-white px-4 py-[18px] md:px-[22.5px]">
+				{/* Laid out like the Organisers table: avatar and two lines per person, status as a pill
+				    (under the email on phones) */}
 				<table className="w-full table-fixed">
 					<colgroup>
 						<col />
-						<col className="w-[183px]" />
+						{desktop && <col className="w-[183px]" />}
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
 						<tr className="text-left font-display text-[15px] leading-[1.5] text-black">
 							<th className="pr-[18px] pb-1.5">Person</th>
-							<th className="pr-[18px] pb-1.5">Status</th>
+							{desktop && <th className="pr-[18px] pb-1.5">Status</th>}
 							<th className="pb-1.5">
 								<span className="sr-only">Options</span>
 							</th>
@@ -80,6 +83,15 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 					<tbody>
 						{waitlist.map((s) => {
 							const organiser = organisers.find((o) => o.email === s.email.trim().toLowerCase());
+							const status = (
+								<span
+									className={`inline-block shrink-0 rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
+										organiser ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
+									}`}
+								>
+									{!organiser ? 'Waiting' : organiser.invited ? 'Invited' : 'Organiser'}
+								</span>
+							);
 							return (
 								<tr key={s.email}>
 									<td className="py-[7.5px] pr-[18px]">
@@ -93,18 +105,11 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 													Signed up {formatDate(new Date(s.signedUpAt), SYDNEY)}
 													{s.entryIds.length > 1 && ` · ${s.entryIds.length} times`}
 												</p>
+												{!desktop && <p className="pt-1">{status}</p>}
 											</div>
 										</div>
 									</td>
-									<td className="py-[7.5px] pr-[18px]">
-										<span
-											className={`inline-block rounded-full px-[10.5px] py-[4.5px] text-xs leading-[1.5] font-bold whitespace-nowrap ${
-												organiser ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
-											}`}
-										>
-											{!organiser ? 'Waiting' : organiser.invited ? 'Invited' : 'Organiser'}
-										</span>
-									</td>
+									{desktop && <td className="py-[7.5px] pr-[18px]">{status}</td>}
 									<td className="py-[7.5px]">
 										<WaitlistMenu signup={s} invited={!!organiser} onInvite={onInvite} />
 									</td>
