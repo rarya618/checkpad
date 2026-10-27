@@ -11,12 +11,12 @@ interface Props {
 	 * Spacing and stick point. The space above the title lives inside the header so
 	 * it can scroll away; the header sticks once 24px remains (the sidebar's gap).
 	 * Defaults to a page header: 58px above, so the title lines up with the sidebar logo,
-	 * and sticks after 28px of scroll (when a button beside it has 24px left above).
+	 * and 15px below, like the event pages' headers.
 	 */
 	className?: string;
 }
 
-export default function PageHeader({ title, actions, titleAddon, level = 1, className = 'top-[-28px] pt-[58px] pb-[29px]' }: Props) {
+export default function PageHeader({ title, actions, titleAddon, level = 1, className = 'top-[-34px] pt-[58px] pb-[15px]' }: Props) {
 	const Heading = level === 1 ? 'h1' : 'h2';
 	return (
 		<header className={`sticky z-10 bg-off-white px-6 ${className}`}>

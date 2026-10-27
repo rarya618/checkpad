@@ -79,7 +79,7 @@ export default function NewEventPage() {
 			}}
 		>
 			{/* Sticks once 24px remains above it, like PageHeader */}
-			<header className="sticky top-[-30px] z-10 flex items-end gap-3 bg-off-white px-6 pt-[54px] pb-[30px]">
+			<header className="sticky top-[-30px] z-10 flex items-end gap-3 bg-off-white px-6 pt-[54px] pb-[15px]">
 				<div className="flex min-w-0 flex-1 flex-col gap-3.5">
 					<nav aria-label="Breadcrumb">
 						<ol className="flex items-center gap-1.5 text-[15px] text-black">
