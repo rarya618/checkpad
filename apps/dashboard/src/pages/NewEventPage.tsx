@@ -106,7 +106,7 @@ export default function NewEventPage() {
 				</div>
 			</header>
 
-			<div className="grid gap-[18px] px-6 pb-[27px] lg:grid-cols-2">
+			<div className="grid gap-[18px] px-6 pt-[15px] pb-[27px] lg:grid-cols-2">
 				<div className="flex flex-col gap-[18px]">
 					<FormCard title="Details">
 						<TextField

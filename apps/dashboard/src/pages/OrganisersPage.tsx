@@ -51,7 +51,7 @@ export default function OrganisersPage() {
 					)
 				}
 			/>
-			<div className="flex flex-col gap-[21px] px-6 pb-[27px]">
+			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
 				<div role="tablist" aria-label="Organisers" className="flex gap-[3px] self-start rounded-[9px] bg-light-blue p-[3px]">
 					{(['people', 'teams'] as const).map((t) => (
 						<button

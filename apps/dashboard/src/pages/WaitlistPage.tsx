@@ -19,7 +19,7 @@ export default function WaitlistPage() {
 	return (
 		<>
 			<PageHeader title="Waitlist" actions={<WaitlistDownload />} />
-			<div className="flex flex-col gap-[21px] px-6 pb-[27px]">
+			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
 				<WaitlistTable onInvite={setInviting} />
 			</div>
 			{inviting && <AddOrganiserDialog email={inviting} onClose={() => setInviting(null)} />}

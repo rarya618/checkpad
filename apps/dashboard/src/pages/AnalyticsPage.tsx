@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
 					</div>
 				}
 			/>
-			<div className="flex flex-col gap-[21px] px-6 pb-[27px]">
+			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
 				<div className="flex gap-[15px]">
 					<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
 					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${registered} registered`} />
