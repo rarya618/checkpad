@@ -35,7 +35,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 	useEffect(() => setOpen(false), [pathname]);
 
 	const item = 'block rounded-lg px-7 py-3 text-2xl leading-[1.5]';
-	const idle = 'tracking-[-0.6px] hover:bg-white/50';
+	const idle = 'tracking-tight hover:bg-white/50';
 
 	return (
 		<>

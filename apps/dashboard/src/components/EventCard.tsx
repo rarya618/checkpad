@@ -42,10 +42,10 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 							</Link>
 						</h2>
 						<div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
-							<p className="text-[15px] font-medium tracking-[-0.375px] text-black">
+							<p className="text-[15px] font-medium tracking-tight text-black">
 								{formatDate(new Date(event.startsAt), event.timeZone)}
 							</p>
-							<p className={`flex items-center gap-1 text-xs tracking-[-0.3px] ${status.className}`}>
+							<p className={`flex items-center gap-1 text-xs tracking-tight ${status.className}`}>
 								<span aria-hidden="true" className="size-[5px] rounded-full bg-current" />
 								{status.label}
 							</p>

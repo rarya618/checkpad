@@ -12,10 +12,10 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 			<div className="flex items-end justify-between gap-6">
 				<p className="flex items-end gap-[9px]">
 					<span className="font-display text-5xl leading-[42px]">{stats.checkedIn}</span>
-					<span className="text-lg tracking-[-0.45px] text-med-blue">checked in</span>
+					<span className="text-lg tracking-tight text-med-blue">checked in</span>
 				</p>
 				<p className="flex items-end gap-[9px]">
-					<span className="text-lg tracking-[-0.45px] text-med-blue">out of</span>
+					<span className="text-lg tracking-tight text-med-blue">out of</span>
 					<span className="font-display text-5xl leading-[41px]">{stats.total}</span>
 				</p>
 			</div>
@@ -31,7 +31,7 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 							<span aria-hidden="true" className={`size-[9px] rounded-full ${key.color}`} />
 							<span className="flex items-center gap-[9px] text-black">
 								<span className="font-display text-lg">{key.count}</span>
-								<span className="text-[15px] tracking-[-0.375px]">{key.label}</span>
+								<span className="text-[15px] tracking-tight">{key.label}</span>
 							</span>
 						</li>
 					))}

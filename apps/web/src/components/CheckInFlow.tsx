@@ -237,7 +237,7 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 						<p className="font-mono text-[22px] leading-[1.5]">{ticket}</p>
 					</div>
 				)}
-				<p className="text-lg tracking-[-0.45px] text-med-blue">
+				<p className="text-lg tracking-tight text-med-blue">
 					{alreadyCheckedIn
 						? `Checked in at ${formatTime(new Date(checkedInAt), event.timeZone)}. ${note}`
 						: note}

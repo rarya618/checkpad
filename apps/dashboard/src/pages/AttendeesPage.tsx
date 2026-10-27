@@ -55,7 +55,7 @@ export default function AttendeesPage() {
 								value={query}
 								onChange={(e) => setQuery(e.target.value)}
 								placeholder="Search attendee"
-								className="min-w-0 flex-1 bg-transparent text-[16.5px] tracking-[-0.41px] outline-none placeholder:text-dark-blue/30"
+								className="min-w-0 flex-1 bg-transparent text-[16.5px] tracking-tight outline-none placeholder:text-dark-blue/30"
 							/>
 						</label>
 						{/* Figma "Attendees – add walk-in" */}

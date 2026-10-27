@@ -84,7 +84,7 @@ export default function NewEventPage() {
 					<nav aria-label="Breadcrumb">
 						<ol className="flex items-center gap-1.5 text-[15px] text-black">
 							<li>
-								<Link to="/events" className="tracking-[-0.375px] hover:underline">
+								<Link to="/events" className="tracking-tight hover:underline">
 									Events
 								</Link>
 							</li>
