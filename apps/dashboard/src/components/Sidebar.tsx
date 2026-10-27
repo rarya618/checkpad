@@ -54,8 +54,8 @@ function AccountSummary() {
 	const me = useCurrentOrganiser();
 	return (
 		<div className="flex min-w-0 flex-col gap-0.5">
-			{/* Figma's 28px name at 75% scale: 1.2 line height, not text-xl's 1.5 */}
-			<p className="truncate font-display text-xl leading-[1.2]">{me?.name ?? session?.email}</p>
+			{/* Smaller than Figma's 28px at 75% scale, to sit with the menu items; 1.2 line height, not text-lg's 1.5 */}
+			<p className="truncate font-display text-lg leading-[1.2]">{me?.name ?? session?.email}</p>
 			<p className="text-sm text-med-blue">{me ? roleLabel(me.role) : ''}</p>
 		</div>
 	);
