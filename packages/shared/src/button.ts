@@ -8,7 +8,8 @@ const variants = {
 };
 
 const sizes = {
-	md: 'rounded-[10px] px-7.5 py-2.5 text-lg',
+	// A step smaller than Figma's 18px label, to sit with the smaller sidebar and menu text
+	md: 'rounded-lg px-6 py-2 text-base',
 	// Compact version used inside table rows (Figma attendee "Check in" button)
 	sm: 'rounded-[6px] px-6 py-[7.5px] text-[15px]',
 	// Full-size Figma button (24px label) on phone screens, where designs aren't scaled down
