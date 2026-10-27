@@ -106,7 +106,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 													Signed up {formatDate(new Date(s.signedUpAt), SYDNEY)}
 													{s.entryIds.length > 1 && ` · ${s.entryIds.length} times`}
 												</p>
-												{!desktop && <p className="pt-1">{status}</p>}
+												{!desktop && <p className="pt-2.5">{status}</p>}
 											</div>
 										</div>
 									</td>

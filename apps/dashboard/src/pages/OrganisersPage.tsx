@@ -133,7 +133,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 											<p className="truncate font-display text-lg leading-[1.2] text-black">{o.name ?? o.email}</p>
 											<p className={`truncate text-[13.5px] ${o.invited ? 'text-med-blue' : 'text-black'}`}>{o.invited ? 'Invited · hasn’t signed in yet' : o.email}</p>
 											{!desktop && (
-												<p className="flex min-w-0 items-center gap-2.5 pt-1.5 text-base text-black">
+												<p className="flex min-w-0 items-center gap-2.5 pt-2.5 text-base text-black">
 													<RoleBadge organiser={o} />
 													<span className="truncate">{organiserTeam(teams, o)}</span>
 												</p>
