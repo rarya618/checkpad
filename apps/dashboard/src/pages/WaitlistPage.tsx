@@ -85,7 +85,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 							const organiser = organisers.find((o) => o.email === s.email.trim().toLowerCase());
 							const status = (
 								<span
-									className={`inline-block shrink-0 rounded-full px-3.5 py-1.5 text-base leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
+									className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
 										organiser ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 									}`}
 								>
@@ -95,8 +95,9 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 							return (
 								<tr key={s.email}>
 									<td className="py-[7.5px] pr-[18px]">
-										<div className="flex items-center gap-3">
-											<span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[15px]">
+										{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
+										<div className="flex items-start gap-4 md:items-center md:gap-3">
+											<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[15px]">
 												{s.email.slice(0, 2).toUpperCase()}
 											</span>
 											<div className="flex min-w-0 flex-col gap-0.5 leading-[1.5]">

@@ -124,15 +124,16 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 						{organisers.map((o) => (
 							<tr key={o.id}>
 								<td className="py-[7.5px] pr-[18px]">
-									<div className="flex items-center gap-3">
-										<span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[15px]">
+									{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
+									<div className="flex items-start gap-4 md:items-center md:gap-3">
+										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[15px]">
 											{initialsOf(o)}
 										</span>
 										<div className="flex min-w-0 flex-col gap-0.5 leading-[1.5]">
 											<p className="truncate font-display text-lg leading-[1.2] text-black">{o.name ?? o.email}</p>
 											<p className={`truncate text-[13.5px] ${o.invited ? 'text-med-blue' : 'text-black'}`}>{o.invited ? 'Invited · hasn’t signed in yet' : o.email}</p>
 											{!desktop && (
-												<p className="flex min-w-0 items-center gap-1.5 pt-1 text-[13.5px] text-black">
+												<p className="flex min-w-0 items-center gap-2.5 pt-1.5 text-base text-black">
 													<RoleBadge organiser={o} />
 													<span className="truncate">{organiserTeam(teams, o)}</span>
 												</p>
@@ -168,11 +169,11 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 	);
 }
 
-// Figma "Organisers" role pill: full size on phones (as in "Organisers (mobile)"), 75% from md up
+// Figma "Organisers" role pill: the small pill size on phones (as in "Organisers – manage team"), 75% from md up
 function RoleBadge({ organiser }: { organiser: Organiser }) {
 	return (
 		<span
-			className={`inline-block shrink-0 rounded-full px-3.5 py-1.5 text-base leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
+			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
 				organiser.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 			}`}
 		>
