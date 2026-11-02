@@ -33,7 +33,10 @@ jobs:
       - run: npm ci
 
       - name: Type-check and build
+        # astro sync writes apps/web/.astro/types.d.ts (git-ignored), which brings in
+        # astro/client: the types for import.meta.env and asset imports like *.svg
         run: |
+          npm run astro -w @checkpad/web -- sync
           npx tsc --noEmit -p apps/web
           npm run build --workspaces --if-present
 
