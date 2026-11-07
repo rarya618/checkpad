@@ -53,8 +53,8 @@ export default function OrganisersPage() {
 					)
 				}
 			/>
-			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
-				<div role="tablist" aria-label="Organisers" className="flex gap-[3px] self-start rounded-[9px] bg-light-blue p-[3px]">
+			<div className="flex flex-col gap-[21px] px-6 pt-3.5 pb-7">
+				<div role="tablist" aria-label="Organisers" className="flex gap-[3px] self-start rounded-[9px] bg-light-blue p-1">
 					{(['people', 'teams'] as const).map((t) => (
 						<button
 							key={t}
@@ -62,7 +62,7 @@ export default function OrganisersPage() {
 							role="tab"
 							aria-selected={tab === t}
 							onClick={() => setParams(t === 'teams' ? { tab: 'teams' } : {}, { replace: true })}
-							className={`rounded-[6.75px] px-[18px] py-[7.5px] font-display text-[15px] leading-[1.5] transition-colors ${
+							className={`rounded-[6.75px] px-4 py-2 font-display text-[15px] leading-[1.5] transition-colors ${
 								tab === t ? 'bg-dark-blue text-white' : 'hover:bg-white/50'
 							}`}
 						>
@@ -94,7 +94,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 	const desktop = useIsDesktop();
 	return (
 		<>
-			<div className="rounded-xl border border-med-blue bg-white px-4 py-[15px] md:px-6">
+			<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
 				<table className="w-full table-fixed leading-[1.5]">
 					<colgroup>
 						<col />
@@ -108,14 +108,14 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					</colgroup>
 					<thead>
 						<tr className="text-left font-display text-[13.5px] text-black">
-							<th className="pt-[3px] pr-[18px] pb-[7.5px]">Person</th>
+							<th className="pt-1 pr-4 pb-2">Person</th>
 							{desktop && (
 								<>
-									<th className="pt-[3px] pr-[18px] pb-[7.5px]">Role</th>
-									<th className="pt-[3px] pr-[18px] pb-[7.5px]">Team</th>
+									<th className="pt-1 pr-4 pb-2">Role</th>
+									<th className="pt-1 pr-4 pb-2">Team</th>
 								</>
 							)}
-							<th className="pt-[3px] pb-[7.5px]">
+							<th className="pt-1 pb-2">
 								<span className="sr-only">Options</span>
 							</th>
 						</tr>
@@ -123,23 +123,23 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					<tbody>
 						{organisers.map((o) => (
 							<tr key={o.id} className="border-t border-light-blue">
-								<td className="py-[10.5px] pr-[18px]">
+								<td className="py-4 pr-4">
 									{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
 									<div className="flex items-start gap-4 md:items-center md:gap-3">
 										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[13.5px]">
 											{initialsOf(o)}
 										</span>
-										<div className="flex min-w-0 flex-col gap-0.5">
-											<p className="truncate font-display text-base leading-[1.3] text-black" title={o.name ?? o.email}>
+										<div className="flex min-w-0 flex-col">
+											<p className="truncate font-display text-base leading-[1.25] text-black" title={o.name ?? o.email}>
 												{o.name ?? o.email}
 											</p>
 											{o.invited ? (
 												<p className="flex min-w-0 items-center gap-1.5 text-xs text-med-blue">
-													<span className="shrink-0 rounded-full border border-med-blue px-[7.5px] py-px font-bold">Invited</span>
+													<span className="shrink-0 rounded-full border border-med-blue px-2 py-px font-bold">Invited</span>
 													<span className="truncate">hasn’t signed in yet</span>
 												</p>
 											) : (
-												<p className="truncate text-[13.5px] text-med-blue" title={o.email}>
+												<p className="truncate text-[13.5px] leading-[1.35] text-med-blue" title={o.email}>
 													{o.email}
 												</p>
 											)}
@@ -154,13 +154,13 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 								</td>
 								{desktop && (
 									<>
-										<td className="py-[10.5px] pr-[18px]">
+										<td className="py-4 pr-4">
 											<RoleBadge organiser={o} />
 										</td>
-										<td className="truncate py-[10.5px] pr-[18px] text-[13.5px] text-black">{organiserTeam(teams, o)}</td>
+										<td className="truncate py-4 pr-4 text-[13.5px] text-black">{organiserTeam(teams, o)}</td>
 									</>
 								)}
-								<td className="py-[10.5px]">
+								<td className="py-4">
 									{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}
 								</td>
 							</tr>
@@ -168,7 +168,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					</tbody>
 				</table>
 			</div>
-			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-[15px] leading-[1.5] md:px-6">
+			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-4 leading-[1.5] md:px-6">
 				<h2 className="font-display text-[13.5px]">What each role can do</h2>
 				<dl className="flex flex-col gap-3 md:flex-row md:gap-6">
 					{roles.map((r) => (
@@ -189,7 +189,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 function RoleBadge({ organiser }: { organiser: Pick<Organiser, 'role'> }) {
 	return (
 		<span
-			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
+			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-2.5 md:py-1 md:text-xs ${
 				organiser.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 			}`}
 		>
@@ -237,7 +237,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 				const target = teamLinkTarget(team, events);
 				const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
 				return (
-					<section key={team.id} className="flex flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
+					<section key={team.id} className="flex flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-5">
 						<div className="flex items-center gap-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-[4.5px]">
 								<h2 className="truncate font-display text-2xl leading-[1.2]">{team.name}</h2>
@@ -251,7 +251,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 								</button>
 							)}
 						</div>
-						<div className="flex items-center gap-3 rounded-[7.5px] bg-off-white px-[15px] py-3">
+						<div className="flex items-center gap-3 rounded-[7.5px] bg-off-white px-4 py-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5] text-med-blue">
 								<p className="text-xs">Permanent link for printed signs</p>
 								<a href={url} target="_blank" rel="noreferrer" className="truncate text-[15px] font-semibold underline">
