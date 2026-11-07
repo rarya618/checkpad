@@ -80,12 +80,8 @@ export function eventResult(event: DashboardEvent): EventResult {
 	return { event, registered, checkedIn, walkIns, turnout: percent(checkedIn, registered) };
 }
 
-/**
- * Share of check-ins (in `events`) by someone who checked in to an earlier event of theirs,
- * matched by email. In the real app this runs on the server or behind organiser-only rules.
- */
-/** `rosters` by event ID. */
-export function returningShare(events: DashboardEvent[], allEvents: DashboardEvent[], rosters: Record<string, RosterAttendee[]>) {
+/** Each email's first check-in: the start of the earliest event in `allEvents` they came to. */
+export function firstCheckIns(allEvents: DashboardEvent[], rosters: Record<string, RosterAttendee[]>) {
 	const firstSeen = new Map<string, number>();
 	for (const e of [...allEvents].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
 		for (const a of rosters[e.id] ?? []) {
@@ -93,18 +89,69 @@ export function returningShare(events: DashboardEvent[], allEvents: DashboardEve
 			if (a.checkedInAt && !firstSeen.has(key)) firstSeen.set(key, new Date(e.startsAt).getTime());
 		}
 	}
+	return firstSeen;
+}
+
+/** One event's check-ins split into people who came to an earlier event and first-timers. */
+export function newVsReturning(event: DashboardEvent, roster: RosterAttendee[], firstSeen: Map<string, number>) {
+	const start = new Date(event.startsAt).getTime();
+	const seen = new Set<string>();
+	let returning = 0;
+	let firstTime = 0;
+	for (const a of roster) {
+		const key = a.email.toLowerCase();
+		if (!a.checkedInAt || seen.has(key)) continue;
+		seen.add(key);
+		if ((firstSeen.get(key) ?? start) < start) returning++;
+		else firstTime++;
+	}
+	return { returning, firstTime };
+}
+
+/**
+ * Share of check-ins (in `events`) by someone who checked in to an earlier event of theirs,
+ * matched by email. `allEvents` are every earlier event to look in; `rosters` by event ID.
+ */
+export function returningShare(events: DashboardEvent[], allEvents: DashboardEvent[], rosters: Record<string, RosterAttendee[]>) {
+	const firstSeen = firstCheckIns(allEvents, rosters);
 	let checkIns = 0;
 	let returning = 0;
 	for (const e of events) {
-		const start = new Date(e.startsAt).getTime();
-		for (const a of rosters[e.id] ?? []) {
-			if (!a.checkedInAt) continue;
-			checkIns++;
-			if ((firstSeen.get(a.email.toLowerCase()) ?? start) < start) returning++;
-		}
+		const split = newVsReturning(e, rosters[e.id] ?? [], firstSeen);
+		checkIns += split.returning + split.firstTime;
+		returning += split.returning;
 	}
 	return percent(returning, checkIns);
 }
+
+export interface MethodSplit {
+	/** Checked themselves in on the attendee page, walk-ins included. */
+	self: number;
+	/** Checked in or added by an organiser from the dashboard. */
+	staff: number;
+	/** Check-ins per organiser's email, most first. */
+	byOrganiser: { email: string; count: number }[];
+}
+
+/** How an event's check-ins happened; null for a migrated event, where nobody recorded it. */
+export function checkInMethods(event: DashboardEvent, roster: RosterAttendee[]): MethodSplit | null {
+	if (event.migrated) return null;
+	const byOrganiser = new Map<string, number>();
+	let self = 0;
+	for (const a of roster) {
+		if (!a.checkedInAt) continue;
+		if (a.checkedInBy) byOrganiser.set(a.checkedInBy, (byOrganiser.get(a.checkedInBy) ?? 0) + 1);
+		else self++;
+	}
+	const list = [...byOrganiser].map(([email, count]) => ({ email, count })).sort((a, b) => b.count - a.count || a.email.localeCompare(b.email));
+	return { self, staff: list.reduce((n, o) => n + o.count, 0), byOrganiser: list };
+}
+
+/** Which axis labels to show so about `fit` fit: every `n`th, counted back from the latest. */
+export const thinLabels = (count: number, fit = 8) => {
+	const step = Math.max(1, Math.ceil(count / fit));
+	return (i: number) => (count - 1 - i) % step === 0;
+};
 
 export const ranges = [
 	{ id: '3', label: 'Last 3 months', months: 3 },

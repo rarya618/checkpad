@@ -2,15 +2,41 @@ import { formatDay } from '@checkpad/shared/format';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import chevron from '../assets/chevron-small.svg';
-import { BarChart, StatTile, type Series } from '../components/Charts';
+import { BarChart, ChartCard, StatTile, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
-import { eventResult, eventsInRange, monthSpan, percent, ranges, returningShare } from '../lib/analytics';
+import {
+	checkInMethods,
+	eventResult,
+	eventsInRange,
+	firstCheckIns,
+	monthSpan,
+	newVsReturning,
+	niceTicks,
+	percent,
+	ranges,
+	returningShare,
+	thinLabels,
+} from '../lib/analytics';
 import { useEvents } from '../lib/events';
 import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { useIsDesktop } from '../lib/useMediaQuery';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
+// Didn't come is hollow, so it reads by shape as well as colour
+const attendanceSeries: Series[] = [
+	{ name: 'Pre-registered', className: 'bg-dark-blue' },
+	{ name: 'Walk-ins', className: 'bg-med-blue' },
+	{ name: "Didn't come", className: 'border border-med-blue bg-white' },
+];
+const returningSeries: Series[] = [
+	{ name: 'Returning', className: 'bg-dark-blue' },
+	{ name: 'First-timers', className: 'bg-med-blue' },
+];
+const methodSeries: Series[] = [
+	{ name: 'Self', className: 'bg-dark-blue' },
+	{ name: 'Organiser', className: 'bg-med-blue' },
+];
 
 // Figma "Analytics" (across events) at 75% scale. Phones get the tiles two by two, and a
 // table of just the event (with its date) and turnout.
@@ -28,7 +54,18 @@ export default function AnalyticsPage() {
 	const rosters = useRosters(teamEvents);
 	const registered = results.reduce((n, r) => n + r.registered, 0);
 	const checkIns = results.reduce((n, r) => n + r.checkedIn, 0);
+	const loaded = teamEvents.every((e) => e.id in rosters);
 	const returning = useMemo(() => returningShare(included, teamEvents, rosters), [included, teamEvents, rosters]);
+	const walkIns = results.reduce((n, r) => n + r.walkIns, 0);
+
+	// Per event: first-timers and returning, and how people checked in (null for migrated events)
+	const detail = useMemo(() => {
+		const firstSeen = firstCheckIns(teamEvents, rosters);
+		return included.map((e) => ({ split: newVsReturning(e, rosters[e.id] ?? [], firstSeen), methods: checkInMethods(e, rosters[e.id] ?? []) }));
+	}, [included, teamEvents, rosters]);
+	const recorded = detail.filter((d) => d.methods);
+	const selfCheckIns = recorded.reduce((n, d) => n + d.methods!.self, 0);
+	const recordedCheckIns = recorded.reduce((n, d) => n + d.methods!.self + d.methods!.staff, 0);
 
 	// Label the best turnout and the latest event, not every bar
 	const best = results.reduce<(typeof results)[number] | null>((b, r) => (!b || r.turnout > b.turnout ? r : b), null);
@@ -38,6 +75,8 @@ export default function AnalyticsPage() {
 	const desktop = useIsDesktop();
 	const date = (r: (typeof results)[number]) => formatDay(new Date(r.event.startsAt), r.event.timeZone).replace(' ', ', ');
 	const month = (r: (typeof results)[number]) => new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: r.event.timeZone }).format(new Date(r.event.startsAt));
+	const showLabel = thinLabels(results.length);
+	const axisLabel = (r: (typeof results)[number], i: number) => (showLabel(i) ? month(r) : '');
 
 	return (
 		<>
@@ -64,36 +103,100 @@ export default function AnalyticsPage() {
 				}
 			/>
 			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
-				<div className="grid grid-cols-2 gap-[15px] md:flex">
+				<div className="grid grid-cols-2 gap-[15px] md:grid-cols-3 xl:grid-cols-6">
 					<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
 					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${registered} registered`} />
 					<StatTile label="Average turnout" value={`${percent(checkIns, registered)}%`} note="checked in of registered" />
-					<StatTile label="Returning" value={`${returning}%`} note="came to an earlier event" />
+					<StatTile label="Returning" value={loaded ? `${returning}%` : '–'} note="came to an earlier event" />
+					<StatTile label="Walk-ins" value={`${percent(walkIns, checkIns)}%`} note={`${walkIns} of check-ins`} />
+					<StatTile
+						label="Self check-in"
+						value={!loaded ? '–' : recordedCheckIns ? `${percent(selfCheckIns, recordedCheckIns)}%` : '–'}
+						note={recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}
+					/>
 				</div>
 
-				<section className="flex flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
-					<div className="flex flex-col gap-[3px] leading-[1.5]">
-						<h2 className="font-display text-lg">Turnout by event</h2>
-						<p className="text-xs text-med-blue">Share of registered people who checked in</p>
+				{results.length ? (
+					<div className="grid gap-[15px] xl:grid-cols-2">
+						<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
+							<BarChart
+								label="Turnout by event"
+								series={turnoutSeries}
+								ticks={ticks}
+								formatTick={(n) => `${n}%`}
+								bars={results.map((r, i) => ({
+									label: axisLabel(r, i),
+									values: [r.turnout],
+									title: r.event.name,
+									lines: [`${r.checkedIn} of ${r.registered} checked in · ${r.turnout}%`],
+									showValue: r === best || r === latest ? `${r.turnout}%` : undefined,
+								}))}
+							/>
+						</ChartCard>
+						<ChartCard level={2} title="Attendance by event" caption="Everyone on the list, by whether they came" legend={attendanceSeries}>
+							<BarChart
+								label="Attendance by event"
+								series={attendanceSeries}
+								ticks={niceTicks(Math.max(1, ...results.map((r) => r.registered)))}
+								bars={results.map((r, i) => ({
+									label: axisLabel(r, i),
+									values: [r.checkedIn - r.walkIns, r.walkIns, r.registered - r.checkedIn],
+									title: r.event.name,
+									lines: [
+										`${r.checkedIn - r.walkIns} pre-registered`,
+										`${r.walkIns} walk-ins · ${percent(r.walkIns, r.checkedIn)}% of check-ins`,
+										`${r.registered - r.checkedIn} didn't come`,
+									],
+									showValue: r === latest ? String(r.checkedIn) : undefined,
+								}))}
+							/>
+						</ChartCard>
+						<ChartCard level={2} title="New and returning" caption="Check-ins by whether they came to an earlier event" legend={returningSeries}>
+							{loaded ? (
+								<BarChart
+									label="New and returning by event"
+									series={returningSeries}
+									ticks={niceTicks(Math.max(1, ...detail.map((d) => d.split.returning + d.split.firstTime)))}
+									bars={results.map((r, i) => {
+										const { returning, firstTime } = detail[i].split;
+										return {
+											label: axisLabel(r, i),
+											values: [returning, firstTime],
+											title: r.event.name,
+											lines: [`${returning} returning`, `${firstTime} first-timers · ${percent(firstTime, returning + firstTime)}%`],
+										};
+									})}
+								/>
+							) : (
+								<Loading />
+							)}
+						</ChartCard>
+						<ChartCard level={2} title="How people checked in" caption="On the attendee page or by an organiser" legend={methodSeries}>
+							{loaded ? (
+								<BarChart
+									label="Check-in method by event"
+									series={methodSeries}
+									ticks={niceTicks(Math.max(1, ...detail.map((d) => (d.methods ? d.methods.self + d.methods.staff : 0))))}
+									bars={results.map((r, i) => {
+										const m = detail[i].methods;
+										return {
+											label: axisLabel(r, i),
+											values: m ? [m.self, m.staff] : [0, 0],
+											title: r.event.name,
+											lines: m ? [`${m.self} self · ${percent(m.self, m.self + m.staff)}%`, `${m.staff} by an organiser`] : ['Not recorded in the old check-in app'],
+										};
+									})}
+								/>
+							) : (
+								<Loading />
+							)}
+						</ChartCard>
 					</div>
-					{results.length ? (
-						<BarChart
-							label="Turnout by event"
-							series={turnoutSeries}
-							ticks={ticks}
-							formatTick={(n) => `${n}%`}
-							bars={results.map((r) => ({
-								label: month(r),
-								values: [r.turnout],
-								title: r.event.name,
-								lines: [`${r.checkedIn} of ${r.registered} checked in · ${r.turnout}%`],
-								showValue: r === best || r === latest ? `${r.turnout}%` : undefined,
-							}))}
-						/>
-					) : (
+				) : (
+					<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
 						<p className="py-6 text-center text-[13.5px] text-med-blue">No finished events in this range.</p>
-					)}
-				</section>
+					</ChartCard>
+				)}
 
 				{results.length > 0 && (
 					<div className="rounded-xl border border-med-blue bg-white px-4 py-[15px] md:px-6">
@@ -155,6 +258,10 @@ export default function AnalyticsPage() {
 			</div>
 		</>
 	);
+}
+
+function Loading() {
+	return <p className="py-6 text-center text-[13.5px] text-med-blue">Loading attendee lists…</p>;
 }
 
 /** Figma "Filter": a bordered dropdown in the page header. */

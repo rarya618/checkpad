@@ -31,6 +31,8 @@ export interface RosterAttendee extends Attendee {
 	walkIn: boolean;
 	/** Walk-ins staff added: who added them. Self walk-ins from the check-in page have none. */
 	addedBy?: string;
+	/** The organiser who checked them in from the dashboard; none when they checked themselves in. */
+	checkedInBy?: string;
 }
 
 const EMPTY: RosterAttendee[] = [];
@@ -49,6 +51,7 @@ function toAttendee(snap: QueryDocumentSnapshot): RosterAttendee {
 		...(data.ticketType && { ticketType: data.ticketType }),
 		walkIn: data.source === 'walk-in',
 		...(data.source === 'walk-in' && data.checkedInBy && { addedBy: data.checkedInBy }),
+		...(data.checkedInAt && data.checkedInBy && { checkedInBy: data.checkedInBy }),
 	};
 }
 

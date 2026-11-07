@@ -39,6 +39,8 @@ export interface DashboardEvent extends CheckpadEvent {
 	/** Who last opened or closed self check-in, and when (ISO). */
 	selfCheckInChangedBy: string | null;
 	selfCheckInChangedAt: string | null;
+	/** Moved from the old check-in app, which didn't record who checked people in. */
+	migrated: boolean;
 }
 
 /** What New event and Event settings edit. */
@@ -69,6 +71,7 @@ function toEvent(snap: DocumentSnapshot): DashboardEvent {
 		counts: data.counts ?? { registered: 0, checkedIn: 0, walkIns: 0 },
 		selfCheckInChangedBy: data.statusChangedBy ?? null,
 		selfCheckInChangedAt: iso(data.statusChangedAt),
+		migrated: Boolean(data.legacyId),
 	};
 }
 

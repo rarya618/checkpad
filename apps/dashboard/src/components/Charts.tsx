@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
 // charts in "Event analytics" and "Analytics".
@@ -10,6 +10,38 @@ export function StatTile({ label, value, note }: { label: string; value: string;
 			<p className="font-display text-4xl leading-[1.2]">{value}</p>
 			{note && <p className="truncate text-xs leading-[1.5] text-med-blue">{note}</p>}
 		</div>
+	);
+}
+
+/** A card with a chart or list: Figma's section heading and caption, then the content. */
+export function ChartCard({
+	title,
+	caption,
+	legend,
+	level = 3,
+	className = '',
+	children,
+}: {
+	title: string;
+	caption: string;
+	legend?: Series[];
+	/** 2 on a page of its own, 3 under an event's Analytics heading. */
+	level?: 2 | 3;
+	className?: string;
+	children: ReactNode;
+}) {
+	const Heading = level === 2 ? 'h2' : 'h3';
+	return (
+		<section className={`flex min-w-0 flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px] ${className}`}>
+			<div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
+				<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5]">
+					<Heading className="font-display text-lg">{title}</Heading>
+					<p className="text-xs text-med-blue">{caption}</p>
+				</div>
+				{legend && <Legend series={legend} />}
+			</div>
+			{children}
+		</section>
 	);
 }
 
