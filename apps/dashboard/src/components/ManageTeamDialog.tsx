@@ -54,7 +54,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 			}
 		>
 			<form
-				className="flex flex-col gap-[18px]"
+				className="flex flex-col gap-5"
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!valid) return;
@@ -94,7 +94,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 							className="min-w-0 flex-1"
 						/>
 					</div>
-					<p className="text-xs leading-[1.5] text-med-blue">
+					<p className="text-xs leading-normal text-med-blue">
 						{team
 							? `Changing the link name breaks printed signs that use ${WEB_HOST}/team/${team.slug}.`
 							: `Printed signs will use ${WEB_HOST}/team/${cleanSlugValue || 'link-name'}.`}
@@ -103,8 +103,8 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 				<TeamPlaceFields value={place} onChange={setPlace} />
 
 				{(members.length > 0 || invites.length > 0) && (
-					<div className="flex flex-col gap-[3px]">
-						<p className="text-[13.5px] leading-[1.5] text-black">Members</p>
+					<div className="flex flex-col gap-1">
+						<p className="text-[13.5px] leading-normal text-black">Members</p>
 						<ul className="flex flex-col">
 							{members.map((o) => (
 								<Member
@@ -149,7 +149,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 						error={emailTaken ? 'Already an organiser.' : null}
 						className="min-w-0 flex-1"
 					/>
-					<button type="button" onClick={addMember} disabled={!looksLikeEmail(newEmail) || emailTaken} className={`${buttonClass('secondary')} disabled:opacity-50 ${emailTaken ? 'mb-[22px]' : ''}`}>
+					<button type="button" onClick={addMember} disabled={!looksLikeEmail(newEmail) || emailTaken} className={`${buttonClass('secondary')} disabled:opacity-50 ${emailTaken ? 'mb-6' : ''}`}>
 						Add
 					</button>
 				</div>
@@ -179,15 +179,15 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 
 function Member({ initials, name, detail, invited, role, onRemove }: { initials: string; name: string; detail: string; invited: boolean; role: string; onRemove: () => void }) {
 	return (
-		<li className="flex items-center gap-[10.5px] py-[4.5px]">
+		<li className="flex items-center gap-2.5 py-1">
 			<span aria-hidden="true" className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xs">
 				{initials}
 			</span>
-			<div className="flex min-w-0 flex-1 flex-col leading-[1.5]">
+			<div className="flex min-w-0 flex-1 flex-col leading-normal">
 				<p className="truncate text-[13.5px] font-bold text-black">{name}</p>
 				<p className={`truncate text-xs ${invited ? 'text-med-blue' : 'text-black'}`}>{detail}</p>
 			</div>
-			<span className="shrink-0 rounded-full bg-light-blue px-[9px] py-[3px] text-[10.5px] leading-[1.5] font-bold tracking-normal">{role}</span>
+			<span className="shrink-0 rounded-full bg-light-blue px-2.5 py-1 text-[10.5px] leading-normal font-bold tracking-normal">{role}</span>
 			<button type="button" aria-label={`Remove ${name} from the team`} onClick={onRemove} className="shrink-0 rounded p-0.5 hover:bg-light-blue/60">
 				<img src={xSmall} alt="" width={15} height={15} />
 			</button>

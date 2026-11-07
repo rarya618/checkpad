@@ -63,7 +63,7 @@ export default function NewEventPage() {
 	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined && !saving;
 	const desktop = useIsDesktop();
 	const buttons = (
-		<div className="flex shrink-0 items-center gap-[15px]">
+		<div className="flex shrink-0 items-center gap-4">
 			<Link to="/events" className={buttonClass('secondary')}>
 				Cancel
 			</Link>
@@ -91,7 +91,7 @@ export default function NewEventPage() {
 			}}
 		>
 			{/* Sticks once 24px remains above it, like PageHeader */}
-			<header className="flex items-end gap-3 bg-off-white px-6 pt-3 md:sticky md:top-[-30px] md:z-10 md:pt-[54px] md:pb-[15px]">
+			<header className="flex items-end gap-3 bg-off-white px-6 pt-3 md:sticky md:top-[-30px] md:z-10 md:pt-14 md:pb-4">
 				<div className="flex min-w-0 flex-1 flex-col gap-3.5">
 					<nav aria-label="Breadcrumb">
 						<ol className="flex items-center gap-1.5 text-[15px] text-black">
@@ -111,10 +111,10 @@ export default function NewEventPage() {
 				{desktop && buttons}
 			</header>
 			{/* Phones: only the buttons stick, on their own row, while the title scrolls away */}
-			{!desktop && <div className="sticky top-0 z-10 bg-off-white px-6 pt-3 pb-[15px]">{buttons}</div>}
+			{!desktop && <div className="sticky top-0 z-10 bg-off-white px-6 pt-3 pb-4">{buttons}</div>}
 
-			<div className="grid grid-cols-1 gap-[18px] px-6 pt-[15px] pb-[27px] lg:grid-cols-2">
-				<div className="flex flex-col gap-[18px]">
+			<div className="grid grid-cols-1 gap-5 px-6 pt-4 pb-7 lg:grid-cols-2">
+				<div className="flex flex-col gap-5">
 					<FormCard title="Details">
 						<TextField
 							label="Name"
@@ -148,7 +148,7 @@ export default function NewEventPage() {
 						<DateTimeFields form={form} update={update} />
 					</FormCard>
 				</div>
-				<div className="flex flex-col gap-[18px]">
+				<div className="flex flex-col gap-5">
 					<FormCard title="Team" description="Team members can see and run this event. Super admins see every event.">
 						<SelectField
 							label="Team"

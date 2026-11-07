@@ -26,7 +26,7 @@ export default function DeleteEventDialog({ event, onClose }: { event: Dashboard
 			}
 		>
 			<form
-				className="flex flex-col gap-[18px]"
+				className="flex flex-col gap-5"
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!matches) return;

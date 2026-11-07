@@ -53,8 +53,8 @@ export default function OrganisersPage() {
 					)
 				}
 			/>
-			<div className="flex flex-col gap-[21px] px-6 pt-3.5 pb-7">
-				<div role="tablist" aria-label="Organisers" className="flex gap-[3px] self-start rounded-[9px] bg-light-blue p-1">
+			<div className="flex flex-col gap-5 px-6 pt-3.5 pb-7">
+				<div role="tablist" aria-label="Organisers" className="flex gap-1 self-start rounded-lg bg-light-blue p-1">
 					{(['people', 'teams'] as const).map((t) => (
 						<button
 							key={t}
@@ -62,7 +62,7 @@ export default function OrganisersPage() {
 							role="tab"
 							aria-selected={tab === t}
 							onClick={() => setParams(t === 'teams' ? { tab: 'teams' } : {}, { replace: true })}
-							className={`rounded-[6.75px] px-4 py-2 font-display text-[15px] leading-[1.5] transition-colors ${
+							className={`rounded-md px-4 py-2 font-display text-[15px] leading-normal transition-colors ${
 								tab === t ? 'bg-dark-blue text-white' : 'hover:bg-white/50'
 							}`}
 						>
@@ -95,7 +95,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 	return (
 		<>
 			<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
-				<table className="w-full table-fixed leading-[1.5]">
+				<table className="w-full table-fixed leading-normal">
 					<colgroup>
 						<col />
 						{desktop && (
@@ -130,7 +130,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 											{initialsOf(o)}
 										</span>
 										<div className="flex min-w-0 flex-col">
-											<p className="truncate font-display text-base leading-[1.25] text-black" title={o.name ?? o.email}>
+											<p className="truncate font-display text-base leading-tight text-black" title={o.name ?? o.email}>
 												{o.name ?? o.email}
 											</p>
 											{o.invited ? (
@@ -139,7 +139,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 													<span className="truncate">hasn’t signed in yet</span>
 												</p>
 											) : (
-												<p className="truncate text-[13.5px] leading-[1.35] text-med-blue" title={o.email}>
+												<p className="truncate text-[13.5px] leading-snug text-med-blue" title={o.email}>
 													{o.email}
 												</p>
 											)}
@@ -168,11 +168,11 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					</tbody>
 				</table>
 			</div>
-			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-4 leading-[1.5] md:px-6">
+			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-4 leading-normal md:px-6">
 				<h2 className="font-display text-[13.5px]">What each role can do</h2>
 				<dl className="flex flex-col gap-3 md:flex-row md:gap-6">
 					{roles.map((r) => (
-						<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-[3px]">
+						<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-2">
 							<dt>
 								<RoleBadge organiser={{ role: r.id }} />
 							</dt>
@@ -189,7 +189,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 function RoleBadge({ organiser }: { organiser: Pick<Organiser, 'role'> }) {
 	return (
 		<span
-			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-2.5 md:py-1 md:text-xs ${
+			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-normal font-bold tracking-normal whitespace-nowrap md:px-2.5 md:py-1 md:text-xs ${
 				organiser.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 			}`}
 		>
@@ -237,11 +237,11 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 				const target = teamLinkTarget(team, events);
 				const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
 				return (
-					<section key={team.id} className="flex flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-5">
+					<section key={team.id} className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
 						<div className="flex items-center gap-3">
-							<div className="flex min-w-0 flex-1 flex-col gap-[4.5px]">
-								<h2 className="truncate font-display text-2xl leading-[1.2]">{team.name}</h2>
-								<p className="text-[13.5px] leading-[1.5] text-med-blue">
+							<div className="flex min-w-0 flex-1 flex-col gap-1">
+								<h2 className="truncate font-display text-2xl leading-tight">{team.name}</h2>
+								<p className="text-[13.5px] leading-normal text-med-blue">
 									{members} member{members === 1 ? '' : 's'}
 								</p>
 							</div>
@@ -251,8 +251,8 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 								</button>
 							)}
 						</div>
-						<div className="flex items-center gap-3 rounded-[7.5px] bg-off-white px-4 py-3">
-							<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5] text-med-blue">
+						<div className="flex items-center gap-3 rounded-lg bg-off-white px-4 py-3">
+							<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal text-med-blue">
 								<p className="text-xs">Permanent link for printed signs</p>
 								<a href={url} target="_blank" rel="noreferrer" className="truncate text-[15px] font-semibold underline">
 									{url.replace(/^https?:\/\//, '')}
@@ -267,7 +267,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 								<img src={copyLink} alt="" width={16.5} height={16.5} />
 							</button>
 						</div>
-						<div className="flex flex-wrap items-center gap-[9px] leading-[1.5]">
+						<div className="flex flex-wrap items-center gap-2.5 leading-normal">
 							<p className="text-[13.5px] text-black">Points to</p>
 							{target ? (
 								<>
@@ -282,7 +282,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 					</section>
 				);
 			})}
-			<p className="text-[13.5px] leading-[1.5] text-med-blue">A team link opens the team’s event that is open for check-in, or else its next upcoming event.</p>
+			<p className="text-[13.5px] leading-normal text-med-blue">A team link opens the team’s event that is open for check-in, or else its next upcoming event.</p>
 		</>
 	);
 }

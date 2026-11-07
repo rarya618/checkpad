@@ -129,7 +129,7 @@ export default function CheckInFlow({ event, children }: Props) {
 					</header>
 
 					{step.name === 'email' ? (
-						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
+						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
 							<TextField
 								ref={emailInput}
 								label="Email"
@@ -150,13 +150,13 @@ export default function CheckInFlow({ event, children }: Props) {
 							{requestError && <RequestError message={requestError} />}
 						</form>
 					) : step.name === 'not-registered' ? (
-						<section aria-live="polite" className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
+						<section aria-live="polite" className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
 							<div className="flex w-full flex-col gap-2">
 								<p className="text-lg text-black">Email</p>
 								<p className="text-xl font-semibold break-all">{email}</p>
 							</div>
 							<div className="flex w-full flex-col gap-2">
-								<h2 className="font-display text-[28px] leading-[1.2]">You’re not on the list</h2>
+								<h2 className="font-display text-[28px] leading-tight">You’re not on the list</h2>
 								<p className="text-lg text-med-blue">
 									Check it’s the email you registered with, or find one of the organisers and they’ll add you.
 								</p>
@@ -166,7 +166,7 @@ export default function CheckInFlow({ event, children }: Props) {
 							</button>
 						</section>
 					) : (
-						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-9 rounded-[10px] bg-white px-5 py-7.5">
+						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
 							<div className="flex w-full flex-col gap-2">
 								<p className="text-lg text-black">Email</p>
 								<p className="text-xl font-semibold break-all">{email}</p>
@@ -223,7 +223,7 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 		// Inset further than the forms in Figma (36px vs 24px page padding).
 		<section
 			aria-live="polite"
-			className="flex w-[calc(100%-24px)] flex-col items-center gap-9 rounded-[10px] border-2 border-b-6 border-med-blue bg-white px-7 py-10 text-center"
+			className="flex w-[calc(100%-24px)] flex-col items-center gap-9 rounded-xl border-2 border-b-6 border-med-blue bg-white px-7 py-10 text-center"
 		>
 			<div className="flex w-full flex-col items-center gap-7.5">
 				<div className="flex flex-col items-center gap-1">
@@ -232,9 +232,9 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 				</div>
 				{/* Figma "Checked in with ticket (mobile-first)" */}
 				{ticket && (
-					<div className="flex flex-col items-center gap-1 rounded-[10px] bg-off-white px-5 py-3">
+					<div className="flex flex-col items-center gap-1 rounded-xl bg-off-white px-5 py-3">
 						<p className="text-base text-med-blue">Ticket</p>
-						<p className="font-mono text-[22px] leading-[1.5]">{ticket}</p>
+						<p className="font-mono text-[22px] leading-normal">{ticket}</p>
 					</div>
 				)}
 				<p className="text-lg tracking-tight text-med-blue">

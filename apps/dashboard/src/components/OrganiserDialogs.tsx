@@ -96,7 +96,7 @@ export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { emai
 	return (
 		<Dialog title="Add organiser" description="They can sign in once you add them." onClose={onClose} className="w-[450px]" closeButton={<CloseButton onClose={onClose} />}>
 			<form
-				className="flex flex-col gap-[18px]"
+				className="flex flex-col gap-5"
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (!valid) return;
@@ -117,9 +117,9 @@ export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { emai
 					data-autofocus
 				/>
 				<RoleAndTeam role={role} team={team} setRole={setRole} setTeam={setTeam} />
-				<div className="flex items-center gap-[15px] rounded-[7.5px] bg-light-blue px-[18px] py-[15px]">
+				<div className="flex items-center gap-4 rounded-lg bg-light-blue px-5 py-4">
 					<img src={mail} alt="" width={18} height={18} />
-					<p className="min-w-0 flex-1 text-[13.5px] leading-[1.5] tracking-tight">
+					<p className="min-w-0 flex-1 text-[13.5px] leading-normal tracking-tight">
 						We’ll email {looksLikeEmail(email) ? <strong className="font-bold">{email.trim()}</strong> : 'them'} an invite. They can sign in with Google or an email link.
 					</p>
 				</div>
@@ -144,7 +144,7 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 			closeButton={<CloseButton onClose={onClose} />}
 		>
 			<form
-				className="flex flex-col gap-[18px]"
+				className="flex flex-col gap-5"
 				onSubmit={(e) => {
 					e.preventDefault();
 					updateOrganiser(organiser.id, { role, teamId: teamIdFor(team) }).catch(() => showToast(`Couldn’t save ${name}’s changes. Try again.`));

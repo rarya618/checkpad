@@ -61,7 +61,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 	useEffect(() => setOpen(false), [pathname]);
 
 	// The sidebar's text sizes, with slightly taller rows to tap
-	const item = 'block rounded-lg px-5 py-2 text-base leading-[1.5] tracking-[0.01em] hover:bg-white/50';
+	const item = 'block rounded-lg px-5 py-2 text-base leading-normal tracking-[0.01em] hover:bg-white/50';
 	const tab = 'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5';
 
 	return (
@@ -101,7 +101,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 			>
 				<div className="flex flex-col gap-1 px-4 pt-5 pb-6">
 					<div className="flex items-center pb-2 pl-3">
-						<p className="min-w-0 flex-1 truncate font-display text-lg leading-[1.5]">{title}</p>
+						<p className="min-w-0 flex-1 truncate font-display text-lg leading-normal">{title}</p>
 						<button type="button" aria-label="Close" onClick={() => setOpen(false)} className="-m-1 rounded p-1 hover:bg-white/50">
 							<img src={close} alt="" width={28} height={28} />
 						</button>
@@ -131,7 +131,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 						))}
 					</ul>
 					<div className="my-2 h-px bg-med-blue/40" />
-					<div className="flex flex-col gap-0.5 pl-3 leading-[1.5]">
+					<div className="flex flex-col gap-0.5 pl-3 leading-normal">
 						<p className="truncate font-display text-lg">{me?.name ?? session?.email}</p>
 						<p className="text-sm text-med-blue">{me ? roleLabel(me.role) : ''}</p>
 					</div>
@@ -149,7 +149,7 @@ function Tab({ icon, label, active }: { icon?: string; label: string; active: bo
 			<span className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${active ? 'bg-dark-blue' : ''}`}>
 				{icon && <img src={icon} alt="" width={22} height={22} className={active ? 'brightness-0 invert' : ''} />}
 			</span>
-			<span className={`max-w-full truncate text-xs leading-[1.5] tracking-[0.01em] ${active ? 'font-display' : ''}`}>{label}</span>
+			<span className={`max-w-full truncate text-xs leading-normal tracking-[0.01em] ${active ? 'font-display' : ''}`}>{label}</span>
 		</>
 	);
 }

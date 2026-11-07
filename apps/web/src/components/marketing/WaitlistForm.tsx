@@ -66,7 +66,7 @@ export default function WaitlistForm() {
 					onChange={(e) => setEmail(e.target.value)}
 					aria-invalid={error ? true : undefined}
 					aria-describedby={error ? errorId : undefined}
-					className={`min-w-0 flex-1 rounded-[10px] bg-off-white px-5 py-2.5 text-lg text-dark-blue placeholder:text-dark-blue/50 focus:outline-2 focus:outline-offset-2 focus:outline-light-blue ${error ? 'inset-ring-2 inset-ring-error' : ''}`}
+					className={`min-w-0 flex-1 rounded-xl bg-off-white px-5 py-2.5 text-lg text-dark-blue placeholder:text-dark-blue/50 focus:outline-2 focus:outline-offset-2 focus:outline-light-blue ${error ? 'inset-ring-2 inset-ring-error' : ''}`}
 				/>
 				<SubmitButton loading={submitting} loadingLabel="Joining the waitlist" variant="secondary">
 					Join the waitlist

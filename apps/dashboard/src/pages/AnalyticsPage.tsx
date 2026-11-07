@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
 				actionsRowOnPhones
 				title="Analytics"
 				actions={
-					<div className="flex items-center gap-[9px] max-md:w-full max-md:*:flex-1">
+					<div className="flex items-center gap-2.5 max-md:w-full max-md:*:flex-1">
 						<Filter label="Team" value={team} onChange={setTeam}>
 							{teams.map((t) => (
 								<option key={t.id} value={t.id}>
@@ -110,8 +110,8 @@ export default function AnalyticsPage() {
 					</div>
 				}
 			/>
-			<div className="flex flex-col gap-[21px] px-6 pt-[14px] pb-[27px]">
-				<div className="grid grid-cols-2 gap-[15px] md:grid-cols-3 xl:grid-cols-6">
+			<div className="flex flex-col gap-5 px-6 pt-3.5 pb-7">
+				<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
 					<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
 					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${registered} registered`} />
 					<StatTile label="Average turnout" value={`${percent(checkIns, registered)}%`} note="checked in of registered" />
@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
 				</div>
 
 				{results.length ? (
-					<div className="grid gap-[15px] xl:grid-cols-2">
+					<div className="grid gap-4 xl:grid-cols-2">
 						<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
 							<BarChart
 								label="Turnout by event"
@@ -207,7 +207,7 @@ export default function AnalyticsPage() {
 				)}
 
 				{results.length > 0 && (
-					<div className="grid gap-[15px] xl:grid-cols-2">
+					<div className="grid gap-4 xl:grid-cols-2">
 						<ChartCard level={2} title="Regulars" caption="Came to two or more of these events">
 							{loaded ? <PeopleList list={regularList} count={(p) => `${p.attended} of ${included.length} events`} empty="No one has come twice yet." /> : <Loading />}
 						</ChartCard>
@@ -218,8 +218,8 @@ export default function AnalyticsPage() {
 				)}
 
 				{results.length > 0 && (
-					<div className="rounded-xl border border-med-blue bg-white px-4 py-[15px] md:px-6">
-						<table className="w-full table-fixed text-[13.5px] leading-[1.5]">
+					<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
+						<table className="w-full table-fixed text-[13.5px] leading-normal">
 							<colgroup>
 								<col />
 								{desktop && (
@@ -234,22 +234,22 @@ export default function AnalyticsPage() {
 							</colgroup>
 							<thead>
 								<tr className="font-display text-black">
-									<th className="pt-[3px] pb-[7.5px] text-left">Event</th>
+									<th className="pt-1 pb-2 text-left">Event</th>
 									{desktop && (
 										<>
-											<th className="pt-[3px] pb-[7.5px] text-left">Date</th>
-											<th className="pt-[3px] pb-[7.5px] text-right">Registered</th>
-											<th className="pt-[3px] pb-[7.5px] text-right">Checked in</th>
+											<th className="pt-1 pb-2 text-left">Date</th>
+											<th className="pt-1 pb-2 text-right">Registered</th>
+											<th className="pt-1 pb-2 text-right">Checked in</th>
 										</>
 									)}
-									<th className="pt-[3px] pb-[7.5px] text-right">Turnout</th>
-									{desktop && <th className="pt-[3px] pb-[7.5px] text-right">Walk-ins</th>}
+									<th className="pt-1 pb-2 text-right">Turnout</th>
+									{desktop && <th className="pt-1 pb-2 text-right">Walk-ins</th>}
 								</tr>
 							</thead>
 							<tbody>
 								{[...results].reverse().map((r) => (
 									<tr key={r.event.slug} className="border-t border-light-blue text-black">
-										<td className="truncate py-[9px] pr-3 font-bold text-dark-blue">
+										<td className="truncate py-2.5 pr-3 font-bold text-dark-blue">
 											<Link to={`/events/${r.event.slug}/analytics`} className="hover:underline">
 												{r.event.name}
 											</Link>
@@ -261,13 +261,13 @@ export default function AnalyticsPage() {
 										</td>
 										{desktop && (
 											<>
-												<td className="py-[9px]">{date(r)}</td>
-												<td className="py-[9px] text-right">{r.registered}</td>
-												<td className="py-[9px] text-right">{r.checkedIn}</td>
+												<td className="py-2.5">{date(r)}</td>
+												<td className="py-2.5 text-right">{r.registered}</td>
+												<td className="py-2.5 text-right">{r.checkedIn}</td>
 											</>
 										)}
-										<td className="py-[9px] text-right">{r.turnout}%</td>
-										{desktop && <td className="py-[9px] text-right">{r.walkIns}</td>}
+										<td className="py-2.5 text-right">{r.turnout}%</td>
+										{desktop && <td className="py-2.5 text-right">{r.walkIns}</td>}
 									</tr>
 								))}
 							</tbody>
@@ -287,9 +287,9 @@ function Loading() {
 function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person) => string; empty: string }) {
 	if (!list.length) return <p className="text-[13.5px] text-med-blue">{empty}</p>;
 	return (
-		<ul className="flex flex-col leading-[1.5]">
+		<ul className="flex flex-col leading-normal">
 			{list.slice(0, LIST_LENGTH).map((p) => (
-				<li key={p.email} className="flex items-start gap-3 border-t border-light-blue py-[7.5px] first:border-t-0 first:pt-0">
+				<li key={p.email} className="flex items-start gap-3 border-t border-light-blue py-2 first:border-t-0 first:pt-0">
 					<div className="min-w-0 flex-1">
 						<p className="truncate text-[13.5px] font-bold">{p.name || p.email}</p>
 						<p className="truncate text-xs text-med-blue">{p.email}</p>
@@ -297,7 +297,7 @@ function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person)
 					<p className="shrink-0 text-xs text-med-blue">{count(p)}</p>
 				</li>
 			))}
-			{list.length > LIST_LENGTH && <li className="border-t border-light-blue pt-[7.5px] text-xs text-med-blue">and {list.length - LIST_LENGTH} more</li>}
+			{list.length > LIST_LENGTH && <li className="border-t border-light-blue pt-2 text-xs text-med-blue">and {list.length - LIST_LENGTH} more</li>}
 		</ul>
 	);
 }
@@ -310,7 +310,7 @@ function Filter({ label, value, onChange, children }: { label: string; value: st
 			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full appearance-none rounded-[9px] border border-med-blue bg-white py-[9px] pr-[34px] pl-[13.5px] text-[13.5px] leading-[1.5] font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
+				className="w-full appearance-none rounded-lg border border-med-blue bg-white py-2.5 pr-9 pl-3.5 text-[13.5px] leading-normal font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
 			>
 				{children}
 			</select>

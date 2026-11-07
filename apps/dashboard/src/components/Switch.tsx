@@ -26,8 +26,8 @@ export default function Switch({ checked, onChange, label }: Props) {
 /** A switch with its label and a note underneath, on an off-white row (Event settings, New event). */
 export function SwitchRow({ label, note, ...switchProps }: Props & { note: string }) {
 	return (
-		<div className="flex items-center gap-3 rounded-[7.5px] bg-off-white px-[15px] py-[10.5px]">
-			<div className="flex min-w-0 flex-1 flex-col gap-[1.5px] leading-[1.5]">
+		<div className="flex items-center gap-3 rounded-lg bg-off-white px-4 py-2.5">
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal">
 				<p className="text-[15px] font-bold">{label}</p>
 				<p className="text-xs text-med-blue">{note}</p>
 			</div>

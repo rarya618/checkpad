@@ -58,14 +58,14 @@ export function WalkInDialog({ event, prefill = '', onClose }: { event: Dashboar
 				</button>
 			}
 		>
-			<form onSubmit={submit} className="flex flex-col gap-[18px]">
+			<form onSubmit={submit} className="flex flex-col gap-5">
 				<div className="flex gap-3">
 					<TextField label="First name" {...fields.firstName} className="min-w-0 flex-1" data-autofocus />
 					<TextField label="Last name" {...fields.lastName} className="min-w-0 flex-1" />
 				</div>
 				<TextField label="Email" {...fields.email} />
-				<div className="flex items-center gap-3 rounded-[7.5px] bg-light-blue px-[18px] py-3 leading-[1.5]">
-					<div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+				<div className="flex items-center gap-3 rounded-lg bg-light-blue px-5 py-3 leading-normal">
+					<div className="flex min-w-0 flex-1 flex-col gap-1">
 						<p className="text-[13.5px] font-bold">Ticket</p>
 						<p className="truncate text-xs text-med-blue">{ticketDetails(event)}</p>
 					</div>
@@ -89,7 +89,7 @@ export function WalkInCard({ event, prefill = '', onClose }: { event: DashboardE
 	return (
 		<form onSubmit={submit} className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
 			<div className="flex items-center">
-				<h2 className="min-w-0 flex-1 font-display text-[28px] leading-[1.2]">Add walk-in</h2>
+				<h2 className="min-w-0 flex-1 font-display text-[28px] leading-tight">Add walk-in</h2>
 				<button type="button" aria-label="Close" onClick={onClose} className="-m-1 shrink-0 rounded p-1 hover:bg-light-blue/60">
 					<img src={close} alt="" width={28} height={28} />
 				</button>
@@ -97,7 +97,7 @@ export function WalkInCard({ event, prefill = '', onClose }: { event: DashboardE
 			<TextField size="lg" label="First name" {...fields.firstName} autoFocus />
 			<TextField size="lg" label="Last name" {...fields.lastName} />
 			<TextField size="lg" label="Email" {...fields.email} />
-			<div className="flex items-center gap-2.5 rounded-[10px] bg-light-blue px-4 py-3 leading-[1.5]">
+			<div className="flex items-center gap-2.5 rounded-xl bg-light-blue px-4 py-3 leading-normal">
 				<p className="min-w-0 flex-1 text-base font-bold">Ticket</p>
 				<p className="shrink-0 font-mono text-lg">{ticket}</p>
 			</div>

@@ -63,7 +63,7 @@ export function LoadingSteps({ steps }: { steps: LoadingStep[] }) {
 
 	return (
 		<main aria-busy="true" className="flex min-h-dvh items-center justify-center p-6">
-			<div className="flex w-full max-w-[260px] flex-col items-center gap-[30px] animate-loading-in">
+			<div className="flex w-full max-w-[260px] flex-col items-center gap-8 animate-loading-in">
 				<img src={logo} alt="checkpad" width={132} height={31.5} />
 				<ol className="flex w-full flex-col gap-3" aria-live="polite">
 					{steps.map((step) => {
@@ -71,7 +71,7 @@ export function LoadingSteps({ steps }: { steps: LoadingStep[] }) {
 						return (
 							<li
 								key={step.label}
-								className={`flex items-center gap-[10.5px] text-[15px] leading-[1.5] transition-colors ${
+								className={`flex items-center gap-2.5 text-[15px] leading-normal transition-colors ${
 									step.done ? 'text-med-blue' : active ? 'font-semibold text-dark-blue' : 'text-med-blue/50'
 								}`}
 							>
@@ -94,7 +94,7 @@ export function LoadingSteps({ steps }: { steps: LoadingStep[] }) {
 				</ol>
 				{stuck && (
 					<div className="flex w-full flex-col gap-3 animate-loading-in">
-						<p role="alert" className="text-[13.5px] leading-[1.5] text-med-blue">
+						<p role="alert" className="text-[13.5px] leading-normal text-med-blue">
 							This is taking longer than usual. Check your connection and reload. If it keeps happening, close other Checkpad tabs.
 						</p>
 						<button type="button" onClick={() => location.reload()} className={`w-full ${buttonClass('primary')}`}>

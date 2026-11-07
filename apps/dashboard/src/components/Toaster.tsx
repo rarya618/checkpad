@@ -17,8 +17,8 @@ export default function Toaster() {
 					key={toast.id}
 					className={`flex animate-toast-in items-center bg-dark-blue font-semibold text-white drop-shadow-[0_6px_9px_rgb(17_45_78/0.25)] ${
 						desktop
-							? `gap-[10.5px] rounded-[9px] py-[10.5px] pl-[15px] text-[13.5px] leading-[1.5] ${toast.action ? 'pr-[9px]' : 'pr-[18px]'}`
-							: `gap-3.5 rounded-xl py-3.5 pl-5 text-lg leading-[1.5] ${toast.action ? 'pr-3' : 'pr-6'}`
+							? `gap-2.5 rounded-lg py-2.5 pl-4 text-[13.5px] leading-normal ${toast.action ? 'pr-2.5' : 'pr-5'}`
+							: `gap-3.5 rounded-xl py-3.5 pl-5 text-lg leading-normal ${toast.action ? 'pr-3' : 'pr-6'}`
 					}`}
 				>
 					<img src={check} alt="" width={desktop ? 16.5 : 22} height={desktop ? 16.5 : 22} />
@@ -31,7 +31,7 @@ export default function Toaster() {
 								dismissToast();
 							}}
 							className={`pointer-events-auto font-bold text-light-blue transition-colors hover:bg-white/20 ${
-								desktop ? 'rounded-md bg-white/12 px-[10.5px] py-[4.5px]' : 'rounded-lg bg-white/12 px-3.5 py-1.5'
+								desktop ? 'rounded-md bg-white/12 px-2.5 py-1' : 'rounded-lg bg-white/12 px-3.5 py-1.5'
 							}`}
 						>
 							{toast.action.label}

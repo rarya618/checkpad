@@ -27,7 +27,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 	const canRemove = (a: RosterAttendee) => a.walkIn && (canEdit || a.addedBy === me);
 	const desktop = useIsDesktop();
 	return (
-		<div className="rounded-[15px] bg-white px-4 py-[18px] md:px-[22.5px]">
+		<div className="rounded-2xl bg-white px-4 py-5 md:px-6">
 			<table className="w-full table-fixed">
 				<colgroup>
 					<col />
@@ -37,10 +37,10 @@ export default function AttendeeTable({ event, attendees }: Props) {
 				</colgroup>
 				<thead>
 					<tr className="text-left font-display text-[15px] text-black">
-						<th className="pr-2 pb-[7.5px]">Attendee</th>
-						{desktop && <th className="pr-2 pb-[7.5px]">Ticket</th>}
-						<th className="pb-[7.5px]">Action</th>
-						<th className="pb-[7.5px]">
+						<th className="pr-2 pb-2">Attendee</th>
+						{desktop && <th className="pr-2 pb-2">Ticket</th>}
+						<th className="pb-2">Action</th>
+						<th className="pb-2">
 							<span className="sr-only">Options</span>
 						</th>
 					</tr>
@@ -77,27 +77,27 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 
 	return (
 		<tr>
-			<td className="py-[7.5px] pr-2">
-				<div className="flex items-center gap-[7.5px] py-[3px]">
+			<td className="py-2 pr-2">
+				<div className="flex items-center gap-2 py-1">
 					<span
 						aria-hidden="true"
 						className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[15px] leading-[15px]"
 					>
 						{initials}
 					</span>
-					<div className="flex min-w-0 flex-col gap-[3px] px-[7.5px] text-black">
+					<div className="flex min-w-0 flex-col gap-1 px-2 text-black">
 						<p className="truncate font-display text-lg">{name}</p>
 						<p className="truncate text-[15px]">{attendee.email}</p>
 					</div>
 				</div>
 			</td>
 			{showTicket && (
-				<td className="py-[7.5px] pr-2 font-mono text-[15px] text-black">
+				<td className="py-2 pr-2 font-mono text-[15px] text-black">
 					{/* Walk-ins added before tickets were numbered have none */}
 					{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
 				</td>
 			)}
-			<td className="py-[7.5px]">
+			<td className="py-2">
 				{attendee.checkedInAt ? (
 					<div className="flex items-center justify-end gap-3">
 						<p className="flex flex-col items-end text-[15px]">
@@ -131,7 +131,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 				)}
 			</td>
 			{/* Not in Figma: the toast's Undo is the only other way to take a walk-in off the list */}
-			<td className="py-[7.5px] pl-1 text-right md:pl-3">
+			<td className="py-2 pl-1 text-right md:pl-3">
 				{removable && (
 					<Menu
 						label={`Options for ${name}`}

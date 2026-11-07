@@ -18,9 +18,9 @@ export interface SidebarItem {
 
 export default function Sidebar({ items }: { items: SidebarItem[] }) {
 	return (
-		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-[15px] pt-7.5 pb-[15px]">
-			<div className="flex w-full flex-col gap-[21px]">
-				<div className="px-3 py-[3px]">
+		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-4 pt-7.5 pb-4">
+			<div className="flex w-full flex-col gap-5">
+				<div className="px-3 py-1">
 					<img src={logo} alt="checkpad" width={151} height={36} />
 				</div>
 				<nav aria-label="Main">
@@ -31,7 +31,7 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
 									to={item.to}
 									end={item.end}
 									className={({ isActive }) =>
-										`block rounded-[6px] px-[21px] py-1.5 text-base ${
+										`block rounded-md px-5 py-1.5 text-base ${
 											isActive ? 'bg-dark-blue font-display tracking-[0.01em] text-off-white' : 'tracking-[-0.01em] hover:bg-white/50'
 										}`
 									}
@@ -43,7 +43,7 @@ export default function Sidebar({ items }: { items: SidebarItem[] }) {
 					</ul>
 				</nav>
 			</div>
-			<div className="flex w-full items-center justify-between border-t border-med-blue/50 px-3.5 py-[21px]">
+			<div className="flex w-full items-center justify-between border-t border-med-blue/50 px-3.5 py-5">
 				<AccountSummary />
 				<AccountMenu />
 			</div>
@@ -57,7 +57,7 @@ function AccountSummary() {
 	return (
 		<div className="flex min-w-0 flex-col gap-0.5">
 			{/* Smaller than Figma's 28px at 75% scale, to sit with the menu items; 1.2 line height, not text-lg's 1.5 */}
-			<p className="truncate font-display text-lg leading-[1.2]">{me?.name ?? session?.email}</p>
+			<p className="truncate font-display text-lg leading-tight">{me?.name ?? session?.email}</p>
 			<p className="text-sm text-med-blue">{me ? roleLabel(me.role) : ''}</p>
 		</div>
 	);
@@ -74,7 +74,7 @@ function AccountMenu() {
 			placement="above-left"
 			buttonClassName="rounded-md p-1 hover:bg-white/50"
 			header={
-				<div className="flex flex-col gap-[1.5px] px-[10.5px] pt-[7.5px] pb-[9px] leading-[1.5]">
+				<div className="flex flex-col gap-0.5 px-2.5 pt-2 pb-2.5 leading-normal">
 					<p className="text-xs text-med-blue">Signed in as</p>
 					<p className="truncate text-[13.5px] font-bold">{session.email}</p>
 					<p className="text-xs text-med-blue">

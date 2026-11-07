@@ -81,7 +81,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 
 	return (
 		<main className="flex min-h-dvh flex-col items-center justify-center gap-10 p-5 text-center">
-			<div className="flex flex-col items-center gap-3 leading-[1.2]">
+			<div className="flex flex-col items-center gap-3 leading-tight">
 				<h1 className="font-display text-[clamp(40px,6vh,64px)]">{name}</h1>
 				<p className="text-[clamp(24px,3.4vh,36px)] text-med-blue">Prize draw</p>
 			</div>
@@ -89,23 +89,23 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 			<section aria-live="polite" className="flex min-h-[min(460px,44vh)] w-full max-w-[1300px] flex-col items-center justify-center gap-5">
 				{view === 'drawing' && (
 					<>
-						<p className="max-w-full truncate font-display text-[clamp(56px,10vh,112px)] leading-[1.2] text-light-blue" aria-hidden="true">
+						<p className="max-w-full truncate font-display text-[clamp(56px,10vh,112px)] leading-tight text-light-blue" aria-hidden="true">
 							{spinning || '…'}
 						</p>
-						<p className="text-[clamp(28px,3.7vh,40px)] leading-[1.2] text-med-blue">Drawing…</p>
+						<p className="text-[clamp(28px,3.7vh,40px)] leading-tight text-med-blue">Drawing…</p>
 					</>
 				)}
 
 				{view === 'winner' && latest && (
 					<>
-						<p className="text-[clamp(24px,3vh,32px)] leading-[1.2] font-semibold text-med-blue">Winner #{draw.winners.length}</p>
-						<p className="max-w-full font-display text-[clamp(64px,11.8vh,128px)] leading-[1.2] break-words">{fullName(latest)}</p>
+						<p className="text-[clamp(24px,3vh,32px)] leading-tight font-semibold text-med-blue">Winner #{draw.winners.length}</p>
+						<p className="max-w-full font-display text-[clamp(64px,11.8vh,128px)] leading-tight break-words">{fullName(latest)}</p>
 						<div aria-hidden="true" className="flex h-2.5 w-[330px] overflow-hidden rounded-full">
 							<span className="flex-1 bg-dark-blue" />
 							<span className="flex-1 bg-med-blue" />
 							<span className="flex-1 bg-light-blue" />
 						</div>
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-[1.2] text-med-blue">
+						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">
 							{stillIn} still in the draw
 						</p>
 						<div className="flex gap-4 pt-3">
@@ -124,7 +124,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 								Draw again
 							</button>
 						</div>
-						<button type="button" onClick={() => setConfirmStartOver(true)} className="text-lg leading-[1.5] font-semibold text-med-blue underline">
+						<button type="button" onClick={() => setConfirmStartOver(true)} className="text-lg leading-normal font-semibold text-med-blue underline">
 							Start over
 						</button>
 					</>
@@ -134,7 +134,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 					<>
 						<GiftIcon />
 						<Count n={stillIn} />
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-[1.2] text-med-blue">Everyone who has checked in tonight</p>
+						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">Everyone who has checked in tonight</p>
 						<div className="pt-5">
 							<button type="button" onClick={drawWinner} className={buttonClass('primary', 'lg')}>
 								Draw a winner
@@ -147,7 +147,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 					<>
 						<GiftIcon />
 						<Count n={0} />
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-[1.2] text-med-blue">Check people in first. The draw uses everyone who has arrived.</p>
+						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">Check people in first. The draw uses everyone who has arrived.</p>
 						<div className="pt-5">
 							<button type="button" disabled className={`${buttonClass('primary', 'lg')} disabled:opacity-50`}>
 								Draw a winner
@@ -159,8 +159,8 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 				{view === 'everyone-won' && (
 					<>
 						<GiftIcon />
-						<p className="font-display text-[clamp(32px,3.7vh,40px)] leading-[1.2]">Everyone here has won</p>
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-[1.2] text-med-blue">
+						<p className="font-display text-[clamp(32px,3.7vh,40px)] leading-tight">Everyone here has won</p>
+						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">
 							Start over to put all {checkedIn.length} people back in the draw.
 						</p>
 						<div className="pt-5">
@@ -173,7 +173,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 			</section>
 
 			<div className="flex flex-col items-center gap-2">
-				<p className="text-[clamp(22px,3vh,32px)] leading-[1.2] font-light text-med-blue">powered by</p>
+				<p className="text-[clamp(22px,3vh,32px)] leading-tight font-light text-med-blue">powered by</p>
 				<img src={logo} alt="checkpad" width={268} height={64} />
 			</div>
 
@@ -226,7 +226,7 @@ function GiftIcon() {
 
 function Count({ n }: { n: number }) {
 	return (
-		<p className="flex items-baseline gap-5 leading-[1.2]">
+		<p className="flex items-baseline gap-5 leading-tight">
 			<span className="font-display text-[clamp(64px,9vh,96px)]">{n}</span>
 			<span className="text-[clamp(28px,3.7vh,40px)] text-med-blue">{n === 1 ? 'person' : 'people'} in the draw</span>
 		</p>

@@ -17,7 +17,7 @@ export default function TextField({ label, error, ...inputProps }: Props) {
 				id={id}
 				aria-invalid={error ? true : undefined}
 				aria-describedby={error ? errorId : undefined}
-				className={`w-full rounded-[10px] bg-off-white px-6 py-3 text-xl text-dark-blue placeholder:text-[#bbb] focus:outline-2 focus:outline-med-blue ${error ? 'inset-ring-2 inset-ring-error focus:outline-error' : ''}`}
+				className={`w-full rounded-xl bg-off-white px-6 py-3 text-xl text-dark-blue placeholder:text-[#bbb] focus:outline-2 focus:outline-med-blue ${error ? 'inset-ring-2 inset-ring-error focus:outline-error' : ''}`}
 				{...inputProps}
 			/>
 			{error && (

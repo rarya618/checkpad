@@ -27,7 +27,7 @@ export default function PageHeader({
 	actions,
 	titleAddon,
 	level = 1,
-	className = 'top-[-34px] pt-[58px] pb-[15px]',
+	className = 'top-[-34px] pt-14 pb-4',
 	actionsRowOnPhones = false,
 }: Props) {
 	const Heading = level === 1 ? 'h1' : 'h2';
@@ -44,12 +44,12 @@ export default function PageHeader({
 						{titleAddon}
 					</div>
 				</header>
-				<div className="sticky top-0 z-10 bg-off-white px-6 pt-3 pb-[15px]">{actions}</div>
+				<div className="sticky top-0 z-10 bg-off-white px-6 pt-3 pb-4">{actions}</div>
 			</>
 		);
 	}
 	// Otherwise actions that don't fit beside the title wrap onto a line of their own
-	const spacing = desktop ? className : `top-0 pb-[15px] ${above}`;
+	const spacing = desktop ? className : `top-0 pb-4 ${above}`;
 	return (
 		<header className={`sticky z-10 bg-off-white px-6 ${spacing}`}>
 			{/* As tall as the sidebar logo (36px), which the title fills; taller buttons overhang it evenly */}

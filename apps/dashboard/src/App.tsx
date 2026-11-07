@@ -47,7 +47,7 @@ function DashboardLayout({ items, mobile }: { items: SidebarItem[]; mobile: Mobi
 			<div className="min-h-dvh">
 				<MobileNav {...mobile} />
 				{/* Clear of the tab bar, which the toasts sit above too */}
-				<main className="pb-[100px]">
+				<main className="pb-24">
 					<Outlet />
 				</main>
 				<div className="fixed inset-x-0 bottom-[88px]">

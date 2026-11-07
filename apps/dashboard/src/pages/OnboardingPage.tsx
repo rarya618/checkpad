@@ -34,7 +34,7 @@ export default function OnboardingPage() {
 	return (
 		<AuthLayout title="Set up your team" description="Tell us who you are and the team you run events for. Attendees see the team’s name when they check in.">
 			<form
-				className="flex flex-col gap-[18px]"
+				className="flex flex-col gap-5"
 				onSubmit={async (e) => {
 					e.preventDefault();
 					if (!valid || busy) return;
@@ -83,7 +83,7 @@ export default function OnboardingPage() {
 				/>
 				<TeamPlaceFields value={place} onChange={setPlace} required />
 				{refused.failed && (
-					<p role="alert" className="text-[13.5px] leading-[1.5] text-error">
+					<p role="alert" className="text-[13.5px] leading-normal text-error">
 						Couldn’t create your team. Check your connection and try again.
 					</p>
 				)}
@@ -91,7 +91,7 @@ export default function OnboardingPage() {
 					Create team
 				</button>
 			</form>
-			<p className="text-xs leading-[1.5] text-med-blue">
+			<p className="text-xs leading-normal text-med-blue">
 				Signed in as {session?.email}.{' '}
 				<button type="button" onClick={signOut} className="font-semibold underline">
 					Sign out

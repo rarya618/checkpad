@@ -45,10 +45,10 @@ export default function AttendeesPage() {
 				level={2}
 				title="Attendees"
 				// 40.5px above (the gap below the event details); sticks with 24px left, like the page headers
-				className="top-[-16.5px] pt-[40.5px] pb-[15px]"
+				className="top-[-16.5px] pt-10 pb-4"
 				actions={
-					<div className="flex w-full items-center gap-[15px] md:w-auto">
-						<label className="flex h-[42px] min-w-0 flex-1 items-center md:w-[230px] md:flex-none gap-[15px] rounded-[10px] border border-dark-blue/32 px-[15px] focus-within:outline-2 focus-within:outline-med-blue">
+					<div className="flex w-full items-center gap-4 md:w-auto">
+						<label className="flex h-[42px] min-w-0 flex-1 items-center md:w-[230px] md:flex-none gap-4 rounded-xl border border-dark-blue/32 px-4 focus-within:outline-2 focus-within:outline-med-blue">
 							<img src={magnifyingGlass} alt="" width={15} height={15} />
 							<span className="sr-only">Search attendees</span>
 							<input
@@ -66,7 +66,7 @@ export default function AttendeesPage() {
 					</div>
 				}
 			/>
-			<div className="flex flex-col gap-[15px] px-6 pb-[27px]">
+			<div className="flex flex-col gap-4 px-6 pb-7">
 				{roster.length === 0 ? (
 					// Figma "Attendees – empty"
 					<EmptyState
@@ -148,8 +148,8 @@ function RehearsalNote({ event, canEdit }: { event: DashboardEvent; canEdit: boo
 		}
 	}
 	return (
-		<aside aria-label="Try check-in" className="flex items-start gap-3 rounded-[9px] bg-light-blue py-[15px] pr-[15px] pl-[18px] leading-[1.5]">
-			<div className="flex min-w-0 flex-1 flex-col gap-[4.5px]">
+		<aside aria-label="Try check-in" className="flex items-start gap-3 rounded-lg bg-light-blue py-4 pr-4 pl-5 leading-normal">
+			<div className="flex min-w-0 flex-1 flex-col gap-1">
 				<p className="text-[15px] font-bold">Try it before the night</p>
 				<p className="text-[13.5px]">
 					Scan the QR code from Share with your own phone and check in as someone on this list, then undo it in the table below so it

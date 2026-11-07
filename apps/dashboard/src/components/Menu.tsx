@@ -63,7 +63,7 @@ export default function Menu({ label, items, buttonClassName, header, placement 
 	}
 
 	const itemClass =
-		'flex w-full items-center gap-[10.5px] rounded-md px-[10.5px] py-[9px] text-left text-[15px] leading-[1.5] font-semibold text-dark-blue outline-none hover:bg-off-white focus-visible:bg-off-white aria-disabled:cursor-not-allowed aria-disabled:opacity-45 aria-disabled:hover:bg-transparent';
+		'flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.5 text-left text-[15px] leading-normal font-semibold text-dark-blue outline-none hover:bg-off-white focus-visible:bg-off-white aria-disabled:cursor-not-allowed aria-disabled:opacity-45 aria-disabled:hover:bg-transparent';
 
 	return (
 		<div ref={root} className="relative" onKeyDown={onKeyDown}>
@@ -84,7 +84,7 @@ export default function Menu({ label, items, buttonClassName, header, placement 
 					id={id}
 					role="menu"
 					aria-label={label}
-					className={`absolute z-20 flex w-[225px] flex-col gap-[3px] rounded-[10.5px] border border-med-blue bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
+					className={`absolute z-20 flex w-[225px] flex-col gap-1 rounded-xl border border-med-blue bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
 						placement === 'above-left' ? 'bottom-[calc(100%+6px)] left-0' : 'top-[calc(100%+6px)] right-0'
 					}`}
 				>

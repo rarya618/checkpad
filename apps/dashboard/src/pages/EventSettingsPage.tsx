@@ -115,18 +115,18 @@ function EventSettingsPage({ slug }: { slug: string }) {
 					level={2}
 					title="Settings"
 					// 24px above (the gap below the event details); sticks with 24px left, like the page headers
-					className="top-0 pt-6 pb-[15px]"
+					className="top-0 pt-6 pb-4"
 					titleAddon={
 						dirty && (
 							// Figma "Event settings – unsaved changes": the small pill size on phones, 75% from md up
-							<span className="flex shrink-0 items-center gap-1.5 rounded-full bg-light-blue py-1 pr-3 pl-2.5 text-sm leading-[1.5] font-bold tracking-normal md:py-[4.5px] md:pr-[10.5px] md:pl-[9px] md:text-xs">
+							<span className="flex shrink-0 items-center gap-1.5 rounded-full bg-light-blue py-1 pr-3 pl-2.5 text-sm leading-normal font-bold tracking-normal md:py-1 md:pr-2.5 md:pl-2.5 md:text-xs">
 								<span aria-hidden="true" className="size-1.5 rounded-full bg-med-blue" />
 								Unsaved changes
 							</span>
 						)
 					}
 					actions={
-						<div className="flex shrink-0 items-center gap-[15px]">
+						<div className="flex shrink-0 items-center gap-4">
 							<button type="button" disabled={!dirty} onClick={() => setForm(saved)} className={`${buttonClass('secondary')} disabled:opacity-50`}>
 								Discard
 							</button>
@@ -136,8 +136,8 @@ function EventSettingsPage({ slug }: { slug: string }) {
 						</div>
 					}
 				/>
-				<div className="grid grid-cols-1 gap-[18px] px-6 pb-[27px] lg:grid-cols-2">
-					<div className="flex flex-col gap-[15px]">
+				<div className="grid grid-cols-1 gap-5 px-6 pb-7 lg:grid-cols-2">
+					<div className="flex flex-col gap-4">
 						<FormCard
 							level={3}
 							title="Check-in"

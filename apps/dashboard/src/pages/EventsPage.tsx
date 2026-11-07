@@ -24,7 +24,7 @@ export default function EventsPage() {
 			/>
 			{summaries.length === 0 ? (
 				// Figma "Events – empty"
-				<div className="px-6 pt-[14px] pb-[27px]">
+				<div className="px-6 pt-3.5 pb-7">
 					<EmptyState
 						icon={calendar}
 						title="No events yet"
@@ -43,7 +43,7 @@ export default function EventsPage() {
 					/>
 				</div>
 			) : (
-				<ul className="flex flex-col gap-3 px-6 pt-[14px] pb-[27px]">
+				<ul className="flex flex-col gap-3 px-6 pt-3.5 pb-7">
 					{summaries.map((summary) => (
 						<li key={summary.event.slug}>
 							<EventCard summary={summary} />

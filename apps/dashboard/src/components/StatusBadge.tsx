@@ -6,8 +6,8 @@ export default function StatusBadge({ open, size = 'md' }: { open: boolean; size
 	const lg = size === 'lg';
 	return (
 		<span
-			className={`flex shrink-0 items-center rounded-full leading-[1.5] font-bold tracking-normal ${
-				lg ? 'gap-2 py-1.5 pr-4 pl-3.5 text-base' : 'gap-1.5 py-1 pr-3 pl-2.5 text-sm md:py-[4.5px] md:pl-[10.5px] md:text-xs'
+			className={`flex shrink-0 items-center rounded-full leading-normal font-bold tracking-normal ${
+				lg ? 'gap-2 py-1.5 pr-4 pl-3.5 text-base' : 'gap-1.5 py-1 pr-3 pl-2.5 text-sm md:py-1 md:pl-2.5 md:text-xs'
 			} ${open ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'}`}
 		>
 			<span aria-hidden="true" className={`rounded-full ${lg ? 'size-2' : 'size-1.5'} ${open ? 'bg-white' : 'bg-med-blue'}`} />

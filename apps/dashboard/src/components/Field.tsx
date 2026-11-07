@@ -8,21 +8,21 @@ const sizes = {
 	md: {
 		gap: 'gap-1.5',
 		label: 'text-[13.5px]',
-		box: 'rounded-[7.5px] px-[18px] py-3 text-[15px] focus-within:outline-[1.5px] focus-within:-outline-offset-[1.5px]',
+		box: 'rounded-lg px-5 py-3 text-[15px] focus-within:outline-[1.5px] focus-within:-outline-offset-[1.5px]',
 		note: 'text-xs',
-		chevron: { size: 15, right: 'right-[18px]', pad: 'pr-[42px]' },
+		chevron: { size: 15, right: 'right-[18px]', pad: 'pr-11' },
 	},
 	lg: {
 		gap: 'gap-2',
 		label: 'text-lg',
-		box: 'rounded-[10px] px-6 py-4 text-xl focus-within:outline-2 focus-within:-outline-offset-2',
+		box: 'rounded-xl px-6 py-4 text-xl focus-within:outline-2 focus-within:-outline-offset-2',
 		note: 'text-base',
 		chevron: { size: 20, right: 'right-6', pad: 'pr-14' },
 	},
 };
 type Size = keyof typeof sizes;
 
-const boxBase = 'w-full bg-off-white leading-[1.5] text-black outline-none focus-within:outline-med-blue';
+const boxBase = 'w-full bg-off-white leading-normal text-black outline-none focus-within:outline-med-blue';
 const box = (size: Size) => `${boxBase} ${sizes[size].box}`;
 
 interface FieldProps {
@@ -40,12 +40,12 @@ export function Field({ label, hint, error, size = 'md', className = '', childre
 	const note = error ?? hint;
 	return (
 		<div className={`flex flex-col ${sizes[size].gap} ${className}`}>
-			<label htmlFor={id} className={`${sizes[size].label} leading-[1.5] text-black`}>
+			<label htmlFor={id} className={`${sizes[size].label} leading-normal text-black`}>
 				{label}
 			</label>
 			{children({ id, 'aria-describedby': note ? `${id}-note` : undefined, 'aria-invalid': error ? true : undefined })}
 			{note && (
-				<p id={`${id}-note`} className={`${sizes[size].note} leading-[1.5] ${error ? 'text-error' : 'text-med-blue'}`}>
+				<p id={`${id}-note`} className={`${sizes[size].note} leading-normal ${error ? 'text-error' : 'text-med-blue'}`}>
 					{note}
 				</p>
 			)}

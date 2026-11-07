@@ -34,28 +34,28 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 	const desktop = useIsDesktop();
 	// Phones follow Figma's "Events (mobile)" sketch: the ring at 60% beside full-size text
 	return (
-		<article className="relative flex items-start justify-between gap-3 rounded-xl border border-med-blue bg-white py-5 pr-4 pl-5 hover:bg-off-white/60 md:items-center md:gap-6 md:rounded-[10px] md:px-[27px] md:py-6">
+		<article className="relative flex items-start justify-between gap-3 rounded-xl border border-med-blue bg-white py-5 pr-4 pl-5 hover:bg-off-white/60 md:items-center md:gap-6 md:rounded-xl md:px-7 md:py-6">
 			<div className="flex min-w-0 items-start gap-4 md:items-center md:gap-7.5">
 				<CheckInRing checkedIn={stats.checkedIn} total={stats.total} status={checkIn} scale={desktop ? 1 : 0.6} />
-				<div className="flex min-w-0 flex-col items-start gap-2 pb-1.5 md:gap-[27px] md:pb-1">
+				<div className="flex min-w-0 flex-col items-start gap-2 pb-1.5 md:gap-7 md:pb-1">
 					<div className="flex flex-col items-start gap-2 md:gap-1.5">
-						<h2 className="font-display text-xl leading-[1.5] md:text-[27px] md:leading-normal">
+						<h2 className="font-display text-xl leading-normal md:text-[27px] md:leading-normal">
 							{/* Stretched link: the whole card opens the event, except the options button */}
-							<Link to={`/events/${event.slug}`} className="after:absolute after:inset-0 after:rounded-xl md:after:rounded-[10px]">
+							<Link to={`/events/${event.slug}`} className="after:absolute after:inset-0 after:rounded-xl md:after:rounded-xl">
 								{event.name}
 							</Link>
 						</h2>
-						<div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 md:gap-x-3.5">
-							<p className="text-base leading-[1.5] font-medium tracking-tight text-black md:text-[15px] md:leading-normal">
+						<div className="flex flex-wrap items-center gap-x-5 gap-y-1 md:gap-x-3.5">
+							<p className="text-base leading-normal font-medium tracking-tight text-black md:text-[15px] md:leading-normal">
 								{formatDate(new Date(event.startsAt), event.timeZone)}
 							</p>
-							<p className={`flex items-center gap-1.5 text-base leading-[1.5] tracking-tight md:gap-1 md:text-xs md:leading-normal ${status.className}`}>
+							<p className={`flex items-center gap-1.5 text-base leading-normal tracking-tight md:gap-1 md:text-xs md:leading-normal ${status.className}`}>
 								<span aria-hidden="true" className="size-1.5 rounded-full bg-current md:size-[5px]" />
 								{status.label}
 							</p>
 						</div>
 					</div>
-					<p className="text-base leading-[1.5] text-black md:text-[15px] md:leading-normal">{event.description}</p>
+					<p className="text-base leading-normal text-black md:text-[15px] md:leading-normal">{event.description}</p>
 				</div>
 			</div>
 			{/* Figma "Events – card menu". relative lifts it above the card's stretched link. */}

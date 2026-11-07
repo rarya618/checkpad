@@ -28,7 +28,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 	return (
-		<section className="flex flex-col items-start gap-[15px] px-6 pt-3 md:flex-row md:items-center md:gap-3 md:pt-[54px]">
+		<section className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:items-center md:gap-3 md:pt-14">
 			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px">
 				<nav aria-label="Breadcrumb">
 					<ol className="flex items-center gap-1.5 text-[15px] text-black">
@@ -43,7 +43,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 						</li>
 					</ol>
 				</nav>
-				<div className="flex flex-col gap-[4.5px]">
+				<div className="flex flex-col gap-1">
 					<h1 className="font-display text-2xl md:text-3xl">{event.name}</h1>
 					<p className="text-[15px] font-semibold text-black">
 						{formatDate(start, event.timeZone)}, {formatTimeRange(start, end, event.timeZone)}
@@ -51,7 +51,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				</div>
 				<CheckInLink url={checkInUrl(event.slug)} />
 			</div>
-			<div className="flex shrink-0 items-center gap-[15px]">
+			<div className="flex shrink-0 items-center gap-4">
 				{canEdit && (
 					<Link to={`/events/${event.slug}/settings`} className={buttonClass('secondary')}>
 						Edit
@@ -63,7 +63,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				{/* Figma "Attendees – more menu" */}
 				<Menu
 					label="More event options"
-					buttonClassName="rounded-[10px] bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
+					buttonClassName="rounded-xl bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
 					items={[
 						...(canEdit ? [{ label: 'Import from Bevy', icon: upload, onSelect: () => setImporting({}) }] : []),
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
@@ -92,7 +92,7 @@ function CheckInLink({ url }: { url: string }) {
 	}, [copied]);
 
 	return (
-		<div className="flex items-center gap-[9px]">
+		<div className="flex items-center gap-2.5">
 			<a
 				href={url}
 				target="_blank"

@@ -6,12 +6,12 @@ import { useState, type ReactNode } from 'react';
 /** `compare` is a second note, e.g. how the number sits against the team's other events. */
 export function StatTile({ label, value, note, compare }: { label: string; value: string; note?: string; compare?: string }) {
 	return (
-		<div className="flex min-w-0 flex-1 flex-col gap-[3px] rounded-xl border border-med-blue bg-white px-[18px] py-[15px] md:px-[21px] md:py-[18px]">
-			<p className="truncate text-[13.5px] leading-[1.5] text-med-blue">{label}</p>
-			<p className="font-display text-4xl leading-[1.2]">{value}</p>
-			{note && <p className="truncate text-xs leading-[1.5] text-med-blue">{note}</p>}
+		<div className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5">
+			<p className="truncate text-[13.5px] leading-normal text-med-blue">{label}</p>
+			<p className="font-display text-4xl leading-tight">{value}</p>
+			{note && <p className="truncate text-xs leading-normal text-med-blue">{note}</p>}
 			{compare && (
-				<p className="truncate text-xs leading-[1.5] font-semibold" title={compare}>
+				<p className="truncate text-xs leading-normal font-semibold" title={compare}>
 					{compare}
 				</p>
 			)}
@@ -38,9 +38,9 @@ export function ChartCard({
 }) {
 	const Heading = level === 2 ? 'h2' : 'h3';
 	return (
-		<section className={`flex min-w-0 flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px] ${className}`}>
+		<section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5 ${className}`}>
 			<div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
-				<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5]">
+				<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal">
 					<Heading className="font-display text-lg">{title}</Heading>
 					<p className="text-xs text-med-blue">{caption}</p>
 				</div>
@@ -56,13 +56,13 @@ export function SplitBar({ parts, label }: { parts: { name: string; value: numbe
 	const total = parts.reduce((n, p) => n + p.value, 0);
 	return (
 		<div className="flex flex-col gap-1.5">
-			<div role="img" aria-label={`${label}: ${parts.map((p) => `${p.value} ${p.name.toLowerCase()}`).join(', ')}`} className="flex h-[7.5px] gap-[1.5px] overflow-hidden rounded-full bg-light-blue">
+			<div role="img" aria-label={`${label}: ${parts.map((p) => `${p.value} ${p.name.toLowerCase()}`).join(', ')}`} className="flex h-[7.5px] gap-0.5 overflow-hidden rounded-full bg-light-blue">
 				{total > 0 && parts.map((p) => (p.value > 0 ? <div key={p.name} className={p.className} style={{ flexGrow: p.value, flexBasis: 0 }} /> : null))}
 			</div>
-			<ul className="flex flex-wrap gap-x-[15px] gap-y-1 text-xs leading-[1.5]">
+			<ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs leading-normal">
 				{parts.map((p) => (
 					<li key={p.name} className="flex items-center gap-1.5">
-						<span aria-hidden="true" className={`size-[9px] rounded-[2.25px] ${p.className}`} />
+						<span aria-hidden="true" className={`size-[9px] rounded-xs ${p.className}`} />
 						{p.name} <span className="text-med-blue">{p.value} · {total ? Math.round((p.value / total) * 100) : 0}%</span>
 					</li>
 				))}
@@ -92,10 +92,10 @@ export interface Bar {
 
 export function Legend({ series }: { series: Series[] }) {
 	return (
-		<ul className="flex shrink-0 items-center gap-[15px]">
+		<ul className="flex shrink-0 items-center gap-4">
 			{series.map((s) => (
-				<li key={s.name} className="flex items-center gap-1.5 text-xs leading-[1.5]">
-					<span aria-hidden="true" className={`size-[9px] rounded-[2.25px] ${s.className}`} />
+				<li key={s.name} className="flex items-center gap-1.5 text-xs leading-normal">
+					<span aria-hidden="true" className={`size-[9px] rounded-xs ${s.className}`} />
 					{s.name}
 				</li>
 			))}
@@ -119,7 +119,7 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 				return (
 					<div key={t} aria-hidden="true">
 						<div className={`absolute right-0 left-[27px] h-px ${i === 0 ? 'bg-med-blue/50' : 'bg-light-blue'}`} style={{ top: y }} />
-						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-[1.5] text-med-blue" style={{ top: y }}>
+						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-normal text-med-blue" style={{ top: y }}>
 							{formatTick(t)}
 						</p>
 					</div>
@@ -141,39 +141,39 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 							className="relative flex flex-1 flex-col items-center justify-end rounded outline-none focus-visible:bg-light-blue/40"
 						>
 							{bar.showValue && total > 0 && (
-								<p className="mb-[3px] text-xs leading-[1.5] font-bold" aria-hidden="true">
+								<p className="mb-1 text-xs leading-normal font-bold" aria-hidden="true">
 									{bar.showValue}
 								</p>
 							)}
 							{/* Segments bottom up, a 1.5px surface gap between them; only the top one is rounded */}
-							<div className="flex w-[18px] flex-col-reverse gap-[1.5px]" style={{ height: `${(total / max) * 100}%` }}>
+							<div className="flex w-[18px] flex-col-reverse gap-0.5" style={{ height: `${(total / max) * 100}%` }}>
 								{bar.values.map((v, s) =>
 									v > 0 ? (
 										<div
 											key={s}
-											className={`${series[s].className} ${bar.values.slice(s + 1).every((n) => n === 0) ? 'rounded-t-[3px]' : ''}`}
+											className={`${series[s].className} ${bar.values.slice(s + 1).every((n) => n === 0) ? 'rounded-t-sm' : ''}`}
 											style={{ flexGrow: v, flexBasis: 0 }}
 										/>
 									) : null,
 								)}
 							</div>
 							{bar.label && (
-								<p className="absolute top-full mt-[3px] text-[10.5px] leading-[1.5] whitespace-nowrap text-med-blue" aria-hidden="true">
+								<p className="absolute top-full mt-1 text-[10.5px] leading-normal whitespace-nowrap text-med-blue" aria-hidden="true">
 									{bar.label}
 								</p>
 							)}
 							{active === i && (
 								<div
 									role="tooltip"
-									className={`pointer-events-none absolute z-10 flex flex-col gap-[3px] rounded-[7.5px] border border-med-blue bg-white py-[9px] pr-3 pl-[10.5px] text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
+									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-med-blue bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
 										flip ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
 									}`}
 									style={{ bottom: `${Math.min(80, (total / max) * 100)}%` }}
 								>
-									<p className="text-xs leading-[1.5] font-bold">{bar.title}</p>
+									<p className="text-xs leading-normal font-bold">{bar.title}</p>
 									{bar.lines.map((line, s) => (
-										<p key={s} className="flex items-center gap-1.5 text-[11.25px] leading-[1.5]">
-											{series[s] && <span aria-hidden="true" className={`size-[7.5px] rounded-[1.5px] ${series[s].className}`} />}
+										<p key={s} className="flex items-center gap-1.5 text-[11.25px] leading-normal">
+											{series[s] && <span aria-hidden="true" className={`size-[7.5px] rounded-xs ${series[s].className}`} />}
 											{line}
 										</p>
 									))}
@@ -211,7 +211,7 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 				return (
 					<div key={t} aria-hidden="true">
 						<div className={`absolute right-0 left-[27px] h-px ${i === 0 ? 'bg-med-blue/50' : 'bg-light-blue'}`} style={{ top }} />
-						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-[1.5] text-med-blue" style={{ top }}>
+						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-normal text-med-blue" style={{ top }}>
 							{t}
 						</p>
 					</div>
@@ -237,21 +237,21 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 								<span aria-hidden="true" className="absolute left-1/2 size-[9px] -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-white bg-dark-blue" style={{ bottom: `${100 - y(p.value)}%` }} />
 							)}
 							{p.label && (
-								<p className="absolute top-full left-1/2 mt-[3px] -translate-x-1/2 text-[10.5px] leading-[1.5] whitespace-nowrap text-med-blue" aria-hidden="true">
+								<p className="absolute top-full left-1/2 mt-1 -translate-x-1/2 text-[10.5px] leading-normal whitespace-nowrap text-med-blue" aria-hidden="true">
 									{p.label}
 								</p>
 							)}
 							{active === i && (
 								<div
 									role="tooltip"
-									className={`pointer-events-none absolute z-10 flex flex-col gap-[3px] rounded-[7.5px] border border-med-blue bg-white py-[9px] pr-3 pl-[10.5px] text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
+									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-med-blue bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
 										i > points.length * 0.6 ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
 									}`}
 									style={{ bottom: `${Math.min(80, 100 - y(p.value))}%` }}
 								>
-									<p className="text-xs leading-[1.5] font-bold">{p.title}</p>
+									<p className="text-xs leading-normal font-bold">{p.title}</p>
 									{p.lines.map((line, s) => (
-										<p key={s} className="text-[11.25px] leading-[1.5]">
+										<p key={s} className="text-[11.25px] leading-normal">
 											{line}
 										</p>
 									))}

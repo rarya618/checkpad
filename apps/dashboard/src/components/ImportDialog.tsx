@@ -80,9 +80,9 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 			)}
 
 			{error && (
-				<div role="alert" className="flex items-start gap-3 rounded-[9px] bg-light-blue py-[15px] pr-[18px] pl-[15px] leading-[1.5]">
+				<div role="alert" className="flex items-start gap-3 rounded-lg bg-light-blue py-4 pr-5 pl-4 leading-normal">
 					<img src={alert} alt="" width={21} height={21} />
-					<div className="flex min-w-0 flex-1 flex-col gap-[4.5px]">
+					<div className="flex min-w-0 flex-1 flex-col gap-1">
 						<p className="text-[15px] font-bold">We can’t read this file</p>
 						<p className="text-[13.5px]">
 							{error.kind === 'not-csv'
@@ -141,10 +141,10 @@ function FileBox({ name, detail, onChoose, showReplace }: { name?: string; detai
 				type="button"
 				onClick={onChoose}
 				data-autofocus
-				className="flex items-center gap-3 rounded-[9px] border border-dashed border-med-blue bg-off-white py-[13.5px] pr-[18px] pl-[15px] text-left leading-[1.5] hover:bg-light-blue/40"
+				className="flex items-center gap-3 rounded-lg border border-dashed border-med-blue bg-off-white py-3.5 pr-5 pl-4 text-left leading-normal hover:bg-light-blue/40"
 			>
 				<img src={fileIcon} alt="" width={21} height={21} />
-				<span className="flex min-w-0 flex-1 flex-col gap-[1.5px]">
+				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<span className="text-[15px] font-bold">Choose the CSV from Bevy</span>
 					<span className="text-xs text-med-blue">Export → CSV on the event’s attendee list</span>
 				</span>
@@ -152,9 +152,9 @@ function FileBox({ name, detail, onChoose, showReplace }: { name?: string; detai
 		);
 	}
 	return (
-		<div className="flex items-center gap-3 rounded-[9px] border border-dashed border-med-blue bg-off-white py-[13.5px] pr-[18px] pl-[15px] leading-[1.5]">
+		<div className="flex items-center gap-3 rounded-lg border border-dashed border-med-blue bg-off-white py-3.5 pr-5 pl-4 leading-normal">
 			<img src={fileIcon} alt="" width={21} height={21} />
-			<div className="flex min-w-0 flex-1 flex-col gap-[1.5px]">
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<p className="truncate text-[15px] font-bold">{name}</p>
 				{detail && <p className="text-xs text-med-blue">{detail}</p>}
 			</div>
@@ -169,9 +169,9 @@ function FileBox({ name, detail, onChoose, showReplace }: { name?: string; detai
 
 function SummaryRow({ count, label, detail }: { count: number; label: string; detail: string }) {
 	return (
-		<div className="flex items-center gap-3 border-light-blue py-[10.5px] not-first:border-t">
-			<dt className="w-[54px] shrink-0 font-display text-2xl leading-[1.2]">{count}</dt>
-			<dd className="flex min-w-0 flex-1 flex-col gap-[1.5px] leading-[1.5]">
+		<div className="flex items-center gap-3 border-light-blue py-2.5 not-first:border-t">
+			<dt className="w-[54px] shrink-0 font-display text-2xl leading-tight">{count}</dt>
+			<dd className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal">
 				<span className="text-[15px] font-bold text-black">{label}</span>
 				<span className="text-xs text-med-blue">{detail}</span>
 			</dd>

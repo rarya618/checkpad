@@ -37,16 +37,16 @@ export default function Dialog({ title, description, onClose, closeButton, size 
 			}}
 			onClick={(e) => e.target === e.currentTarget && onClose()}
 			className={`m-auto max-w-[calc(100vw-48px)] bg-white p-0 text-dark-blue backdrop:bg-dark-blue/45 ${
-				lg ? 'rounded-[20px] shadow-[0_12px_40px_rgb(17_45_78/0.18)]' : 'rounded-[15px] shadow-[0_9px_30px_rgb(17_45_78/0.18)]'
+				lg ? 'rounded-3xl shadow-[0_12px_40px_rgb(17_45_78/0.18)]' : 'rounded-2xl shadow-[0_9px_30px_rgb(17_45_78/0.18)]'
 			} ${className}`}
 		>
-			<div className={`flex flex-col ${lg ? 'gap-6 px-10 py-9' : 'gap-[18px] px-[30px] py-[27px]'}`}>
+			<div className={`flex flex-col ${lg ? 'gap-6 px-10 py-9' : 'gap-5 px-8 py-7'}`}>
 				<div className={`flex items-start ${lg ? 'gap-4' : 'gap-3'}`}>
 					<div className={`flex min-w-0 flex-1 flex-col ${lg ? 'gap-2' : 'gap-1.5'}`}>
-						<h2 id="dialog-title" className={`font-display leading-[1.2] ${lg ? 'text-[32px]' : 'text-2xl'}`}>
+						<h2 id="dialog-title" className={`font-display leading-tight ${lg ? 'text-[32px]' : 'text-2xl'}`}>
 							{title}
 						</h2>
-						<p id="dialog-description" className={`leading-[1.5] text-med-blue ${lg ? 'text-xl' : 'text-[15px]'}`}>
+						<p id="dialog-description" className={`leading-normal text-med-blue ${lg ? 'text-xl' : 'text-[15px]'}`}>
 							{description}
 						</p>
 					</div>

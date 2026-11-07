@@ -57,10 +57,10 @@ export default function EventAnalyticsPage() {
 	return (
 		<>
 			<EventOverview event={event} />
-			<PageHeader level={2} title="Analytics" className="top-0 pt-6 pb-[15px]" />
-			<div className="flex flex-col gap-[15px] px-6 pb-[27px]">
+			<PageHeader level={2} title="Analytics" className="top-0 pt-6 pb-4" />
+			<div className="flex flex-col gap-4 px-6 pb-7">
 				{/* Phones: the tiles two by two, and the charts one above the other */}
-				<div className="grid grid-cols-2 gap-[15px] md:flex">
+				<div className="grid grid-cols-2 gap-4 md:flex">
 					<StatTile
 						label="Checked in"
 						value={String(stats.checkedIn)}
@@ -80,10 +80,10 @@ export default function EventAnalyticsPage() {
 						note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrivals` : 'No check-ins yet'}
 					/>
 				</div>
-				<div className="flex flex-col gap-[15px] md:flex-row md:items-start">
-					<section className="flex min-w-0 flex-1 flex-col gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
+				<div className="flex flex-col gap-4 md:flex-row md:items-start">
+					<section className="flex min-w-0 flex-1 flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
 						<div className="flex items-start gap-3">
-							<div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.5]">
+							<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal">
 								<h3 className="font-display text-lg">Arrivals</h3>
 								<p className="text-xs text-med-blue">Check-ins every 15 minutes</p>
 							</div>
@@ -102,14 +102,14 @@ export default function EventAnalyticsPage() {
 							}))}
 						/>
 					</section>
-					<section className="flex shrink-0 flex-col md:w-[285px] gap-[15px] rounded-xl border border-med-blue bg-white px-6 py-[21px]">
-						<div className="flex flex-col gap-[3px] leading-[1.5]">
+					<section className="flex shrink-0 flex-col md:w-[285px] gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
+						<div className="flex flex-col gap-1 leading-normal">
 							<h3 className="font-display text-lg">By ticket type</h3>
 							<p className="text-xs text-med-blue">Checked in of registered</p>
 						</div>
 						{types.map((t) => (
 							<div key={t.name} className="flex flex-col gap-1.5">
-								<div className="flex items-start gap-1.5 leading-[1.5]">
+								<div className="flex items-start gap-1.5 leading-normal">
 									<p className="min-w-0 flex-1 truncate text-[13.5px] font-bold">{t.name}</p>
 									<p className="shrink-0 text-xs text-med-blue">
 										{t.checkedIn} of {t.total} · {percent(t.checkedIn, t.total)}%
@@ -120,7 +120,7 @@ export default function EventAnalyticsPage() {
 								</div>
 							</div>
 						))}
-						<div className="flex items-start gap-1.5 leading-[1.5]">
+						<div className="flex items-start gap-1.5 leading-normal">
 							<p className="min-w-0 flex-1 text-[13.5px] font-bold">Walk-in</p>
 							<p className="shrink-0 text-xs text-med-blue">
 								{stats.walkIns} {stats.walkIns === 1 ? 'person' : 'people'}
@@ -128,9 +128,9 @@ export default function EventAnalyticsPage() {
 						</div>
 					</section>
 				</div>
-				<div className="flex flex-col gap-[15px] md:flex-row md:items-start">
+				<div className="flex flex-col gap-4 md:flex-row md:items-start">
 					<ChartCard title="Arrival timing" caption="Running total of check-ins; early arrivals count in the first 15 minutes" className="flex-1">
-						<dl className="grid grid-cols-3 gap-3 leading-[1.5]">
+						<dl className="grid grid-cols-3 gap-3 leading-normal">
 							<Figure label="Middle arrival" value={timing.medianMinutes === null ? '–' : formatOffset(timing.medianMinutes)} />
 							<Figure label="By the start" value={`${timing.byStart}%`} />
 							<Figure label="Within 30 minutes" value={`${timing.byHalfHour}%`} />
@@ -147,7 +147,7 @@ export default function EventAnalyticsPage() {
 							}))}
 						/>
 					</ChartCard>
-					<div className="flex shrink-0 flex-col gap-[15px] md:w-[285px]">
+					<div className="flex shrink-0 flex-col gap-4 md:w-[285px]">
 						<ChartCard title="First-timers" caption={event.teamId ? 'First event with the team' : 'Not part of a team, so everyone is new'}>
 							{rostersLoaded ? (
 								<SplitBar
@@ -172,7 +172,7 @@ export default function EventAnalyticsPage() {
 										]}
 									/>
 									{methods.byOrganiser.length > 0 && (
-										<ul className="flex flex-col gap-1.5 border-t border-light-blue pt-3 leading-[1.5]">
+										<ul className="flex flex-col gap-1.5 border-t border-light-blue pt-3 leading-normal">
 											{methods.byOrganiser.map((o) => (
 												<li key={o.email} className="flex items-start gap-1.5">
 													<p className="min-w-0 flex-1 truncate text-[13.5px]" title={o.email}>

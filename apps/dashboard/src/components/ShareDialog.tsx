@@ -24,11 +24,11 @@ export default function ShareDialog({ event, onClose }: { event: DashboardEvent;
 				</button>
 			}
 		>
-			<div className="flex flex-col items-center gap-[21px] md:flex-row">
-				<QrCode value={url} size={215} label={`QR code for ${url}`} className="shrink-0 rounded-[6px] border border-light-blue" />
+			<div className="flex flex-col items-center gap-5 md:flex-row">
+				<QrCode value={url} size={215} label={`QR code for ${url}`} className="shrink-0 rounded-md border border-light-blue" />
 				<div className="flex w-full min-w-0 flex-col gap-3 md:flex-1">
-					<div className="flex items-center gap-[9px] rounded-[7.5px] bg-off-white px-[15px] py-3">
-						<p className="min-w-0 flex-1 truncate text-[13.5px] leading-[1.5] text-black">{url.replace(/^https?:\/\//, '')}</p>
+					<div className="flex items-center gap-2.5 rounded-lg bg-off-white px-4 py-3">
+						<p className="min-w-0 flex-1 truncate text-[13.5px] leading-normal text-black">{url.replace(/^https?:\/\//, '')}</p>
 						<button type="button" aria-label="Copy check-in link" onClick={copyLink} className="shrink-0 rounded p-0.5 hover:bg-light-blue/60">
 							<img src={copy} alt="" width={18} height={18} />
 						</button>
