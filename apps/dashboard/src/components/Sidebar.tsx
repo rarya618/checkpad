@@ -18,7 +18,7 @@ export interface SidebarItem {
 
 export default function Sidebar({ items }: { items: SidebarItem[] }) {
 	return (
-		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-[18px] border border-med-blue bg-light-blue px-[15px] pt-7.5 pb-[15px]">
+		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-[15px] pt-7.5 pb-[15px]">
 			<div className="flex w-full flex-col gap-[21px]">
 				<div className="px-3 py-[3px]">
 					<img src={logo} alt="checkpad" width={151} height={36} />
