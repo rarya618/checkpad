@@ -61,7 +61,7 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 	useEffect(() => setOpen(false), [pathname]);
 
 	// The sidebar's text sizes, with slightly taller rows to tap
-	const item = 'block rounded-lg px-5 py-2 text-base leading-[1.5] tracking-tight hover:bg-white/50';
+	const item = 'block rounded-lg px-5 py-2 text-base leading-[1.5] tracking-[0.01em] hover:bg-white/50';
 	const tab = 'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5';
 
 	return (
@@ -149,7 +149,7 @@ function Tab({ icon, label, active }: { icon?: string; label: string; active: bo
 			<span className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${active ? 'bg-dark-blue' : ''}`}>
 				{icon && <img src={icon} alt="" width={22} height={22} className={active ? 'brightness-0 invert' : ''} />}
 			</span>
-			<span className={`max-w-full truncate text-xs leading-[1.5] ${active ? 'font-display' : 'tracking-tight'}`}>{label}</span>
+			<span className={`max-w-full truncate text-xs leading-[1.5] tracking-[0.01em] ${active ? 'font-display' : ''}`}>{label}</span>
 		</>
 	);
 }
