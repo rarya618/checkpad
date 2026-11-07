@@ -147,6 +147,52 @@ export function checkInMethods(event: DashboardEvent, roster: RosterAttendee[]):
 	return { self, staff: list.reduce((n, o) => n + o.count, 0), byOrganiser: list };
 }
 
+export interface Person {
+	email: string;
+	name: string;
+	/** Events they registered for (Bevy tickets, not walk-ins). */
+	registered: number;
+	/** Events they checked in to, walk-ins included. */
+	attended: number;
+	/** Start of the last event they checked in to or registered for. */
+	lastAt: string;
+}
+
+/** Everyone on the lists of `events`, by email; several tickets to one event count once. */
+export function people(events: DashboardEvent[], rosters: Record<string, RosterAttendee[]>) {
+	const byEmail = new Map<string, Person>();
+	for (const e of events) {
+		const here = new Map<string, { registered: boolean; attended: boolean; name: string }>();
+		for (const a of rosters[e.id] ?? []) {
+			const key = a.email.toLowerCase();
+			const h = here.get(key) ?? { registered: false, attended: false, name: '' };
+			h.registered ||= !a.walkIn;
+			h.attended ||= Boolean(a.checkedInAt);
+			h.name ||= `${a.firstName} ${a.lastName}`.trim();
+			here.set(key, h);
+		}
+		for (const [email, h] of here) {
+			const p = byEmail.get(email) ?? { email, name: h.name, registered: 0, attended: 0, lastAt: e.startsAt };
+			if (h.registered) p.registered++;
+			if (h.attended) p.attended++;
+			if (e.startsAt >= p.lastAt) {
+				p.lastAt = e.startsAt;
+				p.name = h.name || p.name;
+			}
+			byEmail.set(email, p);
+		}
+	}
+	return [...byEmail.values()];
+}
+
+/** People who came to two or more of the events, most events first. */
+export const regulars = (list: Person[]) =>
+	list.filter((p) => p.attended >= 2).sort((a, b) => b.attended - a.attended || b.lastAt.localeCompare(a.lastAt) || a.name.localeCompare(b.name));
+
+/** People who registered for `min` or more of the events and came to none, most registrations first. */
+export const repeatNoShows = (list: Person[], min = 3) =>
+	list.filter((p) => p.registered >= min && p.attended === 0).sort((a, b) => b.registered - a.registered || b.lastAt.localeCompare(a.lastAt) || a.name.localeCompare(b.name));
+
 /** Which axis labels to show so about `fit` fit: every `n`th, counted back from the latest. */
 export const thinLabels = (count: number, fit = 8) => {
 	const step = Math.max(1, Math.ceil(count / fit));

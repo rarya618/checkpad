@@ -12,10 +12,14 @@ import {
 	monthSpan,
 	newVsReturning,
 	niceTicks,
+	people,
 	percent,
 	ranges,
+	regulars,
+	repeatNoShows,
 	returningShare,
 	thinLabels,
+	type Person,
 } from '../lib/analytics';
 import { useEvents } from '../lib/events';
 import { useRosters } from '../lib/roster';
@@ -37,6 +41,7 @@ const methodSeries: Series[] = [
 	{ name: 'Self', className: 'bg-dark-blue' },
 	{ name: 'Organiser', className: 'bg-med-blue' },
 ];
+const LIST_LENGTH = 8;
 
 // Figma "Analytics" (across events) at 75% scale. Phones get the tiles two by two, and a
 // table of just the event (with its date) and turnout.
@@ -66,6 +71,9 @@ export default function AnalyticsPage() {
 	const recorded = detail.filter((d) => d.methods);
 	const selfCheckIns = recorded.reduce((n, d) => n + d.methods!.self, 0);
 	const recordedCheckIns = recorded.reduce((n, d) => n + d.methods!.self + d.methods!.staff, 0);
+	const everyone = useMemo(() => people(included, rosters), [included, rosters]);
+	const regularList = useMemo(() => regulars(everyone), [everyone]);
+	const noShowList = useMemo(() => repeatNoShows(everyone), [everyone]);
 
 	// Label the best turnout and the latest event, not every bar
 	const best = results.reduce<(typeof results)[number] | null>((b, r) => (!b || r.turnout > b.turnout ? r : b), null);
@@ -199,6 +207,17 @@ export default function AnalyticsPage() {
 				)}
 
 				{results.length > 0 && (
+					<div className="grid gap-[15px] xl:grid-cols-2">
+						<ChartCard level={2} title="Regulars" caption="Came to two or more of these events">
+							{loaded ? <PeopleList list={regularList} count={(p) => `${p.attended} of ${included.length} events`} empty="No one has come twice yet." /> : <Loading />}
+						</ChartCard>
+						<ChartCard level={2} title="Registered but never came" caption="Registered for three or more of these events and came to none">
+							{loaded ? <PeopleList list={noShowList} count={(p) => `Registered ${p.registered} times`} empty="No one." /> : <Loading />}
+						</ChartCard>
+					</div>
+				)}
+
+				{results.length > 0 && (
 					<div className="rounded-xl border border-med-blue bg-white px-4 py-[15px] md:px-6">
 						<table className="w-full table-fixed text-[13.5px] leading-[1.5]">
 							<colgroup>
@@ -262,6 +281,25 @@ export default function AnalyticsPage() {
 
 function Loading() {
 	return <p className="py-6 text-center text-[13.5px] text-med-blue">Loading attendee lists…</p>;
+}
+
+/** People with what they did, the first few; the rest as a count. */
+function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person) => string; empty: string }) {
+	if (!list.length) return <p className="text-[13.5px] text-med-blue">{empty}</p>;
+	return (
+		<ul className="flex flex-col leading-[1.5]">
+			{list.slice(0, LIST_LENGTH).map((p) => (
+				<li key={p.email} className="flex items-start gap-3 border-t border-light-blue py-[7.5px] first:border-t-0 first:pt-0">
+					<div className="min-w-0 flex-1">
+						<p className="truncate text-[13.5px] font-bold">{p.name || p.email}</p>
+						<p className="truncate text-xs text-med-blue">{p.email}</p>
+					</div>
+					<p className="shrink-0 text-xs text-med-blue">{count(p)}</p>
+				</li>
+			))}
+			{list.length > LIST_LENGTH && <li className="border-t border-light-blue pt-[7.5px] text-xs text-med-blue">and {list.length - LIST_LENGTH} more</li>}
+		</ul>
+	);
 }
 
 /** Figma "Filter": a bordered dropdown in the page header. */
