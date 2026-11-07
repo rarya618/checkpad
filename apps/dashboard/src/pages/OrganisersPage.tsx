@@ -94,44 +94,55 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 	const desktop = useIsDesktop();
 	return (
 		<>
-			<div className="rounded-[15px] bg-white px-4 py-[18px] md:px-[22.5px]">
-				<table className="w-full table-fixed">
+			<div className="rounded-xl border border-med-blue bg-white px-4 py-[15px] md:px-6">
+				<table className="w-full table-fixed leading-[1.5]">
 					<colgroup>
 						<col />
 						{desktop && (
 							<>
-								<col className="w-[168px]" />
-								<col className="w-[183px]" />
+								<col className="w-[135px]" />
+								<col className="w-[165px]" />
 							</>
 						)}
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
-						<tr className="text-left font-display text-[15px] leading-[1.5] text-black">
-							<th className="pr-[18px] pb-1.5">Person</th>
+						<tr className="text-left font-display text-[13.5px] text-black">
+							<th className="pt-[3px] pr-[18px] pb-[7.5px]">Person</th>
 							{desktop && (
 								<>
-									<th className="pr-[18px] pb-1.5">Role</th>
-									<th className="pr-[18px] pb-1.5">Team</th>
+									<th className="pt-[3px] pr-[18px] pb-[7.5px]">Role</th>
+									<th className="pt-[3px] pr-[18px] pb-[7.5px]">Team</th>
 								</>
 							)}
-							<th className="pb-1.5">
+							<th className="pt-[3px] pb-[7.5px]">
 								<span className="sr-only">Options</span>
 							</th>
 						</tr>
 					</thead>
 					<tbody>
 						{organisers.map((o) => (
-							<tr key={o.id}>
-								<td className="py-[7.5px] pr-[18px]">
+							<tr key={o.id} className="border-t border-light-blue">
+								<td className="py-[10.5px] pr-[18px]">
 									{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
 									<div className="flex items-start gap-4 md:items-center md:gap-3">
-										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[15px]">
+										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[13.5px]">
 											{initialsOf(o)}
 										</span>
-										<div className="flex min-w-0 flex-col gap-0.5 leading-[1.5]">
-											<p className="truncate font-display text-lg leading-[1.2] text-black">{o.name ?? o.email}</p>
-											<p className={`truncate text-[13.5px] ${o.invited ? 'text-med-blue' : 'text-black'}`}>{o.invited ? 'Invited · hasn’t signed in yet' : o.email}</p>
+										<div className="flex min-w-0 flex-col gap-0.5">
+											<p className="truncate font-display text-base leading-[1.3] text-black" title={o.name ?? o.email}>
+												{o.name ?? o.email}
+											</p>
+											{o.invited ? (
+												<p className="flex min-w-0 items-center gap-1.5 text-xs text-med-blue">
+													<span className="shrink-0 rounded-full border border-med-blue px-[7.5px] py-px font-bold">Invited</span>
+													<span className="truncate">hasn’t signed in yet</span>
+												</p>
+											) : (
+												<p className="truncate text-[13.5px] text-med-blue" title={o.email}>
+													{o.email}
+												</p>
+											)}
 											{!desktop && (
 												<p className="flex min-w-0 items-center gap-2.5 pt-2.5 text-base text-black">
 													<RoleBadge organiser={o} />
@@ -143,13 +154,13 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 								</td>
 								{desktop && (
 									<>
-										<td className="py-[7.5px] pr-[18px]">
+										<td className="py-[10.5px] pr-[18px]">
 											<RoleBadge organiser={o} />
 										</td>
-										<td className="truncate py-[7.5px] pr-[18px] text-[15px] leading-[1.5] text-black">{organiserTeam(teams, o)}</td>
+										<td className="truncate py-[10.5px] pr-[18px] text-[13.5px] text-black">{organiserTeam(teams, o)}</td>
 									</>
 								)}
-								<td className="py-[7.5px]">
+								<td className="py-[10.5px]">
 									{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}
 								</td>
 							</tr>
@@ -157,20 +168,25 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					</tbody>
 				</table>
 			</div>
-			<dl className="flex flex-col gap-3 pl-[3px] leading-[1.5] md:flex-row md:gap-6">
-				{roles.map((r) => (
-					<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-[3px]">
-						<dt className="text-[13.5px] font-bold">{r.label}</dt>
-						<dd className="text-xs text-med-blue">{r.description}</dd>
-					</div>
-				))}
-			</dl>
+			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-[15px] leading-[1.5] md:px-6">
+				<h2 className="font-display text-[13.5px]">What each role can do</h2>
+				<dl className="flex flex-col gap-3 md:flex-row md:gap-6">
+					{roles.map((r) => (
+						<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-[3px]">
+							<dt>
+								<RoleBadge organiser={{ role: r.id }} />
+							</dt>
+							<dd className="text-xs text-med-blue">{r.description}</dd>
+						</div>
+					))}
+				</dl>
+			</section>
 		</>
 	);
 }
 
 // Figma "Organisers" role pill: the small pill size on phones (as in "Organisers – manage team"), 75% from md up
-function RoleBadge({ organiser }: { organiser: Organiser }) {
+function RoleBadge({ organiser }: { organiser: Pick<Organiser, 'role'> }) {
 	return (
 		<span
 			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-[1.5] font-bold tracking-normal whitespace-nowrap md:px-[10.5px] md:py-[4.5px] md:text-xs ${
