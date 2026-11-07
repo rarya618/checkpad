@@ -1,11 +1,26 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
-import { BarChart, Legend, StatTile, type Series } from '../components/Charts';
+import { BarChart, ChartCard, Legend, LineChart, SplitBar, StatTile, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
 import PageHeader from '../components/PageHeader';
-import { arrivalBins, busiestBin, byTicketType, niceTicks, percent } from '../lib/analytics';
-import { useEvent } from '../lib/events';
-import { rosterStats, useRoster } from '../lib/roster';
+import {
+	arrivalBins,
+	arrivalTiming,
+	busiestBin,
+	byTicketType,
+	checkInMethods,
+	comparableEvents,
+	eventResult,
+	firstCheckIns,
+	formatOffset,
+	newVsReturning,
+	niceTicks,
+	percent,
+	teamAverage,
+	versusAverage,
+} from '../lib/analytics';
+import { useEvent, useEvents } from '../lib/events';
+import { rosterStats, useRoster, useRosters } from '../lib/roster';
 
 const series: Series[] = [
 	{ name: 'Pre-registered', className: 'bg-dark-blue' },
@@ -24,6 +39,20 @@ export default function EventAnalyticsPage() {
 	const types = useMemo(() => byTicketType(roster), [roster]);
 	const walkInTickets = roster.filter((a) => a.walkIn && a.ticket).map((a) => a.ticket!).sort();
 	const ticks = niceTicks(Math.max(1, ...bins.map((b) => b.preRegistered + b.walkIns)));
+	const timing = useMemo(() => arrivalTiming(event, roster), [event, roster]);
+	const methods = useMemo(() => checkInMethods(event, roster), [event, roster]);
+
+	// First-timers and the team average need the team's other events
+	const events = useEvents();
+	const earlier = useMemo(
+		() => (event.teamId ? events.filter((e) => e.teamId === event.teamId && e.startsAt < event.startsAt) : []),
+		[events, event.teamId, event.startsAt],
+	);
+	const rosters = useRosters(earlier);
+	const rostersLoaded = earlier.every((e) => e.id in rosters);
+	const split = useMemo(() => newVsReturning(event, roster, firstCheckIns(earlier, rosters)), [event, roster, earlier, rosters]);
+	const average = useMemo(() => teamAverage(comparableEvents(events, event)), [events, event]);
+	const result = eventResult(event);
 
 	return (
 		<>
@@ -32,12 +61,18 @@ export default function EventAnalyticsPage() {
 			<div className="flex flex-col gap-[15px] px-6 pb-[27px]">
 				{/* Phones: the tiles two by two, and the charts one above the other */}
 				<div className="grid grid-cols-2 gap-[15px] md:flex">
-					<StatTile label="Checked in" value={String(stats.checkedIn)} note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total}`} />
+					<StatTile
+						label="Checked in"
+						value={String(stats.checkedIn)}
+						note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total}`}
+						compare={average ? `Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}` : undefined}
+					/>
 					<StatTile label="Pre-registered" value={String(stats.preRegistered)} note={`of ${roster.filter((a) => !a.walkIn).length} from Bevy`} />
 					<StatTile
 						label="Walk-ins"
 						value={String(stats.walkIns)}
 						note={walkInTickets.length ? walkInRange(walkInTickets) : 'None yet'}
+						compare={average ? versusAverage(stats.walkIns, average.walkIns, 'people') : undefined}
 					/>
 					<StatTile
 						label="Busiest 15 minutes"
@@ -93,8 +128,79 @@ export default function EventAnalyticsPage() {
 						</div>
 					</section>
 				</div>
+				<div className="flex flex-col gap-[15px] md:flex-row md:items-start">
+					<ChartCard title="Arrival timing" caption="Running total of check-ins; early arrivals count in the first 15 minutes" className="flex-1">
+						<dl className="grid grid-cols-3 gap-3 leading-[1.5]">
+							<Figure label="Middle arrival" value={timing.medianMinutes === null ? '–' : formatOffset(timing.medianMinutes)} />
+							<Figure label="By the start" value={`${timing.byStart}%`} />
+							<Figure label="Within 30 minutes" value={`${timing.byHalfHour}%`} />
+						</dl>
+						<LineChart
+							label="Check-ins so far, every 15 minutes"
+							ticks={niceTicks(Math.max(1, stats.checkedIn))}
+							points={timing.cumulative.map((p, i) => ({
+								// Each point is the total at the end of its 15 minutes
+								label: i % 2 === 1 ? p.until : '',
+								value: p.count,
+								title: `By ${p.until}`,
+								lines: [`${p.count} checked in · ${percent(p.count, stats.checkedIn)}% of arrivals`],
+							}))}
+						/>
+					</ChartCard>
+					<div className="flex shrink-0 flex-col gap-[15px] md:w-[285px]">
+						<ChartCard title="First-timers" caption={event.teamId ? 'First event with the team' : 'Not part of a team, so everyone is new'}>
+							{rostersLoaded ? (
+								<SplitBar
+									label="First-timers and returning"
+									parts={[
+										{ name: 'First-timers', value: split.firstTime, className: 'bg-med-blue' },
+										{ name: 'Returning', value: split.returning, className: 'bg-dark-blue' },
+									]}
+								/>
+							) : (
+								<p className="text-xs text-med-blue">Loading earlier events…</p>
+							)}
+						</ChartCard>
+						<ChartCard title="How people checked in" caption="On the attendee page or by an organiser">
+							{methods ? (
+								<>
+									<SplitBar
+										label="Check-in method"
+										parts={[
+											{ name: 'Self', value: methods.self, className: 'bg-dark-blue' },
+											{ name: 'Organiser', value: methods.staff, className: 'bg-med-blue' },
+										]}
+									/>
+									{methods.byOrganiser.length > 0 && (
+										<ul className="flex flex-col gap-1.5 border-t border-light-blue pt-3 leading-[1.5]">
+											{methods.byOrganiser.map((o) => (
+												<li key={o.email} className="flex items-start gap-1.5">
+													<p className="min-w-0 flex-1 truncate text-[13.5px]" title={o.email}>
+														{o.email}
+													</p>
+													<p className="shrink-0 text-xs text-med-blue">{o.count}</p>
+												</li>
+											))}
+										</ul>
+									)}
+								</>
+							) : (
+								<p className="text-xs text-med-blue">Not recorded: this event came from the old check-in app.</p>
+							)}
+						</ChartCard>
+					</div>
+				</div>
 			</div>
 		</>
+	);
+}
+
+function Figure({ label, value }: { label: string; value: string }) {
+	return (
+		<div className="flex min-w-0 flex-col">
+			<dt className="truncate text-xs text-med-blue">{label}</dt>
+			<dd className="text-[13.5px] font-bold">{value}</dd>
+		</div>
 	);
 }
 

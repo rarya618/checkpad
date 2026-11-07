@@ -3,12 +3,18 @@ import { useState, type ReactNode } from 'react';
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
 // charts in "Event analytics" and "Analytics".
 
-export function StatTile({ label, value, note }: { label: string; value: string; note?: string }) {
+/** `compare` is a second note, e.g. how the number sits against the team's other events. */
+export function StatTile({ label, value, note, compare }: { label: string; value: string; note?: string; compare?: string }) {
 	return (
 		<div className="flex min-w-0 flex-1 flex-col gap-[3px] rounded-xl border border-med-blue bg-white px-[18px] py-[15px] md:px-[21px] md:py-[18px]">
 			<p className="truncate text-[13.5px] leading-[1.5] text-med-blue">{label}</p>
 			<p className="font-display text-4xl leading-[1.2]">{value}</p>
 			{note && <p className="truncate text-xs leading-[1.5] text-med-blue">{note}</p>}
+			{compare && (
+				<p className="truncate text-xs leading-[1.5] font-semibold" title={compare}>
+					{compare}
+				</p>
+			)}
 		</div>
 	);
 }
@@ -42,6 +48,26 @@ export function ChartCard({
 			</div>
 			{children}
 		</section>
+	);
+}
+
+/** Two shares of one whole as a single bar, with each part labelled below. */
+export function SplitBar({ parts, label }: { parts: { name: string; value: number; className: string }[]; label: string }) {
+	const total = parts.reduce((n, p) => n + p.value, 0);
+	return (
+		<div className="flex flex-col gap-1.5">
+			<div role="img" aria-label={`${label}: ${parts.map((p) => `${p.value} ${p.name.toLowerCase()}`).join(', ')}`} className="flex h-[7.5px] gap-[1.5px] overflow-hidden rounded-full bg-light-blue">
+				{total > 0 && parts.map((p) => (p.value > 0 ? <div key={p.name} className={p.className} style={{ flexGrow: p.value, flexBasis: 0 }} /> : null))}
+			</div>
+			<ul className="flex flex-wrap gap-x-[15px] gap-y-1 text-xs leading-[1.5]">
+				{parts.map((p) => (
+					<li key={p.name} className="flex items-center gap-1.5">
+						<span aria-hidden="true" className={`size-[9px] rounded-[2.25px] ${p.className}`} />
+						{p.name} <span className="text-med-blue">{p.value} · {total ? Math.round((p.value / total) * 100) : 0}%</span>
+					</li>
+				))}
+			</ul>
+		</div>
 	);
 }
 
@@ -156,6 +182,84 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 						</div>
 					);
 				})}
+			</div>
+		</div>
+	);
+}
+
+export interface Point {
+	label: string;
+	value: number;
+	title: string;
+	lines: string[];
+}
+
+/** A running total as a line on the same axis as BarChart; each column is a hover/focus target with a tooltip. */
+export function LineChart({ points, ticks, label }: { points: Point[]; ticks: number[]; label: string }) {
+	const [active, setActive] = useState<number | null>(null);
+	const max = ticks[ticks.length - 1] || 1;
+	const n = Math.max(1, points.length);
+	// x as a share of the plot width: the middle of each column, as BarChart places bars
+	const x = (i: number) => ((i + 0.5) / n) * 100;
+	const y = (v: number) => 100 - (v / max) * 100;
+	const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(i)} ${y(p.value)}`).join(' ');
+
+	return (
+		<div role="group" aria-label={label} className="relative h-[174px] w-full">
+			{ticks.map((t, i) => {
+				const top = 156 - (t / max) * 150;
+				return (
+					<div key={t} aria-hidden="true">
+						<div className={`absolute right-0 left-[27px] h-px ${i === 0 ? 'bg-med-blue/50' : 'bg-light-blue'}`} style={{ top }} />
+						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-[1.5] text-med-blue" style={{ top }}>
+							{t}
+						</p>
+					</div>
+				);
+			})}
+			<div className="absolute top-[6px] right-0 bottom-[18px] left-[27px]">
+				<svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible">
+					<path d={path} fill="none" className="stroke-dark-blue" strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+				</svg>
+				<div className="absolute inset-0 flex">
+					{points.map((p, i) => (
+						<div
+							key={i}
+							tabIndex={0}
+							aria-label={`${p.title}: ${p.lines.join(', ')}`}
+							onMouseEnter={() => setActive(i)}
+							onMouseLeave={() => setActive(null)}
+							onFocus={() => setActive(i)}
+							onBlur={() => setActive(null)}
+							className="relative flex-1 rounded outline-none focus-visible:bg-light-blue/40"
+						>
+							{active === i && (
+								<span aria-hidden="true" className="absolute left-1/2 size-[9px] -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-white bg-dark-blue" style={{ bottom: `${100 - y(p.value)}%` }} />
+							)}
+							{p.label && (
+								<p className="absolute top-full left-1/2 mt-[3px] -translate-x-1/2 text-[10.5px] leading-[1.5] whitespace-nowrap text-med-blue" aria-hidden="true">
+									{p.label}
+								</p>
+							)}
+							{active === i && (
+								<div
+									role="tooltip"
+									className={`pointer-events-none absolute z-10 flex flex-col gap-[3px] rounded-[7.5px] border border-med-blue bg-white py-[9px] pr-3 pl-[10.5px] text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
+										i > points.length * 0.6 ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
+									}`}
+									style={{ bottom: `${Math.min(80, 100 - y(p.value))}%` }}
+								>
+									<p className="text-xs leading-[1.5] font-bold">{p.title}</p>
+									{p.lines.map((line, s) => (
+										<p key={s} className="text-[11.25px] leading-[1.5]">
+											{line}
+										</p>
+									))}
+								</div>
+							)}
+						</div>
+					))}
+				</div>
 			</div>
 		</div>
 	);

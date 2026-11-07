@@ -147,6 +147,43 @@ export function checkInMethods(event: DashboardEvent, roster: RosterAttendee[]):
 	return { self, staff: list.reduce((n, o) => n + o.count, 0), byOrganiser: list };
 }
 
+export interface ArrivalTiming {
+	/** Minutes after the start the middle check-in came; negative before it. Null without check-ins. */
+	medianMinutes: number | null;
+	/** Share of check-ins by the start time. */
+	byStart: number;
+	/** Share of check-ins by 30 minutes after the start. */
+	byHalfHour: number;
+	/** Running total of check-ins at the end of each 15 minutes, as in arrivalBins. */
+	cumulative: { until: string; count: number }[];
+}
+
+export function arrivalTiming(event: DashboardEvent, roster: RosterAttendee[]): ArrivalTiming {
+	const start = new Date(event.startsAt).getTime();
+	const offsets = roster
+		.filter((a) => a.checkedInAt)
+		.map((a) => (a.checkedInAt!.getTime() - start) / 60_000)
+		.sort((a, b) => a - b);
+	const mid = offsets.length / 2;
+	const medianMinutes = !offsets.length ? null : Math.round(offsets.length % 2 ? offsets[Math.floor(mid)] : (offsets[mid - 1] + offsets[mid]) / 2);
+	let total = 0;
+	const cumulative = arrivalBins(event, roster).map((b) => ({ until: b.range.split('–')[1], count: (total += b.preRegistered + b.walkIns) }));
+	return {
+		medianMinutes,
+		byStart: percent(offsets.filter((m) => m <= 0).length, offsets.length),
+		byHalfHour: percent(offsets.filter((m) => m <= 30).length, offsets.length),
+		cumulative,
+	};
+}
+
+/** "12 min after the start", "5 min before the start", "At the start" */
+export function formatOffset(minutes: number) {
+	if (minutes === 0) return 'At the start';
+	const n = Math.abs(minutes);
+	const amount = n >= 90 ? `${Math.round(n / 6) / 10} h` : `${n} min`;
+	return `${amount} ${minutes > 0 ? 'after' : 'before'} the start`;
+}
+
 export interface Person {
 	email: string;
 	name: string;
@@ -192,6 +229,31 @@ export const regulars = (list: Person[]) =>
 /** People who registered for `min` or more of the events and came to none, most registrations first. */
 export const repeatNoShows = (list: Person[], min = 3) =>
 	list.filter((p) => p.registered >= min && p.attended === 0).sort((a, b) => b.registered - a.registered || b.lastAt.localeCompare(a.lastAt) || a.name.localeCompare(b.name));
+
+/** The team's finished events in the 6 months before `event`, not counting it. */
+export function comparableEvents(events: DashboardEvent[], event: DashboardEvent) {
+	const start = new Date(event.startsAt);
+	const from = new Date(start.getFullYear(), start.getMonth() - 6, start.getDate()).getTime();
+	return events.filter(
+		(e) => e.id !== event.id && e.teamId === event.teamId && e.teamId !== null && new Date(e.endsAt).getTime() < Date.now() && new Date(e.startsAt).getTime() >= from && e.startsAt < event.startsAt,
+	);
+}
+
+/** Average turnout (points) and walk-ins of `events`, from their counts; null under two events. */
+export function teamAverage(events: DashboardEvent[]) {
+	if (events.length < 2) return null;
+	const results = events.map(eventResult);
+	const mean = (f: (r: EventResult) => number) => results.reduce((n, r) => n + f(r), 0) / results.length;
+	return { turnout: Math.round(mean((r) => r.turnout)), checkedIn: Math.round(mean((r) => r.checkedIn)), walkIns: Math.round(mean((r) => r.walkIns)) };
+}
+
+/** "8 pts above average", "3 fewer than average", "Same as average" */
+export function versusAverage(value: number, average: number, unit: 'pts' | 'people') {
+	const diff = value - average;
+	if (diff === 0) return 'Same as the team average';
+	if (unit === 'pts') return `${Math.abs(diff)} pts ${diff > 0 ? 'above' : 'below'} the team average`;
+	return `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than the team average`;
+}
 
 /** Which axis labels to show so about `fit` fit: every `n`th, counted back from the latest. */
 export const thinLabels = (count: number, fit = 8) => {
