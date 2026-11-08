@@ -9,6 +9,7 @@ import { logger } from 'firebase-functions';
 import type { Request, Response } from 'firebase-functions/https';
 import { ApiFailure, checkIn, getEvent, teamTarget, walkIn } from './checkin.js';
 import type { Mailer } from './email.js';
+import { reportError } from './monitoring.js';
 import { sendSignInLink } from './organisers.js';
 import { allowAttempt } from './rateLimit.js';
 import { deleteTeam, setUpTeam } from './teams.js';
@@ -83,6 +84,7 @@ export function createHandler(db: Firestore, auth: Auth, mail: () => Mailer) {
 		} catch (error) {
 			if (error instanceof ApiFailure) return fail(res, error.status, error.code);
 			logger.error('Check-in API failed', { path, method: req.method, error });
+			await reportError(error, 'api');
 			return fail(res, 500, 'server');
 		}
 	};

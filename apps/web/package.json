@@ -16,6 +16,7 @@
   "dependencies": {
     "@astrojs/react": "^7.0.1",
     "@checkpad/shared": "*",
+    "@sentry/browser": "^11.11.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

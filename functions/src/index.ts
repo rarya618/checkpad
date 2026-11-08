@@ -7,6 +7,7 @@ import { onDocumentCreated, onDocumentDeleted, onDocumentWritten } from 'firebas
 import { onRequest } from 'firebase-functions/https';
 import { createHandler } from './api.js';
 import { mailer, resendApiKey } from './email.js';
+import { tracked } from './monitoring.js';
 import { sendInvite } from './organisers.js';
 import { cleanUpEvent, countChange } from './triggers.js';
 
@@ -28,13 +29,17 @@ const trigger = { region: 'australia-southeast1', maxInstances: 10, memory: '256
 
 /** Keeps each event's counts in step with its attendees (triggers.ts). */
 export const countAttendees = onDocumentWritten({ ...trigger, document: 'events/{eventId}/attendees/{ticket}' }, (event) =>
-	countChange(db, { id: event.id, eventId: event.params.eventId, before: event.data?.before.data(), after: event.data?.after.data() }),
+	tracked('countAttendees', () =>
+		countChange(db, { id: event.id, eventId: event.params.eventId, before: event.data?.before.data(), after: event.data?.after.data() }),
+	),
 );
 
 /** Deletes a deleted event's attendees, prize draw and links (triggers.ts). */
-export const cleanUpDeletedEvent = onDocumentDeleted({ ...trigger, document: 'events/{eventId}' }, (event) => cleanUpEvent(db, event.params.eventId));
+export const cleanUpDeletedEvent = onDocumentDeleted({ ...trigger, document: 'events/{eventId}' }, (event) =>
+	tracked('cleanUpDeletedEvent', () => cleanUpEvent(db, event.params.eventId)),
+);
 
 /** Emails an organiser added from the dashboard (organisers.ts). */
 export const inviteOrganiser = onDocumentCreated({ ...trigger, document: 'admins/{email}', secrets: [resendApiKey] }, (event) =>
-	sendInvite(db, mailer(db), { id: event.id, email: event.params.email, admin: event.data?.data() }),
+	tracked('inviteOrganiser', () => sendInvite(db, mailer(db), { id: event.id, email: event.params.email, admin: event.data?.data() })),
 );

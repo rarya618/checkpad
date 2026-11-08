@@ -1,0 +1,19 @@
+---
+// Reports uncaught errors on every page to Sentry, from production builds when PUBLIC_SENTRY_DSN
+// is set, so dev servers and the Playwright tests send nothing. The SDK only loads when it's set.
+// Attendees type their email on the check-in pages, so reports carry the error, its stack trace
+// and the page, and no request bodies, headers, cookies, query strings or user details.
+---
+
+<script>
+	const dsn = import.meta.env.PROD ? import.meta.env.PUBLIC_SENTRY_DSN : undefined;
+	if (dsn) {
+		import('@sentry/browser').then((Sentry) =>
+			Sentry.init({
+				dsn,
+				environment: 'production',
+				dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
+			}),
+		);
+	}
+</script>

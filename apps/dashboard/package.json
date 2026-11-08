@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@checkpad/shared": "*",
+    "@sentry/react": "^11.11.0",
     "firebase": "^13.0.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",

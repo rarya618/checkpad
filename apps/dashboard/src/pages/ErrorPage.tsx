@@ -3,6 +3,7 @@ import { FirebaseError } from 'firebase/app';
 import { useEffect } from 'react';
 import { useRouteError } from 'react-router';
 import { signOut } from '../lib/auth';
+import { reportError } from '../lib/errorTracking';
 import { AuthLayout } from './SignInPages';
 
 // Not in Figma: shown when a page can't load, usually a Firestore listener that failed. Like
@@ -10,8 +11,12 @@ import { AuthLayout } from './SignInPages';
 // your role or team while the page was open; anything else is most likely the connection.
 export default function ErrorPage() {
 	const error = useRouteError();
-	useEffect(() => console.error(error), [error]);
 	const refused = error instanceof FirebaseError && error.code === 'permission-denied';
+	// A refusal is expected when someone's role changes, so only other failures go to Sentry
+	useEffect(() => {
+		console.error(error);
+		if (!refused) reportError(error);
+	}, [error, refused]);
 
 	return (
 		<AuthLayout

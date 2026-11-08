@@ -70,6 +70,10 @@ PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulato
 
 Emails (dashboard sign-in links and organiser invites) go through Resend from `noreply@checkpad.app`. Their templates are in `functions/emails/`, published to Resend and sent by ID (`functions/src/email.ts` says how to update one). Production reads a sending-only key from the `RESEND_API_KEY` secret; the emulators never send, and record each email in the `emulatorOutbox` collection instead.
 
+## Error tracking
+
+Errors go to Sentry from production only, and only once each part has its DSN (Sentry's public project key): `VITE_SENTRY_DSN` in `apps/dashboard/.env.local`, `PUBLIC_SENTRY_DSN` in `apps/web/.env.local`, and `SENTRY_DSN` in `functions/.env.checkpad-app` (deployed with the functions; the emulators load `.env.demo-checkpad` instead, so tests send nothing). Dev servers and test runs never send. Reports carry the error, its stack trace and where it happened, with request bodies, headers, cookies, query strings and user details turned off, because attendees type their email to check in. The setup is in `apps/dashboard/src/lib/errorTracking.ts`, `apps/web/src/components/ErrorTracking.astro` and `functions/src/monitoring.ts`.
+
 ## Documentation
 
 Full Astro documentation: https://docs.astro.build

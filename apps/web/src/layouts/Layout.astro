@@ -1,5 +1,6 @@
 ---
 import { Font } from 'astro:assets';
+import ErrorTracking from '../components/ErrorTracking.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -24,6 +25,7 @@ const { title, description, noindex = false } = Astro.props;
 		{description && <meta name="description" content={description} />}
 		{noindex && <meta name="robots" content="noindex" />}
 		<slot name="head" />
+		<ErrorTracking />
 	</head>
 	<body class="bg-off-white font-sans text-dark-blue antialiased">
 		<slot />
