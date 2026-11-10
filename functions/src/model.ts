@@ -36,7 +36,8 @@ export interface AttendeeDoc {
 	lastName: string;
 	/** Lowercase, so lookups by email match whatever case people type. */
 	email: string;
-	source: 'bevy' | 'walk-in';
+	/** Where they came from: an import from Bevy, Luma or another platform's CSV, or a walk-in. */
+	source: 'bevy' | 'luma' | 'csv' | 'walk-in';
 	checkedInAt: Timestamp | null;
 	/** The organiser who checked them in from the dashboard; absent for self check-in. */
 	checkedInBy?: string | null;
@@ -46,6 +47,8 @@ export interface AttendeeDoc {
 	ticketTitle?: string;
 	ticketVenue?: string;
 	bevyOrderNumber?: string;
+	/** Answers to the event's registration questions, question → answer, from imports. */
+	answers?: Record<string, string>;
 }
 
 /** teams/{teamId} */

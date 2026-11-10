@@ -68,6 +68,9 @@ export async function getEvent(db: Firestore, slug: string): Promise<PublicEvent
 const attendeesWithEmail = (eventRef: DocumentReference<EventDoc>, email: string) =>
 	eventRef.collection('attendees').where('email', '==', email);
 
+/** The ticket number for the confirmation. Luma has no tickets, so its guests are filed under their guest ID, which isn't worth showing. */
+const shownTicket = (id: string, attendee: AttendeeDoc) => (attendee.source === 'luma' ? null : id);
+
 /**
  * Checks in one of the tickets registered to this email, within a transaction whose reads
  * are done. The event's counts follow by themselves (countAttendees in triggers.ts). If any of them is already checked in, that's the answer, so a double tap or a
@@ -79,12 +82,13 @@ function checkInFrom(tx: Transaction, matches: QuerySnapshot): CheckedIn | null 
 	const used = docs.find((d) => (d.data() as AttendeeDoc).checkedInAt);
 	if (used) {
 		const a = used.data() as AttendeeDoc;
-		return { status: 'checked-in', firstName: a.firstName, ticket: used.id, checkedInAt: a.checkedInAt!.toDate().toISOString(), alreadyCheckedIn: true };
+		return { status: 'checked-in', firstName: a.firstName, ticket: shownTicket(used.id, a), checkedInAt: a.checkedInAt!.toDate().toISOString(), alreadyCheckedIn: true };
 	}
 	const doc = docs[0];
+	const a = doc.data() as AttendeeDoc;
 	const now = Timestamp.now();
 	tx.update(doc.ref, { checkedInAt: now });
-	return { status: 'checked-in', firstName: (doc.data() as AttendeeDoc).firstName, ticket: doc.id, checkedInAt: now.toDate().toISOString(), alreadyCheckedIn: false };
+	return { status: 'checked-in', firstName: a.firstName, ticket: shownTicket(doc.id, a), checkedInAt: now.toDate().toISOString(), alreadyCheckedIn: false };
 }
 
 export async function checkIn(db: Firestore, slug: string, body: { email?: unknown }): Promise<CheckInResponse> {

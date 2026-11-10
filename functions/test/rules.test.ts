@@ -308,7 +308,7 @@ describe('walk-ins', () => {
 	});
 });
 
-describe('Bevy imports', () => {
+describe('imports', () => {
 	const person = { firstName: 'New', lastName: 'Person', email: 'new@example.com', source: 'bevy', checkedInAt: null, ticketType: 'Student' };
 
 	test('organisers add people who haven’t arrived, and update names and ticket types', async () => {
@@ -324,6 +324,19 @@ describe('Bevy imports', () => {
 		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, checkedInAt: Timestamp.now() }));
 		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, email: 'New@Example.com' }));
 		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, firstName: ' ' }));
+	});
+
+	test('Luma and other CSV imports, with answers to registration questions', async () => {
+		const answers = { 'Experience with Android': '1–3 years' };
+		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/gst-AbC123'), { ...person, source: 'luma', answers }));
+		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/A-77'), { ...person, source: 'csv' }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), { answers }));
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, source: 'walk-in' }));
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, source: 'eventbrite' }));
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, answers: 'yes' }));
+		const tooMany = Object.fromEntries(Array.from({ length: 51 }, (_, i) => [`Q${i}`, 'A']));
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, answers: tooMany }));
+		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { answers: { 'Experience with Android': 'None' } }));
 	});
 
 	test('an import can’t change someone’s check-in or email', async () => {

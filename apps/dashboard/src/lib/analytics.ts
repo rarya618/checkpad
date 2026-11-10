@@ -1,5 +1,5 @@
 // Numbers for Figma "Event analytics" and "Analytics". They use only check-in times, walk-in
-// flags, Bevy ticket types and emails (docs/migration-plan.md, Analytics data).
+// flags, imported ticket types and emails (docs/migration-plan.md, Analytics data).
 import { formatClockTime } from '@checkpad/shared/format';
 import type { DashboardEvent } from './events';
 import type { RosterAttendee } from './roster';
@@ -41,7 +41,7 @@ export function busiestBin(bins: ArrivalBin[]) {
 	return best;
 }
 
-/** Registered (not walk-in) people by Bevy ticket type, largest first. */
+/** Registered (not walk-in) people by imported ticket type, largest first. */
 export function byTicketType(roster: RosterAttendee[]) {
 	const types = new Map<string, { total: number; checkedIn: number }>();
 	for (const a of roster) {
@@ -187,7 +187,7 @@ export function formatOffset(minutes: number) {
 export interface Person {
 	email: string;
 	name: string;
-	/** Events they registered for (Bevy tickets, not walk-ins). */
+	/** Events they registered for (imported tickets, not walk-ins). */
 	registered: number;
 	/** Events they checked in to, walk-ins included. */
 	attended: number;

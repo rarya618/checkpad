@@ -72,7 +72,7 @@ All 12 old features that are kept are built in Checkpad; cloud credits are dropp
 | Create, edit, delete events, open/close, walk-in ticket defaults | Built | "New event", "Event settings" (with unsaved changes, leave without saving and the saved toast) and the delete dialog. Changing an event's link keeps the old one in `slugs/{slug}`, so old links and bookmarks follow it. Team members see only the event actions they can use | — |
 | Organisers page | Built | People tab, with add (invite toast), edit, remove and the row menu. Adding someone emails them an invite through Resend; only super admins can add, edit or remove, and role changes apply straight away | — |
 | Sign-in and roles (superadmin, organiser, team member) | Built | "Sign in", "Check your email", "Link expired", "No access" and the account menu. Every dashboard page and display needs a signed-in organiser. Firebase Auth with Google or an emailed link; only people with an `admins/{email}` document get in, and the Firestore rules enforce each role | Check in the Firebase console that both the Google and Email link providers are on (someone has signed in to production, so at least one is) |
-| Bevy CSV import and export | Built | Import (new, updated, unchanged and skipped rows, matched by ticket number; the "can't read this file" errors; the "import finished" toast with Details) and export, from both ⋮ menus | Confirm the columns Bevy's bulk upload expects; the export's columns are a guess |
+| Bevy and Luma CSV import, Bevy export | Built | Import (new, updated, unchanged and skipped rows, matched by ticket number or Luma's guest ID, with answers to registration questions; the "can't read this file" errors; the "import finished" toast with Details) and export, from both ⋮ menus | Confirm the columns Bevy's bulk upload expects; the export's columns are a guess |
 | Teams and permanent team links (`?team=<slug>`) | Built | Teams tab and Manage team (renaming a team updates its events and members), and `apps/web` `/team/<slug>`, which opens the team's open or next event, or "No event right now" | Redirect from `?team=<slug>` |
 | Merch prize draw | Built | Full-screen display at `/events/<slug>/prize-draw` (ready, drawing, winner, nobody checked in, everyone has won, start over?), from the event ⋮ menu and the phone menu. Results are saved per event in Firestore | — |
 | Cloud credits link and click tracking | Dropped | — | — |
@@ -172,9 +172,9 @@ Recommendation: build on the new Firebase project `checkpad-app` with Google sig
 events/{eventId}                     slug, name, description, status, startsAt?, endsAt?, timeZone,
                                      teamIds[], counts {registered, checkedIn, walkIns},
                                      walkInCounter, walkInTicketPrefix, selfWalkIns, legacyId
-events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source, checkedInAt,
-                                     jobTitle?, company?, ticketType?, ticketTitle?, ticketVenue?,
-                                     bevyOrderNumber?
+events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source ('bevy' | 'luma' |
+                                     'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,
+                                     ticketTitle?, ticketVenue?, bevyOrderNumber?, answers? (question → answer)
 events/{eventId}/draw/{ticket}       result ('won' | 'not-here'), drawnAt, winnerNumber?
 admins/{email}                       role, teamId?, invitedAt, invitedBy, lastSignInAt?
                                      (teamId null for super admins, and for an organiser invited
@@ -184,7 +184,7 @@ teams/{teamId}                       name, slug, walkInTicketPrefix, country?, c
 rateLimits/{hash}                    count, expireAt (check-in attempts per network; a TTL policy deletes them)
 ```
 
-Bevy imports write in batches of at most 500, so a large import isn't all-or-nothing; it stays safe to re-run because it merges by ticket number.
+Imports write in batches of at most 500, so a large import isn't all-or-nothing; it stays safe to re-run because it merges by ticket number. One importer reads every platform's CSV, matching columns by name (`apps/dashboard/src/lib/attendeeImport.ts`). Luma has no tickets, so its guests are filed under their `guest_id` and the check-in confirmation hides it; a status column (Luma's `approval_status`) keeps the waitlist, pending, declined and invited guests out. Columns that aren't a known field or one the platform adds (payments, phone numbers, ad tracking) are the organiser's registration questions, saved in `answers`.
 
 Prize draw results are saved per event, so a refresh or a second organiser's laptop doesn't lose the winners or redraw someone. The old app kept them only in the browser tab. Anyone in `draw` is out of the pool; Start over deletes the event's `draw` documents. An admin with no `lastSignInAt` shows as "Invited" on the Organisers page.
 

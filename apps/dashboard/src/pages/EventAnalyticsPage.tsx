@@ -67,7 +67,7 @@ export default function EventAnalyticsPage() {
 						note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total}`}
 						compare={average ? `Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}` : undefined}
 					/>
-					<StatTile label="Pre-registered" value={String(stats.preRegistered)} note={`of ${roster.filter((a) => !a.walkIn).length} from Bevy`} />
+					<StatTile label="Pre-registered" value={String(stats.preRegistered)} note={`of ${roster.filter((a) => !a.walkIn).length} registered`} />
 					<StatTile
 						label="Walk-ins"
 						value={String(stats.walkIns)}

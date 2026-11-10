@@ -3,13 +3,14 @@ import { useRef, useState } from 'react';
 import alert from '../assets/alert.svg';
 import fileIcon from '../assets/file.svg';
 import x from '../assets/x.svg';
-import { importCount, planImport, rowList, skippedCount, type ImportError, type ImportPlan } from '../lib/bevy';
+import { importCount, planImport, rowList, skippedCount, sourceName, type ImportError, type ImportPlan } from '../lib/attendeeImport';
 import type { DashboardEvent } from '../lib/events';
 import { importAttendees, useRoster } from '../lib/roster';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
 
-// Figma "Attendees – import from Bevy" and "– import error", at 75% scale. Opened with
+// Figma "Attendees – import from Bevy" and "– import error", at 75% scale, for any platform's CSV
+// (the wording isn't in Figma). Opened with
 // `done` it shows a finished import's summary again (the toast's Details).
 interface Props {
 	event: DashboardEvent;
@@ -43,11 +44,11 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 
 	return (
 		<Dialog
-			title="Import from Bevy"
+			title="Import attendees"
 			description={
 				done
 					? `${done.fileName} is imported.`
-					: 'Upload the attendee CSV exported from Bevy. People are matched by ticket number, so importing the same file again won’t create duplicates.'
+					: 'Upload the attendee CSV from Bevy, Luma or another registration platform. People are matched by ticket number (guest ID in Luma), so importing the same file again won’t create duplicates.'
 			}
 			onClose={onClose}
 			className="w-[510px]"
@@ -72,7 +73,15 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 			{!done && (
 				<FileBox
 					name={result?.fileName}
-					detail={plan ? `${plan.rowCount} row${plan.rowCount === 1 ? '' : 's'}` : error?.kind === 'not-csv' ? error.fileType : error ? 'CSV file' : undefined}
+					detail={
+						plan
+							? `${plan.rowCount} row${plan.rowCount === 1 ? '' : 's'}${plan.source === 'csv' ? '' : ` from ${sourceName[plan.source]}`}`
+							: error?.kind === 'not-csv'
+								? error.fileType
+								: error
+									? 'CSV file'
+									: undefined
+					}
 					onChoose={choose}
 					// The error state offers "Choose another file" as its main button instead
 					showReplace={!!plan}
@@ -86,9 +95,9 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 						<p className="text-[15px] font-bold">We can’t read this file</p>
 						<p className="text-[13.5px]">
 							{error.kind === 'not-csv'
-								? `Upload the CSV from Bevy, not ${error.fileType === 'Excel file' ? 'an Excel file' : `a ${error.fileType.replace(' file', '')} file`}. `
+								? `Upload the attendee list as a CSV, not ${error.fileType === 'Excel file' ? 'an Excel file' : `a ${error.fileType.replace(' file', '')} file`}. `
 								: `It’s missing ${error.missing.length === 1 ? 'a column' : 'columns'} for ${listOf(error.missing)}. `}
-							In Bevy, open the event’s attendee list and choose Export → CSV. It needs columns for first name, last name, email and ticket number.
+							In Bevy, open the event’s attendee list and choose Export → CSV. In Luma, download the guest list as a CSV from the event’s Guests tab. It needs columns for first name, email and a ticket number or guest ID.
 						</p>
 					</div>
 				</div>
@@ -97,12 +106,23 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 			{plan && (
 				<dl className="flex flex-col">
 					<SummaryRow count={plan.added.length} label="new attendees" detail="Added as not arrived" />
-					<SummaryRow count={plan.updated.length} label="updated" detail="Name or ticket type changed in Bevy" />
+					<SummaryRow
+						count={plan.updated.length}
+						label="updated"
+						detail={`Name, ticket type or answers changed${plan.source === 'csv' ? '' : ` in ${sourceName[plan.source]}`}`}
+					/>
 					{plan.unchanged > 0 && <SummaryRow count={plan.unchanged} label="unchanged" detail="Already up to date" />}
 					{plan.skipped.size === 0 ? (
 						<SummaryRow count={0} label="skipped" detail="Every row has what it needs" />
 					) : (
 						[...plan.skipped].map(([reason, rows]) => <SummaryRow key={reason} count={rows.length} label="skipped" detail={`${reason}: ${rowList(rows)}`} />)
+					)}
+					{plan.questions.length > 0 && (
+						<SummaryRow
+							count={plan.questions.length}
+							label={`question${plan.questions.length === 1 ? '' : 's'} with answers saved`}
+							detail={listOf(plan.questions.map((q) => `“${q}”`))}
+						/>
 					)}
 				</dl>
 			)}
@@ -145,8 +165,8 @@ function FileBox({ name, detail, onChoose, showReplace }: { name?: string; detai
 			>
 				<img src={fileIcon} alt="" width={21} height={21} />
 				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="text-[15px] font-bold">Choose the CSV from Bevy</span>
-					<span className="text-xs text-med-blue">Export → CSV on the event’s attendee list</span>
+					<span className="text-[15px] font-bold">Choose the attendee CSV</span>
+					<span className="text-xs text-med-blue">From Bevy, Luma or another registration platform</span>
 				</span>
 			</button>
 		);

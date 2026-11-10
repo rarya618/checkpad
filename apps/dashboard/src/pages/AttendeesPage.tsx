@@ -12,7 +12,7 @@ import ImportDialog from '../components/ImportDialog';
 import PageHeader from '../components/PageHeader';
 import StatsCard from '../components/StatsCard';
 import { WalkInDialog } from '../components/WalkIn';
-import type { ImportPlan } from '../lib/bevy';
+import type { ImportPlan } from '../lib/attendeeImport';
 import { useEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster } from '../lib/roster';
@@ -74,8 +74,8 @@ export default function AttendeesPage() {
 						title="No attendees yet"
 						description={
 							canEdit
-								? 'Import the attendee list from Bevy, or add walk-ins as people arrive.'
-								: 'Add walk-ins as people arrive. Your team’s organisers import the attendee list from Bevy.'
+								? 'Import the attendee list from your registration platform, or add walk-ins as people arrive.'
+								: 'Add walk-ins as people arrive. Your team’s organisers import the attendee list.'
 						}
 						actions={
 							<>
@@ -84,7 +84,7 @@ export default function AttendeesPage() {
 								</button>
 								{canEdit && (
 									<button type="button" onClick={() => setImporting({})} className={buttonClass('primary')}>
-										Import from Bevy
+										Import attendees
 									</button>
 								)}
 							</>

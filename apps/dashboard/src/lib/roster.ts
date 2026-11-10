@@ -6,6 +6,7 @@ import type { Attendee } from '@checkpad/shared/attendees';
 import {
 	collection,
 	deleteDoc,
+	deleteField,
 	doc,
 	getDocs,
 	onSnapshot,
@@ -16,7 +17,7 @@ import {
 	type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { myEmail } from './auth';
-import type { ImportPlan } from './bevy';
+import type { ImportPlan } from './attendeeImport';
 import { useEvent, type DashboardEvent } from './events';
 import { db } from './firebase';
 import { liveStore } from './live';
@@ -26,8 +27,10 @@ export interface RosterAttendee extends Attendee {
 	id: string;
 	/** Ticket number from the registration platform, or GDGWALKIN0001… for walk-ins. */
 	ticket: string | null;
-	/** Bevy's ticket title, e.g. "General admission"; set by imports. */
+	/** The platform's ticket type, e.g. "General admission"; set by imports. */
 	ticketType?: string;
+	/** Answers to the event's registration questions, question → answer; set by imports. */
+	answers?: Record<string, string>;
 	walkIn: boolean;
 	/** Walk-ins staff added: who added them. Self walk-ins from the check-in page have none. */
 	addedBy?: string;
@@ -49,6 +52,7 @@ function toAttendee(snap: QueryDocumentSnapshot): RosterAttendee {
 		email: data.email,
 		checkedInAt: data.checkedInAt?.toDate() ?? null,
 		...(data.ticketType && { ticketType: data.ticketType }),
+		...(data.answers && { answers: data.answers }),
 		walkIn: data.source === 'walk-in',
 		...(data.source === 'walk-in' && data.checkedInBy && { addedBy: data.checkedInBy }),
 		...(data.checkedInAt && data.checkedInBy && { checkedInBy: data.checkedInBy }),
@@ -129,10 +133,10 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
 }
 
 /**
- * Applies a Bevy import: adds new tickets as not arrived and updates names and ticket types.
+ * Applies an import: adds new tickets as not arrived and updates names, ticket types and answers.
  * Writes 500 at a time, so a large import isn't all or nothing; it's safe to run again.
  */
-export async function importAttendees(event: DashboardEvent, roster: RosterAttendee[], plan: Pick<ImportPlan, 'added' | 'updated'>) {
+export async function importAttendees(event: DashboardEvent, roster: RosterAttendee[], plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated'>) {
 	const ids = new Map(roster.map((a) => [a.id.toLowerCase(), a.id]));
 	const writes = [
 		...plan.added.map((row) => ({
@@ -141,15 +145,22 @@ export async function importAttendees(event: DashboardEvent, roster: RosterAtten
 				firstName: row.firstName,
 				lastName: row.lastName,
 				email: row.email,
-				source: 'bevy',
+				source: plan.source,
 				checkedInAt: null,
 				...(row.ticketType && { ticketType: row.ticketType }),
+				...(Object.keys(row.answers).length && { answers: row.answers }),
 			},
 			create: true,
 		})),
 		...plan.updated.map((row) => ({
 			ref: doc(attendees(event.id), ids.get(row.ticket.toLowerCase()) ?? row.ticket),
-			data: { firstName: row.firstName, lastName: row.lastName, ...(row.ticketType && { ticketType: row.ticketType }) },
+			data: {
+				firstName: row.firstName,
+				lastName: row.lastName,
+				...(row.ticketType && { ticketType: row.ticketType }),
+				// A file with questions replaces the answers; one without leaves them be
+				...(plan.questions.length && { answers: Object.keys(row.answers).length ? row.answers : deleteField() }),
+			},
 			create: false,
 		})),
 	];

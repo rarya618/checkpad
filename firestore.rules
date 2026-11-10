@@ -225,13 +225,15 @@ service cloud.firestore {
       function isAttendee(ticket, data) {
         return data.keys().hasAll(['firstName', 'lastName', 'email', 'source', 'checkedInAt'])
           && data.keys().hasOnly(['firstName', 'lastName', 'email', 'source', 'checkedInAt', 'checkedInBy', 'jobTitle',
-            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber'])
+            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers'])
           && ticket.size() <= 100
           && isName(data.firstName)
           && isText(data.lastName, 100)
           && isEmail(data.email)
-          && data.source in ['bevy', 'walk-in']
-          && isText(data.get('ticketType', ''), 100);
+          && data.source in ['bevy', 'luma', 'csv', 'walk-in']
+          && isText(data.get('ticketType', ''), 100)
+          // Registration questions → answers, from imports (attendeeImport.ts caps them)
+          && (!('answers' in data) || (data.answers is map && data.answers.size() <= 50));
       }
 
       /** Checked in now by whoever is signed in, or not checked in. */
@@ -258,14 +260,14 @@ service cloud.firestore {
           && ticket.matches('^' + get(doc('events', eventId)).data.walkInTicketPrefix + '[0-9]{4,}$')
           && getAfter(doc('events', eventId)).data.walkInCounter == get(doc('events', eventId)).data.walkInCounter + 1;
 
-        // Bevy imports add people who haven't arrived and update names and ticket types
+        // Imports add people who haven't arrived and update names, ticket types and answers
         allow create: if runsTeam(eventTeams(eventId))
           && isAttendee(ticket, request.resource.data)
-          && request.resource.data.source == 'bevy'
+          && request.resource.data.source in ['bevy', 'luma', 'csv']
           && request.resource.data.checkedInAt == null
           && !('checkedInBy' in request.resource.data);
         allow update: if runsTeam(eventTeams(eventId))
-          && changes().hasOnly(['firstName', 'lastName', 'ticketType'])
+          && changes().hasOnly(['firstName', 'lastName', 'ticketType', 'answers'])
           && isAttendee(ticket, request.resource.data);
 
         // Organisers remove anyone; staff can undo a walk-in they added

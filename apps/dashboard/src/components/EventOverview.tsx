@@ -9,7 +9,8 @@ import gift from '../assets/gift.svg';
 import trash from '../assets/trash.svg';
 import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
-import { exportAttendees, type ImportPlan } from '../lib/bevy';
+import type { ImportPlan } from '../lib/attendeeImport';
+import { exportAttendees } from '../lib/bevy';
 import type { DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
@@ -65,7 +66,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 					label="More event options"
 					buttonClassName="rounded-xl bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
 					items={[
-						...(canEdit ? [{ label: 'Import from Bevy', icon: upload, onSelect: () => setImporting({}) }] : []),
+						...(canEdit ? [{ label: 'Import attendees', icon: upload, onSelect: () => setImporting({}) }] : []),
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
 						{ label: 'Open prize draw', icon: gift, onSelect: () => window.open(`/events/${event.slug}/prize-draw`, '_blank') },
 						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),

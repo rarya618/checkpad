@@ -125,6 +125,14 @@ describe('POST /events/:slug/check-in', () => {
 		assert.equal((await settledCounts()).checkedIn, 2);
 	});
 
+	test('Luma guests check in without their guest ID on the confirmation', async () => {
+		await db.doc(`events/${e1}/attendees/gst-AbC123`).set({ firstName: 'Lu', lastName: 'Ma', email: 'lu@example.com', source: 'luma', checkedInAt: null });
+		const { body } = await call('/events/test-meetup/check-in', { email: 'lu@example.com' });
+		assert.equal(body.status, 'checked-in');
+		assert.equal(body.ticket, null);
+		assert.equal((await call('/events/test-meetup/check-in', { email: 'lu@example.com' })).body.ticket, null);
+	});
+
 	test('a second check-in reports the first one and counts once', async () => {
 		const first = (await call('/events/test-meetup/check-in', { email: 'jane@example.com' })).body;
 		const second = (await call('/events/test-meetup/check-in', { email: 'jane@example.com' })).body;

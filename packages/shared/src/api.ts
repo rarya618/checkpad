@@ -20,7 +20,8 @@ export interface PublicEvent {
 export interface CheckedIn {
 	status: 'checked-in';
 	firstName: string;
-	ticket: string;
+	/** Null when they have no ticket number to show: Luma's guest IDs mean nothing to attendees. */
+	ticket: string | null;
 	/** ISO timestamp of the first check-in. */
 	checkedInAt: string;
 	alreadyCheckedIn: boolean;

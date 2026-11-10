@@ -16,7 +16,7 @@ import Layout from '../layouts/Layout.astro';
 
 // Copy and layout follow the Figma "Marketing site – desktop" and "– mobile" frames.
 const steps: { title: string; body: string }[] = [
-	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy, the first platform we support. Checkpad matches people by ticket number, so you can import again when more register.' },
+	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy or Luma. Checkpad matches people by ticket number, so you can import again when more register.' },
 	{ title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
 	{ title: 'Watch arrivals live', body: 'Your dashboard counts who’s in, who hasn’t arrived yet and how many walk-ins you’ve had.' },
 ];
@@ -30,12 +30,12 @@ const features: { icon: IconName; title: string; body: string }[] = [
 	{ icon: 'users', title: 'Teams and organisers', body: 'Give each group a permanent check-in link. Add co-organisers, and volunteers who can check people in without changing the event.' },
 ];
 
-// Only Bevy's CSV import is built. Keep the others marked as planned until they ship.
+// Bevy's and Luma's CSV imports are built. Keep the others marked as planned until they ship.
 const platforms: { name: string; supported: boolean }[] = [
 	{ name: 'Bevy', supported: true },
+	{ name: 'Luma', supported: true },
 	{ name: 'Eventbrite', supported: false },
 	{ name: 'Humanitix', supported: false },
-	{ name: 'Luma', supported: false },
 	{ name: 'Meetup', supported: false },
 	{ name: 'Any CSV file', supported: false },
 ];
@@ -179,8 +179,8 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 				<div class="flex-1">
 					<SectionHeader
 						eyebrow="Supported platforms"
-						title="Import from Bevy today, with more platforms planned."
-						subtitle="Export the attendee CSV from Bevy and import it before the event. Using another platform? You can still join the waitlist."
+						title="Import from Bevy or Luma today, with more platforms planned."
+						subtitle="Export the attendee CSV from Bevy or Luma and import it before the event. Using another platform? You can still join the waitlist."
 					/>
 				</div>
 				<ul class="flex flex-col xl:w-[640px] xl:shrink-0">
