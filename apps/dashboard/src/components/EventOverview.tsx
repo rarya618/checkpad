@@ -64,7 +64,8 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				{/* Figma "Attendees – more menu" */}
 				<Menu
 					label="More event options"
-					buttonClassName="rounded-xl bg-light-blue p-3 transition-colors hover:bg-light-blue-hover"
+					// Square, and the height of the md buttons beside it
+					buttonClassName="flex size-9 items-center justify-center rounded-lg bg-light-blue transition-colors hover:bg-light-blue-hover"
 					items={[
 						...(canEdit ? [{ label: 'Import attendees', icon: upload, onSelect: () => setImporting({}) }] : []),
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
