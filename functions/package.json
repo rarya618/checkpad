@@ -13,7 +13,8 @@
     "seed": "node scripts/seed-emulator.ts",
     "load-test": "node --experimental-transform-types scripts/load-test.ts",
     "backfill-imported": "node scripts/backfill-imported.ts",
-    "migrate-old-app": "node scripts/migrate-old-app.ts"
+    "migrate-old-app": "node scripts/migrate-old-app.ts",
+    "merge-late-bevy-list": "node scripts/merge-late-bevy-list.ts"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
