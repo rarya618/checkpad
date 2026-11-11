@@ -32,7 +32,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 				<colgroup>
 					<col />
 					{desktop && <col className="w-[165px]" />}
-					<col className="w-[106px]" />
+					<col className="w-[112px]" />
 					<col className={desktop ? 'w-[42px]' : 'w-[30px]'} />
 				</colgroup>
 				<thead>
@@ -124,7 +124,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 						type="button"
 						aria-label={`Check in ${name}`}
 						onClick={() => toggle(true)}
-						className={buttonClass('primary', 'sm')}
+						className={`${buttonClass('primary', 'sm')} whitespace-nowrap`}
 					>
 						Check in
 					</button>

@@ -9,7 +9,7 @@ export function StatTile({ label, value, note, compare }: { label: string; value
 		<div className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5">
 			<p className="truncate text-[13.5px] leading-normal text-med-blue">{label}</p>
 			<p className="font-display text-4xl leading-tight">{value}</p>
-			{note && <p className="truncate text-xs leading-normal text-med-blue">{note}</p>}
+			{note && <p className="text-xs leading-normal text-med-blue">{note}</p>}
 			{compare && (
 				<p className="truncate text-xs leading-normal font-semibold" title={compare}>
 					{compare}

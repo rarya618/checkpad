@@ -197,8 +197,9 @@ export default function EventAnalyticsPage() {
 
 function Figure({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex min-w-0 flex-col">
-			<dt className="truncate text-xs text-med-blue">{label}</dt>
+		// Labels wrap on narrow screens; justify-between keeps the three values on one line
+		<div className="flex min-w-0 flex-col justify-between">
+			<dt className="text-xs text-med-blue">{label}</dt>
 			<dd className="text-[13.5px] font-bold">{value}</dd>
 		</div>
 	);
