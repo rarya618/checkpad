@@ -77,30 +77,30 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 
 	return (
 		<tr>
-			<td className="py-2 pr-2">
-				<div className="flex items-center gap-2 py-1">
+			<td className="py-1.5 pr-2">
+				<div className="flex items-center gap-2 py-0.5">
 					<span
 						aria-hidden="true"
-						className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-sm leading-[15px]"
+						className="flex size-8 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xs leading-none"
 					>
 						{initials}
 					</span>
-					<div className="flex min-w-0 flex-col gap-1 px-2 text-black">
-						<p className="truncate font-display text-lg">{name}</p>
-						<p className="truncate text-sm">{attendee.email}</p>
+					<div className="flex min-w-0 flex-col gap-0.5 px-2 text-black">
+						<p className="truncate font-display text-base">{name}</p>
+						<p className="truncate text-xs">{attendee.email}</p>
 					</div>
 				</div>
 			</td>
 			{showTicket && (
-				<td className="py-2 pr-2 font-mono text-sm text-black">
+				<td className="py-1.5 pr-2 font-mono text-xs text-black">
 					{/* Walk-ins added before tickets were numbered have none */}
 					{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
 				</td>
 			)}
-			<td className="py-2">
+			<td className="py-1.5">
 				{attendee.checkedInAt ? (
 					<div className="flex items-center justify-end gap-3">
-						<p className="flex flex-col items-end text-sm">
+						<p className="flex flex-col items-end text-xs">
 							<span className="font-bold">Arrived</span>
 							<span className="text-med-blue">{formatClockTime(attendee.checkedInAt, timeZone)}</span>
 						</p>
@@ -131,7 +131,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 				)}
 			</td>
 			{/* Not in Figma: the toast's Undo is the only other way to take a walk-in off the list */}
-			<td className="py-2 pl-1 text-right md:pl-3">
+			<td className="py-1.5 pl-1 text-right md:pl-3">
 				{removable && (
 					<Menu
 						label={`Options for ${name}`}
