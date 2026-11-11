@@ -12,7 +12,8 @@
     "test": "node --test --test-concurrency=1 test/*.test.ts",
     "seed": "node scripts/seed-emulator.ts",
     "load-test": "node --experimental-transform-types scripts/load-test.ts",
-    "backfill-imported": "node scripts/backfill-imported.ts"
+    "backfill-imported": "node scripts/backfill-imported.ts",
+    "migrate-old-app": "node scripts/migrate-old-app.ts"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

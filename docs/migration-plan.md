@@ -4,7 +4,7 @@ As of 22 October 2026 · Russal Arya
 
 ## Summary
 
-Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad moves to a new Firebase project, `checkpad-app`; the old project stays up only for redirects, then retires. Every old feature that's being kept has a design in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad), and every designed screen is now built; cloud credits are dropped. The attendee site checks people in through the check-in API (phase 3), and the dashboard signs organisers in with Firebase Auth and reads and writes Firestore (phases 2 and 4). All of it is live in `checkpad-app` (checked 22 October 2026): the attendee site at `checkpad.app`, the dashboard at `manage.checkpad.app`, and the `api`, `countAttendees`, `cleanUpDeletedEvent` and `inviteOrganiser` functions. What's missing: migrating the old data, the old-URL redirects and the rest of cutover (phases 6 and 7).
+Checkpad replaces [gdg-check-in](https://github.com/rarya618/gdg-check-in), a React + Vite + Material UI app on Firebase Realtime Database with Google sign-in. Checkpad moves to a new Firebase project, `checkpad-app`; the old project stays up only for redirects, then retires. Every old feature that's being kept has a design in the [Checkpad Figma file](https://www.figma.com/design/PDbJHFMHYOi45MJd5ro6Lp/Checkpad), and every designed screen is now built; cloud credits are dropped. The attendee site checks people in through the check-in API (phase 3), and the dashboard signs organisers in with Firebase Auth and reads and writes Firestore (phases 2 and 4). All of it is live in `checkpad-app` (checked 22 October 2026): the attendee site at `checkpad.app`, the dashboard at `manage.checkpad.app`, and the `api`, `countAttendees`, `cleanUpDeletedEvent` and `inviteOrganiser` functions. GDG Sydney's events were migrated on 12 November 2026. What's missing: GDG on Campus UTS's one event, the old-URL redirects and the rest of cutover (phases 6 and 7).
 
 One issue can't wait for the migration: the old project's live database rules are fully open, so anyone can read and write every event's attendee list without signing in (checked 18 October 2026). The old app won't be changed before it's retired, so retiring it must also lock down or delete the old database.
 
@@ -133,10 +133,10 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 | Old field | Checkpad field | Note |
 | --- | --- | --- |
 | `events/{id}` key | `id` (new) + `slug` | Generate the slug from the name, unique; keep the old ID for redirects |
-| `date` | `startsAt`, `endsAt` | Old events have no times: pick a default (e.g. 17:00–20:00) or leave them blank |
+| `date` | `startsAt`, `endsAt` | Old events have no times: every migrated event runs 17:30–20:30 (decided 12 November 2026) |
 | — | `timeZone` | New; `Australia/Sydney` for every migrated event (decided 23 October 2026), since both teams with events are in Sydney |
 | — | `selfWalkIns` | New; `true` for migrated events, matching the old app, where anyone not on the list could add themselves |
-| `status` | `status` | The manual switch (decision 1); `selfCheckInOpen` in Checkpad's types |
+| `status` | `status` | Always `closed`: every old event is over |
 | `description` | `description` | Optional in the old app, required in Checkpad's type |
 | `attendees/{ticketNumber}` | `ticket` + `id` | Walk-ins keep `GDGWALKIN####` |
 | `source` | `walkIn` | `walkIn = source === 'walk-in'` |
@@ -149,7 +149,7 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 Migration script:
 
 1. Export the old project's (`gdg-syd-check-in`) Realtime Database as JSON (`firebase database:get / --project gdg-syd-check-in --instance gdg-syd-check-in-default-rtdb`) and keep a dated copy outside the repo: its rules allow anyone to change or delete the data. First export done 21 October 2026; the final one comes once the old app is read-only (step 5).
-2. Transform it with a script in this repo: create slugs and IDs, convert dates, map fields, keep the old IDs for redirects.
+2. Transform it with `functions/scripts/migrate-old-app.ts`: create slugs and IDs, convert dates, map fields, keep the old IDs for redirects.
 3. Write it into Firestore in `checkpad-app` with the Admin SDK: a test project or the emulator first, then production.
 4. Check counts per event (attendees, checked in, walk-ins) against the old app.
 5. Make the old app read-only during cutover, so no check-ins land in the old database after the export.
@@ -213,7 +213,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 3. **Attendee flow on real data.** Done 21 October 2026, except the old-URL redirects (phase 7): one check-in page (`/check-in`) and one team page (`/team`), which Hosting rewrites `/<slug>` and `/team/<slug>` to, both reading from the endpoint. While the event loads the page shows a spinner; if the endpoint can't be reached it shows "Can't load check-in" (not in Figma), telling the attendee to find an organiser. If an organiser closes check-in or deletes the event while the page is open, the next check-in attempt shows "Check-in closed" or "Link not found". Event links can't be `api`, `check-in` or `team`, because Hosting serves the site's own pages before its rewrites. Locally, the dev server does the same rewrites and proxies `/api` to the Functions emulator, seeded with the demo events (`npm run seed -w @checkpad/functions`).
 4. **Dashboards on real data.** Sign-in screen, Events and Attendees pages on live data with live updates. Built and live 22 October 2026: sign-in, organisers, teams, events, attendees, check-in, walk-ins, Bevy import and export, and the prize draw all read and write Firestore with live updates. Check-ins queue up offline; adding a walk-in and creating an event need a connection, because they wait for the server. Events and Analytics use the counts the trigger keeps; Returning attendees still loads every list of the team's past events. A page that can't load shows "Can't load this page" (not in Figma) with Reload and Sign out; if the rules refuse it, it says your access may have changed.
 5. **Build the designed screens.** Done ahead of phases 2–4, on mock data (October 2026): every designed screen is built (see the feature map). They moved to real data in phases 3 and 4.
-6. **Data migration.** Run the script against a copy, check the counts, then production.
+6. **Data migration.** GDG Sydney done 12 November 2026 (`functions/scripts/migrate-old-app.ts`): its 12 events, 2,404 attendees, 975 checked in and 406 walk-ins, from the 21 October export, checked on the emulators first. Every event's counts match the export. A 12 November export also showed one check-in at September Meetup 2026, made at 2am two months after the event in the old app's open database. It was left out. GDG on Campus UTS's event (51 attendees) is still to do: create its team in the dashboard, then run the script with `--from-team "GDG on Campus UTS"`.
 7. **Cutover.** The Checkpad domains already point at `checkpad-app` (`checkpad.app` at the attendee site, `manage.checkpad.app` at the dashboard). Still to do: add the organisers again from the dashboard (each gets an invite to `manage.checkpad.app`), switch the old project's hosting to redirects only, lock the old database down (it's fully open today), then retire it. The redirects don't need the database, so it can be locked as soon as the data is migrated.
 
 ## Open questions
@@ -226,7 +226,7 @@ Prize draw results are saved per event, so a refresh or a second organiser's lap
 - [ ] Prize draw "Not here": keep the person out for the night (as designed), or return them to the pool like the old app?
 - [x] Design Analytics, or take it out of the sidebar for now? Designed
 - [ ] Keep "Returning attendees" in the first analytics build, given it needs a cross-event email query?
-- [ ] Default start and end times for migrated events (time zone: `Australia/Sydney`, 23 October 2026)
+- [x] Default start and end times for migrated events? 17:30–20:30 `Australia/Sydney` (12 November 2026)
 - [ ] One time format: "6:24pm" or "18:24"?
 - [ ] Which attendee table order?
 - [ ] Which domain does the old project's hosting use, and how long must its redirects stay up?
