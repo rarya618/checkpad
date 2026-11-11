@@ -32,11 +32,10 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 	const [deleting, setDeleting] = useState(false);
 	const canEdit = useCanEditEvents();
 	const desktop = useIsDesktop();
-	// Phones follow Figma's "Events (mobile)" sketch: the ring at 60% beside full-size text
 	return (
 		<article className="relative flex items-start justify-between gap-3 rounded-xl border border-med-blue bg-white py-5 pr-4 pl-5 hover:bg-off-white/60 md:items-center md:gap-6 md:rounded-xl md:px-7 md:py-6">
 			<div className="flex min-w-0 items-start gap-4 md:items-center md:gap-7.5">
-				<CheckInRing checkedIn={stats.checkedIn} total={stats.total} status={checkIn} scale={desktop ? 1 : 0.6} />
+				<CheckInRing checkedIn={stats.checkedIn} total={stats.total} status={checkIn} size={desktop ? 'md' : 'sm'} />
 				<div className="flex min-w-0 flex-col items-start gap-2 pb-1.5 md:gap-7 md:pb-1">
 					<div className="flex flex-col items-start gap-2 md:gap-1.5">
 						<h2 className="font-display text-lg leading-normal md:text-2xl md:leading-normal">
