@@ -225,7 +225,7 @@ service cloud.firestore {
       function isAttendee(ticket, data) {
         return data.keys().hasAll(['firstName', 'lastName', 'email', 'source', 'checkedInAt'])
           && data.keys().hasOnly(['firstName', 'lastName', 'email', 'source', 'checkedInAt', 'checkedInBy', 'jobTitle',
-            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers'])
+            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers', 'importedAt', 'importedBy'])
           && ticket.size() <= 100
           && isName(data.firstName)
           && isText(data.lastName, 100)
@@ -260,12 +260,15 @@ service cloud.firestore {
           && ticket.matches('^' + get(doc('events', eventId)).data.walkInTicketPrefix + '[0-9]{4,}$')
           && getAfter(doc('events', eventId)).data.walkInCounter == get(doc('events', eventId)).data.walkInCounter + 1;
 
-        // Imports add people who haven't arrived and update names, ticket types and answers
+        // Imports add people who haven't arrived, stamped with who imported them and when,
+        // and update names, ticket types and answers
         allow create: if runsTeam(eventTeams(eventId))
           && isAttendee(ticket, request.resource.data)
           && request.resource.data.source in ['bevy', 'luma', 'csv']
           && request.resource.data.checkedInAt == null
-          && !('checkedInBy' in request.resource.data);
+          && !('checkedInBy' in request.resource.data)
+          && request.resource.data.importedAt == request.time
+          && request.resource.data.importedBy == myEmail();
         allow update: if runsTeam(eventTeams(eventId))
           && changes().hasOnly(['firstName', 'lastName', 'ticketType', 'answers'])
           && isAttendee(ticket, request.resource.data);

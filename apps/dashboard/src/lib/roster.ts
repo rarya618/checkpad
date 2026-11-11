@@ -133,7 +133,8 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
 }
 
 /**
- * Applies an import: adds new tickets as not arrived and updates names, ticket types and answers.
+ * Applies an import: adds new tickets as not arrived, stamped with who imported them and when,
+ * and updates names, ticket types and answers.
  * Writes 500 at a time, so a large import isn't all or nothing; it's safe to run again.
  */
 export async function importAttendees(event: DashboardEvent, roster: RosterAttendee[], plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated'>) {
@@ -147,6 +148,8 @@ export async function importAttendees(event: DashboardEvent, roster: RosterAtten
 				email: row.email,
 				source: plan.source,
 				checkedInAt: null,
+				importedAt: serverTimestamp(),
+				importedBy: myEmail(),
 				...(row.ticketType && { ticketType: row.ticketType }),
 				...(Object.keys(row.answers).length && { answers: row.answers }),
 			},

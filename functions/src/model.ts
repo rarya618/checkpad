@@ -49,6 +49,9 @@ export interface AttendeeDoc {
 	bevyOrderNumber?: string;
 	/** Answers to the event's registration questions, question → answer, from imports. */
 	answers?: Record<string, string>;
+	/** When and by whom they were first imported; re-imports leave these be. Absent on walk-ins and attendees imported before these were added. */
+	importedAt?: Timestamp;
+	importedBy?: string;
 }
 
 /** teams/{teamId} */

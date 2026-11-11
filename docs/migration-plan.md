@@ -174,7 +174,8 @@ events/{eventId}                     slug, name, description, status, startsAt?,
                                      walkInCounter, walkInTicketPrefix, selfWalkIns, legacyId
 events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source ('bevy' | 'luma' |
                                      'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,
-                                     ticketTitle?, ticketVenue?, bevyOrderNumber?, answers? (question → answer)
+                                     ticketTitle?, ticketVenue?, bevyOrderNumber?, answers? (question → answer),
+                                     importedAt?, importedBy? (set by the import that first added them)
 events/{eventId}/draw/{ticket}       result ('won' | 'not-here'), drawnAt, winnerNumber?
 admins/{email}                       role, teamId?, invitedAt, invitedBy, lastSignInAt?
                                      (teamId null for super admins, and for an organiser invited

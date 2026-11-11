@@ -309,7 +309,16 @@ describe('walk-ins', () => {
 });
 
 describe('imports', () => {
-	const person = { firstName: 'New', lastName: 'Person', email: 'new@example.com', source: 'bevy', checkedInAt: null, ticketType: 'Student' };
+	const person = {
+		firstName: 'New',
+		lastName: 'Person',
+		email: 'new@example.com',
+		source: 'bevy',
+		checkedInAt: null,
+		ticketType: 'Student',
+		importedAt: serverTimestamp(),
+		importedBy: 'priya@example.com',
+	};
 
 	test('organisers add people who haven’t arrived, and update names and ticket types', async () => {
 		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), person));
@@ -318,6 +327,16 @@ describe('imports', () => {
 
 	test('team members can’t import', async () => {
 		await assertFails(setDoc(doc(tom(), 'events/syd/attendees/GOOGA003'), person));
+	});
+
+	test('imports record who ran them and when, and re-imports can’t change that', async () => {
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, importedBy: 'tom@example.com' }));
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, importedAt: Timestamp.now() }));
+		const { importedAt, importedBy, ...unstamped } = person;
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), unstamped));
+		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), person));
+		await assertFails(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { importedAt: serverTimestamp() }));
+		await assertFails(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { importedBy: 'other@example.com' }));
 	});
 
 	test('imported people arrive unchecked, with a lowercase email', async () => {
