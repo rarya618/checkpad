@@ -1,9 +1,8 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
-import divider from '../assets/divider.svg';
 import type { CheckedIn, PublicEvent } from '@checkpad/shared/api';
 import { buttonClass } from '@checkpad/shared/button';
 import { checkInStatus } from '@checkpad/shared/events';
-import { formatDay, formatTime } from '@checkpad/shared/format';
+import { formatDay, formatTime, formatTimeRange } from '@checkpad/shared/format';
 import { ApiFailure, checkIn, checkInWalkIn } from '../lib/api';
 import LinkNotFound from './LinkNotFound';
 import StatusScreen from './StatusScreen';
@@ -118,18 +117,24 @@ export default function CheckInFlow({ event, children }: Props) {
 	};
 
 	return (
-		<main className="mx-auto flex min-h-viewport max-w-[420px] flex-col items-center justify-center gap-7.5 px-6 py-12">
+		<main className="mx-auto flex min-h-viewport max-w-[480px] flex-col items-center justify-center gap-7.5 px-4 py-12">
 			{step.name === 'done' ? (
 				<Confirmation event={event} result={step.result} />
 			) : (
-				<>
-					<header className="flex flex-col items-center gap-2 text-center">
-						<h1 className="font-display text-4xl break-words">{event.name}</h1>
-						<p className="text-2xl text-med-blue">{event.description}</p>
+				// One card, styled like the confirmation's ticket card so the two read as a set: the
+				// event at the top, then the step. Same width too, so nothing shifts between them.
+				<div className="flex w-full flex-col gap-8 rounded-xl border-2 border-b-6 border-med-blue bg-white px-8 py-10">
+					<header className="flex flex-col gap-1">
+						{/* So attendees can see it's tonight's event */}
+						<p className="text-base font-semibold text-med-blue">
+							{formatDay(new Date(event.startsAt), event.timeZone)} ·{' '}
+							{formatTimeRange(new Date(event.startsAt), new Date(event.endsAt), event.timeZone)}
+						</p>
+						<h1 className="font-display text-3xl leading-tight break-words">{event.name}</h1>
 					</header>
 
 					{step.name === 'email' ? (
-						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
+						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-8">
 							<TextField
 								ref={emailInput}
 								label="Email"
@@ -151,10 +156,10 @@ export default function CheckInFlow({ event, children }: Props) {
 							{requestError && <RequestError message={requestError} />}
 						</form>
 					) : step.name === 'not-registered' ? (
-						<section aria-live="polite" className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
+						<section aria-live="polite" className="flex w-full flex-col gap-7.5">
 							<EmailSummary email={email} />
 							<div className="flex w-full flex-col gap-2">
-								<h2 className="font-display text-3xl leading-tight">You’re not on the list</h2>
+								<h2 className="font-display text-2xl leading-tight">You’re not on the list</h2>
 								<p className="text-lg text-med-blue">
 									Check it’s the email you registered with, or find one of the organisers and they’ll add you.
 								</p>
@@ -164,10 +169,10 @@ export default function CheckInFlow({ event, children }: Props) {
 							</button>
 						</section>
 					) : (
-						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
+						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-6">
 							{/* Otherwise people not on the list are asked for their name with no reason given */}
 							<div className="flex w-full flex-col gap-2">
-								<h2 className="font-display text-3xl leading-tight">Add your name</h2>
+								<h2 className="font-display text-2xl leading-tight">Add your name</h2>
 								<p className="text-lg text-med-blue">You’re not on the list yet, so you’ll check in as a walk-in.</p>
 							</div>
 							<EmailSummary email={email} />
@@ -209,7 +214,7 @@ export default function CheckInFlow({ event, children }: Props) {
 							{requestError && <RequestError message={requestError} />}
 						</form>
 					)}
-				</>
+				</div>
 			)}
 			{children}
 		</main>
@@ -220,11 +225,11 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 	const { firstName, ticket, checkedInAt, alreadyCheckedIn } = result;
 	const note = 'Show this to one of the organisers';
 	return (
-		// Inset further than the forms in Figma (36px vs 24px page padding).
 		<section
 			aria-live="polite"
-			className="flex w-[calc(100%-24px)] flex-col items-center gap-9 rounded-xl border-2 border-b-6 border-med-blue bg-white px-7 py-10 text-center"
+			className="flex w-full flex-col items-center gap-9 rounded-xl border-2 border-b-6 border-med-blue bg-white px-7 py-10 text-center"
 		>
+			<h2 className="font-display text-3xl">{event.name}</h2>
 			<div className="flex w-full flex-col items-center gap-7.5">
 				<div className="flex flex-col items-center gap-1">
 					<p className="text-2xl text-med-blue">{alreadyCheckedIn ? 'You’re already checked in' : 'You’re checked in'}</p>
@@ -242,11 +247,6 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 						? `Checked in at ${formatTime(new Date(checkedInAt), event.timeZone)}. ${note}`
 						: note}
 				</p>
-			</div>
-			<img src={divider.src} alt="" width={388} height={1} className="block h-px w-full" />
-			<div className="flex flex-col items-center gap-2">
-				<h2 className="font-display text-3xl">{event.name}</h2>
-				<p className="text-lg text-med-blue">{event.description}</p>
 			</div>
 		</section>
 	);
