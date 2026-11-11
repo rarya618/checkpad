@@ -2,7 +2,7 @@
  * Checkpad design tokens, shared by every app. Import after Tailwind:
  *   @import "tailwindcss";
  *   @import "@checkpad/shared/theme.css";
- * Each app must define --font-bricolage (Astro's font API does this in apps/web).
+ * Each app must define --font-jakarta (Astro's font API does this in apps/web).
  */
 
 /* Let Tailwind see class names used in shared code (e.g. button.ts) */
@@ -18,7 +18,7 @@
   --color-dark-blue-hover: color-mix(in oklab, var(--color-dark-blue), var(--color-med-blue) 25%);
   --color-light-blue-hover: color-mix(in oklab, var(--color-light-blue), var(--color-med-blue) 20%);
 
-  --font-sans: var(--font-bricolage), sans-serif;
+  --font-sans: var(--font-jakarta), sans-serif;
 
   /* Figma line heights: 1.5x up to 24px, 1.2x from 28px (docs/migration-plan.md, Design notes) */
   --text-xs--line-height: 1.5;
@@ -40,16 +40,11 @@
   html {
     line-height: normal;
   }
-
-  body {
-    font-variation-settings: "opsz" 14;
-  }
 }
 
-/* Bricolage Grotesque's 96pt ExtraBold cut, used for headings and button labels */
+/* Plus Jakarta Sans ExtraBold, used for headings and button labels */
 @utility font-display {
   font-weight: 800;
-  font-variation-settings: "opsz" 96;
   letter-spacing: var(--tracking-tight);
 }
 

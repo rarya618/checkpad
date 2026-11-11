@@ -49,15 +49,10 @@ export default defineConfig({
   fonts: [
     {
       provider: fontProviders.google(),
-      name: 'Bricolage Grotesque',
-      cssVariable: '--font-bricolage',
+      name: 'Plus Jakarta Sans',
+      cssVariable: '--font-jakarta',
       weights: ['200 800'],
-      fallbacks: ['sans-serif'],
-      options: {
-        experimental: {
-          variableAxis: { opsz: [['12', '96']] }
-        }
-      }
+      fallbacks: ['sans-serif']
     },
     {
       provider: fontProviders.google(),

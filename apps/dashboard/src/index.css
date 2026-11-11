@@ -9,7 +9,7 @@
 @layer base {
   /* Loaded from Google Fonts in index.html; apps/web self-hosts it via Astro's font API */
   :root {
-    --font-bricolage: "Bricolage Grotesque";
+    --font-jakarta: "Plus Jakarta Sans";
   }
 }
 
