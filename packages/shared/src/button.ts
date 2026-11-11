@@ -15,6 +15,8 @@ const sizes = {
 	sm: 'rounded-md px-6 py-2 text-sm',
 	// Full-size Figma button (24px label) on phone screens, where designs aren't scaled down
 	lg: 'rounded-xl px-10 py-3 text-2xl leading-normal',
+	// Between the two: an 18px label in a ~50px button, easy to tap on the attendee check-in page
+	tall: 'rounded-lg px-6 py-3 text-lg',
 };
 
 export type ButtonVariant = keyof typeof variants;

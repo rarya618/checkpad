@@ -154,7 +154,7 @@ export default function CheckInFlow({ event, children }: Props) {
 									setEmailError(null);
 								}}
 							/>
-							<SubmitButton loading={submitting} className="w-full">
+							<SubmitButton loading={submitting} size="tall" className="w-full">
 								Check in
 							</SubmitButton>
 							{requestError && <RequestError message={requestError} />}
@@ -168,7 +168,7 @@ export default function CheckInFlow({ event, children }: Props) {
 									Check it’s the email you registered with, or find one of the organisers and they’ll add you.
 								</p>
 							</div>
-							<button type="button" onClick={() => setStep({ name: 'email' })} className={`w-full ${buttonClass('secondary')}`}>
+							<button type="button" onClick={() => setStep({ name: 'email' })} className={`w-full ${buttonClass('secondary', 'tall')}`}>
 								Try another email
 							</button>
 						</section>
@@ -207,11 +207,11 @@ export default function CheckInFlow({ event, children }: Props) {
 										setRequestError(null);
 										setStep({ name: 'email' });
 									}}
-									className={buttonClass('secondary')}
+									className={buttonClass('secondary', 'tall')}
 								>
 									Back
 								</button>
-								<SubmitButton loading={submitting} className="min-w-0 flex-1">
+								<SubmitButton loading={submitting} size="tall" className="min-w-0 flex-1">
 									Check in
 								</SubmitButton>
 							</div>

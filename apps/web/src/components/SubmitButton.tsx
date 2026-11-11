@@ -1,19 +1,20 @@
-import { buttonClass, type ButtonVariant } from '@checkpad/shared/button';
+import { buttonClass, type ButtonSize, type ButtonVariant } from '@checkpad/shared/button';
 
 interface Props {
 	loading: boolean;
 	/** Read to screen readers while the spinner shows. */
 	loadingLabel?: string;
 	variant?: ButtonVariant;
+	size?: ButtonSize;
 	className?: string;
 	children: string;
 }
 
 // Submit button that swaps its label for a spinner while loading. The label stays in
 // the layout (invisible) so the button doesn't change size.
-export default function SubmitButton({ loading, loadingLabel = 'Checking in', variant = 'primary', className = '', children }: Props) {
+export default function SubmitButton({ loading, loadingLabel = 'Checking in', variant = 'primary', size = 'md', className = '', children }: Props) {
 	return (
-		<button type="submit" disabled={loading} aria-busy={loading} className={`relative ${buttonClass(variant)} ${className}`}>
+		<button type="submit" disabled={loading} aria-busy={loading} className={`relative ${buttonClass(variant, size)} ${className}`}>
 			<span className={loading ? 'invisible' : undefined}>{children}</span>
 			{loading && (
 				<span className="absolute inset-0 flex items-center justify-center">
