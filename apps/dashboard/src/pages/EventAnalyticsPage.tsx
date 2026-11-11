@@ -129,7 +129,7 @@ export default function EventAnalyticsPage() {
 					</section>
 				</div>
 				<div className="flex flex-col gap-4 md:flex-row md:items-start">
-					<ChartCard title="Arrival timing" caption="Running total of check-ins; early arrivals count in the first 15 minutes" className="flex-1">
+					<ChartCard title="Arrival timing" caption="Running total of check-ins, from an hour before the start" className="flex-1">
 						<dl className="grid grid-cols-3 gap-3 leading-normal">
 							<Figure label="Middle arrival" value={timing.medianMinutes === null ? '–' : formatOffset(timing.medianMinutes)} />
 							<Figure label="By the start" value={`${timing.byStart}%`} />

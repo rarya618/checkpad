@@ -14,10 +14,15 @@ export interface ArrivalBin {
 }
 
 const QUARTER = 15 * 60_000;
+/** The charts start this long before the event, so early arrivals show. */
+const LEAD = 60 * 60_000;
 
-/** Check-ins every 15 minutes from the start to the end of the event (later arrivals join the last bin). */
+/**
+ * Check-ins every 15 minutes from an hour before the start to the end of the event (earlier
+ * arrivals join the first bin, later ones the last).
+ */
 export function arrivalBins(event: DashboardEvent, roster: RosterAttendee[]): ArrivalBin[] {
-	const start = new Date(event.startsAt).getTime();
+	const start = new Date(event.startsAt).getTime() - LEAD;
 	const end = new Date(event.endsAt).getTime();
 	const count = Math.max(1, Math.ceil((end - start) / QUARTER));
 	const bins: ArrivalBin[] = Array.from({ length: count }, (_, i) => ({
