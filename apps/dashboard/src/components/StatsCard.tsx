@@ -9,12 +9,12 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 	];
 	return (
 		<section aria-label="Check-in progress" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 pt-6 pb-4">
-			<div className="flex items-end justify-between gap-6">
-				<p className="flex items-end gap-2.5">
+			<div className="flex items-baseline justify-between gap-6">
+				<p className="flex items-baseline gap-2.5">
 					<span className="font-display text-4xl leading-none">{stats.checkedIn}</span>
 					<span className="text-base leading-none tracking-tight text-med-blue">checked in</span>
 				</p>
-				<p className="flex items-end gap-2.5">
+				<p className="flex items-baseline gap-2.5">
 					<span className="text-base leading-none tracking-tight text-med-blue">out of</span>
 					<span className="font-display text-4xl leading-none">{stats.total}</span>
 				</p>
