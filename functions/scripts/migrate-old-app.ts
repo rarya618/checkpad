@@ -145,6 +145,17 @@ for (const [legacyId, e] of events) {
 		toWrite = attendees.filter((a) => !have.has(a.ticketNumber));
 		console.log(`= ${e.date} ${e.name}: already migrated (${ref.id}), ${toWrite.length} attendees missing`);
 	} else {
+		// Some old events have the wrong date (From Agents to APIs says 9 July; everyone came on
+		// the 10th): if most check-ins were on another day in Sydney, use that day.
+		const days = new Map<string, number>();
+		for (const a of attendees) {
+			if (!a.checkinDate) continue;
+			const day = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(new Date(a.checkinDate));
+			days.set(day, (days.get(day) ?? 0) + 1);
+		}
+		const [busiest, n] = [...days].sort((x, y) => y[1] - x[1])[0] ?? [e.date, 0];
+		const date = n > expected.checkedIn / 2 ? busiest : e.date;
+		if (date !== e.date) console.log(`! ${e.name}: dated ${e.date}, but most check-ins were on ${date}; using ${date}`);
 		const walkIns = attendees.filter((a) => a.source === 'walk-in').map((a) => Number(a.ticketNumber.slice(PREFIX.length)));
 		const doc: EventDoc = {
 			slug: newSlug(e.name),
@@ -152,8 +163,8 @@ for (const [legacyId, e] of events) {
 			description: e.description ?? '',
 			// Every old event is over; one was reopened in the old app since (12 November 2026)
 			status: 'closed',
-			startsAt: sydney(e.date, start),
-			endsAt: sydney(e.date, end),
+			startsAt: sydney(date, start),
+			endsAt: sydney(date, end),
 			timeZone: TIME_ZONE,
 			teamIds: [toTeam],
 			// The countAttendees trigger counts the attendees written below
@@ -165,7 +176,7 @@ for (const [legacyId, e] of events) {
 			...(e.walkInTicketTitle && { walkInTicketTitle: e.walkInTicketTitle }),
 			...(e.walkInTicketVenue && { walkInVenue: e.walkInTicketVenue }),
 		};
-		console.log(`+ ${e.date} ${e.name} → /${doc.slug}: ${expected.registered} attendees, ${expected.checkedIn} checked in, ${expected.walkIns} walk-ins`);
+		console.log(`+ ${date} ${e.name} → /${doc.slug}: ${expected.registered} attendees, ${expected.checkedIn} checked in, ${expected.walkIns} walk-ins`);
 		if (write) {
 			const batch = db.batch();
 			batch.create(ref, doc);
