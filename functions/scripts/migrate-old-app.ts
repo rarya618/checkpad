@@ -102,15 +102,22 @@ function sydney(date: string, time: string) {
 	return Timestamp.fromMillis(utc);
 }
 
+/**
+ * The old app saved Bevy's columns one off: its ticketType is the job title, its jobTitle the
+ * Twitter handle (dropped, as Checkpad's import does), and its ticketTitle the ticket type.
+ */
 function attendeeDoc(a: OldAttendee): AttendeeDoc {
-	const extras = (['jobTitle', 'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber'] as const).filter((f) => a[f]);
 	return {
 		firstName: a.firstName.trim(),
 		lastName: a.lastName.trim(),
 		email: a.email.trim().toLowerCase(),
 		source: a.source,
 		checkedInAt: a.checkinDate ? Timestamp.fromDate(new Date(a.checkinDate)) : null,
-		...Object.fromEntries(extras.map((f) => [f, a[f]])),
+		...(a.ticketTitle && { ticketType: a.ticketTitle }),
+		...(a.ticketType && { jobTitle: a.ticketType }),
+		...(a.company && { company: a.company }),
+		...(a.ticketVenue && { ticketVenue: a.ticketVenue }),
+		...(a.bevyOrderNumber && { bevyOrderNumber: a.bevyOrderNumber }),
 	};
 }
 

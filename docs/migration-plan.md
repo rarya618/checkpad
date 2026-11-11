@@ -141,7 +141,10 @@ How the old fields map to Checkpad's types (`packages/shared/src/events.ts` and 
 | `attendees/{ticketNumber}` | `ticket` + `id` | Walk-ins keep `GDGWALKIN####` |
 | `source` | `walkIn` | `walkIn = source === 'walk-in'` |
 | `checkinDate` (ISO string) | `checkedInAt` (Date) | |
-| `jobTitle`, `company`, `ticketType`, `ticketTitle`, `ticketVenue`, `bevyOrderNumber` | — | Not in Checkpad's types yet; add them or keep them as extra fields so the Bevy export still works |
+| `ticketTitle` | `ticketType` | The old app saved Bevy's columns one off: its `ticketTitle` is the ticket type ("General Admission"), as Checkpad's import saves it |
+| `ticketType` | `jobTitle` | Holds the job title ("Founder") |
+| `jobTitle` | — | Holds the Twitter handle; dropped, as Checkpad's import does |
+| `company`, `ticketVenue`, `bevyOrderNumber` | same | |
 | `cloudCreditsUrl`, `cloudCreditsClickedAt` | — | Not carried over: cloud credits are dropped |
 | `admins`, `members` | — | Not migrated: organisers are added again from the dashboard (below) |
 | `teams`, `assignedTeams` | event `teamIds` | Mapped to teams that already exist in `checkpad-app`, not created by the script (below) |
