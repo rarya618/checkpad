@@ -3,6 +3,13 @@
 
 @theme {
 	--font-mono: var(--font-geist-mono), ui-monospace, monospace;
+	/* The desktop layout starts where the page zooms to 90% (--page-zoom below), so a 1024px
+	   window gives it about 1138px of room. Its fixed-width columns cap rather than fix their
+	   width (e.g. w-5/9 max-w-[640px]) so the text beside them stays readable down to there. */
+	--breakpoint-xl: 64rem;
+	/* The header's links and buttons need more room than the rest of the layout, since buttons
+	   stay full size (.button below). Below this, the header keeps the menu button. */
+	--breakpoint-nav: 72rem;
 }
 
 /* Stop the page scrolling behind the open mobile menu */
@@ -48,7 +55,7 @@ body {
 	--header-height: 85px;
 }
 
-@media (min-width: 80rem) {
+@variant xl {
 	:root {
 		--header-height: 99px;
 	}
