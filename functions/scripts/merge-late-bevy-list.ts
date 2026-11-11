@@ -1,6 +1,7 @@
 // For an event whose Bevy list never got imported, so registered people checked in as
 // walk-ins (three of the old app's events): imports the Bevy export, and turns each walk-in
-// whose email is on it into that person's ticket, keeping when they checked in. Rows are
+// whose email is on it into that person's ticket, keeping when they checked in. One ticket per
+// email: extra tickets on an email are left out. Rows are
 // read as the dashboard's import reads Bevy files (apps/dashboard/src/lib/attendeeImport.ts).
 //
 // Lists what it would change unless given --write; then checks the event's counts. Safe to
@@ -96,24 +97,33 @@ function attendeeDoc(row: Row, checkedIn?: Pick<AttendeeDoc, 'checkedInAt' | 'ch
 	};
 }
 
-// Each walk-in becomes one of their tickets: the one Bevy has as checked in, else one with
-// an order, else the first. Their other tickets come in as not arrived, as an import adds them.
-const used = new Set<string>();
+// One ticket per email: people registered twice, under a handle and their name, and came once.
+// A walk-in becomes the ticket Bevy has as checked in, else one with an order, else the first;
+// anyone else gets one with an order, else the first. Emails already on the list get nothing.
+const onList = new Set(attendees.filter((a) => a.get('source') !== 'walk-in').map((a) => a.get('email') as string));
+const pickFrom = (theirs: Row[]) => theirs.find((r) => r.bevyCheckedIn) ?? theirs.find((r) => r.hasOrder) ?? theirs[0];
+const done = new Set<string>();
 const converts: { walkIn: DocumentReference; ticket: string; doc: AttendeeDoc }[] = [];
 let unmatched = 0;
 for (const a of attendees) {
 	const w = a.data() as AttendeeDoc;
 	if (w.source !== 'walk-in') continue;
-	const theirs = rows.filter((r) => r.email === w.email && !have.has(r.ticket.toLowerCase()) && !used.has(r.ticket));
-	const pick = theirs.find((r) => r.bevyCheckedIn) ?? theirs.find((r) => r.hasOrder) ?? theirs[0];
+	const pick = done.has(w.email) || onList.has(w.email) ? undefined : pickFrom(rows.filter((r) => r.email === w.email && !have.has(r.ticket.toLowerCase())));
 	if (!pick) {
 		unmatched++;
 		continue;
 	}
-	used.add(pick.ticket);
+	done.add(w.email);
 	converts.push({ walkIn: a.ref, ticket: pick.ticket, doc: attendeeDoc(pick, { checkedInAt: w.checkedInAt, checkedInBy: w.checkedInBy }) });
 }
-const adds = rows.filter((r) => !have.has(r.ticket.toLowerCase()) && !used.has(r.ticket));
+const adds: Row[] = [];
+for (const r of rows) {
+	if (done.has(r.email) || onList.has(r.email)) continue;
+	done.add(r.email);
+	adds.push(pickFrom(rows.filter((x) => x.email === r.email && !have.has(x.ticket.toLowerCase()))) ?? r);
+}
+const already = rows.filter((r) => onList.has(r.email)).length;
+const dropped = rows.length - converts.length - adds.length - already;
 
 const before = event.get('counts') as EventDoc['counts'];
 const expected = {
@@ -121,7 +131,7 @@ const expected = {
 	checkedIn: before.checkedIn,
 	walkIns: before.walkIns - converts.length,
 };
-console.log(`/${slug}: ${rows.length} Bevy tickets. ${converts.length} walk-ins become their ticket, ${unmatched} not on the list stay walk-ins, ${adds.length} tickets added as not arrived.`);
+console.log(`/${slug}: ${rows.length} Bevy tickets. ${converts.length} walk-ins become their ticket, ${unmatched} not on the list stay walk-ins, ${adds.length} tickets added as not arrived, ${dropped} extra tickets on the same email left out, ${already} already on the list.`);
 console.log(`Counts: ${JSON.stringify(before)} → ${JSON.stringify(expected)}${write ? '' : ' (dry run)'}`);
 if (!write) process.exit(0);
 
