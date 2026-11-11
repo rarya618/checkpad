@@ -1,5 +1,6 @@
 // Shared so Astro links and React buttons render the same Figma "Button" component.
-const base = 'flex items-center justify-center font-display transition-colors disabled:cursor-not-allowed';
+// `button` has no styles of its own; apps/web uses it to keep buttons full size on zoomed-out pages.
+const base = 'button flex items-center justify-center font-display transition-colors disabled:cursor-not-allowed';
 
 // Hover only applies on devices that can hover, and never to a disabled button
 const variants = {

@@ -13,7 +13,7 @@ interface Props {
 // the "not open yet", "closed", "link not found" and "team has no event" states.
 export default function StatusScreen({ title, subtitle, body, homeLink = true }: Props) {
 	return (
-		<main className="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-between gap-9 px-9 py-12 text-center">
+		<main className="mx-auto flex min-h-viewport max-w-[420px] flex-col items-center justify-between gap-9 px-9 py-12 text-center">
 			<img src={logo.src} alt="checkpad" width={176} height={42} />
 			<div className="flex w-full flex-col items-center gap-4.5">
 				<div className="flex w-full flex-col items-center gap-2">

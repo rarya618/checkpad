@@ -10,6 +10,39 @@ html:has(dialog[open]) {
 	overflow: hidden;
 }
 
+/* Show every public page at 90% from laptop widths up, as if the browser were zoomed out a
+   step. Phones keep full size. zoom scales px and rem alike, and breakpoints still match
+   the real window width. */
+:root {
+	--page-zoom: 1;
+}
+
+@media (min-width: 64rem) {
+	:root {
+		--page-zoom: 0.9;
+	}
+}
+
+body {
+	zoom: var(--page-zoom);
+}
+
+/* Buttons (buttonClass in @checkpad/shared/button) stay full size. zoom multiplies down the
+   tree, so this cancels the page's zoom out. */
+.button {
+	zoom: calc(1 / var(--page-zoom));
+}
+
+/* zoom scales viewport units too, so 100dvh inside body comes out short of the window.
+   Use these instead of h-dvh / min-h-dvh to fill it. */
+@utility h-viewport {
+	height: calc(100dvh / var(--page-zoom));
+}
+
+@utility min-h-viewport {
+	min-height: calc(100dvh / var(--page-zoom));
+}
+
 /* Keep in-page link targets clear of the sticky header (see Nav.astro) */
 :root {
 	--header-height: 85px;

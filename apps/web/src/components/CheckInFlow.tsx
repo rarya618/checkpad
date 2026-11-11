@@ -118,7 +118,7 @@ export default function CheckInFlow({ event, children }: Props) {
 	};
 
 	return (
-		<main className="mx-auto flex min-h-dvh max-w-[420px] flex-col items-center justify-center gap-7.5 px-6 py-12">
+		<main className="mx-auto flex min-h-viewport max-w-[420px] flex-col items-center justify-center gap-7.5 px-6 py-12">
 			{step.name === 'done' ? (
 				<Confirmation event={event} result={step.result} />
 			) : (
