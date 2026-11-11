@@ -7,8 +7,8 @@ import chevronDown from '../assets/chevron-down.svg';
 const sizes = {
 	md: {
 		gap: 'gap-1.5',
-		label: 'text-[13.5px]',
-		box: 'rounded-lg px-5 py-3 text-[15px] focus-within:outline-[1.5px] focus-within:-outline-offset-[1.5px]',
+		label: 'text-sm',
+		box: 'rounded-lg px-5 py-3 text-base focus-within:outline-[1.5px] focus-within:-outline-offset-[1.5px]',
 		note: 'text-xs',
 		chevron: { size: 15, right: 'right-[18px]', pad: 'pr-11' },
 	},

@@ -30,8 +30,8 @@ export function AuthLayout({ title, description, children }: { title: string; de
 				<img src={logo} alt="checkpad" width={176} height={42} />
 				<section className="flex w-full flex-col gap-5 rounded-xl border border-med-blue bg-white p-9">
 					<div className="flex flex-col gap-2">
-						<h1 className="font-display text-[27px] leading-tight">{title}</h1>
-						<p className="text-[15px] leading-normal text-med-blue">{description}</p>
+						<h1 className="font-display text-2xl leading-tight">{title}</h1>
+						<p className="text-sm leading-normal text-med-blue">{description}</p>
 					</div>
 					{children}
 				</section>
@@ -77,19 +77,19 @@ export function SignInPage() {
 					setGoogleError(null);
 					setGoogleError(await signInWithGoogle());
 				}}
-				className="flex items-center justify-center gap-2.5 rounded-lg border border-dark-blue bg-white px-5 py-2.5 font-display text-[16.5px] leading-normal transition-colors hover:bg-off-white"
+				className="flex items-center justify-center gap-2.5 rounded-lg border border-dark-blue bg-white px-5 py-2.5 font-display text-base leading-normal transition-colors hover:bg-off-white"
 			>
 				<img src={google} alt="" width={18} height={18} />
 				Continue with Google
 			</button>
 			{googleError && (
-				<p role="alert" className="text-[13.5px] leading-normal text-error">
+				<p role="alert" className="text-sm leading-normal text-error">
 					{googleError}
 				</p>
 			)}
 			<div className="flex items-center gap-3" aria-hidden="true">
 				<span className="h-px flex-1 bg-light-blue" />
-				<span className="text-[13.5px] leading-normal text-med-blue">or</span>
+				<span className="text-sm leading-normal text-med-blue">or</span>
 				<span className="h-px flex-1 bg-light-blue" />
 			</div>
 			<form
@@ -168,7 +168,7 @@ export function CheckEmailPage() {
 				Nothing after a few minutes? Use the address your organiser added, or ask a super admin to add you. New to Checkpad? {waitlist}.
 			</p>
 			{error && (
-				<p role="alert" className="text-[13.5px] leading-normal text-error">
+				<p role="alert" className="text-sm leading-normal text-error">
 					{error}
 				</p>
 			)}
@@ -256,8 +256,8 @@ export function NoAccessPage() {
 					{initials}
 				</span>
 				<div className="flex min-w-0 flex-col gap-0.5 leading-normal text-black">
-					<p className="truncate font-display text-[15px]">{name}</p>
-					<p className="truncate text-[13.5px]">{session.email}</p>
+					<p className="truncate font-display text-sm">{name}</p>
+					<p className="truncate text-sm">{session.email}</p>
 				</div>
 			</div>
 			<button type="button" onClick={signOut} className={`w-full ${buttonClass('primary')}`}>

@@ -7,7 +7,7 @@ import { useState, type ReactNode } from 'react';
 export function StatTile({ label, value, note, compare }: { label: string; value: string; note?: string; compare?: string }) {
 	return (
 		<div className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5">
-			<p className="truncate text-[13.5px] leading-normal text-med-blue">{label}</p>
+			<p className="truncate text-sm leading-normal text-med-blue">{label}</p>
 			<p className="font-display text-4xl leading-tight">{value}</p>
 			{note && <p className="text-xs leading-normal text-med-blue">{note}</p>}
 			{compare && (
@@ -119,7 +119,7 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 				return (
 					<div key={t} aria-hidden="true">
 						<div className={`absolute right-0 left-[27px] h-px ${i === 0 ? 'bg-med-blue/50' : 'bg-light-blue'}`} style={{ top: y }} />
-						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-normal text-med-blue" style={{ top: y }}>
+						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-xs leading-normal text-med-blue" style={{ top: y }}>
 							{formatTick(t)}
 						</p>
 					</div>
@@ -158,7 +158,7 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 								)}
 							</div>
 							{bar.label && (
-								<p className="absolute top-full mt-1 text-[10.5px] leading-normal whitespace-nowrap text-med-blue" aria-hidden="true">
+								<p className="absolute top-full mt-1 text-xs leading-normal whitespace-nowrap text-med-blue" aria-hidden="true">
 									{bar.label}
 								</p>
 							)}
@@ -172,7 +172,7 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 								>
 									<p className="text-xs leading-normal font-bold">{bar.title}</p>
 									{bar.lines.map((line, s) => (
-										<p key={s} className="flex items-center gap-1.5 text-[11.25px] leading-normal">
+										<p key={s} className="flex items-center gap-1.5 text-xs leading-normal">
 											{series[s] && <span aria-hidden="true" className={`size-[7.5px] rounded-xs ${series[s].className}`} />}
 											{line}
 										</p>
@@ -211,7 +211,7 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 				return (
 					<div key={t} aria-hidden="true">
 						<div className={`absolute right-0 left-[27px] h-px ${i === 0 ? 'bg-med-blue/50' : 'bg-light-blue'}`} style={{ top }} />
-						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-[10.5px] leading-normal text-med-blue" style={{ top }}>
+						<p className="absolute left-0 w-[20px] -translate-y-1/2 text-right text-xs leading-normal text-med-blue" style={{ top }}>
 							{t}
 						</p>
 					</div>
@@ -237,7 +237,7 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 								<span aria-hidden="true" className="absolute left-1/2 size-[9px] -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-white bg-dark-blue" style={{ bottom: `${100 - y(p.value)}%` }} />
 							)}
 							{p.label && (
-								<p className="absolute top-full left-1/2 mt-1 -translate-x-1/2 text-[10.5px] leading-normal whitespace-nowrap text-med-blue" aria-hidden="true">
+								<p className="absolute top-full left-1/2 mt-1 -translate-x-1/2 text-xs leading-normal whitespace-nowrap text-med-blue" aria-hidden="true">
 									{p.label}
 								</p>
 							)}
@@ -251,7 +251,7 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 								>
 									<p className="text-xs leading-normal font-bold">{p.title}</p>
 									{p.lines.map((line, s) => (
-										<p key={s} className="text-[11.25px] leading-normal">
+										<p key={s} className="text-xs leading-normal">
 											{line}
 										</p>
 									))}

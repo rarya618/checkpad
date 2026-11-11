@@ -42,7 +42,7 @@ export default function CheckInRing({ checkedIn, total, status, scale = 1 }: Pro
 				</svg>
 				<div className="absolute inset-0 flex flex-col items-center justify-center text-center whitespace-nowrap">
 					<p className={`flex items-baseline gap-px ${closed ? 'text-med-blue' : 'text-dark-blue'}`}>
-						<span className="font-display text-[32px] leading-9 tracking-normal">{upcoming ? total : checkedIn}</span>
+						<span className="font-display text-3xl leading-9 tracking-normal">{upcoming ? total : checkedIn}</span>
 						{!upcoming && <span className={`text-base leading-5 ${closed ? '' : 'text-med-blue'}`}>/{total}</span>}
 					</p>
 					<p className="text-sm leading-5 text-med-blue">{upcoming ? 'registered' : closed ? 'attended' : 'checked in'}</p>

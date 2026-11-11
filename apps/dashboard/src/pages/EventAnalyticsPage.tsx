@@ -110,7 +110,7 @@ export default function EventAnalyticsPage() {
 						{types.map((t) => (
 							<div key={t.name} className="flex flex-col gap-1.5">
 								<div className="flex items-start gap-1.5 leading-normal">
-									<p className="min-w-0 flex-1 truncate text-[13.5px] font-bold">{t.name}</p>
+									<p className="min-w-0 flex-1 truncate text-sm font-bold">{t.name}</p>
 									<p className="shrink-0 text-xs text-med-blue">
 										{t.checkedIn} of {t.total} · {percent(t.checkedIn, t.total)}%
 									</p>
@@ -121,7 +121,7 @@ export default function EventAnalyticsPage() {
 							</div>
 						))}
 						<div className="flex items-start gap-1.5 leading-normal">
-							<p className="min-w-0 flex-1 text-[13.5px] font-bold">Walk-in</p>
+							<p className="min-w-0 flex-1 text-sm font-bold">Walk-in</p>
 							<p className="shrink-0 text-xs text-med-blue">
 								{stats.walkIns} {stats.walkIns === 1 ? 'person' : 'people'}
 							</p>
@@ -175,7 +175,7 @@ export default function EventAnalyticsPage() {
 										<ul className="flex flex-col gap-1.5 border-t border-light-blue pt-3 leading-normal">
 											{methods.byOrganiser.map((o) => (
 												<li key={o.email} className="flex items-start gap-1.5">
-													<p className="min-w-0 flex-1 truncate text-[13.5px]" title={o.email}>
+													<p className="min-w-0 flex-1 truncate text-sm" title={o.email}>
 														{o.email}
 													</p>
 													<p className="shrink-0 text-xs text-med-blue">{o.count}</p>
@@ -200,7 +200,7 @@ function Figure({ label, value }: { label: string; value: string }) {
 		// Labels wrap on narrow screens; justify-between keeps the three values on one line
 		<div className="flex min-w-0 flex-col justify-between">
 			<dt className="text-xs text-med-blue">{label}</dt>
-			<dd className="text-[13.5px] font-bold">{value}</dd>
+			<dd className="text-sm font-bold">{value}</dd>
 		</div>
 	);
 }

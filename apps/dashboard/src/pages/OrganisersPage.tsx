@@ -62,7 +62,7 @@ export default function OrganisersPage() {
 							role="tab"
 							aria-selected={tab === t}
 							onClick={() => setParams(t === 'teams' ? { tab: 'teams' } : {}, { replace: true })}
-							className={`rounded-md px-4 py-2 font-display text-[15px] leading-normal transition-colors ${
+							className={`rounded-md px-4 py-2 font-display text-sm leading-normal transition-colors ${
 								tab === t ? 'bg-dark-blue text-white' : 'hover:bg-white/50'
 							}`}
 						>
@@ -107,7 +107,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
-						<tr className="text-left font-display text-[13.5px] text-black">
+						<tr className="text-left font-display text-sm text-black">
 							<th className="pt-1 pr-4 pb-2">Person</th>
 							{desktop && (
 								<>
@@ -126,7 +126,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 								<td className="py-4 pr-4">
 									{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
 									<div className="flex items-start gap-4 md:items-center md:gap-3">
-										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[13.5px]">
+										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-sm">
 											{initialsOf(o)}
 										</span>
 										<div className="flex min-w-0 flex-col">
@@ -139,7 +139,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 													<span className="truncate">hasn’t signed in yet</span>
 												</p>
 											) : (
-												<p className="truncate text-[13.5px] leading-snug text-med-blue" title={o.email}>
+												<p className="truncate text-sm leading-snug text-med-blue" title={o.email}>
 													{o.email}
 												</p>
 											)}
@@ -157,7 +157,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 										<td className="py-4 pr-4">
 											<RoleBadge organiser={o} />
 										</td>
-										<td className="truncate py-4 pr-4 text-[13.5px] text-black">{organiserTeam(teams, o)}</td>
+										<td className="truncate py-4 pr-4 text-sm text-black">{organiserTeam(teams, o)}</td>
 									</>
 								)}
 								<td className="py-4">
@@ -169,7 +169,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 				</table>
 			</div>
 			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-4 leading-normal md:px-6">
-				<h2 className="font-display text-[13.5px]">What each role can do</h2>
+				<h2 className="font-display text-sm">What each role can do</h2>
 				<dl className="flex flex-col gap-3 md:flex-row md:gap-6">
 					{roles.map((r) => (
 						<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-2">
@@ -241,7 +241,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 						<div className="flex items-center gap-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-1">
 								<h2 className="truncate font-display text-2xl leading-tight">{team.name}</h2>
-								<p className="text-[13.5px] leading-normal text-med-blue">
+								<p className="text-sm leading-normal text-med-blue">
 									{members} member{members === 1 ? '' : 's'}
 								</p>
 							</div>
@@ -254,7 +254,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 						<div className="flex items-center gap-3 rounded-lg bg-off-white px-4 py-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal text-med-blue">
 								<p className="text-xs">Permanent link for printed signs</p>
-								<a href={url} target="_blank" rel="noreferrer" className="truncate text-[15px] font-semibold underline">
+								<a href={url} target="_blank" rel="noreferrer" className="truncate text-sm font-semibold underline">
 									{url.replace(/^https?:\/\//, '')}
 								</a>
 							</div>
@@ -268,21 +268,21 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 							</button>
 						</div>
 						<div className="flex flex-wrap items-center gap-2.5 leading-normal">
-							<p className="text-[13.5px] text-black">Points to</p>
+							<p className="text-sm text-black">Points to</p>
 							{target ? (
 								<>
-									<p className="font-display text-[15px]">{target.name}</p>
-									<p className="text-[13.5px] text-black">· {formatDate(new Date(target.startsAt), target.timeZone)}</p>
+									<p className="font-display text-sm">{target.name}</p>
+									<p className="text-sm text-black">· {formatDate(new Date(target.startsAt), target.timeZone)}</p>
 									<StatusBadge open={target.selfCheckInOpen} />
 								</>
 							) : (
-								<p className="text-[13.5px] text-med-blue">No upcoming event</p>
+								<p className="text-sm text-med-blue">No upcoming event</p>
 							)}
 						</div>
 					</section>
 				);
 			})}
-			<p className="text-[13.5px] leading-normal text-med-blue">A team link opens the team’s event that is open for check-in, or else its next upcoming event.</p>
+			<p className="text-sm leading-normal text-med-blue">A team link opens the team’s event that is open for check-in, or else its next upcoming event.</p>
 		</>
 	);
 }

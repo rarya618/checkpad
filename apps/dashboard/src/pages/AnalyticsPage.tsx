@@ -202,7 +202,7 @@ export default function AnalyticsPage() {
 					</div>
 				) : (
 					<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
-						<p className="py-6 text-center text-[13.5px] text-med-blue">No finished events in this range.</p>
+						<p className="py-6 text-center text-sm text-med-blue">No finished events in this range.</p>
 					</ChartCard>
 				)}
 
@@ -219,7 +219,7 @@ export default function AnalyticsPage() {
 
 				{results.length > 0 && (
 					<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
-						<table className="w-full table-fixed text-[13.5px] leading-normal">
+						<table className="w-full table-fixed text-sm leading-normal">
 							<colgroup>
 								<col />
 								{desktop && (
@@ -280,18 +280,18 @@ export default function AnalyticsPage() {
 }
 
 function Loading() {
-	return <p className="py-6 text-center text-[13.5px] text-med-blue">Loading attendee lists…</p>;
+	return <p className="py-6 text-center text-sm text-med-blue">Loading attendee lists…</p>;
 }
 
 /** People with what they did, the first few; the rest as a count. */
 function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person) => string; empty: string }) {
-	if (!list.length) return <p className="text-[13.5px] text-med-blue">{empty}</p>;
+	if (!list.length) return <p className="text-sm text-med-blue">{empty}</p>;
 	return (
 		<ul className="flex flex-col leading-normal">
 			{list.slice(0, LIST_LENGTH).map((p) => (
 				<li key={p.email} className="flex items-start gap-3 border-t border-light-blue py-2 first:border-t-0 first:pt-0">
 					<div className="min-w-0 flex-1">
-						<p className="truncate text-[13.5px] font-bold">{p.name || p.email}</p>
+						<p className="truncate text-sm font-bold">{p.name || p.email}</p>
 						<p className="truncate text-xs text-med-blue">{p.email}</p>
 					</div>
 					<p className="shrink-0 text-xs text-med-blue">{count(p)}</p>
@@ -310,7 +310,7 @@ function Filter({ label, value, onChange, children }: { label: string; value: st
 			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full appearance-none rounded-lg border border-med-blue bg-white py-2.5 pr-9 pl-3.5 text-[13.5px] leading-normal font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
+				className="w-full appearance-none rounded-lg border border-med-blue bg-white py-2.5 pr-9 pl-3.5 text-sm leading-normal font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
 			>
 				{children}
 			</select>

@@ -32,7 +32,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 		<section className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:items-center md:gap-3 md:pt-14">
 			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px">
 				<nav aria-label="Breadcrumb">
-					<ol className="flex items-center gap-1.5 text-[15px] text-black">
+					<ol className="flex items-center gap-1.5 text-sm text-black">
 						<li>
 							<Link to="/events" className="tracking-tight hover:underline">
 								Events
@@ -46,7 +46,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				</nav>
 				<div className="flex flex-col gap-1">
 					<h1 className="font-display text-2xl md:text-3xl">{event.name}</h1>
-					<p className="text-[15px] font-semibold text-black">
+					<p className="text-sm font-semibold text-black">
 						{formatDate(start, event.timeZone)}, {formatTimeRange(start, end, event.timeZone)}
 					</p>
 				</div>
@@ -99,7 +99,7 @@ function CheckInLink({ url }: { url: string }) {
 				href={url}
 				target="_blank"
 				rel="noreferrer"
-				className="truncate text-[15px] font-semibold text-med-blue underline"
+				className="truncate text-sm font-semibold text-med-blue underline"
 			>
 				{url.replace(/^https?:\/\//, '')}
 			</a>

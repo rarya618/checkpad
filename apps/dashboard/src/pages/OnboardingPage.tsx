@@ -83,7 +83,7 @@ export default function OnboardingPage() {
 				/>
 				<TeamPlaceFields value={place} onChange={setPlace} required />
 				{refused.failed && (
-					<p role="alert" className="text-[13.5px] leading-normal text-error">
+					<p role="alert" className="text-sm leading-normal text-error">
 						Couldn’t create your team. Check your connection and try again.
 					</p>
 				)}

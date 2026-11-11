@@ -76,7 +76,7 @@ function AccountMenu() {
 			header={
 				<div className="flex flex-col gap-0.5 px-2.5 pt-2 pb-2.5 leading-normal">
 					<p className="text-xs text-med-blue">Signed in as</p>
-					<p className="truncate text-[13.5px] font-bold">{session.email}</p>
+					<p className="truncate text-sm font-bold">{session.email}</p>
 					<p className="text-xs text-med-blue">
 						{me ? roleLabel(me.role) : 'Organiser'} · via {session.method === 'google' ? 'Google' : 'email link'}
 					</p>

@@ -119,7 +119,7 @@ export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { emai
 				<RoleAndTeam role={role} team={team} setRole={setRole} setTeam={setTeam} />
 				<div className="flex items-center gap-4 rounded-lg bg-light-blue px-5 py-4">
 					<img src={mail} alt="" width={18} height={18} />
-					<p className="min-w-0 flex-1 text-[13.5px] leading-normal tracking-tight">
+					<p className="min-w-0 flex-1 text-sm leading-normal tracking-tight">
 						We’ll email {looksLikeEmail(email) ? <strong className="font-bold">{email.trim()}</strong> : 'them'} an invite. They can sign in with Google or an email link.
 					</p>
 				</div>

@@ -56,7 +56,7 @@ export default function AttendeesPage() {
 								value={query}
 								onChange={(e) => setQuery(e.target.value)}
 								placeholder="Search attendee"
-								className="min-w-0 flex-1 bg-transparent text-[16.5px] tracking-tight outline-none placeholder:text-dark-blue/30"
+								className="min-w-0 flex-1 bg-transparent text-base tracking-tight outline-none placeholder:text-dark-blue/30"
 							/>
 						</label>
 						{/* Figma "Attendees – add walk-in" */}
@@ -150,8 +150,8 @@ function RehearsalNote({ event, canEdit }: { event: DashboardEvent; canEdit: boo
 	return (
 		<aside aria-label="Try check-in" className="flex items-start gap-3 rounded-lg bg-light-blue py-4 pr-4 pl-5 leading-normal">
 			<div className="flex min-w-0 flex-1 flex-col gap-1">
-				<p className="text-[15px] font-bold">Try it before the night</p>
-				<p className="text-[13.5px]">
+				<p className="text-sm font-bold">Try it before the night</p>
+				<p className="text-sm">
 					Scan the QR code from Share with your own phone and check in as someone on this list, then undo it in the table below so it
 					doesn’t count.
 					{canEdit

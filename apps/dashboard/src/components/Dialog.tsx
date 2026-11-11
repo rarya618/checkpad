@@ -43,10 +43,10 @@ export default function Dialog({ title, description, onClose, closeButton, size 
 			<div className={`flex flex-col ${lg ? 'gap-6 px-10 py-9' : 'gap-5 px-8 py-7'}`}>
 				<div className={`flex items-start ${lg ? 'gap-4' : 'gap-3'}`}>
 					<div className={`flex min-w-0 flex-1 flex-col ${lg ? 'gap-2' : 'gap-1.5'}`}>
-						<h2 id="dialog-title" className={`font-display leading-tight ${lg ? 'text-[32px]' : 'text-2xl'}`}>
+						<h2 id="dialog-title" className={`font-display leading-tight ${lg ? 'text-3xl' : 'text-2xl'}`}>
 							{title}
 						</h2>
-						<p id="dialog-description" className={`leading-normal text-med-blue ${lg ? 'text-xl' : 'text-[15px]'}`}>
+						<p id="dialog-description" className={`leading-normal text-med-blue ${lg ? 'text-xl' : 'text-sm'}`}>
 							{description}
 						</p>
 					</div>

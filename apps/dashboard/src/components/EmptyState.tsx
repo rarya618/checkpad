@@ -23,7 +23,7 @@ export default function EmptyState({
 			</span>
 			<div className="flex max-w-[420px] flex-col gap-1.5">
 				<h2 className="font-display text-2xl leading-tight break-words">{title}</h2>
-				<p className="text-[15px] leading-normal text-med-blue">{description}</p>
+				<p className="text-sm leading-normal text-med-blue">{description}</p>
 			</div>
 			{/* Buttons keep their labels on one line, and wrap onto a second row on phones if they must */}
 			<div className="flex flex-wrap justify-center gap-3 *:whitespace-nowrap">{actions}</div>

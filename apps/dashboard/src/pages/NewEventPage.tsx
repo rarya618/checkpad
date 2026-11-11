@@ -94,7 +94,7 @@ export default function NewEventPage() {
 			<header className="flex items-end gap-3 bg-off-white px-6 pt-3 md:sticky md:top-[-30px] md:z-10 md:pt-14 md:pb-4">
 				<div className="flex min-w-0 flex-1 flex-col gap-3.5">
 					<nav aria-label="Breadcrumb">
-						<ol className="flex items-center gap-1.5 text-[15px] text-black">
+						<ol className="flex items-center gap-1.5 text-sm text-black">
 							<li>
 								<Link to="/events" className="tracking-tight hover:underline">
 									Events

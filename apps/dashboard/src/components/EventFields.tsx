@@ -24,7 +24,7 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 					required
 					value={form.start}
 					onChange={(e) => update('start', e.target.value)}
-					className="w-[82.5px] shrink-0"
+					className="w-24 shrink-0"
 				/>
 				<TextField
 					label="Ends"
@@ -32,7 +32,7 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 					required
 					value={form.end}
 					onChange={(e) => update('end', e.target.value)}
-					className="w-[82.5px] shrink-0"
+					className="w-24 shrink-0"
 				/>
 			</div>
 			<SelectField label="Time zone" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)}>

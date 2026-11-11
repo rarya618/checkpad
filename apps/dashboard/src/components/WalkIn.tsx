@@ -66,10 +66,10 @@ export function WalkInDialog({ event, prefill = '', onClose }: { event: Dashboar
 				<TextField label="Email" {...fields.email} />
 				<div className="flex items-center gap-3 rounded-lg bg-light-blue px-5 py-3 leading-normal">
 					<div className="flex min-w-0 flex-1 flex-col gap-1">
-						<p className="text-[13.5px] font-bold">Ticket</p>
+						<p className="text-sm font-bold">Ticket</p>
 						<p className="truncate text-xs text-med-blue">{ticketDetails(event)}</p>
 					</div>
-					<p className="shrink-0 font-mono text-[16.5px]">{ticket}</p>
+					<p className="shrink-0 font-mono text-base">{ticket}</p>
 				</div>
 				<div className="flex justify-end gap-3">
 					<button type="button" onClick={onClose} className={buttonClass('secondary')}>
@@ -89,7 +89,7 @@ export function WalkInCard({ event, prefill = '', onClose }: { event: DashboardE
 	return (
 		<form onSubmit={submit} className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
 			<div className="flex items-center">
-				<h2 className="min-w-0 flex-1 font-display text-[28px] leading-tight">Add walk-in</h2>
+				<h2 className="min-w-0 flex-1 font-display text-3xl leading-tight">Add walk-in</h2>
 				<button type="button" aria-label="Close" onClick={onClose} className="-m-1 shrink-0 rounded p-1 hover:bg-light-blue/60">
 					<img src={close} alt="" width={28} height={28} />
 				</button>

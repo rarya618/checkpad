@@ -63,7 +63,7 @@ export default function Menu({ label, items, buttonClassName, header, placement 
 	}
 
 	const itemClass =
-		'flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.5 text-left text-[15px] leading-normal font-semibold text-dark-blue outline-none hover:bg-off-white focus-visible:bg-off-white aria-disabled:cursor-not-allowed aria-disabled:opacity-45 aria-disabled:hover:bg-transparent';
+		'flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.5 text-left text-sm leading-normal font-semibold text-dark-blue outline-none hover:bg-off-white focus-visible:bg-off-white aria-disabled:cursor-not-allowed aria-disabled:opacity-45 aria-disabled:hover:bg-transparent';
 
 	return (
 		<div ref={root} className="relative" onKeyDown={onKeyDown}>

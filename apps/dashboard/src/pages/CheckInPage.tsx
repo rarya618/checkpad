@@ -98,7 +98,7 @@ export default function CheckInPage() {
 				actions={
 					<p className="flex items-baseline gap-1.5 whitespace-nowrap">
 						<span className="font-display text-2xl leading-tight">{stats.checkedIn}</span>
-						<span className="text-[15px] leading-normal text-med-blue">of {stats.total} checked in</span>
+						<span className="text-sm leading-normal text-med-blue">of {stats.total} checked in</span>
 					</p>
 				}
 			/>
@@ -124,8 +124,8 @@ export default function CheckInPage() {
 				{result?.kind === 'not-found' && (
 					<section aria-live="polite" className="flex items-center gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
 						<div className="flex min-w-0 flex-1 flex-col gap-1">
-							<h3 className="font-display text-[21px] leading-tight">{notFoundTitle(result.query)}</h3>
-							<p className="text-[15px] leading-normal text-med-blue">
+							<h3 className="font-display text-xl leading-tight">{notFoundTitle(result.query)}</h3>
+							<p className="text-sm leading-normal text-med-blue">
 								Check the spelling, or add them as a walk-in. They’ll get ticket {ticket}.
 							</p>
 						</div>
@@ -137,22 +137,22 @@ export default function CheckInPage() {
 
 				<section className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
 					<h3 className="font-display text-lg">Recent check-ins</h3>
-					{recent.length === 0 && <p className="text-[15px] text-med-blue">No one has checked in yet.</p>}
+					{recent.length === 0 && <p className="text-sm text-med-blue">No one has checked in yet.</p>}
 					<ul className="flex flex-col gap-4">
 						{recent.map((a) => (
 							<li key={a.id} className="flex items-center gap-2.5 py-1 leading-normal">
 								<span
 									aria-hidden="true"
-									className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[12.75px]"
+									className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xs"
 								>
 									{initials(a)}
 								</span>
 								<div className="flex min-w-0 flex-1 flex-col gap-0.5 text-black">
-									<p className="truncate font-display text-[15px]">{fullName(a)}</p>
+									<p className="truncate font-display text-sm">{fullName(a)}</p>
 									<p className="truncate text-xs">{a.email}</p>
 								</div>
-								<p className="shrink-0 font-mono text-[13.5px] text-black">{a.ticket}</p>
-								<p className="w-[45px] shrink-0 text-right text-[15px] text-med-blue">{formatClockTime(a.checkedInAt!, event.timeZone)}</p>
+								<p className="shrink-0 font-mono text-sm text-black">{a.ticket}</p>
+								<p className="w-[45px] shrink-0 text-right text-sm text-med-blue">{formatClockTime(a.checkedInAt!, event.timeZone)}</p>
 							</li>
 						))}
 					</ul>
@@ -191,15 +191,15 @@ function DesktopFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { atte
 			</span>
 			<div className="flex min-w-0 flex-1 flex-col gap-1 text-black">
 				<h3 className="truncate font-display text-2xl leading-tight">{name}</h3>
-				<p className="truncate text-[15px] leading-normal">{attendee.email}</p>
+				<p className="truncate text-sm leading-normal">{attendee.email}</p>
 			</div>
 			<div className="flex shrink-0 flex-col gap-1 pr-5 leading-normal">
-				<p className="text-[13.5px] font-bold text-med-blue">Ticket</p>
-				<p className="font-mono text-[15px] text-black">{attendee.ticket}</p>
+				<p className="text-sm font-bold text-med-blue">Ticket</p>
+				<p className="font-mono text-sm text-black">{attendee.ticket}</p>
 			</div>
 			{attendee.checkedInAt ? (
 				<div className="flex shrink-0 items-center gap-3">
-					<p className="flex flex-col items-end text-[15px] leading-normal">
+					<p className="flex flex-col items-end text-sm leading-normal">
 						<span className="font-bold">Already arrived</span>
 						<span className="text-med-blue">{formatClockTime(attendee.checkedInAt, timeZone)}</span>
 					</p>
@@ -307,7 +307,7 @@ function MobileFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { atten
 	return (
 		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
 			<div className="flex items-center gap-3.5">
-				<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-[19px]">
+				<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-lg">
 					{initials(attendee)}
 				</span>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal text-black">

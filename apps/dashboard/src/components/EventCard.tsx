@@ -39,23 +39,23 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 				<CheckInRing checkedIn={stats.checkedIn} total={stats.total} status={checkIn} scale={desktop ? 1 : 0.6} />
 				<div className="flex min-w-0 flex-col items-start gap-2 pb-1.5 md:gap-7 md:pb-1">
 					<div className="flex flex-col items-start gap-2 md:gap-1.5">
-						<h2 className="font-display text-xl leading-normal md:text-[27px] md:leading-normal">
+						<h2 className="font-display text-lg leading-normal md:text-2xl md:leading-normal">
 							{/* Stretched link: the whole card opens the event, except the options button */}
 							<Link to={`/events/${event.slug}`} className="after:absolute after:inset-0 after:rounded-xl md:after:rounded-xl">
 								{event.name}
 							</Link>
 						</h2>
 						<div className="flex flex-wrap items-center gap-x-5 gap-y-1 md:gap-x-3.5">
-							<p className="text-base leading-normal font-medium tracking-tight text-black md:text-[15px] md:leading-normal">
+							<p className="text-sm leading-normal font-medium tracking-tight text-black md:text-sm md:leading-normal">
 								{formatDate(new Date(event.startsAt), event.timeZone)}
 							</p>
-							<p className={`flex items-center gap-1.5 text-base leading-normal tracking-tight md:gap-1 md:text-xs md:leading-normal ${status.className}`}>
+							<p className={`flex items-center gap-1.5 text-sm leading-normal tracking-tight md:gap-1 md:text-xs md:leading-normal ${status.className}`}>
 								<span aria-hidden="true" className="size-1.5 rounded-full bg-current md:size-[5px]" />
 								{status.label}
 							</p>
 						</div>
 					</div>
-					<p className="text-base leading-normal text-black md:text-[15px] md:leading-normal">{event.description}</p>
+					<p className="text-sm leading-normal text-black md:text-sm md:leading-normal">{event.description}</p>
 				</div>
 			</div>
 			{/* Figma "Events – card menu". relative lifts it above the card's stretched link. */}

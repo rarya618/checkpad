@@ -28,7 +28,7 @@ export function SwitchRow({ label, note, ...switchProps }: Props & { note: strin
 	return (
 		<div className="flex items-center gap-3 rounded-lg bg-off-white px-4 py-2.5">
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal">
-				<p className="text-[15px] font-bold">{label}</p>
+				<p className="text-sm font-bold">{label}</p>
 				<p className="text-xs text-med-blue">{note}</p>
 			</div>
 			<Switch label={label} {...switchProps} />

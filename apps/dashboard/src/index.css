@@ -13,7 +13,7 @@
   }
 }
 
-/* Time fields are 82.5px wide (Figma 110px at 75%): no room for the browser's clock icon */
+/* Time fields are only w-24 wide: no room for the browser's clock icon */
 input[type="time"]::-webkit-calendar-picker-indicator {
   display: none;
 }

@@ -17,7 +17,7 @@ export default function Toaster() {
 					key={toast.id}
 					className={`flex animate-toast-in items-center bg-dark-blue font-semibold text-white drop-shadow-[0_6px_9px_rgb(17_45_78/0.25)] ${
 						desktop
-							? `gap-2.5 rounded-lg py-2.5 pl-4 text-[13.5px] leading-normal ${toast.action ? 'pr-2.5' : 'pr-5'}`
+							? `gap-2.5 rounded-lg py-2.5 pl-4 text-sm leading-normal ${toast.action ? 'pr-2.5' : 'pr-5'}`
 							: `gap-3.5 rounded-xl py-3.5 pl-5 text-lg leading-normal ${toast.action ? 'pr-3' : 'pr-6'}`
 					}`}
 				>

@@ -18,10 +18,10 @@ export default function FormCard({ title, description, badge, level = 2, classNa
 		<section className={`flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5 ${className}`}>
 			<div className="flex flex-col gap-1.5">
 				<div className="flex items-center gap-2.5">
-					<Heading className="min-w-0 flex-1 font-display text-[21px] leading-tight">{title}</Heading>
+					<Heading className="min-w-0 flex-1 font-display text-xl leading-tight">{title}</Heading>
 					{badge}
 				</div>
-				{description && <p className="text-[13.5px] leading-normal text-med-blue">{description}</p>}
+				{description && <p className="text-sm leading-normal text-med-blue">{description}</p>}
 			</div>
 			{children}
 		</section>

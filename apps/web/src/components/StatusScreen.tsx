@@ -17,7 +17,7 @@ export default function StatusScreen({ title, subtitle, body, homeLink = true }:
 			<img src={logo.src} alt="checkpad" width={176} height={42} />
 			<div className="flex w-full flex-col items-center gap-4.5">
 				<div className="flex w-full flex-col items-center gap-2">
-					<h1 className="font-display text-[40px]">{title}</h1>
+					<h1 className="font-display text-4xl">{title}</h1>
 					<p className="text-2xl leading-9 text-med-blue">{subtitle}</p>
 				</div>
 				<p className="text-lg leading-7.5">{body}</p>

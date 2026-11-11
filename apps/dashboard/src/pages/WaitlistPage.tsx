@@ -50,7 +50,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 	const desktop = useIsDesktop();
 	if (error) {
 		return (
-			<div role="alert" className="flex flex-col items-start gap-3 rounded-2xl bg-white px-6 py-5 text-[15px] leading-normal">
+			<div role="alert" className="flex flex-col items-start gap-3 rounded-2xl bg-white px-6 py-5 text-sm leading-normal">
 				<p>Couldn’t load the waitlist. Check the connection and reload. The rest of the dashboard still works.</p>
 				<button type="button" onClick={() => location.reload()} className={buttonClass('secondary', 'sm')}>
 					Reload
@@ -59,7 +59,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 		);
 	}
 	if (!waitlist) return null;
-	if (!waitlist.length) return <p className="text-[15px] leading-normal text-med-blue">Nobody’s on the waitlist yet.</p>;
+	if (!waitlist.length) return <p className="text-sm leading-normal text-med-blue">Nobody’s on the waitlist yet.</p>;
 	return (
 		<>
 			<div className="rounded-2xl bg-white px-4 py-5 md:px-6">
@@ -72,7 +72,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
-						<tr className="text-left font-display text-[15px] leading-normal text-black">
+						<tr className="text-left font-display text-sm leading-normal text-black">
 							<th className="pr-5 pb-1.5">Person</th>
 							{desktop && <th className="pr-5 pb-1.5">Status</th>}
 							<th className="pb-1.5">
@@ -97,12 +97,12 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 									<td className="py-2 pr-5">
 										{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
 										<div className="flex items-start gap-4 md:items-center md:gap-3">
-											<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-[15px]">
+											<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-sm">
 												{s.email.slice(0, 2).toUpperCase()}
 											</span>
 											<div className="flex min-w-0 flex-col gap-0.5 leading-normal">
-												<p className="truncate text-[15px] text-black">{s.email}</p>
-												<p className="truncate text-[13.5px] text-med-blue">
+												<p className="truncate text-sm text-black">{s.email}</p>
+												<p className="truncate text-sm text-med-blue">
 													Signed up {formatDate(new Date(s.signedUpAt), SYDNEY)}
 													{s.entryIds.length > 1 && ` · ${s.entryIds.length} times`}
 												</p>
@@ -120,7 +120,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 					</tbody>
 				</table>
 			</div>
-			<p className="text-[13.5px] leading-normal text-med-blue">
+			<p className="text-sm leading-normal text-med-blue">
 				{waitlist.length} {waitlist.length === 1 ? 'person' : 'people'} from the sign-up form on the Checkpad site. Inviting someone doesn’t take them off the list.
 			</p>
 		</>

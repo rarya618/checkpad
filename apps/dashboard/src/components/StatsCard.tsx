@@ -31,7 +31,7 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 							<span aria-hidden="true" className={`size-[9px] rounded-full ${key.color}`} />
 							<span className="flex items-center gap-2.5 text-black">
 								<span className="font-display text-lg">{key.count}</span>
-								<span className="text-[15px] tracking-tight">{key.label}</span>
+								<span className="text-sm tracking-tight">{key.label}</span>
 							</span>
 						</li>
 					))}

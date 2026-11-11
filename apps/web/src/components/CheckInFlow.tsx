@@ -124,7 +124,7 @@ export default function CheckInFlow({ event, children }: Props) {
 			) : (
 				<>
 					<header className="flex flex-col items-center gap-2 text-center">
-						<h1 className="font-display text-[40px] break-words">{event.name}</h1>
+						<h1 className="font-display text-4xl break-words">{event.name}</h1>
 						<p className="text-2xl text-med-blue">{event.description}</p>
 					</header>
 
@@ -156,7 +156,7 @@ export default function CheckInFlow({ event, children }: Props) {
 								<p className="text-xl font-semibold break-all">{email}</p>
 							</div>
 							<div className="flex w-full flex-col gap-2">
-								<h2 className="font-display text-[28px] leading-tight">You’re not on the list</h2>
+								<h2 className="font-display text-3xl leading-tight">You’re not on the list</h2>
 								<p className="text-lg text-med-blue">
 									Check it’s the email you registered with, or find one of the organisers and they’ll add you.
 								</p>
@@ -234,7 +234,7 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 				{ticket && (
 					<div className="flex flex-col items-center gap-1 rounded-xl bg-off-white px-5 py-3">
 						<p className="text-base text-med-blue">Ticket</p>
-						<p className="font-mono text-[22px] leading-normal">{ticket}</p>
+						<p className="font-mono text-xl leading-normal">{ticket}</p>
 					</div>
 				)}
 				<p className="text-lg tracking-tight text-med-blue">
