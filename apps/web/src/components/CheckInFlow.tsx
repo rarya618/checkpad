@@ -152,10 +152,7 @@ export default function CheckInFlow({ event, children }: Props) {
 						</form>
 					) : step.name === 'not-registered' ? (
 						<section aria-live="polite" className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
-							<div className="flex w-full flex-col gap-2">
-								<p className="text-lg text-black">Email</p>
-								<p className="text-xl font-semibold break-all">{email}</p>
-							</div>
+							<EmailSummary email={email} />
 							<div className="flex w-full flex-col gap-2">
 								<h2 className="font-display text-3xl leading-tight">You’re not on the list</h2>
 								<p className="text-lg text-med-blue">
@@ -168,10 +165,12 @@ export default function CheckInFlow({ event, children }: Props) {
 						</section>
 					) : (
 						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-9 rounded-xl bg-white px-5 py-7.5">
+							{/* Otherwise people not on the list are asked for their name with no reason given */}
 							<div className="flex w-full flex-col gap-2">
-								<p className="text-lg text-black">Email</p>
-								<p className="text-xl font-semibold break-all">{email}</p>
+								<h2 className="font-display text-3xl leading-tight">Add your name</h2>
+								<p className="text-lg text-med-blue">You’re not on the list yet, so you’ll check in as a walk-in.</p>
 							</div>
+							<EmailSummary email={email} />
 							<TextField
 								label="First name"
 								name="firstName"
@@ -250,6 +249,15 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 				<p className="text-lg text-med-blue">{event.description}</p>
 			</div>
 		</section>
+	);
+}
+
+function EmailSummary({ email }: { email: string }) {
+	return (
+		<div className="flex w-full flex-col gap-1">
+			<p className="text-base text-med-blue">Email</p>
+			<p className="text-xl font-semibold break-words">{email}</p>
+		</div>
 	);
 }
 
