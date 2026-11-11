@@ -138,7 +138,7 @@ export default function CheckInFlow({ event, children }: Props) {
 					</header>
 
 					{step.name === 'email' ? (
-						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-8">
+						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-10">
 							<TextField
 								ref={emailInput}
 								label="Email"
