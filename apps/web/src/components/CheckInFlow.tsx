@@ -133,6 +133,7 @@ export default function CheckInFlow({ event, children }: Props) {
 							<TextField
 								ref={emailInput}
 								label="Email"
+								hint="The one you registered with"
 								type="email"
 								name="email"
 								autoComplete="email"
