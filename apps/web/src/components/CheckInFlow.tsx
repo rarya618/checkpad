@@ -123,7 +123,11 @@ export default function CheckInFlow({ event, children }: Props) {
 			) : (
 				// One card, styled like the confirmation's ticket card so the two read as a set: the
 				// event at the top, then the step. Same width too, so nothing shifts between them.
-				<div className="flex w-full flex-col gap-8 rounded-xl border-2 border-b-6 border-med-blue bg-white px-8 py-10">
+				// Closer on the email step, where the field follows the event name; the other steps
+				// keep more room, since they open with a heading of their own
+				<div
+					className={`flex w-full flex-col ${step.name === 'email' ? 'gap-5' : 'gap-8'} rounded-xl border-2 border-b-6 border-med-blue bg-white px-8 py-10`}
+				>
 					<header className="flex flex-col gap-1">
 						{/* So attendees can see it's tonight's event */}
 						<p className="text-base font-semibold text-med-blue">
