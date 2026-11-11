@@ -127,7 +127,7 @@ export async function planImport(file: File, roster: RosterAttendee[]): Promise<
 	return planFromText(file.name, await file.text(), roster);
 }
 
-export function planFromText(fileName: string, text: string, roster: Pick<RosterAttendee, 'ticket' | 'firstName' | 'lastName' | 'ticketType' | 'answers'>[]): ImportPlan | ImportError {
+export function planFromText(fileName: string, text: string, roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers'>[]): ImportPlan | ImportError {
 	const [header = [], ...rows] = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ''));
 	const keys = header.map(key);
 	const index = Object.fromEntries(
@@ -159,7 +159,11 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 	});
 
 	const byTicket = new Map(roster.filter((a) => a.ticket).map((a) => [a.ticket!.toLowerCase(), a]));
+	// One ticket per person: people register twice (once under an account handle, say), and the
+	// counts and turnout are per person. Walk-ins count too, so a late list doesn't add them again.
+	const onList = new Set(roster.map((a) => a.email.toLowerCase()));
 	const seen = new Set<string>();
+	const seenEmails = new Set<string>();
 	const plan: ImportPlan = {
 		fileName,
 		source: detectSource(keys),
@@ -201,6 +205,10 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 		seen.add(row.ticket.toLowerCase());
 
 		const existing = byTicket.get(row.ticket.toLowerCase());
+		// A ticket already on the list is updated whatever its email; a new one needs a new email
+		if (!existing && onList.has(row.email)) return skip('Already on the list with another ticket', rowNumber);
+		if (!existing && seenEmails.has(row.email)) return skip('Same email as an earlier row', rowNumber);
+		seenEmails.add(row.email);
 		if (!existing) plan.added.push(row);
 		else if (
 			existing.firstName !== row.firstName ||
