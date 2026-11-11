@@ -3,9 +3,12 @@ import { Image } from 'astro:assets';
 import logo from '@checkpad/shared/checkpad-logo.svg';
 ---
 
-<div class="flex flex-col items-center gap-1.5">
-	<p class="text-xl font-light text-med-blue">powered by</p>
-	<Image src={logo} alt="checkpad" width={176} height={42} />
+<!-- Small, so the form stays the main thing on the page -->
+<div class="flex flex-col items-center gap-3">
+	<p class="flex items-center gap-2 text-base text-med-blue">
+		powered by
+		<Image src={logo} alt="checkpad" width={176} height={42} class="h-6 w-auto" />
+	</p>
 	<!-- Attendees type their email on this page, so the policy is a tap away -->
-	<a href="/privacy" class="mt-3 text-base text-med-blue underline">Privacy</a>
+	<a href="/privacy" class="text-sm text-med-blue underline">Privacy</a>
 </div>
