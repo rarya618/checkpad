@@ -95,6 +95,8 @@ const yes = rows.filter((r) => /^y(es)?$/i.test(r[col('merge')].trim()));
 const events = new Map((await db.collection('events').get()).docs.map((d) => [d.get('slug') as string, d.ref]));
 let merged = 0;
 let skipped = 0;
+// Tickets this run merged someone into, so a second pair with the same one isn't taken as changed
+const keptHere = new Set<string>();
 for (const r of yes) {
 	const ref = events.get(r[col('event')]);
 	const [keepId, dropId] = [r[col('keep ticket')], r[col('drop ticket')]];
@@ -108,8 +110,9 @@ for (const r of yes) {
 		const [k, d] = await Promise.all([tx.get(ref.collection('attendees').doc(keepId)), tx.get(ref.collection('attendees').doc(dropId))]);
 		const keep = k.data() as AttendeeDoc | undefined;
 		const drop = d.data() as AttendeeDoc | undefined;
-		// Still as listed
-		if (!keep || !drop || keep.email !== r[col('keep email')] || drop.email !== r[col('drop email')] || status(keep) !== r[col('keep')] || status(drop) !== r[col('drop')]) return false;
+		// Still as listed, bar what an earlier pair in this run did to the kept ticket
+		const keepAsListed = keptHere.has(k.ref.path) || (keep?.email === r[col('keep email')] && status(keep) === r[col('keep')]);
+		if (!keep || !drop || !keepAsListed || drop.email !== r[col('drop email')] || status(drop) !== r[col('drop')]) return false;
 		const first = [keep, drop].filter((a) => a.checkedInAt).sort((a, b) => a.checkedInAt!.toMillis() - b.checkedInAt!.toMillis())[0];
 		// Keep a working email: someone who registered with a typo may have checked in without it
 		const typo = (e: string) => e.split('@')[1] in TYPOS;
@@ -121,7 +124,10 @@ for (const r of yes) {
 		return true;
 	});
 	console.log(`${done ? (write ? 'Merged' : 'Would merge') : 'Skipped, changed since the list was made'}: ${label}`);
-	if (done) merged++;
+	if (done) {
+		merged++;
+		keptHere.add(ref.collection('attendees').doc(keepId).path);
+	}
 	else skipped++;
 }
 console.log(`${write ? 'Merged' : 'Would merge'} ${merged} pairs${skipped ? `, skipped ${skipped}` : ''}.${write ? ' The trigger updates each event’s counts.' : ' Run again with --write to save.'}`);
