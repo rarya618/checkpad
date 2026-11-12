@@ -35,7 +35,7 @@ export default function VenueDisplayPage() {
 							{formatDay(start, event.timeZone)} · {formatTimeRange(start, new Date(event.endsAt), event.timeZone)}
 						</p>
 						<h1 className="font-display text-4xl leading-tight text-balance lg:text-6xl 2xl:text-7xl">{event.name}</h1>
-						{event.description && <p className="text-xl leading-snug text-med-blue lg:text-2xl 2xl:text-3xl">{event.description}</p>}
+						{event.description && <p className="text-xl leading-snug whitespace-pre-line text-med-blue lg:text-2xl 2xl:text-3xl">{event.description}</p>}
 					</div>
 
 					<div aria-hidden="true" className="flex h-2 w-40 overflow-hidden rounded-full">

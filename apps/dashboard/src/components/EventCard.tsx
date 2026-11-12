@@ -54,7 +54,7 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 							</p>
 						</div>
 					</div>
-					<p className="text-sm leading-normal text-black md:text-sm md:leading-normal">{event.description}</p>
+					<p className="text-sm leading-normal whitespace-pre-line text-black md:text-sm md:leading-normal">{event.description}</p>
 				</div>
 			</div>
 			{/* Figma "Events – card menu". relative lifts it above the card's stretched link. */}

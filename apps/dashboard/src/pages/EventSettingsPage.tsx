@@ -6,7 +6,7 @@ import { useBlocker, useNavigate, useParams } from 'react-router';
 import Dialog from '../components/Dialog';
 import { DateTimeFields } from '../components/EventFields';
 import EventOverview from '../components/EventOverview';
-import { LinkField, SelectField, TextField } from '../components/Field';
+import { LinkField, SelectField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
@@ -186,7 +186,8 @@ function EventSettingsPage({ slug }: { slug: string }) {
 							hint={linkLocked ? 'Locked while check-in is open.' : 'Attendees use this link to check in.'}
 							error={slugTaken ? 'Another event already uses this link.' : null}
 						/>
-						<TextField label="Description" value={form.description} onChange={(e) => update('description', e.target.value)} />
+						{/* 500 characters, as firestore.rules allows */}
+						<TextAreaField label="Description" maxLength={500} value={form.description} onChange={(e) => update('description', e.target.value)} />
 						<DateTimeFields form={form} update={update} />
 					</FormCard>
 				</div>

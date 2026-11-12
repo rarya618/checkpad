@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type Ref, type SelectHTMLAttributes } from 'react';
+import { useId, type InputHTMLAttributes, type ReactNode, type Ref, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import chevronDown from '../assets/chevron-down.svg';
 
 // Figma "Text field": label, filled box, optional hint. "md" is the desktop dashboard's
@@ -61,6 +61,17 @@ export function TextField({ label, hint, error, size = 'md', className, ...input
 	return (
 		<Field label={label} hint={hint} error={error} size={size} className={className}>
 			{(control) => <input type="text" {...control} {...input} className={`${box(size)} placeholder:text-[#bbbbbb]`} />}
+		</Field>
+	);
+}
+
+type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { ref?: Ref<HTMLTextAreaElement> };
+
+/** A text field for a few lines, e.g. an event's description. Three rows tall; drag to resize. */
+export function TextAreaField({ label, hint, error, size = 'md', className, rows = 3, ...textarea }: Base & TextAreaProps) {
+	return (
+		<Field label={label} hint={hint} error={error} size={size} className={className}>
+			{(control) => <textarea rows={rows} {...control} {...textarea} className={`${box(size)} block resize-y placeholder:text-[#bbbbbb]`} />}
 		</Field>
 	);
 }

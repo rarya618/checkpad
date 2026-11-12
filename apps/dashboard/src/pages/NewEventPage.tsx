@@ -3,7 +3,7 @@ import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { DateTimeFields } from '../components/EventFields';
-import { LinkField, SelectField, TextField } from '../components/Field';
+import { LinkField, SelectField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
@@ -137,8 +137,10 @@ export default function NewEventPage() {
 							hint="Attendees use this link to check in."
 							error={slugTaken ? 'Another event already uses this link.' : null}
 						/>
-						<TextField
+						<TextAreaField
 							label="Description"
+							// As firestore.rules allows
+							maxLength={500}
 							value={form.description}
 							onChange={(e) => update('description', e.target.value)}
 							placeholder="Join us for our monthly meetup"
