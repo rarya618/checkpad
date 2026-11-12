@@ -37,11 +37,11 @@ const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
 
 for (const team of demoTeams) {
-	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'GDGWALKIN', country: 'AU', city: 'Sydney', timeZone: 'Australia/Sydney' } satisfies TeamDoc);
+	batch.set(db.doc(`teams/${team.slug}`), { name: team.name, slug: team.slug, walkInTicketPrefix: 'CPWALKIN', country: 'AU', city: 'Sydney', timeZone: 'Australia/Sydney' } satisfies TeamDoc);
 }
 // A team with no events or members, which Manage team can delete. Nowhere set, like a team
 // from before teams had one: its new events start in Sydney time.
-batch.set(db.doc('teams/gdg-melbourne'), { name: 'GDG Melbourne', slug: 'gdg-melbourne', walkInTicketPrefix: 'MELWALKIN' } satisfies TeamDoc);
+batch.set(db.doc('teams/gdg-melbourne'), { name: 'GDG Melbourne', slug: 'gdg-melbourne', walkInTicketPrefix: 'CPWALKIN' } satisfies TeamDoc);
 const now = Timestamp.now();
 waitlist.forEach((email, i) => batch.set(db.collection('waitlist').doc(), { email, createdAt: Timestamp.fromMillis(now.toMillis() - (waitlist.length - i) * 86_400_000) }));
 for (const [email, { name, ...access }] of admins) {
@@ -64,7 +64,7 @@ for (const event of demoEvents) {
 		// The countAttendees trigger counts the attendees written below
 		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
-		walkInTicketPrefix: 'GDGWALKIN',
+		walkInTicketPrefix: 'CPWALKIN',
 		selfWalkIns: event.selfWalkIns,
 		walkInTicketTitle: 'General admission',
 		walkInVenue: 'Google Sydney, 1 Pirrama Rd, Pyrmont',

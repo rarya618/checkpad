@@ -60,8 +60,8 @@ function isTimeZone(value: string) {
 	}
 }
 
-/** Same as the dashboard's default (apps/dashboard/src/lib/teams.ts): GDGWALKIN for gdg-sydney. */
-const walkInPrefix = (slug: string) => `${slug.split('-')[0].toUpperCase().slice(0, 14)}WALKIN`;
+/** Walk-in tickets for every team, as in the dashboard (apps/dashboard/src/lib/teams.ts): CPWALKIN0001. */
+const WALK_IN_PREFIX = 'CPWALKIN';
 
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
 
@@ -100,7 +100,7 @@ export async function setUpTeam(db: Firestore, auth: Auth, authorization: string
 		if (others.some((t) => t.slug === fields.slug)) throw new ApiFailure('slug-taken', 409);
 		if (others.some((t) => t.name.toLowerCase() === fields.name.toLowerCase())) throw new ApiFailure('name-taken', 409);
 		const team = db.collection('teams').doc();
-		tx.create(team, { ...fields, walkInTicketPrefix: walkInPrefix(fields.slug) } satisfies TeamDoc);
+		tx.create(team, { ...fields, walkInTicketPrefix: WALK_IN_PREFIX } satisfies TeamDoc);
 		tx.update(me, { teamId: team.id, name: organiserName });
 		return { status: 'created' as const, teamId: team.id };
 	});

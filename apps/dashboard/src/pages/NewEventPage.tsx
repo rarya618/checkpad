@@ -10,7 +10,7 @@ import { WEB_HOST } from '../lib/config';
 import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
 import { createEvent, isSlugTaken } from '../lib/events';
 import { useMe } from '../lib/organisers';
-import { useTeams, type Team } from '../lib/teams';
+import { useTeams, WALK_IN_PREFIX, type Team } from '../lib/teams';
 import { useIsDesktop } from '../lib/useMediaQuery';
 import { showToast } from '../lib/toast';
 
@@ -167,7 +167,7 @@ export default function NewEventPage() {
 					</FormCard>
 					<FormCard
 						title="Walk-ins"
-						description={`Walk-ins get the next ticket number: ${team?.walkInTicketPrefix ?? ''}0001, ${team?.walkInTicketPrefix ?? ''}0002, and so on. Staff can always add them.`}
+						description={`Walk-ins get the next ticket number: ${WALK_IN_PREFIX}0001, ${WALK_IN_PREFIX}0002, and so on. Staff can always add them.`}
 						className="flex-1"
 					>
 						<TextField

@@ -17,7 +17,7 @@ export interface EventDoc {
 	counts: { registered: number; checkedIn: number; walkIns: number };
 	/** The last walk-in number handed out; the next walk-in gets one more. */
 	walkInCounter: number;
-	/** Walk-in tickets are this plus four digits: GDGWALKIN0005. Copied from the team when the event is made. */
+	/** Walk-in tickets are this plus four digits: CPWALKIN0005 (older events: GDGWALKIN0005). */
 	walkInTicketPrefix: string;
 	/** Whether people not on the list can add themselves as walk-ins. Staff always can. */
 	selfWalkIns: boolean;
@@ -58,7 +58,7 @@ export interface AttendeeDoc {
 export interface TeamDoc {
 	name: string;
 	slug: string;
-	/** New events copy it: GDGWALKIN */
+	/** CPWALKIN for new teams; older ones have their own (GDGWALKIN). New events always use CPWALKIN. */
 	walkInTicketPrefix: string;
 	globalAccess?: boolean;
 	/** Where it meets. ISO 3166-1 alpha-2: "AU" (packages/shared/src/countries.ts). */

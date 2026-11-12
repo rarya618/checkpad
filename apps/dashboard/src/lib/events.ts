@@ -22,7 +22,7 @@ import { db } from './firebase';
 import { liveStore } from './live';
 import { useMe, type Organiser } from './organisers';
 import type { RosterStats } from './roster';
-import { allTeams } from './teams';
+import { allTeams, WALK_IN_PREFIX } from './teams';
 
 export interface DashboardEvent extends CheckpadEvent {
 	/** The Firestore document ID; pages use the slug. */
@@ -31,7 +31,7 @@ export interface DashboardEvent extends CheckpadEvent {
 	teamId: string | null;
 	walkInTicketTitle: string;
 	walkInVenue: string;
-	/** Walk-in tickets count up from here: GDGWALKIN0001, GDGWALKIN0002, … */
+	/** Walk-in tickets count up from here: CPWALKIN0001, CPWALKIN0002, … (older events: GDGWALKIN) */
 	walkInTicketPrefix: string;
 	/** Walk-in tickets given out so far; the next is one more. */
 	walkInCounter: number;
@@ -157,16 +157,18 @@ function eventFields(input: EventInput) {
 	};
 }
 
-/** Saves a new event and claims its link, in one write. Walk-in tickets use the team's prefix. */
+/**
+ * Saves a new event and claims its link, in one write. Walk-in tickets start with CP whatever the
+ * team: older teams still store their own prefix (GDGWALKIN), which new events no longer copy.
+ */
 export function createEvent(input: EventInput) {
 	const ref = doc(collection(db, 'events'));
-	const prefix = allTeams().find((t) => t.id === input.teamId)?.walkInTicketPrefix ?? 'WALKIN';
 	const batch = writeBatch(db);
 	batch.set(ref, {
 		...eventFields(input),
 		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
-		walkInTicketPrefix: prefix,
+		walkInTicketPrefix: WALK_IN_PREFIX,
 	});
 	batch.set(doc(db, 'slugs', input.slug), { eventId: ref.id });
 	return batch.commit();

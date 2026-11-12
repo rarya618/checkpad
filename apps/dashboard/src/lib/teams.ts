@@ -9,7 +9,7 @@ export interface Team {
 	id: string;
 	name: string;
 	slug: string;
-	/** Walk-in tickets count up from here: GDGWALKIN0001, GDGWALKIN0002, … */
+	/** Kept for older teams; events now always use WALK_IN_PREFIX (events.ts). */
 	walkInTicketPrefix: string;
 	globalAccess?: boolean;
 	/** Where it meets. ISO code: "AU" (@checkpad/shared/countries). */
@@ -20,10 +20,9 @@ export interface Team {
 	timeZone?: string;
 }
 
-/** New teams' walk-in tickets: the link's first word, GDG for gdg-sydney. */
-function defaultPrefix(slug: string) {
-	return `${slug.split('-')[0].toUpperCase().slice(0, 14)}WALKIN`;
-}
+/** Walk-in tickets for every team: CP for Checkpad, then a count, CPWALKIN0001. The functions
+ *  keep the same value (functions/src/teams.ts). */
+export const WALK_IN_PREFIX = 'CPWALKIN';
 
 const store = liveStore<Team[]>((_key, emit, fail) =>
 	onSnapshot(
@@ -37,7 +36,7 @@ const store = liveStore<Team[]>((_key, emit, fail) =>
 							id: d.id,
 							name: data.name,
 							slug: data.slug,
-							walkInTicketPrefix: data.walkInTicketPrefix ?? defaultPrefix(data.slug),
+							walkInTicketPrefix: data.walkInTicketPrefix ?? WALK_IN_PREFIX,
 							...(data.globalAccess !== undefined && { globalAccess: data.globalAccess }),
 							...(data.country !== undefined && { country: data.country }),
 							...(data.city !== undefined && { city: data.city }),
@@ -71,7 +70,7 @@ export function teamData(existing: Team | null, team: Pick<Team, 'name' | 'slug'
 	return {
 		name: team.name,
 		slug: team.slug,
-		walkInTicketPrefix: existing?.walkInTicketPrefix ?? defaultPrefix(team.slug),
+		walkInTicketPrefix: existing?.walkInTicketPrefix ?? WALK_IN_PREFIX,
 		...(existing?.globalAccess !== undefined && { globalAccess: existing.globalAccess }),
 		...(team.country && { country: team.country }),
 		...(team.city && { city: team.city }),

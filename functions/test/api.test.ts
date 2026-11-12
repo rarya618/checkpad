@@ -376,7 +376,7 @@ describe('POST /onboarding/team', () => {
 		assert.equal(await teamOf('sam@example.com'), body.teamId);
 		assert.equal((await db.doc('admins/sam@example.com').get()).get('name'), 'Sam Lee');
 		const { organiserName: _, ...saved } = team;
-		assert.deepEqual((await db.doc(`teams/${body.teamId}`).get()).data(), { ...saved, walkInTicketPrefix: 'SAMSWALKIN' });
+		assert.deepEqual((await db.doc(`teams/${body.teamId}`).get()).data(), { ...saved, walkInTicketPrefix: 'CPWALKIN' });
 	});
 
 	test('trims the name and city', async () => {

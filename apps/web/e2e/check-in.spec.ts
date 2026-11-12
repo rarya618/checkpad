@@ -66,7 +66,7 @@ test.describe('checking in', () => {
 		await page.getByLabel('Last name').fill('Person');
 		await page.getByRole('button', { name: 'Check in' }).click();
 		await expect(page.getByRole('heading', { name: 'New' })).toBeVisible();
-		await expect(page.getByText('GDGWALKIN0001')).toBeVisible();
+		await expect(page.getByText('CPWALKIN0001')).toBeVisible();
 	});
 
 	test('with walk-ins off, someone not on the list is told to find an organiser', async ({ page }) => {

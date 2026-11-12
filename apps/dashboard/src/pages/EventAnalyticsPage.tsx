@@ -205,7 +205,7 @@ function Figure({ label, value }: { label: string; value: string }) {
 	);
 }
 
-/** "GDGWALKIN0001–0004": the first ticket in full, then the last one's number. */
+/** "CPWALKIN0001–0004": the first ticket in full, then the last one's number. */
 function walkInRange(tickets: string[]) {
 	if (tickets.length === 1) return tickets[0];
 	const last = tickets[tickets.length - 1];

@@ -25,7 +25,7 @@ import { liveStore } from './live';
 export interface RosterAttendee extends Attendee {
 	/** The ticket number: the document ID. */
 	id: string;
-	/** Ticket number from the registration platform, or GDGWALKIN0001… for walk-ins. */
+	/** Ticket number from the registration platform, or CPWALKIN0001… for walk-ins. */
 	ticket: string | null;
 	/** The platform's ticket type, e.g. "General admission"; set by imports. */
 	ticketType?: string;
