@@ -24,7 +24,7 @@ import {
 import { useEvents } from '../lib/events';
 import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
-import { useIsDesktop } from '../lib/useMediaQuery';
+import { useMediaQuery } from '../lib/useMediaQuery';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
 // Didn't come is hollow, so it reads by shape as well as colour
@@ -80,7 +80,9 @@ export default function AnalyticsPage() {
 	const latest = results[results.length - 1];
 	const top = Math.max(75, Math.ceil(Math.max(0, ...results.map((r) => r.turnout)) / 25) * 25);
 	const ticks = Array.from({ length: top / 25 + 1 }, (_, i) => i * 25);
-	const desktop = useIsDesktop();
+	// The table's full columns take about 500px, so they wait for a wide window: from 1152px the
+	// event names keep about 270px beside the sidebar. Narrower, date and counts go under the name.
+	const wide = useMediaQuery('(min-width: 1152px)');
 	const date = (r: (typeof results)[number]) => formatDay(new Date(r.event.startsAt), r.event.timeZone).replace(' ', ', ');
 	const month = (r: (typeof results)[number]) => new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: r.event.timeZone }).format(new Date(r.event.startsAt));
 	const showLabel = thinLabels(results.length);
@@ -222,7 +224,7 @@ export default function AnalyticsPage() {
 						<table className="w-full table-fixed text-sm leading-normal">
 							<colgroup>
 								<col />
-								{desktop && (
+								{wide && (
 									<>
 										<col className="w-[150px]" />
 										<col className="w-[97.5px]" />
@@ -230,12 +232,12 @@ export default function AnalyticsPage() {
 									</>
 								)}
 								<col className="w-[82.5px]" />
-								{desktop && <col className="w-[75px]" />}
+								{wide && <col className="w-[75px]" />}
 							</colgroup>
 							<thead>
 								<tr className="font-display text-black">
 									<th className="pt-1 pb-2 text-left">Event</th>
-									{desktop && (
+									{wide && (
 										<>
 											<th className="pt-1 pb-2 text-left">Date</th>
 											<th className="pt-1 pb-2 text-right">Registered</th>
@@ -243,7 +245,7 @@ export default function AnalyticsPage() {
 										</>
 									)}
 									<th className="pt-1 pb-2 text-right">Turnout</th>
-									{desktop && <th className="pt-1 pb-2 text-right">Walk-ins</th>}
+									{wide && <th className="pt-1 pb-2 text-right">Walk-ins</th>}
 								</tr>
 							</thead>
 							<tbody>
@@ -253,13 +255,13 @@ export default function AnalyticsPage() {
 											<Link to={`/events/${r.event.slug}/analytics`} className="hover:underline">
 												{r.event.name}
 											</Link>
-											{!desktop && (
+											{!wide && (
 												<span className="block truncate font-normal text-med-blue">
 													{date(r)} · {r.checkedIn} of {r.registered}
 												</span>
 											)}
 										</td>
-										{desktop && (
+										{wide && (
 											<>
 												<td className="py-2.5">{date(r)}</td>
 												<td className="py-2.5 text-right">{r.registered}</td>
@@ -267,7 +269,7 @@ export default function AnalyticsPage() {
 											</>
 										)}
 										<td className="py-2.5 text-right">{r.turnout}%</td>
-										{desktop && <td className="py-2.5 text-right">{r.walkIns}</td>}
+										{wide && <td className="py-2.5 text-right">{r.walkIns}</td>}
 									</tr>
 								))}
 							</tbody>
