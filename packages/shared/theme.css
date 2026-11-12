@@ -17,6 +17,8 @@
   /* Button hover fills (button.ts): each base colour nudged towards med-blue */
   --color-dark-blue-hover: color-mix(in oklab, var(--color-dark-blue), var(--color-med-blue) 25%);
   --color-light-blue-hover: color-mix(in oklab, var(--color-light-blue), var(--color-med-blue) 20%);
+  /* Med-blue has nothing to nudge towards, so it lightens: it sits on dark blue (prize draw) */
+  --color-med-blue-hover: color-mix(in oklab, var(--color-med-blue), var(--color-off-white) 15%);
 
   --font-sans: var(--font-jakarta), sans-serif;
 

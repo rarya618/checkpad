@@ -79,7 +79,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 						: 'ready';
 	const stillIn = pool.length;
 	const startOverLink = (
-		<button type="button" onClick={() => setConfirmStartOver(true)} className="text-lg font-semibold text-light-blue underline hover:text-off-white">
+		<button type="button" onClick={() => setConfirmStartOver(true)} className="text-base font-semibold text-light-blue underline hover:text-off-white">
 			Start over
 		</button>
 	);
@@ -136,9 +136,9 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 						{view === 'drawing' ? 'Drawing…' : view === 'winner' ? `${stillIn} still in the draw` : ''}
 					</p>
 					{/* The organiser's controls; the row keeps its height while drawing so nothing jumps */}
-					<div className="flex min-h-13 flex-wrap items-center gap-3">
+					<div className="flex min-h-9 flex-wrap items-center gap-3">
 						{(view === 'ready' || view === 'nobody') && (
-							<button type="button" onClick={drawWinner} disabled={view === 'nobody'} className={`${buttonClass('inverse', 'tall')} disabled:opacity-50`}>
+							<button type="button" onClick={drawWinner} disabled={view === 'nobody'} className={`${buttonClass('accent')} disabled:opacity-50`}>
 								Draw a winner
 							</button>
 						)}
@@ -151,18 +151,18 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 										drawWinner();
 									}}
 									disabled={stillIn === 0}
-									className={`${buttonClass('inverseSecondary', 'tall')} disabled:opacity-50`}
+									className={`${buttonClass('secondary')} disabled:opacity-50`}
 								>
 									Not here
 								</button>
-								<button type="button" onClick={drawWinner} className={buttonClass('inverse', 'tall')}>
+								<button type="button" onClick={drawWinner} className={buttonClass('accent')}>
 									Draw again
 								</button>
-								<span className="pl-2">{startOverLink}</span>
+								<span className="pl-1">{startOverLink}</span>
 							</>
 						)}
 						{view === 'everyone-won' && (
-							<button type="button" onClick={() => setConfirmStartOver(true)} className={buttonClass('inverse', 'tall')}>
+							<button type="button" onClick={() => setConfirmStartOver(true)} className={buttonClass('accent')}>
 								Start over
 							</button>
 						)}

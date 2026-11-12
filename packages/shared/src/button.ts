@@ -6,9 +6,8 @@ const base = 'button flex items-center justify-center font-display transition-co
 const variants = {
 	primary: 'bg-dark-blue text-off-white not-disabled:hover:bg-dark-blue-hover',
 	secondary: 'bg-light-blue text-dark-blue not-disabled:hover:bg-light-blue-hover',
-	// On a dark-blue background (the prize draw display)
-	inverse: 'bg-off-white text-dark-blue not-disabled:hover:bg-light-blue',
-	inverseSecondary: 'bg-med-blue text-off-white not-disabled:hover:brightness-110',
+	// The main action on a dark-blue background (the prize draw display)
+	accent: 'bg-med-blue text-off-white not-disabled:hover:bg-med-blue-hover',
 };
 
 const sizes = {
