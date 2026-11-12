@@ -18,7 +18,7 @@ import { useEvents, type DashboardEvent } from '../lib/events';
 import { initialsOf, organiserTeam, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
-import { useIsDesktop } from '../lib/useMediaQuery';
+import { useMediaQuery } from '../lib/useMediaQuery';
 
 // Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
 // the URL (?tab=teams) so it survives a reload. On phones each person's role and team go
@@ -91,14 +91,16 @@ export default function OrganisersPage() {
 function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organiser) => void; onRemove: (o: Organiser) => void }) {
 	const organisers = useOrganisers(useMe()) ?? [];
 	const teams = useTeams();
-	const desktop = useIsDesktop();
+	// Role and Team get columns of their own from 1024px. Below that (phones, and narrow windows
+	// beside the sidebar) they sit under the email, so the names keep their room.
+	const wide = useMediaQuery('(min-width: 1024px)');
 	return (
 		<>
 			<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
 				<table className="w-full table-fixed leading-normal">
 					<colgroup>
 						<col />
-						{desktop && (
+						{wide && (
 							<>
 								<col className="w-[135px]" />
 								<col className="w-[165px]" />
@@ -109,7 +111,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					<thead>
 						<tr className="text-left font-display text-sm text-black">
 							<th className="pt-1 pr-4 pb-2">Person</th>
-							{desktop && (
+							{wide && (
 								<>
 									<th className="pt-1 pr-4 pb-2">Role</th>
 									<th className="pt-1 pr-4 pb-2">Team</th>
@@ -124,9 +126,9 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 						{organisers.map((o) => (
 							<tr key={o.id} className="border-t border-light-blue">
 								<td className="py-4 pr-4">
-									{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
-									<div className="flex items-start gap-4 md:items-center md:gap-3">
-										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-sm">
+									{/* Stacked: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
+									<div className="flex items-start gap-4 lg:items-center lg:gap-3">
+										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base lg:size-9 lg:text-sm">
 											{initialsOf(o)}
 										</span>
 										<div className="flex min-w-0 flex-col">
@@ -143,7 +145,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 													{o.email}
 												</p>
 											)}
-											{!desktop && (
+											{!wide && (
 												<p className="flex min-w-0 items-center gap-2.5 pt-2.5 text-base text-black">
 													<RoleBadge organiser={o} />
 													<span className="truncate">{organiserTeam(teams, o)}</span>
@@ -152,7 +154,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 										</div>
 									</div>
 								</td>
-								{desktop && (
+								{wide && (
 									<>
 										<td className="py-4 pr-4">
 											<RoleBadge organiser={o} />
