@@ -32,7 +32,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 	const dialog = useRef<HTMLDialogElement>(null);
 	const closing = useRef<Animation[]>([]);
 	const { pathname } = useLocation();
-	const typing = useTyping();
+	const keyboardOpen = useKeyboardOpen();
 
 	useEffect(() => {
 		const d = dialog.current;
@@ -82,10 +82,10 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 			</header>
 			{/* A bar across the bottom edge: 64px of tabs over 16px of padding, which keeps them up from
 			    the edge of the screen. App.tsx keeps the page and toasts clear of its 80px. Hidden while
-			    typing, so it doesn't ride up above the keyboard. */}
+			    the on-screen keyboard is up, so it doesn't ride up above it. */}
 			<nav
 				aria-label="Main"
-				hidden={typing}
+				hidden={keyboardOpen}
 				className="fixed inset-x-0 bottom-0 z-20 flex h-20 bg-off-white px-1.5 pb-4"
 			>
 				{items.map((i) => (
@@ -166,21 +166,24 @@ function Tab({ icon, label, active }: { icon?: string; label: string; active: bo
 	);
 }
 
-/** Whether a text field has focus, so the phone's keyboard is (or is about to be) up. */
-function useTyping() {
-	const [typing, setTyping] = useState(false);
-	useEffect(() => {
-		const update = () => setTyping(isTextField(document.activeElement));
-		document.addEventListener('focusin', update);
-		document.addEventListener('focusout', update);
-		return () => {
-			document.removeEventListener('focusin', update);
-			document.removeEventListener('focusout', update);
-		};
-	}, []);
-	return typing;
-}
+// Taller than any browser toolbar that slides in and out, shorter than any on-screen keyboard
+const KEYBOARD_MIN_HEIGHT = 150;
 
-function isTextField(el: Element | null) {
-	return !!el?.matches('textarea, [contenteditable], input:not([type=checkbox], [type=radio], [type=button], [type=submit], [type=file])');
+/**
+ * Whether the on-screen keyboard is up: it shrinks the visible area (the visual viewport) while
+ * the page keeps its height. Pinch zoom shrinks the visual viewport too, so its height is
+ * measured at the page's scale. A narrow desktop window, or a phone with a hardware keyboard,
+ * never shrinks, so typing there keeps the tab bar.
+ */
+function useKeyboardOpen() {
+	const [open, setOpen] = useState(false);
+	useEffect(() => {
+		const viewport = window.visualViewport;
+		if (!viewport) return;
+		const update = () => setOpen(window.innerHeight - viewport.height * viewport.scale > KEYBOARD_MIN_HEIGHT);
+		update();
+		viewport.addEventListener('resize', update);
+		return () => viewport.removeEventListener('resize', update);
+	}, []);
+	return open;
 }
