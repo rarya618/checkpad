@@ -64,7 +64,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 	useEffect(() => setOpen(false), [pathname]);
 
 	// The sidebar's text sizes, with slightly taller rows to tap
-	const item = 'block rounded-lg px-5 py-2 text-base leading-normal tracking-[0.01em] hover:bg-white/50';
+	const item = 'block rounded-lg px-5 py-2 text-base leading-normal tracking-[0.01em] hover:bg-light-blue/60';
 	const tab = 'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5';
 
 	return (
@@ -109,12 +109,12 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 					setOpen(false);
 				}}
 				onClick={(e) => e.target === e.currentTarget && setOpen(false)}
-				className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-light-blue p-0 text-dark-blue outline-none backdrop:bg-dark-blue/45"
+				className="m-0 mt-auto max-h-[85dvh] w-full max-w-none rounded-t-2xl bg-off-white p-0 text-dark-blue outline-none backdrop:bg-dark-blue/45"
 			>
 				<div className="flex flex-col gap-1 px-4 pt-5 pb-6">
 					<div className="flex items-center pb-2 pl-3">
 						<p className="min-w-0 flex-1 truncate font-display text-lg leading-normal">{title}</p>
-						<button type="button" aria-label="Close" onClick={() => setOpen(false)} className="-m-1 rounded p-1 hover:bg-white/50">
+						<button type="button" aria-label="Close" onClick={() => setOpen(false)} className="-m-1 rounded p-1 hover:bg-light-blue/60">
 							<img src={close} alt="" width={28} height={28} />
 						</button>
 					</div>
