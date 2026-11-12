@@ -80,12 +80,13 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 					</Link>
 				)}
 			</header>
-			{/* A card like the sidebar, inset 24px like the page: App.tsx keeps the page and toasts
-			    clear of its 88px. Hidden while typing, so it doesn't ride up above the keyboard. */}
+			{/* A bar across the bottom edge: 64px of tabs over 16px of padding, which keeps them up from
+			    the edge of the screen. App.tsx keeps the page and toasts clear of its 80px. Hidden while
+			    typing, so it doesn't ride up above the keyboard. */}
 			<nav
 				aria-label="Main"
 				hidden={typing}
-				className="fixed inset-x-6 bottom-6 z-20 flex h-16 rounded-xl border border-med-blue bg-light-blue px-1.5"
+				className="fixed inset-x-0 bottom-0 z-20 flex h-20 border-t border-med-blue bg-light-blue px-1.5 pb-4"
 			>
 				{items.map((i) => (
 					<NavLink key={i.to} to={i.to} end={i.end} className={tab}>

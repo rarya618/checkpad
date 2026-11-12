@@ -51,7 +51,7 @@ function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: Mobile
 				<main className="pb-24">
 					<Outlet />
 				</main>
-				<div className="fixed inset-x-0 bottom-[88px]">
+				<div className="fixed inset-x-0 bottom-20">
 					<Toaster />
 				</div>
 			</div>
