@@ -76,7 +76,7 @@ All 12 old features that are kept are built in Checkpad; cloud credits are dropp
 | Teams and permanent team links (`?team=<slug>`) | Built | Teams tab and Manage team (renaming a team updates its events and members), and `apps/web` `/team/<slug>`, which opens the team's open or next event, or "No event right now" | Redirect from `?team=<slug>` |
 | Merch prize draw | Built | Full-screen display at `/events/<slug>/prize-draw` (ready, drawing, winner, nobody checked in, everyone has won, start over?), from the event ⋮ menu and the phone menu. Results are saved per event in Firestore | — |
 | Cloud credits link and click tracking | Dropped | — | — |
-| CSV export for Bevy bulk upload | Built | "Export for Bevy" in the Attendees and Events ⋮ menus | Same as import: confirm the columns |
+| CSV export for Bevy bulk upload, and an attendance CSV | Built | "Export for Bevy" and "Export attendance (CSV)" in the Attendees and Events ⋮ menus. The attendance CSV adds the answers to registration questions and is the export for Luma, which can't take check-ins or new guests from a file | Same as import: confirm the Bevy columns |
 
 Also built, with no old equivalent:
 

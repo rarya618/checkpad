@@ -8,7 +8,7 @@ import ellipsis from '../assets/ellipsis-vertical.svg';
 import link from '../assets/link.svg';
 import sliders from '../assets/sliders.svg';
 import trash from '../assets/trash.svg';
-import { exportAttendees } from '../lib/bevy';
+import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import { checkInUrl } from '../lib/config';
 import type { EventSummary } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
@@ -70,7 +70,8 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 							icon: link,
 							onSelect: () => navigator.clipboard.writeText(checkInUrl(event.slug)).then(() => showToast('Check-in link copied')),
 						},
-						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
+						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event) },
+						{ label: 'Export attendance (CSV)', icon: download, onSelect: () => exportAttendance(event) },
 						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 					]}
 				>

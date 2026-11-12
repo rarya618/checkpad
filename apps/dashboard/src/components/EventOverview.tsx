@@ -10,7 +10,7 @@ import trash from '../assets/trash.svg';
 import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
 import type { ImportPlan } from '../lib/attendeeImport';
-import { exportAttendees } from '../lib/bevy';
+import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import type { DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
@@ -68,7 +68,8 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 					buttonClassName="flex size-9 items-center justify-center rounded-lg bg-light-blue transition-colors hover:bg-light-blue-hover"
 					items={[
 						...(canEdit ? [{ label: 'Import attendees', icon: upload, onSelect: () => setImporting({}) }] : []),
-						{ label: 'Export for Bevy', icon: download, onSelect: () => exportAttendees(event) },
+						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event) },
+						{ label: 'Export attendance (CSV)', icon: download, onSelect: () => exportAttendance(event) },
 						{ label: 'Open prize draw', icon: gift, onSelect: () => window.open(`/events/${event.slug}/prize-draw`, '_blank') },
 						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 					]}

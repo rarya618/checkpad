@@ -47,7 +47,7 @@ Status matters: copy can only state as fact what the product does now. Since 22 
 | Walk-ins get the next ticket number (e.g. GDGWALKIN0005) and are checked in on the spot | Live. No two walk-ins get the same ticket, even from two devices (a server transaction). Adding one needs a connection |
 | Per-event switch for whether attendees can add themselves as walk-ins; staff can always add them | Live |
 | Attendees dashboard: live count, pre-registered vs walk-ins, search, undo | Live, with live updates. Still don't claim "in seconds" until it's been timed at a real event |
-| Import the attendee CSV from Bevy; export for Bevy's bulk upload | Built. The export's columns are a guess: [NEED: confirm against Bevy's bulk upload] |
+| Import the attendee CSV from Bevy; export for Bevy's bulk upload, or an attendance CSV for any platform | Built. The export's columns are a guess: [NEED: confirm against Bevy's bulk upload] |
 | Venue QR display for a screen or printed sign | Built |
 | Permanent team link (checkpad.app/team/<slug>) that always opens the team's current or next event | Live |
 | Prize draw on the projector: names only, no repeat winners, "Not here" skips someone | Live. Results are saved, so a refresh or a second laptop keeps the winners |
