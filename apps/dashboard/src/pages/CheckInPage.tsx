@@ -124,7 +124,8 @@ export default function CheckInPage() {
 						autoFocus
 						className="min-w-0 flex-1"
 					/>
-					<button type="submit" className={buttonClass('primary')}>
+					{/* As tall as the text box beside it (48px) */}
+					<button type="submit" className={`${buttonClass('primary')} h-12`}>
 						Find
 					</button>
 				</form>
@@ -269,7 +270,7 @@ function MobileCheckIn(p: MobileProps) {
 								spellCheck={false}
 								className="min-w-0 flex-1"
 							/>
-							<button type="submit" className={buttonClass('primary')}>
+							<button type="submit" className={`${buttonClass('primary')} h-12`}>
 								Find
 							</button>
 						</form>
