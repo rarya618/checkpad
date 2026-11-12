@@ -1,6 +1,6 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { formatClockTime } from '@checkpad/shared/format';
-import { useMemo, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { useParams } from 'react-router';
 import undo from '../assets/undo.svg';
 import EventOverview from '../components/EventOverview';
@@ -16,7 +16,8 @@ import { useIsDesktop } from '../lib/useMediaQuery';
 type Result = { kind: 'found'; attendee: RosterAttendee } | { kind: 'not-found'; query: string } | null;
 
 // Figma "Check in – found / already arrived / not found" (desktop, 75% scale) and
-// "Staff check in (mobile)" (full size). Staff look someone up by email or ticket number.
+// "Staff check in (mobile)" (full size, for one-handed use at the door, under the same header as
+// the other event pages instead of Figma's own). Staff look someone up by email or ticket number.
 export default function CheckInPage() {
 	const { slug = '' } = useParams();
 	// EventLayout has already redirected unknown slugs.
@@ -64,12 +65,32 @@ export default function CheckInPage() {
 		addWalkIn: (q: string) => setWalkInFor(q),
 	};
 
+	// The same top as the other event pages, on phones too: the event, then this page's heading
+	// with the count and whether attendees can check themselves in
+	const header = (
+		<>
+			<EventOverview event={event} />
+			<PageHeader
+				level={2}
+				title="Check in"
+				titleAddon={<StatusBadge open={event.selfCheckInOpen} />}
+				// 24px above (the gap below the event details); sticks with 24px left, like the page headers
+				className="top-0 pt-6 pb-4"
+				actions={
+					<p className="flex items-baseline gap-1.5 whitespace-nowrap">
+						<span className="font-display text-2xl leading-tight">{stats.checkedIn}</span>
+						<span className="text-sm leading-normal text-med-blue">of {stats.total} checked in</span>
+					</p>
+				}
+			/>
+		</>
+	);
+
 	if (!desktop) {
 		return (
 			<MobileCheckIn
+				header={header}
 				event={event}
-				checkedIn={stats.checkedIn}
-				total={stats.total}
 				recent={recent}
 				query={query}
 				setQuery={setQuery}
@@ -89,19 +110,7 @@ export default function CheckInPage() {
 
 	return (
 		<>
-			<EventOverview event={event} />
-			<PageHeader
-				level={2}
-				title="Check in"
-				// 24px above (the gap below the event details); sticks with 24px left, like the page headers
-				className="top-0 pt-6 pb-4"
-				actions={
-					<p className="flex items-baseline gap-1.5 whitespace-nowrap">
-						<span className="font-display text-2xl leading-tight">{stats.checkedIn}</span>
-						<span className="text-sm leading-normal text-med-blue">of {stats.total} checked in</span>
-					</p>
-				}
-			/>
+			{header}
 			<div className="flex flex-col gap-4 px-6 pb-7">
 				<form onSubmit={find} className="flex items-end gap-3 rounded-xl border border-med-blue bg-white px-6 py-5">
 					<TextField
@@ -223,9 +232,8 @@ function DesktopFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { atte
 }
 
 interface MobileProps extends Actions {
+	header: ReactNode;
 	event: DashboardEvent;
-	checkedIn: number;
-	total: number;
 	recent: RosterAttendee[];
 	query: string;
 	setQuery: (q: string) => void;
@@ -239,73 +247,65 @@ interface MobileProps extends Actions {
 
 function MobileCheckIn(p: MobileProps) {
 	return (
-		<div className="flex flex-col gap-6 px-5 pb-6">
-			<section className="flex flex-col gap-2">
-				<h1 className="font-display text-2xl leading-tight">{p.event.name}</h1>
-				<div className="flex items-center gap-2.5">
-					<p className="flex min-w-0 flex-1 items-baseline gap-1.5 leading-normal whitespace-nowrap">
-						<span className="font-display text-2xl">{p.checkedIn}</span>
-						<span className="text-lg text-med-blue">of {p.total} checked in</span>
-					</p>
-					<StatusBadge open={p.event.selfCheckInOpen} size="lg" />
-				</div>
-			</section>
-
-			{p.walkInFor !== null ? (
-				<WalkInCard event={p.event} prefill={p.walkInFor} onClose={p.closeWalkIn} />
-			) : (
-				<>
-					<form onSubmit={p.find} className="flex flex-col gap-4 rounded-2xl border border-med-blue bg-white p-5">
-						<TextField
-							ref={p.input}
-							size="lg"
-							label="Email or ticket number"
-							value={p.query}
-							onChange={(e) => p.setQuery(e.target.value)}
-							placeholder="jane@example.com"
-							type="search"
-							inputMode="email"
-							autoComplete="off"
-							autoCapitalize="off"
-							spellCheck={false}
-						/>
-						<button type="submit" className={`w-full ${buttonClass('primary', 'lg')}`}>
-							Find
-						</button>
-					</form>
-
-					{p.result?.kind === 'found' && <MobileFound attendee={p.result.attendee} timeZone={p.event.timeZone} {...p} />}
-					{p.result?.kind === 'not-found' && (
-						<section aria-live="polite" className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
-							<h2 className="font-display text-2xl leading-normal">{notFoundTitle(p.result.query)}</h2>
-							<p className="text-lg leading-normal text-med-blue">Check the spelling, or add them as a walk-in. They’ll get ticket {p.ticket}.</p>
-							<button type="button" onClick={() => p.addWalkIn((p.result as { query: string }).query)} className={`w-full ${buttonClass('primary', 'lg')}`}>
-								Add as walk-in
+		<>
+			{p.header}
+			<div className="flex flex-col gap-4 px-6 pb-7">
+				{p.walkInFor !== null ? (
+					<WalkInCard event={p.event} prefill={p.walkInFor} onClose={p.closeWalkIn} />
+				) : (
+					<>
+						<form onSubmit={p.find} className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
+							<TextField
+								ref={p.input}
+								size="lg"
+								label="Email or ticket number"
+								value={p.query}
+								onChange={(e) => p.setQuery(e.target.value)}
+								placeholder="jane@example.com"
+								type="search"
+								inputMode="email"
+								autoComplete="off"
+								autoCapitalize="off"
+								spellCheck={false}
+							/>
+							<button type="submit" className={`w-full ${buttonClass('primary', 'lg')}`}>
+								Find
 							</button>
-						</section>
-					)}
+						</form>
 
-					<section className="flex flex-col gap-3 rounded-2xl border border-med-blue bg-white p-5 leading-normal">
-						<h2 className="font-display text-xl">Recent check-ins</h2>
-						{p.recent.length === 0 && <p className="text-lg text-med-blue">No one has checked in yet.</p>}
-						<ul className="flex flex-col gap-3">
-							{p.recent.map((a) => (
-								<li key={a.id} className="flex items-center gap-3 py-1 text-lg">
-									<p className="min-w-0 flex-1 truncate font-bold text-black">{fullName(a)}</p>
-									<p className="shrink-0 text-med-blue">{formatClockTime(a.checkedInAt!, p.event.timeZone)}</p>
-								</li>
-							))}
-						</ul>
-					</section>
-				</>
-			)}
-		</div>
+						{p.result?.kind === 'found' && <MobileFound attendee={p.result.attendee} timeZone={p.event.timeZone} {...p} />}
+						{p.result?.kind === 'not-found' && (
+							<section aria-live="polite" className="flex flex-col gap-5 rounded-xl border border-med-blue bg-white p-5">
+								<h2 className="font-display text-2xl leading-normal">{notFoundTitle(p.result.query)}</h2>
+								<p className="text-lg leading-normal text-med-blue">Check the spelling, or add them as a walk-in. They’ll get ticket {p.ticket}.</p>
+								<button type="button" onClick={() => p.addWalkIn((p.result as { query: string }).query)} className={`w-full ${buttonClass('primary', 'lg')}`}>
+									Add as walk-in
+								</button>
+							</section>
+						)}
+
+						<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white p-5 leading-normal">
+							<h2 className="font-display text-xl">Recent check-ins</h2>
+							{p.recent.length === 0 && <p className="text-lg text-med-blue">No one has checked in yet.</p>}
+							<ul className="flex flex-col gap-3">
+								{p.recent.map((a) => (
+									<li key={a.id} className="flex items-center gap-3 py-1 text-lg">
+										<p className="min-w-0 flex-1 truncate font-bold text-black">{fullName(a)}</p>
+										<p className="shrink-0 text-med-blue">{formatClockTime(a.checkedInAt!, p.event.timeZone)}</p>
+									</li>
+								))}
+							</ul>
+						</section>
+					</>
+				)}
+			</div>
+		</>
 	);
 }
 
 function MobileFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { attendee: RosterAttendee; timeZone: string } & Actions) {
 	return (
-		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
+		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-5 rounded-xl border border-med-blue bg-white p-5">
 			<div className="flex items-center gap-3.5">
 				<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-lg">
 					{initials(attendee)}

@@ -87,7 +87,7 @@ export function WalkInDialog({ event, prefill = '', onClose }: { event: Dashboar
 export function WalkInCard({ event, prefill = '', onClose }: { event: DashboardEvent; prefill?: string; onClose: () => void }) {
 	const { fields, valid, ticket, submit } = useWalkInForm(event, prefill, onClose);
 	return (
-		<form onSubmit={submit} className="flex flex-col gap-5 rounded-2xl border border-med-blue bg-white p-5">
+		<form onSubmit={submit} className="flex flex-col gap-5 rounded-xl border border-med-blue bg-white p-5">
 			<div className="flex items-center">
 				<h2 className="min-w-0 flex-1 font-display text-3xl leading-tight">Add walk-in</h2>
 				<button type="button" aria-label="Close" onClick={onClose} className="-m-1 shrink-0 rounded p-1 hover:bg-light-blue/60">
