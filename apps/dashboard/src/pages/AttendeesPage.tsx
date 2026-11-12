@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import close from '../assets/close.svg';
 import magnifyingGlass from '../assets/magnifying-glass.svg';
@@ -8,7 +8,6 @@ import users from '../assets/users.svg';
 import AttendeeTable from '../components/AttendeeTable';
 import EmptyState from '../components/EmptyState';
 import EventOverview from '../components/EventOverview';
-import ImportDialog from '../components/ImportDialog';
 import PageHeader from '../components/PageHeader';
 import StatsCard from '../components/StatsCard';
 import { WalkInDialog } from '../components/WalkIn';
@@ -16,6 +15,9 @@ import type { ImportPlan } from '../lib/attendeeImport';
 import { useEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster } from '../lib/roster';
+
+// Loaded on first use, with the CSV library it brings
+const ImportDialog = lazy(() => import('../components/ImportDialog'));
 
 export default function AttendeesPage() {
 	const { slug = '' } = useParams();
@@ -120,7 +122,9 @@ export default function AttendeesPage() {
 			</div>
 			{walkIn !== null && <WalkInDialog event={event} prefill={walkIn} onClose={() => setWalkIn(null)} />}
 			{importing && (
-				<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
+				<Suspense fallback={null}>
+					<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
+				</Suspense>
 			)}
 		</>
 	);

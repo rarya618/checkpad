@@ -11,6 +11,23 @@ const API = process.env.VITE_USE_EMULATORS
 
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
+	build: {
+		// Firestore alone is about 650KB (190KB compressed), and almost every page needs it
+		chunkSizeWarningLimit: 700,
+		rolldownOptions: {
+			output: {
+				// The libraries get files of their own. They rarely change, so phones keep them cached
+				// (Hosting caches /assets/ for a year) and a deploy only re-downloads the app's code.
+				// Libraries only some pages use (QR codes, CSV) stay with those pages.
+				codeSplitting: {
+					groups: [
+						{ name: 'firebase', test: /node_modules[\\/](@firebase|firebase|re2js)[\\/]/ },
+						{ name: 'react', test: /node_modules[\\/](react|react-dom|react-router|scheduler|cookie|set-cookie-parser)[\\/]/ },
+					],
+				},
+			},
+		},
+	},
 	server: {
 		proxy: { '/api': { ...API, changeOrigin: true } },
 	},

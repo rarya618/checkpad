@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import calendar from './assets/calendar.svg';
 import chart from './assets/chart.svg';
 import checkCircle from './assets/check-circle.svg';
@@ -16,19 +16,35 @@ import { useRosterLoading } from './lib/roster';
 import { needsTeam, useCanEditEvents, useCurrentOrganiser, useMe } from './lib/organisers';
 import { useTeams } from './lib/teams';
 import { useIsDesktop } from './lib/useMediaQuery';
-import AnalyticsPage from './pages/AnalyticsPage';
 import AttendeesPage from './pages/AttendeesPage';
 import CheckInPage from './pages/CheckInPage';
-import EventAnalyticsPage from './pages/EventAnalyticsPage';
-import EventSettingsRoute from './pages/EventSettingsPage';
 import EventsPage from './pages/EventsPage';
-import NewEventPage from './pages/NewEventPage';
-import OnboardingPage from './pages/OnboardingPage';
-import OrganisersPage from './pages/OrganisersPage';
-import PrizeDrawPage from './pages/PrizeDrawPage';
 import { CheckEmailPage, NoAccessPage, SignInLinkPage, SignInPage } from './pages/SignInPages';
-import VenueDisplayPage from './pages/VenueDisplayPage';
-import WaitlistPage from './pages/WaitlistPage';
+
+/**
+ * A page loaded only when it's first opened, so the pages used on the night (events, attendees,
+ * check in, signing in) don't wait for the rest. Shows the spinner while its file loads.
+ */
+function lazyPage(load: () => Promise<{ default: ComponentType }>) {
+	const Page = lazy(load);
+	return function LazyPage() {
+		return (
+			<Suspense fallback={<Loading />}>
+				<Page />
+			</Suspense>
+		);
+	};
+}
+
+const AnalyticsPage = lazyPage(() => import('./pages/AnalyticsPage'));
+const EventAnalyticsPage = lazyPage(() => import('./pages/EventAnalyticsPage'));
+const EventSettingsRoute = lazyPage(() => import('./pages/EventSettingsPage'));
+const NewEventPage = lazyPage(() => import('./pages/NewEventPage'));
+const OnboardingPage = lazyPage(() => import('./pages/OnboardingPage'));
+const OrganisersPage = lazyPage(() => import('./pages/OrganisersPage'));
+const PrizeDrawPage = lazyPage(() => import('./pages/PrizeDrawPage'));
+const VenueDisplayPage = lazyPage(() => import('./pages/VenueDisplayPage'));
+const WaitlistPage = lazyPage(() => import('./pages/WaitlistPage'));
 
 const mainItems: SidebarItem[] = [
 	{ to: '/events', label: 'Events', icon: calendar },

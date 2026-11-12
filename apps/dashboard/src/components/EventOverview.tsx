@@ -1,6 +1,6 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { formatDate, formatTimeRange } from '@checkpad/shared/format';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import clipboard from '../assets/clipboard.svg';
 import download from '../assets/download.svg';
@@ -14,9 +14,11 @@ import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import type { DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
-import ImportDialog from './ImportDialog';
 import Menu from './Menu';
-import ShareDialog from './ShareDialog';
+
+// Opened rarely, and they bring the QR code and CSV libraries: loaded on first use
+const ImportDialog = lazy(() => import('./ImportDialog'));
+const ShareDialog = lazy(() => import('./ShareDialog'));
 
 // Top of an event's pages: breadcrumbs, event name, date, check-in link, actions. On phones
 // the actions go below, just under the top bar's logo instead of level with the sidebar's.
@@ -80,10 +82,12 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				</Menu>
 			</div>
 			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
-			{sharing && <ShareDialog event={event} onClose={() => setSharing(false)} />}
-			{importing && (
-				<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
-			)}
+			<Suspense fallback={null}>
+				{sharing && <ShareDialog event={event} onClose={() => setSharing(false)} />}
+				{importing && (
+					<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
+				)}
+			</Suspense>
 		</section>
 	);
 }
