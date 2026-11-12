@@ -86,7 +86,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 			<nav
 				aria-label="Main"
 				hidden={typing}
-				className="fixed inset-x-0 bottom-0 z-20 flex h-20 bg-white px-1.5 pb-4"
+				className="fixed inset-x-0 bottom-0 z-20 flex h-20 bg-white px-1.5 pb-4 shadow-[0_-2px_12px_rgb(17_45_78/0.14)]"
 			>
 				{items.map((i) => (
 					<NavLink key={i.to} to={i.to} end={i.end} className={tab}>
