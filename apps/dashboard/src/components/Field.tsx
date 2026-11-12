@@ -67,11 +67,11 @@ export function TextField({ label, hint, error, size = 'md', className, ...input
 
 type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { ref?: Ref<HTMLTextAreaElement> };
 
-/** A text field for a few lines, e.g. an event's description. Three rows tall; drag to resize. */
-export function TextAreaField({ label, hint, error, size = 'md', className, rows = 3, ...textarea }: Base & TextAreaProps) {
+/** A text field for a few lines, e.g. an event's description. A fixed four rows tall; longer text scrolls. */
+export function TextAreaField({ label, hint, error, size = 'md', className, rows = 4, ...textarea }: Base & TextAreaProps) {
 	return (
 		<Field label={label} hint={hint} error={error} size={size} className={className}>
-			{(control) => <textarea rows={rows} {...control} {...textarea} className={`${box(size)} block resize-y placeholder:text-[#bbbbbb]`} />}
+			{(control) => <textarea rows={rows} {...control} {...textarea} className={`${box(size)} block resize-none placeholder:text-[#bbbbbb]`} />}
 		</Field>
 	);
 }
