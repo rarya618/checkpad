@@ -8,7 +8,7 @@ import users from './assets/users.svg';
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
 import Loading, { LoadingSteps } from './components/Loading';
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
-import Sidebar, { type BackLink, type SidebarItem } from './components/Sidebar';
+import Sidebar, { type SidebarItem, type SidebarProps } from './components/Sidebar';
 import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
 import { useEvent, useEventsFor, useRenamedSlug } from './lib/events';
@@ -40,7 +40,8 @@ const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Wait
 // The window never scrolls: the sidebar is locked in place and only the content
 // column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and a
 // tab bar along the bottom instead (MobileNav), and the page scrolls normally.
-function DashboardLayout({ items, back, mobile }: { items: SidebarItem[]; back?: BackLink; mobile: MobileNavConfig }) {
+function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: MobileNavConfig }) {
+	const { back } = sidebar;
 	const desktop = useIsDesktop();
 	if (!desktop) {
 		return (
@@ -59,7 +60,7 @@ function DashboardLayout({ items, back, mobile }: { items: SidebarItem[]; back?:
 	return (
 		<div className="flex h-dvh overflow-hidden">
 			<div className="shrink-0 py-6 pr-3 pl-6">
-				<Sidebar items={items} back={back} />
+				<Sidebar {...sidebar} />
 			</div>
 			<div className="relative min-w-0 flex-1">
 				{/* No top padding here: page headers carry it so they can stick flush to the top */}
@@ -91,15 +92,21 @@ function EventLayout() {
 	const attendees = { to: base, label: 'Attendees', end: true, icon: users };
 	const checkIn = { to: `${base}/check-in`, label: 'Check in', icon: checkCircle };
 	const settings = { to: `${base}/settings`, label: 'Settings', icon: sliders };
+	// The projector screens, which open in a new tab
+	const screens = [
+		{ href: `${base}/display`, label: 'Venue display' },
+		{ href: `${base}/prize-draw`, label: 'Prize draw' },
+	];
 	return (
 		<DashboardLayout
 			items={[attendees, checkIn, { to: `${base}/analytics`, label: 'Analytics' }, ...(canEdit ? [settings] : [])]}
 			back={{ to: '/events', label: 'All events' }}
+			screens={screens}
 			// Figma "Staff check in (mobile) – menu": no Analytics on phones
 			mobile={{
 				title: event.name,
 				items: [attendees, checkIn, ...(canEdit ? [settings] : [])],
-				extras: [{ label: 'Open prize draw', href: `${base}/prize-draw` }],
+				extras: screens.map((x) => ({ ...x, label: `Open ${x.label.toLowerCase()}` })),
 			}}
 		/>
 	);

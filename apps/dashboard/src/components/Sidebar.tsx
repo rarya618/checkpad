@@ -23,7 +23,20 @@ export interface BackLink {
 	label: string;
 }
 
-export default function Sidebar({ items, back }: { items: SidebarItem[]; back?: BackLink }) {
+/** A page that opens in a new tab, e.g. a full-screen display for the venue's projector. */
+export interface ScreenLink {
+	href: string;
+	label: string;
+}
+
+export interface SidebarProps {
+	items: SidebarItem[];
+	back?: BackLink;
+	/** Under the menu, headed "Screens". */
+	screens?: ScreenLink[];
+}
+
+export default function Sidebar({ items, back, screens }: SidebarProps) {
 	return (
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-4 pt-7.5 pb-4">
 			<div className="flex w-full flex-col gap-5">
@@ -58,6 +71,29 @@ export default function Sidebar({ items, back }: { items: SidebarItem[]; back?: 
 						))}
 					</ul>
 				</nav>
+				{screens && screens.length > 0 && (
+					<section aria-labelledby="sidebar-screens" className="flex flex-col gap-1">
+						<h2 id="sidebar-screens" className="px-5 pb-1 text-xs tracking-[0.01em] text-med-blue">
+							Screens
+						</h2>
+						<ul className="flex flex-col gap-1">
+							{screens.map((screen) => (
+								<li key={screen.href}>
+									<a
+										href={screen.href}
+										target="_blank"
+										rel="noreferrer"
+										className="flex items-center justify-between rounded-md px-5 py-1.5 text-base tracking-[-0.01em] hover:bg-white/50"
+									>
+										{screen.label}
+										{/* The right arrow turned up: opens in a new tab */}
+										<img src={arrow} alt="(opens in a new tab)" width={16} height={16} className="-rotate-45 opacity-70" />
+									</a>
+								</li>
+							))}
+						</ul>
+					</section>
+				)}
 			</div>
 			<div className="flex w-full items-center justify-between border-t border-med-blue/50 px-3.5 py-5">
 				<AccountSummary />
