@@ -255,8 +255,8 @@ function MobileCheckIn(p: MobileProps) {
 					<WalkInCard event={p.event} prefill={p.walkInFor} onClose={p.closeWalkIn} />
 				) : (
 					<>
-						{/* Desktop's form: the box and Find side by side, at the dashboard's usual sizes */}
-						<form onSubmit={p.find} className="flex items-end gap-3 rounded-xl border border-med-blue bg-white p-5">
+						{/* The box with Find below it, full width and as tall as the box */}
+						<form onSubmit={p.find} className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white p-5">
 							<TextField
 								ref={p.input}
 								label="Email or ticket number"
@@ -268,9 +268,8 @@ function MobileCheckIn(p: MobileProps) {
 								autoComplete="off"
 								autoCapitalize="off"
 								spellCheck={false}
-								className="min-w-0 flex-1"
 							/>
-							<button type="submit" className={`${buttonClass('primary')} h-12`}>
+							<button type="submit" className={`w-full ${buttonClass('primary')} h-12`}>
 								Find
 							</button>
 						</form>
