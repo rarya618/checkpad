@@ -1,5 +1,6 @@
 import logo from '@checkpad/shared/checkpad-logo.svg';
-import { NavLink } from 'react-router';
+import { Link, NavLink } from 'react-router';
+import arrow from '../assets/arrow-right.svg';
 import ellipsis from '../assets/ellipsis-vertical.svg';
 import logout from '../assets/logout.svg';
 import switchIcon from '../assets/switch.svg';
@@ -16,14 +17,29 @@ export interface SidebarItem {
 	icon?: string;
 }
 
-export default function Sidebar({ items }: { items: SidebarItem[] }) {
+/** A way out of a section, e.g. from an event back to all events. */
+export interface BackLink {
+	to: string;
+	label: string;
+}
+
+export default function Sidebar({ items, back }: { items: SidebarItem[]; back?: BackLink }) {
 	return (
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-4 pt-7.5 pb-4">
 			<div className="flex w-full flex-col gap-5">
-				<div className="px-3 py-1">
+				<Link to="/events" className="self-start px-3 py-1">
 					<img src={logo} alt="checkpad" width={151} height={36} />
-				</div>
-				<nav aria-label="Main">
+				</Link>
+				<nav aria-label="Main" className="flex flex-col gap-3">
+					{back && (
+						<Link
+							to={back.to}
+							className="flex items-center gap-2 border-b border-med-blue/50 px-3 pb-3 text-sm tracking-[-0.01em] text-med-blue hover:text-dark-blue"
+						>
+							<img src={arrow} alt="" width={18} height={18} className="rotate-180" />
+							{back.label}
+						</Link>
+					)}
 					<ul className="flex flex-col gap-1">
 						{items.map((item) => (
 							<li key={item.to}>

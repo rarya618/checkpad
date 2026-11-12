@@ -1,11 +1,12 @@
 import logo from '@checkpad/shared/checkpad-logo.svg';
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useLocation } from 'react-router';
+import { Link, NavLink, useLocation } from 'react-router';
+import arrow from '../assets/arrow-right.svg';
 import close from '../assets/close.svg';
 import moreIcon from '../assets/more.svg';
 import { signOut, useSession } from '../lib/auth';
 import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
-import type { SidebarItem } from './Sidebar';
+import type { BackLink, SidebarItem } from './Sidebar';
 
 export interface MobileNavConfig {
 	/** Heading at the top of the More sheet, e.g. the event name. */
@@ -17,12 +18,14 @@ export interface MobileNavConfig {
 	 * `href` opens in a new tab: a full-screen display for the venue's projector.
 	 */
 	extras: { label: string; to?: string; href?: string; disabled?: boolean; onSelect?: () => void }[];
+	/** In the top bar, opposite the logo: a way out of this section. */
+	back?: BackLink;
 }
 
 // Phones get Figma "Staff check in (mobile)"'s top bar instead of the sidebar, and a tab
 // bar along the bottom (not in Figma) with the section's pages. Its last tab, More, opens
 // the rest of Figma's menu ("– menu") as a sheet from the bottom.
-export default function MobileNav({ title, items, extras }: MobileNavConfig) {
+export default function MobileNav({ title, items, extras, back }: MobileNavConfig) {
 	const [open, setOpen] = useState(false);
 	const session = useSession();
 	const me = useCurrentOrganiser();
@@ -66,8 +69,16 @@ export default function MobileNav({ title, items, extras }: MobileNavConfig) {
 
 	return (
 		<>
-			<header className="px-5 pt-5 pb-6">
-				<img src={logo} alt="checkpad" width={134} height={32} />
+			<header className="flex items-center justify-between gap-4 px-5 pt-5 pb-6">
+				<Link to="/events">
+					<img src={logo} alt="checkpad" width={134} height={32} />
+				</Link>
+				{back && (
+					<Link to={back.to} className="-my-2 flex items-center gap-1.5 py-2 text-sm tracking-[-0.01em] text-med-blue">
+						<img src={arrow} alt="" width={18} height={18} className="rotate-180" />
+						{back.label}
+					</Link>
+				)}
 			</header>
 			{/* A card like the sidebar, inset 24px like the page: App.tsx keeps the page and toasts
 			    clear of its 88px. Hidden while typing, so it doesn't ride up above the keyboard. */}

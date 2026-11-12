@@ -8,7 +8,7 @@ import users from './assets/users.svg';
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router';
 import Loading, { LoadingSteps } from './components/Loading';
 import MobileNav, { type MobileNavConfig } from './components/MobileNav';
-import Sidebar, { type SidebarItem } from './components/Sidebar';
+import Sidebar, { type BackLink, type SidebarItem } from './components/Sidebar';
 import Toaster from './components/Toaster';
 import { useSession } from './lib/auth';
 import { useEvent, useEventsFor, useRenamedSlug } from './lib/events';
@@ -40,12 +40,12 @@ const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Wait
 // The window never scrolls: the sidebar is locked in place and only the content
 // column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and a
 // tab bar along the bottom instead (MobileNav), and the page scrolls normally.
-function DashboardLayout({ items, mobile }: { items: SidebarItem[]; mobile: MobileNavConfig }) {
+function DashboardLayout({ items, back, mobile }: { items: SidebarItem[]; back?: BackLink; mobile: MobileNavConfig }) {
 	const desktop = useIsDesktop();
 	if (!desktop) {
 		return (
 			<div className="min-h-dvh">
-				<MobileNav {...mobile} />
+				<MobileNav {...mobile} back={back} />
 				{/* Clear of the tab bar, which the toasts sit above too */}
 				<main className="pb-24">
 					<Outlet />
@@ -59,7 +59,7 @@ function DashboardLayout({ items, mobile }: { items: SidebarItem[]; mobile: Mobi
 	return (
 		<div className="flex h-dvh overflow-hidden">
 			<div className="shrink-0 py-6 pr-3 pl-6">
-				<Sidebar items={items} />
+				<Sidebar items={items} back={back} />
 			</div>
 			<div className="relative min-w-0 flex-1">
 				{/* No top padding here: page headers carry it so they can stick flush to the top */}
@@ -94,14 +94,12 @@ function EventLayout() {
 	return (
 		<DashboardLayout
 			items={[attendees, checkIn, { to: `${base}/analytics`, label: 'Analytics' }, ...(canEdit ? [settings] : [])]}
+			back={{ to: '/events', label: 'All events' }}
 			// Figma "Staff check in (mobile) – menu": no Analytics on phones
 			mobile={{
 				title: event.name,
 				items: [attendees, checkIn, ...(canEdit ? [settings] : [])],
-				extras: [
-					{ label: 'All events', to: '/events' },
-					{ label: 'Open prize draw', href: `${base}/prize-draw` },
-				],
+				extras: [{ label: 'Open prize draw', href: `${base}/prize-draw` }],
 			}}
 		/>
 	);
