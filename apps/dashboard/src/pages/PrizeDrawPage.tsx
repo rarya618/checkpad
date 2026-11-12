@@ -1,8 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
-import logo from '@checkpad/shared/checkpad-logo.svg';
+import logo from '@checkpad/shared/checkpad-logo-light.svg';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useParams } from 'react-router';
-import gift from '../assets/gift-large.svg';
 import x from '../assets/x.svg';
 import Dialog from '../components/Dialog';
 import { fullName } from '../lib/checkIn';
@@ -13,8 +12,9 @@ import { addWinner, markLatestNotHere, resetDraw, useDraw } from '../lib/prizeDr
 import { useRoster, useRosterLoading } from '../lib/roster';
 import { showToast } from '../lib/toast';
 
-// Figma "Prize draw display – ready / drawing / winner / nobody checked in / everyone has
-// won / start over?". Full screen on the venue's projector, names only (no emails or tickets).
+// The prize draw display: ready, drawing, winner, nobody checked in, everyone has won, start
+// over?. Redesigned dark for the projector on 12 November 2026, so it no longer follows the
+// Figma frames. Full screen on the venue's projector, names only (no emails or tickets).
 export default function PrizeDrawPage() {
 	const { slug } = useParams();
 	const event = useEvent(slug);
@@ -78,120 +78,116 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 						? 'everyone-won'
 						: 'ready';
 	const stillIn = pool.length;
+	const startOverLink = (
+		<button type="button" onClick={() => setConfirmStartOver(true)} className="text-lg font-semibold text-light-blue underline hover:text-off-white">
+			Start over
+		</button>
+	);
 
 	return (
-		<main className="flex min-h-dvh flex-col items-center justify-center gap-10 p-5 text-center">
-			<div className="flex flex-col items-center gap-3 leading-tight">
-				<h1 className="font-display text-[clamp(40px,6vh,64px)]">{name}</h1>
-				<p className="text-[clamp(24px,3.4vh,36px)] text-med-blue">Prize draw</p>
-			</div>
+		// The venue's projector: dark, so it holds up in a lit room. The audience sees one thing
+		// in the middle; the event name sits small at the top and the organiser's controls at the bottom.
+		<main className="flex min-h-dvh flex-col gap-8 bg-dark-blue p-8 text-off-white md:p-12">
+			<header className="flex flex-col gap-1">
+				<h1 className="font-display text-3xl md:text-4xl">{name}</h1>
+				<p className="text-xl text-light-blue md:text-2xl">Prize draw</p>
+			</header>
 
-			<section aria-live="polite" className="flex min-h-[min(460px,44vh)] w-full max-w-[1300px] flex-col items-center justify-center gap-5">
+			<section aria-live="polite" className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
 				{view === 'drawing' && (
-					<>
-						<p className="max-w-full truncate font-display text-[clamp(56px,10vh,112px)] leading-tight text-light-blue" aria-hidden="true">
-							{spinning || '…'}
-						</p>
-						<p className="text-[clamp(28px,3.7vh,40px)] leading-tight text-med-blue">Drawing…</p>
-					</>
+					<p className="max-w-full truncate font-display text-7xl text-med-blue md:text-9xl" aria-hidden="true">
+						{spinning || '…'}
+					</p>
 				)}
 
 				{view === 'winner' && latest && (
-					<>
-						<p className="text-[clamp(24px,3vh,32px)] leading-tight font-semibold text-med-blue">Winner #{draw.winners.length}</p>
-						<p className="max-w-full font-display text-[clamp(64px,11.8vh,128px)] leading-tight break-words">{fullName(latest)}</p>
-						<div aria-hidden="true" className="flex h-2.5 w-[330px] overflow-hidden rounded-full">
-							<span className="flex-1 bg-dark-blue" />
-							<span className="flex-1 bg-med-blue" />
-							<span className="flex-1 bg-light-blue" />
-						</div>
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">
-							{stillIn} still in the draw
+					// Keyed by winner, so each new one plays the reveal
+					<div key={latest.id} className="flex max-w-full flex-col items-center gap-4 motion-safe:animate-winner-in">
+						<p className="text-2xl font-semibold text-light-blue md:text-3xl">Winner #{draw.winners.length}</p>
+						<p className={`max-w-full font-display break-words ${fullName(latest).length > 18 ? 'text-6xl md:text-8xl' : 'text-7xl md:text-9xl'}`}>
+							{fullName(latest)}
 						</p>
-						<div className="flex gap-4 pt-3">
-							<button
-								type="button"
-								onClick={() => {
-									markLatestNotHere(event, draw).catch(() => showToast('Couldn’t save that. Try again.'));
-									drawWinner();
-								}}
-								disabled={stillIn === 0}
-								className={`${buttonClass('secondary', 'lg')} disabled:opacity-50`}
-							>
-								Not here
-							</button>
-							<button type="button" onClick={drawWinner} className={buttonClass('primary', 'lg')}>
-								Draw again
-							</button>
-						</div>
-						<button type="button" onClick={() => setConfirmStartOver(true)} className="text-lg leading-normal font-semibold text-med-blue underline">
-							Start over
-						</button>
-					</>
+					</div>
 				)}
 
-				{view === 'ready' && (
+				{(view === 'ready' || view === 'nobody') && (
 					<>
-						<GiftIcon />
-						<Count n={stillIn} />
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">Everyone who has checked in tonight</p>
-						<div className="pt-5">
-							<button type="button" onClick={drawWinner} className={buttonClass('primary', 'lg')}>
-								Draw a winner
-							</button>
-						</div>
-					</>
-				)}
-
-				{view === 'nobody' && (
-					<>
-						<GiftIcon />
-						<Count n={0} />
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">Check people in first. The draw uses everyone who has arrived.</p>
-						<div className="pt-5">
-							<button type="button" disabled className={`${buttonClass('primary', 'lg')} disabled:opacity-50`}>
-								Draw a winner
-							</button>
-						</div>
+						<p className="flex flex-wrap items-baseline justify-center gap-x-6">
+							<span className="font-display text-8xl md:text-9xl">{stillIn}</span>
+							<span className="text-3xl text-light-blue md:text-5xl">{stillIn === 1 ? 'person' : 'people'} in the draw</span>
+						</p>
+						<p className="text-xl text-light-blue md:text-2xl">
+							{view === 'ready' ? 'Everyone who has checked in' : 'Check people in first. The draw uses everyone who has arrived.'}
+						</p>
 					</>
 				)}
 
 				{view === 'everyone-won' && (
 					<>
-						<GiftIcon />
-						<p className="font-display text-[clamp(32px,3.7vh,40px)] leading-tight">Everyone here has won</p>
-						<p className="text-[clamp(22px,2.6vh,28px)] leading-tight text-med-blue">
-							Start over to put all {checkedIn.length} people back in the draw.
-						</p>
-						<div className="pt-5">
-							<button type="button" onClick={() => setConfirmStartOver(true)} className={buttonClass('primary', 'lg')}>
-								Start over
-							</button>
-						</div>
+						<p className="font-display text-5xl md:text-7xl">Everyone here has won</p>
+						<p className="text-xl text-light-blue md:text-2xl">Start over to put all {checkedIn.length} people back in the draw.</p>
 					</>
 				)}
 			</section>
 
-			<div className="flex flex-col items-center gap-2">
-				<p className="text-[clamp(22px,3vh,32px)] leading-tight font-light text-med-blue">powered by</p>
-				<img src={logo} alt="checkpad" width={268} height={64} />
-			</div>
+			<footer className="flex flex-wrap items-end justify-between gap-6">
+				<div className="flex flex-col gap-3">
+					<p className="min-h-7 text-lg text-light-blue md:text-xl">
+						{view === 'drawing' ? 'Drawing…' : view === 'winner' ? `${stillIn} still in the draw` : ''}
+					</p>
+					{/* The organiser's controls; the row keeps its height while drawing so nothing jumps */}
+					<div className="flex min-h-13 flex-wrap items-center gap-3">
+						{(view === 'ready' || view === 'nobody') && (
+							<button type="button" onClick={drawWinner} disabled={view === 'nobody'} className={`${buttonClass('inverse', 'tall')} disabled:opacity-50`}>
+								Draw a winner
+							</button>
+						)}
+						{view === 'winner' && (
+							<>
+								<button
+									type="button"
+									onClick={() => {
+										markLatestNotHere(event, draw).catch(() => showToast('Couldn’t save that. Try again.'));
+										drawWinner();
+									}}
+									disabled={stillIn === 0}
+									className={`${buttonClass('inverseSecondary', 'tall')} disabled:opacity-50`}
+								>
+									Not here
+								</button>
+								<button type="button" onClick={drawWinner} className={buttonClass('inverse', 'tall')}>
+									Draw again
+								</button>
+								<span className="pl-2">{startOverLink}</span>
+							</>
+						)}
+						{view === 'everyone-won' && (
+							<button type="button" onClick={() => setConfirmStartOver(true)} className={buttonClass('inverse', 'tall')}>
+								Start over
+							</button>
+						)}
+					</div>
+				</div>
+				<div className="flex items-center gap-3">
+					<p className="text-lg text-light-blue">powered by</p>
+					<img src={logo} alt="checkpad" width={134} height={32} />
+				</div>
+			</footer>
 
 			{confirmStartOver && (
 				<Dialog
-					size="lg"
 					title="Start the draw over?"
 					description={`${draw.winners.length === 1 ? 'The winner goes' : `All ${draw.winners.length} winners go`} back into the draw, along with anyone marked not here.`}
 					onClose={() => setConfirmStartOver(false)}
-					className="w-[600px] text-left"
+					className="w-[450px] text-left"
 					closeButton={
 						<button type="button" aria-label="Close" onClick={() => setConfirmStartOver(false)} className="shrink-0 rounded p-0.5 hover:bg-light-blue/60">
-							<img src={x} alt="" width={24} height={24} />
+							<img src={x} alt="" width={18} height={18} />
 						</button>
 					}
 				>
-					<div className="flex justify-end gap-4">
-						<button type="button" onClick={() => setConfirmStartOver(false)} className={buttonClass('secondary', 'lg')}>
+					<div className="flex justify-end gap-3">
+						<button type="button" onClick={() => setConfirmStartOver(false)} className={buttonClass('secondary')}>
 							Cancel
 						</button>
 						<button
@@ -201,7 +197,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 								setShowWinner(true);
 								setConfirmStartOver(false);
 							}}
-							className={buttonClass('primary', 'lg')}
+							className={buttonClass('primary')}
 						>
 							Start over
 						</button>
@@ -213,22 +209,5 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 				<Toaster />
 			</div>
 		</main>
-	);
-}
-
-function GiftIcon() {
-	return (
-		<span className="flex size-28 items-center justify-center rounded-full bg-light-blue">
-			<img src={gift} alt="" width={48} height={48} />
-		</span>
-	);
-}
-
-function Count({ n }: { n: number }) {
-	return (
-		<p className="flex items-baseline gap-5 leading-tight">
-			<span className="font-display text-[clamp(64px,9vh,96px)]">{n}</span>
-			<span className="text-[clamp(28px,3.7vh,40px)] text-med-blue">{n === 1 ? 'person' : 'people'} in the draw</span>
-		</p>
 	);
 }

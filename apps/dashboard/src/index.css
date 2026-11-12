@@ -40,6 +40,18 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 }
 
+@theme {
+  /* The prize draw's winner: the one moment on that screen that moves on its own */
+  --animate-winner-in: winner-in 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  @keyframes winner-in {
+    from {
+      opacity: 0;
+      scale: 0.92;
+    }
+  }
+}
+
 /* Dialogs fade in with their scrim */
 @media (prefers-reduced-motion: no-preference) {
   dialog[open] {

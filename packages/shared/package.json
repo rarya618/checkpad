@@ -11,6 +11,7 @@
     "./attendees": "./src/attendees.ts",
     "./format": "./src/format.ts",
     "./checkpad-logo.svg": "./assets/checkpad-logo.svg",
+    "./checkpad-logo-light.svg": "./assets/checkpad-logo-light.svg",
     "./api": "./src/api.ts"
   }
 }
