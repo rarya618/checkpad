@@ -87,21 +87,21 @@ export function WalkInDialog({ event, prefill = '', onClose }: { event: Dashboar
 export function WalkInCard({ event, prefill = '', onClose }: { event: DashboardEvent; prefill?: string; onClose: () => void }) {
 	const { fields, valid, ticket, submit } = useWalkInForm(event, prefill, onClose);
 	return (
-		<form onSubmit={submit} className="flex flex-col gap-5 rounded-xl border border-med-blue bg-white p-5">
+		<form onSubmit={submit} className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
 			<div className="flex items-center">
-				<h2 className="min-w-0 flex-1 font-display text-3xl leading-tight">Add walk-in</h2>
+				<h2 className="min-w-0 flex-1 font-display text-xl leading-tight">Add walk-in</h2>
 				<button type="button" aria-label="Close" onClick={onClose} className="-m-1 shrink-0 rounded p-1 hover:bg-light-blue/60">
-					<img src={close} alt="" width={28} height={28} />
+					<img src={close} alt="" width={22} height={22} />
 				</button>
 			</div>
-			<TextField size="lg" label="First name" {...fields.firstName} autoFocus />
-			<TextField size="lg" label="Last name" {...fields.lastName} />
-			<TextField size="lg" label="Email" {...fields.email} />
-			<div className="flex items-center gap-2.5 rounded-xl bg-light-blue px-4 py-3 leading-normal">
-				<p className="min-w-0 flex-1 text-base font-bold">Ticket</p>
-				<p className="shrink-0 font-mono text-lg">{ticket}</p>
+			<TextField label="First name" {...fields.firstName} autoFocus />
+			<TextField label="Last name" {...fields.lastName} />
+			<TextField label="Email" {...fields.email} />
+			<div className="flex items-center gap-2.5 rounded-lg bg-light-blue px-4 py-2 leading-normal">
+				<p className="min-w-0 flex-1 text-sm font-bold">Ticket</p>
+				<p className="shrink-0 font-mono text-sm">{ticket}</p>
 			</div>
-			<button type="submit" disabled={!valid} className={`w-full ${buttonClass('primary', 'lg')} disabled:opacity-50`}>
+			<button type="submit" disabled={!valid} className={`w-full ${buttonClass('primary')} disabled:opacity-50`}>
 				Add and check in
 			</button>
 		</form>

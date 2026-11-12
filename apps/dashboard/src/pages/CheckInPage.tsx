@@ -16,8 +16,8 @@ import { useIsDesktop } from '../lib/useMediaQuery';
 type Result = { kind: 'found'; attendee: RosterAttendee } | { kind: 'not-found'; query: string } | null;
 
 // Figma "Check in – found / already arrived / not found" (desktop, 75% scale) and
-// "Staff check in (mobile)" (full size, for one-handed use at the door, under the same header as
-// the other event pages instead of Figma's own). Staff look someone up by email or ticket number.
+// "Staff check in (mobile)", at the dashboard's usual sizes rather than Figma's full size, under
+// the same header as the other event pages. Staff look someone up by email or ticket number.
 export default function CheckInPage() {
 	const { slug = '' } = useParams();
 	// EventLayout has already redirected unknown slugs.
@@ -254,10 +254,10 @@ function MobileCheckIn(p: MobileProps) {
 					<WalkInCard event={p.event} prefill={p.walkInFor} onClose={p.closeWalkIn} />
 				) : (
 					<>
-						<form onSubmit={p.find} className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
+						{/* Desktop's form: the box and Find side by side, at the dashboard's usual sizes */}
+						<form onSubmit={p.find} className="flex items-end gap-3 rounded-xl border border-med-blue bg-white p-5">
 							<TextField
 								ref={p.input}
-								size="lg"
 								label="Email or ticket number"
 								value={p.query}
 								onChange={(e) => p.setQuery(e.target.value)}
@@ -267,31 +267,34 @@ function MobileCheckIn(p: MobileProps) {
 								autoComplete="off"
 								autoCapitalize="off"
 								spellCheck={false}
+								className="min-w-0 flex-1"
 							/>
-							<button type="submit" className={`w-full ${buttonClass('primary', 'lg')}`}>
+							<button type="submit" className={buttonClass('primary')}>
 								Find
 							</button>
 						</form>
 
 						{p.result?.kind === 'found' && <MobileFound attendee={p.result.attendee} timeZone={p.event.timeZone} {...p} />}
 						{p.result?.kind === 'not-found' && (
-							<section aria-live="polite" className="flex flex-col gap-5 rounded-xl border border-med-blue bg-white p-5">
-								<h2 className="font-display text-2xl leading-normal">{notFoundTitle(p.result.query)}</h2>
-								<p className="text-lg leading-normal text-med-blue">Check the spelling, or add them as a walk-in. They’ll get ticket {p.ticket}.</p>
-								<button type="button" onClick={() => p.addWalkIn((p.result as { query: string }).query)} className={`w-full ${buttonClass('primary', 'lg')}`}>
+							<section aria-live="polite" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
+								<div className="flex flex-col gap-1">
+									<h2 className="font-display text-xl leading-tight">{notFoundTitle(p.result.query)}</h2>
+									<p className="text-sm leading-normal text-med-blue">Check the spelling, or add them as a walk-in. They’ll get ticket {p.ticket}.</p>
+								</div>
+								<button type="button" onClick={() => p.addWalkIn((p.result as { query: string }).query)} className={`w-full ${buttonClass('primary')}`}>
 									Add as walk-in
 								</button>
 							</section>
 						)}
 
 						<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white p-5 leading-normal">
-							<h2 className="font-display text-xl">Recent check-ins</h2>
-							{p.recent.length === 0 && <p className="text-lg text-med-blue">No one has checked in yet.</p>}
-							<ul className="flex flex-col gap-3">
+							<h2 className="font-display text-lg">Recent check-ins</h2>
+							{p.recent.length === 0 && <p className="text-sm text-med-blue">No one has checked in yet.</p>}
+							<ul className="flex flex-col gap-2">
 								{p.recent.map((a) => (
-									<li key={a.id} className="flex items-center gap-3 py-1 text-lg">
+									<li key={a.id} className="flex items-center gap-3 py-1 text-base">
 										<p className="min-w-0 flex-1 truncate font-bold text-black">{fullName(a)}</p>
-										<p className="shrink-0 text-med-blue">{formatClockTime(a.checkedInAt!, p.event.timeZone)}</p>
+										<p className="shrink-0 text-sm text-med-blue">{formatClockTime(a.checkedInAt!, p.event.timeZone)}</p>
 									</li>
 								))}
 							</ul>
@@ -305,37 +308,32 @@ function MobileCheckIn(p: MobileProps) {
 
 function MobileFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { attendee: RosterAttendee; timeZone: string } & Actions) {
 	return (
-		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-5 rounded-xl border border-med-blue bg-white p-5">
-			<div className="flex items-center gap-3.5">
-				<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-lg">
+		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
+			<div className="flex items-center gap-3">
+				<span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-sm">
 					{initials(attendee)}
 				</span>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal text-black">
-					<h2 className="truncate font-display text-2xl">{fullName(attendee)}</h2>
-					<p className="truncate text-lg">{attendee.email}</p>
+					<h2 className="truncate font-display text-xl leading-tight">{fullName(attendee)}</h2>
+					<p className="truncate text-sm">{attendee.email}</p>
 				</div>
 			</div>
-			<div className="flex items-center gap-2.5 rounded-xl bg-off-white px-4 py-2.5 leading-normal">
-				<p className="min-w-0 flex-1 text-base font-bold text-med-blue">Ticket</p>
-				<p className="shrink-0 font-mono text-lg text-black">{attendee.ticket}</p>
+			<div className="flex items-center gap-2.5 rounded-lg bg-off-white px-4 py-2 leading-normal">
+				<p className="min-w-0 flex-1 text-sm font-bold text-med-blue">Ticket</p>
+				<p className="shrink-0 font-mono text-sm text-black">{attendee.ticket}</p>
 			</div>
 			{attendee.checkedInAt ? (
-				<div className="flex items-center gap-3 rounded-xl bg-off-white py-3 pr-3 pl-4">
+				<div className="flex items-center gap-3 rounded-lg bg-off-white py-2 pr-2 pl-4">
 					<div className="flex min-w-0 flex-1 flex-col leading-normal">
-						<p className="text-lg font-bold">Already arrived</p>
-						<p className="text-base text-med-blue">Checked in at {formatClockTime(attendee.checkedInAt, timeZone)}</p>
+						<p className="text-sm font-bold">Already arrived</p>
+						<p className="text-sm text-med-blue">Checked in at {formatClockTime(attendee.checkedInAt, timeZone)}</p>
 					</div>
-					<button
-						type="button"
-						onClick={() => undoCheckIn(attendee)}
-						// Figma's secondary button with an 18px label (between buttonClass md and lg)
-						className="shrink-0 rounded-xl bg-light-blue px-10 py-3 font-display text-lg leading-normal transition-colors hover:bg-light-blue-hover"
-					>
+					<button type="button" onClick={() => undoCheckIn(attendee)} className={`shrink-0 ${buttonClass('secondary')}`}>
 						Undo
 					</button>
 				</div>
 			) : (
-				<button type="button" onClick={() => checkIn(attendee)} className={`w-full ${buttonClass('primary', 'lg')}`}>
+				<button type="button" onClick={() => checkIn(attendee)} className={`w-full ${buttonClass('primary')}`}>
 					Check in {attendee.firstName}
 				</button>
 			)}
