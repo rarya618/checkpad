@@ -52,13 +52,16 @@ export default function PageHeader({
 	const spacing = desktop ? className : `top-0 pb-4 ${above}`;
 	return (
 		<header className={`sticky z-10 bg-off-white px-6 ${spacing}`}>
-			{/* As tall as the sidebar logo (36px), which the title fills; taller buttons overhang it evenly */}
-			<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-3 md:h-9 md:flex-nowrap">
-				<div className="flex min-w-0 items-center gap-3">
+			{/* Actions that don't fit beside the title wrap below it, on desktop too: the sidebar
+			    leaves narrow windows little room */}
+			<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-3 md:gap-y-4">
+				<div className="flex min-h-9 min-w-0 items-center gap-3">
 					<Heading className="font-display text-2xl md:text-3xl">{title}</Heading>
 					{titleAddon}
 				</div>
-				{actions}
+				{/* As tall as the sidebar logo (36px), which the title fills; taller buttons overhang it
+				    evenly, so the title stays level with the logo */}
+				<div className="contents md:flex md:h-9 md:max-w-full md:items-center">{actions}</div>
 			</div>
 		</header>
 	);

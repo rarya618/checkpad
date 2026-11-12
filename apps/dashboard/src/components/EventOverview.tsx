@@ -29,8 +29,10 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 	return (
-		<section className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:items-center md:gap-3 md:pt-14">
-			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px">
+		// The actions sit beside the details, and wrap below them once the details would be
+		// narrower than 256px (narrow windows, with the sidebar)
+		<section className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:flex-wrap md:items-center md:gap-x-3 md:pt-14">
+			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px md:w-auto md:basis-64">
 				<nav aria-label="Breadcrumb">
 					<ol className="flex items-center gap-1.5 text-sm text-black">
 						<li>

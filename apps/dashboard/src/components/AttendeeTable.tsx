@@ -9,7 +9,7 @@ import { checkIn, undoCheckIn } from '../lib/checkIn';
 import type { DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import type { RosterAttendee } from '../lib/roster';
-import { useIsDesktop } from '../lib/useMediaQuery';
+import { useIsDesktop, useMediaQuery } from '../lib/useMediaQuery';
 import Menu from './Menu';
 import RemoveWalkInDialog from './RemoveWalkInDialog';
 
@@ -18,27 +18,29 @@ interface Props {
 	attendees: RosterAttendee[];
 }
 
-// The page shows Figma's empty states instead of an empty table. Phones leave out the ticket
-// column (search still finds tickets) to give names room.
+// The page shows Figma's empty states instead of an empty table. Phones and narrow windows
+// leave out the ticket column (search still finds tickets) to give names room.
 export default function AttendeeTable({ event, attendees }: Props) {
 	// Organisers remove any walk-in; staff only the ones they added (firestore.rules)
 	const canEdit = useCanEditEvents();
 	const me = myEmail();
 	const canRemove = (a: RosterAttendee) => a.walkIn && (canEdit || a.addedBy === me);
 	const desktop = useIsDesktop();
+	// The ticket column needs a wide window: below 1024px the sidebar leaves the names too little room
+	const showTicket = useMediaQuery('(min-width: 1024px)');
 	return (
 		<div className="rounded-2xl bg-white px-4 py-5 md:px-6">
 			<table className="w-full table-fixed">
 				<colgroup>
 					<col />
-					{desktop && <col className="w-[165px]" />}
+					{showTicket && <col className="w-[165px]" />}
 					<col className="w-[112px]" />
 					<col className={desktop ? 'w-[42px]' : 'w-[30px]'} />
 				</colgroup>
 				<thead>
 					<tr className="text-left font-display text-sm text-black">
 						<th className="pr-2 pb-2">Attendee</th>
-						{desktop && <th className="pr-2 pb-2">Ticket</th>}
+						{showTicket && <th className="pr-2 pb-2">Ticket</th>}
 						<th className="pb-2">Action</th>
 						<th className="pb-2">
 							<span className="sr-only">Options</span>
@@ -47,7 +49,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 				</thead>
 				<tbody>
 					{attendees.map((attendee) => (
-						<AttendeeRow key={attendee.id} event={event} attendee={attendee} removable={canRemove(attendee)} showTicket={desktop} />
+						<AttendeeRow key={attendee.id} event={event} attendee={attendee} removable={canRemove(attendee)} showTicket={showTicket} />
 					))}
 				</tbody>
 			</table>

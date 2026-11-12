@@ -48,7 +48,7 @@ export default function AttendeesPage() {
 				className="top-[-16.5px] pt-10 pb-4"
 				actions={
 					<div className="flex w-full items-center gap-4 md:w-auto">
-						<label className="flex h-[42px] min-w-0 flex-1 items-center md:w-[230px] md:flex-none gap-4 rounded-xl border border-dark-blue/32 px-4 focus-within:outline-2 focus-within:outline-med-blue">
+						<label className="flex h-[42px] min-w-0 flex-1 items-center md:w-[230px] md:flex-initial gap-4 rounded-xl border border-dark-blue/32 px-4 focus-within:outline-2 focus-within:outline-med-blue">
 							<img src={magnifyingGlass} alt="" width={15} height={15} />
 							<span className="sr-only">Search attendees</span>
 							<input
