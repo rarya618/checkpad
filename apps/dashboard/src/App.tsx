@@ -91,7 +91,9 @@ function EventLayout() {
 	const base = `/events/${slug}`;
 	const attendees = { to: base, label: 'Attendees', end: true, icon: users };
 	const checkIn = { to: `${base}/check-in`, label: 'Check in', icon: checkCircle };
+	const analytics = { to: `${base}/analytics`, label: 'Analytics', icon: chart };
 	const settings = { to: `${base}/settings`, label: 'Settings', icon: sliders };
+	const items = [attendees, checkIn, analytics, ...(canEdit ? [settings] : [])];
 	// The projector screens, which open in a new tab
 	const screens = [
 		{ href: `${base}/display`, label: 'Venue display' },
@@ -99,13 +101,13 @@ function EventLayout() {
 	];
 	return (
 		<DashboardLayout
-			items={[attendees, checkIn, { to: `${base}/analytics`, label: 'Analytics' }, ...(canEdit ? [settings] : [])]}
+			items={items}
 			back={{ to: '/events', label: 'All events' }}
 			screens={screens}
-			// Figma "Staff check in (mobile) – menu": no Analytics on phones
+			// Phones get the same pages in the tab bar (Figma "Staff check in (mobile) – menu" left out Analytics)
 			mobile={{
 				title: event.name,
-				items: [attendees, checkIn, ...(canEdit ? [settings] : [])],
+				items,
 				extras: screens.map((x) => ({ ...x, label: `Open ${x.label.toLowerCase()}` })),
 			}}
 		/>
