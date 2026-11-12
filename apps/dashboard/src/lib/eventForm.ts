@@ -11,8 +11,10 @@ export interface EventForm {
 	start: string;
 	end: string;
 	timeZone: string;
-	/** The team's ID; empty for none. */
-	team: string;
+	/** The owner team's ID; empty for none. */
+	ownerTeam: string;
+	/** The other teams that run it, as sorted IDs, so comparing two forms is comparing strings. */
+	otherTeams: string[];
 	walkInTicketTitle: string;
 	walkInVenue: string;
 	selfWalkIns: boolean;
@@ -98,7 +100,8 @@ export function eventToForm(event: DashboardEvent): EventForm {
 		start: start.time,
 		end: end.time,
 		timeZone: event.timeZone,
-		team: event.teamId ?? '',
+		ownerTeam: event.ownerTeamId ?? '',
+		otherTeams: event.teamIds.filter((id) => id !== event.ownerTeamId).sort(),
 		walkInTicketTitle: event.walkInTicketTitle,
 		walkInVenue: event.walkInVenue,
 		selfWalkIns: event.selfWalkIns,
@@ -119,12 +122,29 @@ export function formToInput(form: EventForm, slug: string): EventInput {
 		description: form.description.trim(),
 		...formTimes(form),
 		timeZone: form.timeZone,
-		teamId: form.team || null,
+		...formTeams(form),
 		walkInTicketTitle: form.walkInTicketTitle.trim(),
 		walkInVenue: form.walkInVenue.trim(),
 		selfWalkIns: form.selfWalkIns,
 		selfCheckInOpen: form.selfCheckInOpen,
 	};
+}
+
+/** The teams to save, owner first. Other teams need an owner: an event with none has no teams. */
+export function formTeams(form: Pick<EventForm, 'ownerTeam' | 'otherTeams'>) {
+	if (!form.ownerTeam) return { teamIds: [], ownerTeamId: null };
+	return { teamIds: [form.ownerTeam, ...form.otherTeams.filter((id) => id !== form.ownerTeam)], ownerTeamId: form.ownerTeam };
+}
+
+/**
+ * The teams after handing ownership to `owner`: the old owner stays on as another team,
+ * and the new one leaves that list.
+ */
+export function withOwner(form: Pick<EventForm, 'ownerTeam' | 'otherTeams'>, owner: string) {
+	const others = new Set(form.otherTeams);
+	if (form.ownerTeam) others.add(form.ownerTeam);
+	others.delete(owner);
+	return { ownerTeam: owner, otherTeams: [...others].sort() };
 }
 
 /** Start and end as ISO timestamps; an end at or before the start finishes the next day. */
@@ -147,7 +167,8 @@ const labels: Record<keyof EventForm, string> = {
 	start: 'date and time',
 	end: 'date and time',
 	timeZone: 'time zone',
-	team: 'team',
+	ownerTeam: 'owner team',
+	otherTeams: 'teams',
 	walkInTicketTitle: 'walk-in ticket title',
 	walkInVenue: 'walk-in venue',
 	selfWalkIns: 'walk-in switch',
@@ -156,7 +177,8 @@ const labels: Record<keyof EventForm, string> = {
 
 /** Names of the settings that differ, e.g. ["event name", "time zone"]. */
 export function changedSettings(saved: EventForm, draft: EventForm) {
-	const changed = (Object.keys(labels) as (keyof EventForm)[]).filter((key) => saved[key] !== draft[key]);
+	// String() so the sorted team lists compare by value
+	const changed = (Object.keys(labels) as (keyof EventForm)[]).filter((key) => String(saved[key]) !== String(draft[key]));
 	return [...new Set(changed.map((key) => labels[key]))];
 }
 

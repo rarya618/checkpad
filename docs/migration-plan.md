@@ -173,7 +173,9 @@ Recommendation: build on the new Firebase project `checkpad-app` with Google sig
 
 ```text
 events/{eventId}                     slug, name, description, status, startsAt?, endsAt?, timeZone,
-                                     teamIds[], counts {registered, checkedIn, walkIns},
+                                     teamIds[], ownerTeamId (one of teamIds: its organisers
+                                     change the teams, hand it on and delete it),
+                                     counts {registered, checkedIn, walkIns},
                                      walkInCounter, walkInTicketPrefix, selfWalkIns, legacyId
 events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source ('bevy' | 'luma' |
                                      'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,

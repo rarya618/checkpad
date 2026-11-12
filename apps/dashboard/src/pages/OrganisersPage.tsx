@@ -220,7 +220,7 @@ function OrganiserMenu({ organiser, onEdit, onRemove }: { organiser: Organiser; 
 
 /** The event a team link opens: the one open for check-in, else the next upcoming one. */
 function teamLinkTarget(team: Team, events: DashboardEvent[]) {
-	const own = events.filter((e) => e.teamId === team.id);
+	const own = events.filter((e) => e.teamIds.includes(team.id));
 	const now = Date.now();
 	return (
 		own.find((e) => e.selfCheckInOpen) ??

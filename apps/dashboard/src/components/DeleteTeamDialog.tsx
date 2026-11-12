@@ -12,7 +12,7 @@ const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? '' : 's'}`;
 // Delete team (not in Figma), from Manage team. Only a team no event or organiser uses can go;
 // the API checks again (functions/src/teams.ts), in case this page hasn't caught up.
 export default function DeleteTeamDialog({ team, onClose }: { team: Team; onClose: () => void }) {
-	const events = useEvents().filter((e) => e.teamId === team.id).length;
+	const events = useEvents().filter((e) => e.teamIds.includes(team.id)).length;
 	const members = (useOrganisers(useMe()) ?? []).filter((o) => o.teamId === team.id).length;
 	const inUse = events > 0 || members > 0;
 	const uses = [events && count(events, 'event'), members && count(members, 'member')].filter(Boolean).join(' and ');

@@ -2,8 +2,8 @@ import { buttonClass } from '@checkpad/shared/button';
 import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { DateTimeFields } from '../components/EventFields';
-import { LinkField, SelectField, TextAreaField, TextField } from '../components/Field';
+import { DateTimeFields, TeamFields } from '../components/EventFields';
+import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
@@ -22,7 +22,8 @@ const blank: EventForm = {
 	start: '17:00',
 	end: '20:00',
 	timeZone: '',
-	team: '',
+	ownerTeam: '',
+	otherTeams: [],
 	walkInTicketTitle: 'General admission',
 	walkInVenue: '',
 	selfWalkIns: true,
@@ -37,7 +38,7 @@ export default function NewEventPage() {
 	// Your own team; super admins start with the first
 	const [form, setForm] = useState(() => {
 		const team = teams.find((t) => t.id === me.teamId) ?? teams[0];
-		return { ...blank, team: team?.id ?? '', timeZone: teamTimeZone(team) };
+		return { ...blank, ownerTeam: team?.id ?? '', timeZone: teamTimeZone(team) };
 	});
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
@@ -51,12 +52,12 @@ export default function NewEventPage() {
 		setForm((f) => {
 			const next = { ...f, [key]: value };
 			if (!slugEdited && key === 'name') next.slug = suggestedSlug(next.name, suffix);
-			if (!timeZoneEdited && key === 'team') next.timeZone = teamTimeZone(teams.find((t) => t.id === value));
+			if (!timeZoneEdited && key === 'ownerTeam') next.timeZone = teamTimeZone(teams.find((t) => t.id === value));
 			return next;
 		});
 	}
 
-	const team: Team | undefined = teams.find((t) => t.id === form.team) ?? teams[0];
+	const team: Team | undefined = teams.find((t) => t.id === form.ownerTeam);
 	const slug = form.slug.replace(/-+$/, '');
 	const slugTaken = slug !== '' && isSlugTaken(slug);
 	const [saving, setSaving] = useState(false);
@@ -151,19 +152,20 @@ export default function NewEventPage() {
 					</FormCard>
 				</div>
 				<div className="flex flex-col gap-5">
-					<FormCard title="Team" description="Team members can see and run this event. Super admins see every event.">
-						<SelectField
-							label="Team"
-							value={form.team}
-							onChange={(e) => update('team', e.target.value)}
-							hint={team ? `${WEB_HOST}/team/${team.slug} will point here while this is the team’s next event.` : 'Add a team on the Organisers page first.'}
-						>
-							{teams.map((t) => (
-								<option key={t.id} value={t.id}>
-									{t.name}
-								</option>
-							))}
-						</SelectField>
+					<FormCard title="Teams" description="Members of its teams see and run this event. Super admins see every event.">
+						{team ? (
+							<TeamFields
+								form={form}
+								onChange={(teams) => {
+									if (teams.ownerTeam !== form.ownerTeam) update('ownerTeam', teams.ownerTeam);
+									update('otherTeams', teams.otherTeams);
+								}}
+								teams={teams}
+								me={me}
+							/>
+						) : (
+							<p className="text-sm leading-normal text-med-blue">Add a team on the Organisers page first.</p>
+						)}
 					</FormCard>
 					<FormCard
 						title="Walk-ins"

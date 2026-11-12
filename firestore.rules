@@ -53,6 +53,13 @@ service cloud.firestore {
         && (me().role == 'super-admin' || (me().role == 'organiser' && me().get('teamId', null) in teamIds));
     }
 
+    /** Organisers of the team that owns this event, and super admins: they choose its teams. */
+    function ownsEvent(data) {
+      return isOrganiser()
+        && (me().role == 'super-admin'
+          || (me().role == 'organiser' && data.ownerTeamId != null && me().get('teamId', null) == data.ownerTeamId));
+    }
+
     function changes() {
       return request.resource.data.diff(resource.data).affectedKeys();
     }
@@ -163,9 +170,9 @@ service cloud.firestore {
 
     function isEvent(data) {
       return data.keys().hasAll(['slug', 'name', 'description', 'status', 'startsAt', 'endsAt', 'timeZone', 'teamIds',
-          'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns'])
+          'ownerTeamId', 'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns'])
         && data.keys().hasOnly(['slug', 'name', 'description', 'status', 'startsAt', 'endsAt', 'timeZone', 'teamIds',
-          'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns', 'walkInTicketTitle', 'walkInVenue',
+          'ownerTeamId', 'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns', 'walkInTicketTitle', 'walkInVenue',
           'statusChangedBy', 'statusChangedAt', 'legacyId'])
         && isSlug(data.slug)
         && isName(data.name)
@@ -176,7 +183,11 @@ service cloud.firestore {
         && data.endsAt > data.startsAt
         && isText(data.timeZone, 64)
         && data.teamIds is list
-        && data.teamIds.size() <= 1
+        && data.teamIds.size() <= 10
+        && data.teamIds.toSet().size() == data.teamIds.size()
+        // Owned by one of its teams; only an event no team runs has no owner
+        && ((data.ownerTeamId == null && data.teamIds.size() == 0)
+          || (data.ownerTeamId is string && data.ownerTeamId in data.teamIds))
         && data.walkInCounter is int
         && data.walkInTicketPrefix is string
         && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$')
@@ -199,17 +210,18 @@ service cloud.firestore {
       // (where teamIds array-contains their team).
       allow read: if onTeam(resource.data.teamIds);
 
-      allow create: if runsTeam(request.resource.data.teamIds)
+      allow create: if ownsEvent(request.resource.data)
         && isEvent(request.resource.data)
         && request.resource.data.counts == { 'registered': 0, 'checkedIn': 0, 'walkIns': 0 }
         && request.resource.data.walkInCounter == 0
         && claimsSlug(eventId, request.resource.data.slug);
 
-      // Organisers edit the settings, and can move the event only between teams they run
+      // Organisers of any of its teams edit the settings; only the owner team's change the
+      // teams or hand ownership to another of them
       allow update: if runsTeam(resource.data.teamIds)
-        && runsTeam(request.resource.data.teamIds)
         && isEvent(request.resource.data)
         && !changes().hasAny(['counts', 'legacyId'])
+        && (!changes().hasAny(['teamIds', 'ownerTeamId']) || ownsEvent(resource.data))
         && request.resource.data.walkInCounter in [resource.data.walkInCounter, resource.data.walkInCounter + 1]
         && (request.resource.data.slug == resource.data.slug || claimsSlug(eventId, request.resource.data.slug));
 
@@ -218,7 +230,7 @@ service cloud.firestore {
         && changes().hasOnly(['walkInCounter'])
         && request.resource.data.walkInCounter == resource.data.walkInCounter + 1;
 
-      allow delete: if runsTeam(resource.data.teamIds);
+      allow delete: if ownsEvent(resource.data);
 
       // events/{eventId}/attendees/{ticket}
 

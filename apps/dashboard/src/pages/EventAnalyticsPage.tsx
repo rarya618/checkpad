@@ -42,11 +42,11 @@ export default function EventAnalyticsPage() {
 	const timing = useMemo(() => arrivalTiming(event, roster), [event, roster]);
 	const methods = useMemo(() => checkInMethods(event, roster), [event, roster]);
 
-	// First-timers and the team average need the team's other events
+	// First-timers need the earlier events of any of its teams, and the team average the owner team's
 	const events = useEvents();
 	const earlier = useMemo(
-		() => (event.teamId ? events.filter((e) => e.teamId === event.teamId && e.startsAt < event.startsAt) : []),
-		[events, event.teamId, event.startsAt],
+		() => events.filter((e) => e.teamIds.some((id) => event.teamIds.includes(id)) && e.startsAt < event.startsAt),
+		[events, event.teamIds, event.startsAt],
 	);
 	const rosters = useRosters(earlier);
 	const rostersLoaded = earlier.every((e) => e.id in rosters);
@@ -148,7 +148,9 @@ export default function EventAnalyticsPage() {
 						/>
 					</ChartCard>
 					<div className="flex shrink-0 flex-col gap-4 md:w-[285px]">
-						<ChartCard title="First-timers" caption={event.teamId ? 'First event with the team' : 'Not part of a team, so everyone is new'}>
+						<ChartCard title="First-timers" caption={
+								event.teamIds.length === 0 ? 'Not part of a team, so everyone is new' : event.teamIds.length === 1 ? 'First event with the team' : 'First event with any of its teams'
+							}>
 							{rostersLoaded ? (
 								<SplitBar
 									label="First-timers and returning"

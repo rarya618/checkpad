@@ -61,6 +61,7 @@ for (const event of demoEvents) {
 		endsAt: Timestamp.fromDate(new Date(event.endsAt)),
 		timeZone: event.timeZone,
 		teamIds: event.teamSlug ? [event.teamSlug] : [],
+		ownerTeamId: event.teamSlug ?? null,
 		// The countAttendees trigger counts the attendees written below
 		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,

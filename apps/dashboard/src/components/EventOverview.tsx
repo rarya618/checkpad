@@ -11,8 +11,8 @@ import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
 import type { ImportPlan } from '../lib/attendeeImport';
 import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
-import type { DashboardEvent } from '../lib/events';
-import { useCanEditEvents } from '../lib/organisers';
+import { ownsEvent, type DashboardEvent } from '../lib/events';
+import { useCanEditEvents, useMe } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
 import Menu from './Menu';
 
@@ -28,6 +28,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const [deleting, setDeleting] = useState(false);
 	const [sharing, setSharing] = useState(false);
 	const canEdit = useCanEditEvents();
+	const canDelete = ownsEvent(useMe(), event);
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 	return (
@@ -75,7 +76,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event) },
 						{ label: 'Export attendance (CSV)', icon: download, onSelect: () => exportAttendance(event) },
 						{ label: 'Open prize draw', icon: gift, onSelect: () => window.open(`/events/${event.slug}/prize-draw`, '_blank') },
-						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
+						...(canDelete ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 					]}
 				>
 					<img src={ellipsis} alt="" width={18} height={18} />

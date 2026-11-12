@@ -27,8 +27,10 @@ import { allTeams, WALK_IN_PREFIX } from './teams';
 export interface DashboardEvent extends CheckpadEvent {
 	/** The Firestore document ID; pages use the slug. */
 	id: string;
-	/** Null for an event no team runs, which only super admins see. */
-	teamId: string | null;
+	/** Every team that runs it, owner first; empty for an event no team runs, which only super admins see. */
+	teamIds: string[];
+	/** The team whose organisers choose its teams, hand it on and delete it; null with no team. */
+	ownerTeamId: string | null;
 	walkInTicketTitle: string;
 	walkInVenue: string;
 	/** Walk-in tickets count up from here: CPWALKIN0001, CPWALKIN0002, … (older events: GDGWALKIN) */
@@ -46,7 +48,7 @@ export interface DashboardEvent extends CheckpadEvent {
 /** What New event and Event settings edit. */
 export type EventInput = Pick<
 	DashboardEvent,
-	'slug' | 'name' | 'description' | 'startsAt' | 'endsAt' | 'timeZone' | 'teamId' | 'walkInTicketTitle' | 'walkInVenue' | 'selfWalkIns' | 'selfCheckInOpen'
+	'slug' | 'name' | 'description' | 'startsAt' | 'endsAt' | 'timeZone' | 'teamIds' | 'ownerTeamId' | 'walkInTicketTitle' | 'walkInVenue' | 'selfWalkIns' | 'selfCheckInOpen'
 >;
 
 const iso = (value: Timestamp | null | undefined) => value?.toDate().toISOString() ?? null;
@@ -61,7 +63,8 @@ function toEvent(snap: DocumentSnapshot): DashboardEvent {
 		startsAt: iso(data.startsAt)!,
 		endsAt: iso(data.endsAt)!,
 		timeZone: data.timeZone,
-		teamId: data.teamIds?.[0] ?? null,
+		teamIds: data.teamIds ?? [],
+		ownerTeamId: data.ownerTeamId ?? null,
 		selfWalkIns: data.selfWalkIns,
 		selfCheckInOpen: data.status === 'open',
 		walkInTicketTitle: data.walkInTicketTitle ?? '',
@@ -149,7 +152,8 @@ function eventFields(input: EventInput) {
 		startsAt: Timestamp.fromDate(new Date(input.startsAt)),
 		endsAt: Timestamp.fromDate(new Date(input.endsAt)),
 		timeZone: input.timeZone,
-		teamIds: input.teamId ? [input.teamId] : [],
+		teamIds: input.teamIds,
+		ownerTeamId: input.ownerTeamId,
 		walkInTicketTitle: input.walkInTicketTitle,
 		walkInVenue: input.walkInVenue,
 		selfWalkIns: input.selfWalkIns,
@@ -211,4 +215,12 @@ export interface EventSummary {
 
 export function useEventSummaries(): EventSummary[] {
 	return useEvents().map((event) => ({ event, stats: countStats(event) }));
+}
+
+/**
+ * Whether `me` chooses the event's teams, hands it to another of them and deletes it: the owner
+ * team's organisers, and super admins (as firestore.rules allows).
+ */
+export function ownsEvent(me: Pick<Organiser, 'role' | 'teamId'>, event: Pick<DashboardEvent, 'ownerTeamId'>) {
+	return me.role === 'super-admin' || (me.role === 'organiser' && event.ownerTeamId !== null && me.teamId === event.ownerTeamId);
 }

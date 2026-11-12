@@ -51,6 +51,7 @@ await ref.set({
 	endsAt: Timestamp.fromMillis(Date.now() + 3 * 60 * 60 * 1000),
 	timeZone: 'Australia/Sydney',
 	teamIds: [],
+	ownerTeamId: null,
 	counts: { registered, checkedIn: 0, walkIns: 0 },
 	walkInCounter: 0,
 	walkInTicketPrefix: 'LOADWALKIN',

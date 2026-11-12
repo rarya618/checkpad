@@ -29,6 +29,7 @@ function event(slug: string, fields: Record<string, unknown> = {}) {
 		endsAt: at(2 * hour),
 		timeZone: 'Australia/Sydney',
 		teamIds: ['team-test'],
+		ownerTeamId: 'team-test',
 		// The countAttendees trigger counts the attendees written below
 		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
@@ -51,7 +52,7 @@ beforeEach(async () => {
 	batch.set(meetup.collection('attendees').doc('GOOGA001'), { firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com', source: 'bevy', checkedInAt: null });
 	batch.set(meetup.collection('attendees').doc('GOOGA002'), { firstName: 'Sam', lastName: 'Lee', email: 'sam@example.com', source: 'bevy', checkedInAt: at(-10 * 60 * 1000) });
 	batch.set(db.doc('events/e2'), event('closed-meetup', { status: 'closed', startsAt: at(24 * hour), endsAt: at(27 * hour) }));
-	batch.set(db.doc('events/e3'), event('no-walk-ins', { selfWalkIns: false, teamIds: [] }));
+	batch.set(db.doc('events/e3'), event('no-walk-ins', { selfWalkIns: false, teamIds: [], ownerTeamId: null }));
 	batch.set(db.doc('teams/team-test'), { name: 'GDG Test', slug: 'gdg-test' });
 	batch.set(db.doc('teams/team-empty'), { name: 'GDG Empty', slug: 'gdg-empty' });
 	await batch.commit();

@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useBlocker, useNavigate, useParams } from 'react-router';
 import Dialog from '../components/Dialog';
-import { DateTimeFields } from '../components/EventFields';
+import { DateTimeFields, TeamFields } from '../components/EventFields';
 import EventOverview from '../components/EventOverview';
-import { LinkField, SelectField, TextAreaField, TextField } from '../components/Field';
+import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
@@ -24,7 +24,7 @@ import {
 } from '../lib/eventForm';
 import { isSlugTaken, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
 import { useSession } from '../lib/auth';
-import { useCurrentOrganiser } from '../lib/organisers';
+import { useMe } from '../lib/organisers';
 import { nextWalkInTicket } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { showToast } from '../lib/toast';
@@ -42,7 +42,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 	const event = useEvent(slug)!;
 	const navigate = useNavigate();
 	const session = useSession();
-	const me = useCurrentOrganiser();
+	const me = useMe();
 	const teams = useTeams() ?? [];
 	const saved = useMemo(() => eventToForm(event), [event]);
 	const [form, setForm] = useState(saved);
@@ -75,7 +75,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 		const input = formToInput(form, newSlug);
 		dirtyRef.current = false;
 		// Shows at once; the rules refuse a link another team's event has, which we can't see
-		updateEvent(event, input, me?.name ?? session?.email ?? 'An organiser').catch(() =>
+		updateEvent(event, input, me.name ?? session?.email ?? 'An organiser').catch(() =>
 			showToast(`Couldn’t save the settings.${input.slug !== slug ? ' The new link may be taken: try another.' : ' Try again.'}`),
 		);
 		// Saving trims text, so take the saved values back or the form would still look changed
@@ -151,14 +151,10 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								onChange={(on) => update('selfCheckInOpen', on)}
 							/>
 						</FormCard>
-						<FormCard level={3} title="Team and walk-ins" description="Staff can always add walk-ins from the dashboard.">
-							<SelectField label="Team" value={form.team} onChange={(e) => update('team', e.target.value)}>
-								{teams.map((t) => (
-									<option key={t.id} value={t.id}>
-										{t.name}
-									</option>
-								))}
-							</SelectField>
+						<FormCard level={3} title="Teams" description="Members of its teams see and run this event. Super admins see every event.">
+							<TeamFields form={form} onChange={(teams) => setForm((f) => ({ ...f, ...teams }))} teams={teams} me={me} event={event} />
+						</FormCard>
+						<FormCard level={3} title="Walk-ins" description="Staff can always add walk-ins from the dashboard.">
 							<TextField
 								label="Walk-in ticket title"
 								value={form.walkInTicketTitle}

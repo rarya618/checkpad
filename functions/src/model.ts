@@ -13,7 +13,10 @@ export interface EventDoc {
 	startsAt: Timestamp;
 	endsAt: Timestamp;
 	timeZone: string;
+	/** Every team that runs it: their members see it, and it shows on their team links. */
 	teamIds: string[];
+	/** The one of teamIds whose organisers change its teams, hand it on and delete it; null with no team. */
+	ownerTeamId: string | null;
 	counts: { registered: number; checkedIn: number; walkIns: number };
 	/** The last walk-in number handed out; the next walk-in gets one more. */
 	walkInCounter: number;

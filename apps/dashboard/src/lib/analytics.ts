@@ -235,12 +235,12 @@ export const regulars = (list: Person[]) =>
 export const repeatNoShows = (list: Person[], min = 3) =>
 	list.filter((p) => p.registered >= min && p.attended === 0).sort((a, b) => b.registered - a.registered || b.lastAt.localeCompare(a.lastAt) || a.name.localeCompare(b.name));
 
-/** The team's finished events in the 6 months before `event`, not counting it. */
+/** The owner team's finished events in the 6 months before `event`, not counting it. */
 export function comparableEvents(events: DashboardEvent[], event: DashboardEvent) {
 	const start = new Date(event.startsAt);
 	const from = new Date(start.getFullYear(), start.getMonth() - 6, start.getDate()).getTime();
 	return events.filter(
-		(e) => e.id !== event.id && e.teamId === event.teamId && e.teamId !== null && new Date(e.endsAt).getTime() < Date.now() && new Date(e.startsAt).getTime() >= from && e.startsAt < event.startsAt,
+		(e) => e.id !== event.id && event.ownerTeamId !== null && e.teamIds.includes(event.ownerTeamId) && new Date(e.endsAt).getTime() < Date.now() && new Date(e.startsAt).getTime() >= from && e.startsAt < event.startsAt,
 	);
 }
 
@@ -277,7 +277,7 @@ export const ranges = [
 export function eventsInRange(events: DashboardEvent[], teamId: string, months: number, now = new Date()) {
 	const from = Number.isFinite(months) ? new Date(now.getFullYear(), now.getMonth() - months, 1).getTime() : -Infinity;
 	return events
-		.filter((e) => e.teamId === teamId && new Date(e.endsAt).getTime() < now.getTime() && new Date(e.startsAt).getTime() >= from)
+		.filter((e) => e.teamIds.includes(teamId) && new Date(e.endsAt).getTime() < now.getTime() && new Date(e.startsAt).getTime() >= from)
 		.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 }
 

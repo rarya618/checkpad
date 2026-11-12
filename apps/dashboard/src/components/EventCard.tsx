@@ -10,8 +10,8 @@ import sliders from '../assets/sliders.svg';
 import trash from '../assets/trash.svg';
 import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import { checkInUrl } from '../lib/config';
-import type { EventSummary } from '../lib/events';
-import { useCanEditEvents } from '../lib/organisers';
+import { ownsEvent, type EventSummary } from '../lib/events';
+import { useCanEditEvents, useMe } from '../lib/organisers';
 import { showToast } from '../lib/toast';
 import { useIsDesktop } from '../lib/useMediaQuery';
 import CheckInRing from './CheckInRing';
@@ -31,6 +31,7 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 	const status = statuses[checkIn];
 	const [deleting, setDeleting] = useState(false);
 	const canEdit = useCanEditEvents();
+	const canDelete = ownsEvent(useMe(), event);
 	const desktop = useIsDesktop();
 	return (
 		<article className="relative flex items-start justify-between gap-3 rounded-xl border border-med-blue bg-white py-5 pr-4 pl-5 hover:bg-off-white/60 md:items-center md:gap-6 md:rounded-xl md:px-7 md:py-6">
@@ -72,7 +73,7 @@ export default function EventCard({ summary }: { summary: EventSummary }) {
 						},
 						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event) },
 						{ label: 'Export attendance (CSV)', icon: download, onSelect: () => exportAttendance(event) },
-						...(canEdit ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
+						...(canDelete ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 					]}
 				>
 					<img src={ellipsis} alt="" width={18} height={18} />

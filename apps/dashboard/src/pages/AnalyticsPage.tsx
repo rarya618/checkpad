@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
 	const included = useMemo(() => eventsInRange(events, team, range.months), [events, team, range]);
 	const results = useMemo(() => included.map((e) => eventResult(e)), [included]);
 	// Returning attendees needs every list of the team's past events, matched by email
-	const teamEvents = useMemo(() => events.filter((e) => e.teamId === team && new Date(e.startsAt).getTime() < Date.now()), [events, team]);
+	const teamEvents = useMemo(() => events.filter((e) => e.teamIds.includes(team) && new Date(e.startsAt).getTime() < Date.now()), [events, team]);
 	const rosters = useRosters(teamEvents);
 	const registered = results.reduce((n, r) => n + r.registered, 0);
 	const checkIns = results.reduce((n, r) => n + r.checkedIn, 0);

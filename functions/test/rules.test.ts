@@ -28,7 +28,9 @@ let env: RulesTestEnvironment;
 
 before(async () => {
 	env = await initializeTestEnvironment({
-		projectId: 'demo-checkpad',
+		// Not demo-checkpad, where the Functions emulator runs triggers: wiping an event there
+		// let its cleanup trigger delete the next test's links (functions/src/triggers.ts)
+		projectId: 'demo-checkpad-rules',
 		firestore: { rules: readFileSync(new URL('../../firestore.rules', import.meta.url), 'utf8') },
 	});
 });
@@ -47,6 +49,7 @@ function event(slug: string, teamIds: string[], fields: Record<string, unknown> 
 		endsAt: Timestamp.fromMillis(Date.now() + 4 * hour),
 		timeZone: 'Australia/Sydney',
 		teamIds,
+		ownerTeamId: teamIds[0] ?? null,
 		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
 		walkInTicketPrefix: 'GDGWALKIN',
@@ -84,6 +87,9 @@ beforeEach(async () => {
 		await setDoc(doc(db, 'events/syd/draw/GOOGA002'), { result: 'won', drawnAt: Timestamp.now(), winnerNumber: 1 });
 		await setDoc(doc(db, 'events/mel'), event('melbourne-meetup', ['melbourne']));
 		await setDoc(doc(db, 'slugs/melbourne-meetup'), { eventId: 'mel' });
+		// Sydney's, run with Melbourne
+		await setDoc(doc(db, 'events/joint'), event('joint-meetup', ['sydney', 'melbourne']));
+		await setDoc(doc(db, 'slugs/joint-meetup'), { eventId: 'joint' });
 		await setDoc(doc(db, 'events/mel/attendees/GOOGA101'), { firstName: 'Ana', lastName: 'Ruiz', email: 'ana@example.com', source: 'bevy', checkedInAt: null });
 		await setDoc(doc(db, 'rateLimits/abc'), { count: 1 });
 		await setDoc(doc(db, 'waitlist/w1'), { email: 'someone@example.com', createdAt: Timestamp.now() });
@@ -146,6 +152,14 @@ describe('reading', () => {
 		}
 	});
 
+	test('every team on an event sees it and its attendees', async () => {
+		for (const db of [priya, tom, mel]) {
+			await assertSucceeds(getDoc(doc(db(), 'events/joint')));
+			await assertSucceeds(getDocs(collection(db(), 'events/joint/attendees')));
+		}
+		await assertSucceeds(getDocs(query(collection(mel(), 'events'), where('teamIds', 'array-contains', 'melbourne'))));
+	});
+
 	test('nobody but super admins searches attendees across events', async () => {
 		await assertFails(getDocs(collectionGroup(priya(), 'attendees')));
 	});
@@ -175,6 +189,20 @@ describe('creating events', () => {
 	test('organisers create their own team’s events; team members don’t', async () => {
 		await assertSucceeds(createEvent(priya(), 'new', event('october-meetup', ['sydney'])));
 		await assertFails(createEvent(tom(), 'new2', event('november-meetup', ['sydney'])));
+	});
+
+	test('organisers create events run with other teams, owned by their own', async () => {
+		await assertSucceeds(createEvent(priya(), 'new', event('october-meetup', ['sydney', 'melbourne'])));
+		await assertFails(createEvent(priya(), 'new2', event('november-meetup', ['melbourne', 'sydney'])));
+	});
+
+	test('the owner is one of the event’s teams, listed once, up to ten', async () => {
+		await assertFails(createEvent(priya(), 'new', event('october-meetup', ['melbourne'], { ownerTeamId: 'sydney' })));
+		await assertFails(createEvent(priya(), 'new', event('october-meetup', ['sydney', 'sydney'])));
+		await assertFails(createEvent(boss(), 'new', event('october-meetup', ['sydney'], { ownerTeamId: null })));
+		const eleven = ['sydney', ...Array.from({ length: 10 }, (_, i) => `team-${i}`)];
+		await assertFails(createEvent(boss(), 'new', event('october-meetup', eleven)));
+		await assertSucceeds(createEvent(boss(), 'new', event('october-meetup', eleven.slice(0, 10))));
 	});
 
 	test('organisers can’t create events for another team, or with no team', async () => {
@@ -234,14 +262,41 @@ describe('changing events', () => {
 		await assertFails(updateDoc(doc(boss(), 'events/syd'), { 'counts.checkedIn': 50 }));
 	});
 
-	test('organisers can’t move an event to a team they don’t run', async () => {
-		await assertFails(updateDoc(doc(priya(), 'events/syd'), { teamIds: ['melbourne'] }));
-		await assertSucceeds(updateDoc(doc(boss(), 'events/syd'), { teamIds: ['melbourne'] }));
+	test('the owner team’s organisers add and remove teams', async () => {
+		await assertFails(updateDoc(doc(tom(), 'events/syd'), { teamIds: ['sydney', 'melbourne'] }));
+		await assertFails(updateDoc(doc(mel(), 'events/syd'), { teamIds: ['sydney', 'melbourne'] }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/syd'), { teamIds: ['sydney', 'melbourne'] }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/joint'), { teamIds: ['sydney'] }));
 	});
 
-	test('organisers delete their team’s events; team members don’t', async () => {
+	test('the owner team can’t be taken off unless ownership moves first', async () => {
+		await assertFails(updateDoc(doc(priya(), 'events/joint'), { teamIds: ['melbourne'] }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/joint'), { teamIds: ['melbourne'], ownerTeamId: 'melbourne' }));
+	});
+
+	test('other teams on the event edit its settings but not its teams or owner', async () => {
+		await assertSucceeds(updateDoc(doc(mel(), 'events/joint'), { name: 'Renamed', status: 'open' }));
+		await assertFails(updateDoc(doc(mel(), 'events/joint'), { teamIds: ['melbourne'], ownerTeamId: 'melbourne' }));
+		await assertFails(updateDoc(doc(mel(), 'events/joint'), { ownerTeamId: 'melbourne' }));
+		await assertFails(updateDoc(doc(mel(), 'events/joint'), { teamIds: ['sydney'] }));
+	});
+
+	test('ownership is handed to another of the event’s teams, which then controls it', async () => {
+		await assertFails(updateDoc(doc(priya(), 'events/syd'), { ownerTeamId: 'melbourne' }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/joint'), { ownerTeamId: 'melbourne' }));
+		await assertFails(updateDoc(doc(priya(), 'events/joint'), { teamIds: ['sydney', 'melbourne'], ownerTeamId: 'sydney' }));
+		await assertSucceeds(updateDoc(doc(mel(), 'events/joint'), { teamIds: ['melbourne'] }));
+	});
+
+	test('super admins change any event’s teams and owner', async () => {
+		await assertSucceeds(updateDoc(doc(boss(), 'events/syd'), { teamIds: ['melbourne'], ownerTeamId: 'melbourne' }));
+	});
+
+	test('the owner team’s organisers delete the event; other teams and team members don’t', async () => {
 		await assertFails(deleteDoc(doc(tom(), 'events/syd')));
 		await assertFails(deleteDoc(doc(mel(), 'events/syd')));
+		await assertFails(deleteDoc(doc(mel(), 'events/joint')));
+		await assertSucceeds(deleteDoc(doc(priya(), 'events/joint')));
 		await assertSucceeds(deleteDoc(doc(priya(), 'events/syd')));
 	});
 });

@@ -167,6 +167,7 @@ for (const [legacyId, e] of events) {
 			endsAt: sydney(date, end),
 			timeZone: TIME_ZONE,
 			teamIds: [toTeam],
+			ownerTeamId: toTeam,
 			// The countAttendees trigger counts the attendees written below
 			counts: { registered: 0, checkedIn: 0, walkIns: 0 },
 			walkInCounter: Math.max(e.ticketCounter ?? 0, ...walkIns, 0),
