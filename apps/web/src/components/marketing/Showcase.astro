@@ -47,16 +47,16 @@ const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = fals
 			data-reveal={reverse ? 'from-left' : 'from-right'}
 			style="--reveal-delay: 120ms"
 			class:list={[
-				'relative w-full shrink-0 md:max-w-[720px]',
-				// With a phone, the screenshot is wider and runs into the page margin on desktop
-				phone ? ['xl:w-[760px] xl:max-w-none', reverse ? 'xl:-ml-30' : 'xl:-mr-30'] : 'xl:w-5/9 xl:max-w-[640px]',
+				// On desktop the screenshot runs into the page margin, to be bigger without squeezing the text
+				'relative w-full shrink-0 md:max-w-[720px] xl:w-[760px] xl:max-w-none',
+				reverse ? 'xl:-ml-30' : 'xl:-mr-30',
 			]}
 		>
 			<Image
 				src={image}
 				alt={imageAlt}
 				widths={[640, 960, 1280, 1520]}
-				sizes={`(min-width: 1280px) ${phone ? 760 : 640}px, (min-width: 768px) 720px, 100vw`}
+				sizes="(min-width: 1280px) 760px, (min-width: 768px) 720px, 100vw"
 				class="w-full rounded-2xl border border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:rounded-3xl"
 			/>
 			{
