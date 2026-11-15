@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Comparison } from '../lib/analytics';
 
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
@@ -126,6 +126,8 @@ export interface Bar {
 	lines: string[];
 	/** Shows the bar's value above it: selective labels, never every bar. */
 	showValue?: string;
+	/** The table view's cells, one per series, when the values alone would mislead (a 0 for "not recorded") */
+	cells?: string[];
 }
 
 export function Legend({ series }: { series: Series[] }) {
@@ -142,15 +144,139 @@ export function Legend({ series }: { series: Series[] }) {
 }
 
 /**
- * Stacked bars on one axis. Gridlines are recessive (light blue), the baseline stronger; each
- * column is a hover/focus target with a tooltip, bigger than the bar itself.
+ * Keyboard and pointer state shared by the charts. The plot is one Tab stop: the arrow keys,
+ * Home and End step through the bars (or points), and a live region reads out each one, so
+ * nobody tabs through dozens of bars to get past a chart. Hover shows a tooltip; so does a tap.
  */
-export function BarChart({ bars, series, ticks, formatTick = String, label }: { bars: Bar[]; series: Series[]; ticks: number[]; formatTick?: (n: number) => string; label: string }) {
+function useChartNav(count: number) {
 	const [active, setActive] = useState<number | null>(null);
-	const max = ticks[ticks.length - 1] || 1;
+	const [announced, setAnnounced] = useState(false);
+	function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+		const last = count - 1;
+		const next =
+			e.key === 'ArrowRight' || e.key === 'ArrowDown'
+				? Math.min(last, (active ?? -1) + 1)
+				: e.key === 'ArrowLeft' || e.key === 'ArrowUp'
+					? Math.max(0, (active ?? count) - 1)
+					: e.key === 'Home'
+						? 0
+						: e.key === 'End'
+							? last
+							: null;
+		if (e.key === 'Escape') return setActive(null);
+		if (next === null || count === 0) return;
+		e.preventDefault();
+		setActive(next);
+		setAnnounced(true);
+	}
+	return {
+		active,
+		/** Only what the keyboard reached is read out; hovering stays quiet */
+		announce: announced ? active : null,
+		plot: { tabIndex: 0, onKeyDown, onBlur: () => (setActive(null), setAnnounced(false)) },
+		column: (i: number) => ({
+			onMouseEnter: () => setActive(i),
+			onMouseLeave: () => setActive(null),
+			onClick: () => setActive((a) => (a === i ? null : i)),
+		}),
+	};
+}
 
+/** "Check-ins per 15 minutes: 36 bars, 16:00 to 01:00. Highest: 17:00–17:15, 9 pre-registered, 2 walk-ins." */
+function chartSummary(label: string, items: { title: string; lines: string[]; total: number }[], noun: [string, string] = ['bar', 'bars']) {
+	if (!items.length) return `${label}: nothing to show yet.`;
+	const top = items.reduce((m, it) => (it.total > m.total ? it : m));
+	const span = items.length === 1 ? items[0].title : `${items[0].title} to ${items[items.length - 1].title}`;
+	return `${label}: ${items.length} ${items.length === 1 ? noun[0] : noun[1]}, ${span}. Highest: ${top.title}, ${top.lines.join(', ')}. Use the arrow keys to go through them, or show the chart as a table.`;
+}
+
+/**
+ * A chart with a "Show as table" switch under it: the same numbers in rows, for anyone who'd
+ * rather read them than hover, and for screen readers.
+ */
+function ChartFrame({ chart, table }: { chart: ReactNode; table: ReactNode }) {
+	const [asTable, setAsTable] = useState(false);
 	return (
-		<div role="group" aria-label={label} className="relative h-[174px] w-full">
+		<div className="flex flex-col gap-2">
+			{asTable ? table : chart}
+			<button
+				type="button"
+				onClick={() => setAsTable((t) => !t)}
+				className="self-end rounded text-xs leading-normal font-semibold text-med-blue underline decoration-med-blue/40 underline-offset-4 outline-none hover:text-dark-blue hover:decoration-dark-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
+			>
+				{asTable ? 'Show as chart' : 'Show as table'}
+			</button>
+		</div>
+	);
+}
+
+/** The rows of a chart's table: what each bar or point is, then its numbers. */
+function ChartTable({ label, heading, columns, rows }: { label: string; heading: string; columns: string[]; rows: { title: string; cells: string[] }[] }) {
+	return (
+		<div className="max-h-[260px] overflow-y-auto">
+			<table className="w-full text-sm leading-normal">
+				<caption className="sr-only">{label}</caption>
+				<thead className="sticky top-0 bg-white">
+					<tr className="text-xs text-med-blue">
+						<th scope="col" className="pb-1.5 text-left font-semibold">
+							{heading}
+						</th>
+						{columns.map((c) => (
+							<th key={c} scope="col" className="pb-1.5 pl-3 text-right font-semibold">
+								{c}
+							</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map((r, i) => (
+						<tr key={i} className="border-t border-light-blue">
+							<th scope="row" className="py-1.5 text-left font-normal">
+								{r.title}
+							</th>
+							{r.cells.map((c, j) => (
+								<td key={j} className="py-1.5 pl-3 text-right tabular-nums">
+									{c}
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
+/**
+ * Stacked bars on one axis. Gridlines are recessive (light blue), the baseline stronger; each
+ * column is a hover target with a tooltip, bigger than the bar itself. `heading` names the bars
+ * in the table view: "Time", "Event", "Day".
+ */
+export function BarChart({
+	bars,
+	series,
+	ticks,
+	formatTick = String,
+	label,
+	heading,
+}: {
+	bars: Bar[];
+	series: Series[];
+	ticks: number[];
+	formatTick?: (n: number) => string;
+	label: string;
+	heading: string;
+}) {
+	const nav = useChartNav(bars.length);
+	const { active } = nav;
+	const max = ticks[ticks.length - 1] || 1;
+	const summary = chartSummary(
+		label,
+		bars.map((b) => ({ title: b.title, lines: b.lines, total: b.values.reduce((a, v) => a + v, 0) })),
+	);
+
+	const chart = (
+		<div className="relative h-[174px] w-full">
 			{/* Axis and gridlines: the plot runs from 6px to 156px, labels sit below */}
 			{ticks.map((t, i) => {
 				const y = 156 - (t / max) * 150;
@@ -163,21 +289,18 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 					</div>
 				);
 			})}
-			<div className="absolute top-[6px] right-0 bottom-[18px] left-[27px] flex">
+			<div
+				role="img"
+				aria-roledescription="chart"
+				aria-label={summary}
+				{...nav.plot}
+				className="absolute top-[6px] right-0 bottom-[18px] left-[27px] flex rounded outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-med-blue"
+			>
 				{bars.map((bar, i) => {
 					const total = bar.values.reduce((a, b) => a + b, 0);
 					const flip = i > bars.length * 0.6;
 					return (
-						<div
-							key={i}
-							tabIndex={0}
-							aria-label={`${bar.title}: ${bar.lines.join(', ')}`}
-							onMouseEnter={() => setActive(i)}
-							onMouseLeave={() => setActive(null)}
-							onFocus={() => setActive(i)}
-							onBlur={() => setActive(null)}
-							className="relative flex flex-1 flex-col items-center justify-end rounded outline-none focus-visible:bg-light-blue/40"
-						>
+						<div key={i} {...nav.column(i)} className={`relative flex flex-1 flex-col items-center justify-end rounded ${active === i ? 'bg-light-blue/40' : ''}`}>
 							{/* Sits on the bar without taking its height, so a tall bar isn't squashed to fit the label */}
 							{bar.showValue && total > 0 && (
 								<p className="absolute mb-1 text-xs leading-normal font-bold" style={{ bottom: `${(total / max) * 100}%` }} aria-hidden="true">
@@ -204,7 +327,7 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 							)}
 							{active === i && (
 								<div
-									role="tooltip"
+									aria-hidden="true"
 									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-med-blue bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
 										flip ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
 									}`}
@@ -223,7 +346,24 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 					);
 				})}
 			</div>
+			<p aria-live="polite" className="sr-only">
+				{nav.announce !== null && bars[nav.announce] ? `${bars[nav.announce].title}: ${bars[nav.announce].lines.join(', ')}` : ''}
+			</p>
 		</div>
+	);
+
+	return (
+		<ChartFrame
+			chart={chart}
+			table={
+				<ChartTable
+					label={label}
+					heading={heading}
+					columns={series.map((s) => s.name)}
+					rows={bars.map((b) => ({ title: b.title, cells: b.cells ?? b.values.map((v) => formatTick(v)) }))}
+				/>
+			}
+		/>
 	);
 }
 
@@ -234,18 +374,24 @@ export interface Point {
 	lines: string[];
 }
 
-/** A running total as a line on the same axis as BarChart; each column is a hover/focus target with a tooltip. */
-export function LineChart({ points, ticks, label }: { points: Point[]; ticks: number[]; label: string }) {
-	const [active, setActive] = useState<number | null>(null);
+/** A running total as a line on the same axis as BarChart; works like it for the keyboard, and has the same table view. */
+export function LineChart({ points, ticks, label, heading, valueName }: { points: Point[]; ticks: number[]; label: string; heading: string; valueName: string }) {
+	const nav = useChartNav(points.length);
+	const { active } = nav;
 	const max = ticks[ticks.length - 1] || 1;
 	const n = Math.max(1, points.length);
 	// x as a share of the plot width: the middle of each column, as BarChart places bars
 	const x = (i: number) => ((i + 0.5) / n) * 100;
 	const y = (v: number) => 100 - (v / max) * 100;
 	const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(i)} ${y(p.value)}`).join(' ');
+	const summary = chartSummary(
+		label,
+		points.map((p) => ({ title: p.title, lines: p.lines, total: p.value })),
+		['point', 'points'],
+	);
 
-	return (
-		<div role="group" aria-label={label} className="relative h-[174px] w-full">
+	const chart = (
+		<div className="relative h-[174px] w-full">
 			{ticks.map((t, i) => {
 				const top = 156 - (t / max) * 150;
 				return (
@@ -257,22 +403,19 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 					</div>
 				);
 			})}
-			<div className="absolute top-[6px] right-0 bottom-[18px] left-[27px]">
+			<div
+				role="img"
+				aria-roledescription="chart"
+				aria-label={summary}
+				{...nav.plot}
+				className="absolute top-[6px] right-0 bottom-[18px] left-[27px] rounded outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-med-blue"
+			>
 				<svg aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible">
 					<path d={path} fill="none" className="stroke-dark-blue" strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
 				</svg>
 				<div className="absolute inset-0 flex">
 					{points.map((p, i) => (
-						<div
-							key={i}
-							tabIndex={0}
-							aria-label={`${p.title}: ${p.lines.join(', ')}`}
-							onMouseEnter={() => setActive(i)}
-							onMouseLeave={() => setActive(null)}
-							onFocus={() => setActive(i)}
-							onBlur={() => setActive(null)}
-							className="relative flex-1 rounded outline-none focus-visible:bg-light-blue/40"
-						>
+						<div key={i} {...nav.column(i)} className={`relative flex-1 rounded ${active === i ? 'bg-light-blue/40' : ''}`}>
 							{active === i && (
 								<span aria-hidden="true" className="absolute left-1/2 size-[9px] -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-white bg-dark-blue" style={{ bottom: `${100 - y(p.value)}%` }} />
 							)}
@@ -283,7 +426,7 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 							)}
 							{active === i && (
 								<div
-									role="tooltip"
+									aria-hidden="true"
 									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-med-blue bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
 										i > points.length * 0.6 ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
 									}`}
@@ -301,7 +444,17 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 					))}
 				</div>
 			</div>
+			<p aria-live="polite" className="sr-only">
+				{nav.announce !== null && points[nav.announce] ? `${points[nav.announce].title}: ${points[nav.announce].lines.join(', ')}` : ''}
+			</p>
 		</div>
+	);
+
+	return (
+		<ChartFrame
+			chart={chart}
+			table={<ChartTable label={label} heading={heading} columns={[valueName]} rows={points.map((p) => ({ title: p.title, cells: [String(p.value)] }))} />}
+		/>
 	);
 }
 

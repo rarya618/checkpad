@@ -176,6 +176,7 @@ export default function EventAnalyticsPage() {
 										</dl>
 										<BarChart
 											label="Registrations per day"
+											heading="Day"
 											series={registrationSeries}
 											ticks={niceTicks(maxOf(signUps.bins.map((b) => b.checkedIn + b.notCheckedIn), 1))}
 											bars={signUps.bins.map((b, i) => ({
@@ -220,6 +221,7 @@ export default function EventAnalyticsPage() {
 							<ChartCard level={4} title="When people arrived" caption="Check-ins per 15 minutes" legend={series} className="flex-1">
 								<BarChart
 									label="Check-ins per 15 minutes"
+										heading="Time"
 									series={series}
 									ticks={ticks}
 									bars={bins.map((b, i) => ({
@@ -274,6 +276,8 @@ export default function EventAnalyticsPage() {
 							</dl>
 							<LineChart
 								label="Running total of check-ins, per 15 minutes"
+								heading="Time"
+								valueName="Checked in"
 								ticks={niceTicks(Math.max(1, stats.checkedIn))}
 								points={timing.cumulative.map((p, i) => ({
 									// Each point is the total at the end of its 15 minutes

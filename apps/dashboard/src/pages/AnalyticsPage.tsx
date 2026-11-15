@@ -187,6 +187,7 @@ export default function AnalyticsPage() {
 								<ChartCard level={3} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
 									<BarChart
 										label="Turnout by event"
+										heading="Event"
 										series={turnoutSeries}
 										ticks={ticks}
 										formatTick={(n) => `${n}%`}
@@ -202,6 +203,7 @@ export default function AnalyticsPage() {
 								<ChartCard level={3} title="Attendance by event" caption="Everyone on the list, by whether they came" legend={attendanceSeries}>
 									<BarChart
 										label="Attendance by event"
+										heading="Event"
 										series={attendanceSeries}
 										ticks={niceTicks(maxOf(results.map((r) => r.registered), 1))}
 										bars={results.map((r, i) => ({
@@ -229,6 +231,7 @@ export default function AnalyticsPage() {
 									) : anyDates ? (
 										<BarChart
 											label="Middle registration by event"
+											heading="Event"
 											series={signUpSeries}
 											ticks={niceTicks(maxOf(signUps.map((s) => s.medianDaysBefore ?? 0), 1))}
 											bars={results.map((r, i) => {
@@ -236,6 +239,7 @@ export default function AnalyticsPage() {
 												return {
 													label: axisLabel(r, i),
 													values: [s.medianDaysBefore ?? 0],
+													cells: s.medianDaysBefore === null ? ['–'] : undefined,
 													title: r.event.name,
 													lines:
 														s.medianDaysBefore === null
@@ -269,6 +273,7 @@ export default function AnalyticsPage() {
 									{loaded ? (
 										<BarChart
 											label="New and returning by event"
+											heading="Event"
 											series={returningSeries}
 											ticks={niceTicks(maxOf(detail.map((d) => d.split.returning + d.split.firstTime), 1))}
 											bars={results.map((r, i) => {
@@ -299,6 +304,7 @@ export default function AnalyticsPage() {
 									{loaded ? (
 										<BarChart
 											label="Check-in method by event"
+											heading="Event"
 											series={methodSeries}
 											ticks={niceTicks(maxOf(detail.map((d) => (d.methods ? d.methods.self + d.methods.staff : 0)), 1))}
 											bars={results.map((r, i) => {
@@ -306,6 +312,7 @@ export default function AnalyticsPage() {
 												return {
 													label: axisLabel(r, i),
 													values: m ? [m.self, m.staff] : [0, 0],
+													cells: m ? undefined : ['–', '–'],
 													title: r.event.name,
 													lines: m ? [`${m.self} self · ${percent(m.self, m.self + m.staff)}%`, `${m.staff} by an organiser`] : ['Not recorded in the old check-in app'],
 												};
