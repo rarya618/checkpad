@@ -115,12 +115,10 @@ html {
 		}
 	}
 
+	/* The hero phone slides up into place, with no fade, so it never flicks on */
 	@keyframes phone-in {
 		from {
-			opacity: 0;
-			translate: 0 32px;
-			rotate: -6deg;
-			scale: 0.94;
+			translate: 0 120px;
 		}
 	}
 
@@ -142,7 +140,7 @@ html {
 	}
 
 	[data-intro='phone'] {
-		animation: phone-in 800ms var(--ease-out-soft) 550ms backwards;
+		animation: phone-in 900ms var(--ease-out-soft) 550ms backwards;
 	}
 
 	[data-reveal='from-right'] {
