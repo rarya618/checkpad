@@ -15,7 +15,7 @@ web
 
 ## Product Purpose
 
-Checkpad lets attendees check themselves in at a meetup, so nobody queues at a staffed door, and gives organisers a live view of who's arrived. Success on the night is a door that doesn't bottleneck and counts the organiser trusts; afterwards it's knowing how the night went and how it compares with past events.
+Checkpad lets attendees check themselves in at a meetup, so nobody queues at a staffed door, and gives organisers a live view of who's arrived. The point is that anyone can walk in easily, registered or not, and their details are recorded. Walk-ins are a core path, not an exception, and they count as attendees everywhere, including in turnout. Success on the night is a door that doesn't bottleneck and counts the organiser trusts; afterwards it's knowing how the night went and how it compares with past events.
 
 Checkpad replaces gdg-check-in, an older app on a different Firebase project (see `docs/migration-plan.md`). It isn't open to new organisers yet: the marketing site collects a waitlist, and super admins invite people from it.
 
