@@ -468,12 +468,27 @@ export function teamAverage(events: DashboardEvent[]) {
 	return { turnout: Math.round(mean((r) => r.turnout)), checkedIn: Math.round(mean((r) => r.checkedIn)), walkIns: Math.round(mean((r) => r.walkIns)) };
 }
 
-/** "8 pts above average", "3 fewer than average", "Same as average" */
-export function versusAverage(value: number, average: number, unit: 'pts' | 'people') {
-	const diff = value - average;
-	if (diff === 0) return 'Same as the team average';
-	if (unit === 'pts') return `${Math.abs(diff)} pts ${diff > 0 ? 'above' : 'below'} the team average`;
-	return `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than the team average`;
+export interface Comparison {
+	direction: 'up' | 'down' | 'same';
+	/** How far from the average, always positive */
+	amount: number;
+}
+
+export function versusAverage(value: number, average: number): Comparison {
+	const diff = Math.round(value - average);
+	return { direction: diff > 0 ? 'up' : diff < 0 ? 'down' : 'same', amount: Math.abs(diff) };
+}
+
+/** "Turnout 8 points above the team average", "Turnout level with the team average" */
+export function turnoutVersus({ direction, amount }: Comparison, against: string, subject = 'Turnout') {
+	if (direction === 'same') return `${subject} level with ${against}`;
+	return `${subject} ${amount} ${amount === 1 ? 'point' : 'points'} ${direction === 'up' ? 'above' : 'below'} ${against}`;
+}
+
+/** "3 more walk-ins than the team average", "1 fewer walk-in than …", "Walk-ins level with …" */
+export function walkInsVersus({ direction, amount }: Comparison, against: string) {
+	if (direction === 'same') return `Walk-ins level with ${against}`;
+	return `${amount} ${direction === 'up' ? 'more' : 'fewer'} walk-in${amount === 1 ? '' : 's'} than ${against}`;
 }
 
 /** Which axis labels to show so about `fit` fit: every `n`th, counted back from the latest. */

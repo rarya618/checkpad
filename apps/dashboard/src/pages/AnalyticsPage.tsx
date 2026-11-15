@@ -25,6 +25,9 @@ import {
 	sumRows,
 	thinLabels,
 	turnoutBySignUp,
+	turnoutVersus,
+	versusAverage,
+	type EventResult,
 	type Person,
 } from '../lib/analytics';
 import { useEvents } from '../lib/events';
@@ -68,7 +71,7 @@ export default function AnalyticsPage() {
 	// Returning attendees needs every list of the team's past events, matched by email
 	const teamEvents = useMemo(() => events.filter((e) => e.teamIds.includes(team) && new Date(e.startsAt).getTime() < Date.now()), [events, team]);
 	const rosters = useRosters(teamEvents);
-	const registered = results.reduce((n, r) => n + r.registered, 0);
+	const onList = results.reduce((n, r) => n + r.registered, 0);
 	const checkIns = results.reduce((n, r) => n + r.checkedIn, 0);
 	const loaded = teamEvents.every((e) => e.id in rosters);
 	const returning = useMemo(() => returningShare(included, teamEvents, rosters), [included, teamEvents, rosters]);
@@ -138,10 +141,11 @@ export default function AnalyticsPage() {
 				}
 			/>
 			<div className="flex flex-col gap-5 px-6 pt-3.5 pb-7">
+				{latest && <LatestEvent latest={latest} others={results.slice(0, -1)} date={date(latest)} />}
 				<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
 					<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
-					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${registered} registered`} />
-					<StatTile label="Average turnout" value={`${percent(checkIns, registered)}%`} note="checked in of registered" />
+					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${onList} on the list`} />
+					<StatTile label="Turnout" value={`${percent(checkIns, onList)}%`} note="of everyone on the list" />
 					<StatTile label="Returning" value={loaded ? `${returning}%` : '–'} note="came to an earlier event" />
 					<StatTile label="Walk-ins" value={`${percent(walkIns, checkIns)}%`} note={`${walkIns} of check-ins`} />
 					<StatTile
@@ -153,7 +157,7 @@ export default function AnalyticsPage() {
 
 				{results.length ? (
 					<div className="grid gap-4 xl:grid-cols-2">
-						<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
+						<ChartCard level={2} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
 							<BarChart
 								label="Turnout by event"
 								series={turnoutSeries}
@@ -228,7 +232,7 @@ export default function AnalyticsPage() {
 						</ChartCard>
 					</div>
 				) : (
-					<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
+					<ChartCard level={2} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
 						<p className="py-6 text-center text-sm text-med-blue">No finished events in this range.</p>
 					</ChartCard>
 				)}
@@ -309,7 +313,7 @@ export default function AnalyticsPage() {
 									{wide && (
 										<>
 											<th className="pt-1 pb-2 text-left">Date</th>
-											<th className="pt-1 pb-2 text-right">Registered</th>
+											<th className="pt-1 pb-2 text-right">On the list</th>
 											<th className="pt-1 pb-2 text-right">Checked in</th>
 										</>
 									)}
@@ -347,6 +351,27 @@ export default function AnalyticsPage() {
 				)}
 			</div>
 		</>
+	);
+}
+
+/**
+ * Not in Figma: the latest event in a sentence, against the others in the range, since the
+ * question most visits start with is whether last time was better than usual.
+ */
+function LatestEvent({ latest, others, date }: { latest: EventResult; others: EventResult[]; date: string }) {
+	const came = latest.checkedIn === 1 ? '1 person' : `${latest.checkedIn} people`;
+	const walkIns = latest.walkIns === 0 ? '' : latest.walkIns === latest.checkedIn ? ', all walk-ins' : `, ${latest.walkIns} of them walk-in${latest.walkIns === 1 ? '' : 's'}`;
+	const average = others.length ? others.reduce((n, r) => n + r.turnout, 0) / others.length : null;
+	const against = others.length === 1 ? 'the event before it' : `the average of the other ${others.length} events`;
+	return (
+		<p className="max-w-prose text-lg leading-normal text-pretty">
+			Latest:{' '}
+			<Link to={`/events/${latest.event.slug}/analytics`} className="font-bold underline decoration-med-blue/50 underline-offset-4 hover:decoration-dark-blue">
+				{latest.event.name}
+			</Link>{' '}
+			on {date}. <strong>{came}</strong> came{walkIns}: <strong>{latest.turnout}%</strong> of the {latest.registered} on the list.
+			{average !== null && ` ${turnoutVersus(versusAverage(latest.turnout, average), against, 'That’s')}.`}
+		</p>
 	);
 }
 

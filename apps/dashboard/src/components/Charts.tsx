@@ -1,40 +1,59 @@
 import { useState, type ReactNode } from 'react';
+import type { Comparison } from '../lib/analytics';
 
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
 // charts in "Event analytics" and "Analytics".
 
 /**
- * `compare` is a further note, or several, e.g. how the number sits against the team's other
- * events. `children` (a SplitBar of what makes up the number) go between the note and it.
+ * `compare` is how the number sits against something, e.g. the team's other events, as chips
+ * under it. `children` (a SplitBar of what makes up the number) go between the note and them.
  */
 export function StatTile({
 	label,
 	value,
 	note,
-	compare,
+	compare = [],
 	className = '',
 	children,
 }: {
 	label: string;
 	value: string;
 	note?: string;
-	compare?: string | string[];
+	compare?: { direction: Comparison['direction']; text: string }[];
 	className?: string;
 	children?: ReactNode;
 }) {
-	const compares = compare === undefined ? [] : [compare].flat();
 	return (
 		<div className={`flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5 ${className}`}>
 			<p className="truncate text-sm leading-normal text-med-blue">{label}</p>
 			<p className="font-display text-4xl leading-tight">{value}</p>
 			{note && <p className="text-xs leading-normal text-med-blue">{note}</p>}
 			{children && <div className="pt-2 pb-1">{children}</div>}
-			{compares.map((c) => (
-				<p key={c} className="truncate text-xs leading-normal font-semibold" title={c}>
-					{c}
-				</p>
-			))}
+			{compare.length > 0 && (
+				<ul className="flex flex-wrap gap-1.5 pt-2">
+					{compare.map((c) => (
+						<li key={c.text}>
+							<Delta {...c} />
+						</li>
+					))}
+				</ul>
+			)}
 		</div>
+	);
+}
+
+/**
+ * A comparison as a chip: up, down or level by shape as well as words, since the palette has no
+ * red or green and colour alone wouldn't carry it anyway.
+ */
+export function Delta({ direction, text }: { direction: Comparison['direction']; text: string }) {
+	return (
+		<span className="inline-flex items-center gap-1.5 rounded-full bg-light-blue px-2.5 py-1 text-xs leading-normal font-semibold text-dark-blue">
+			<svg aria-hidden="true" viewBox="0 0 8 8" className="size-2 shrink-0 fill-current">
+				{direction === 'same' ? <rect x="0" y="3" width="8" height="2" rx="1" /> : <path d={direction === 'up' ? 'M4 1 8 7H0z' : 'M4 7 0 1h8z'} />}
+			</svg>
+			{text}
+		</span>
 	);
 }
 
@@ -159,14 +178,15 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 							onBlur={() => setActive(null)}
 							className="relative flex flex-1 flex-col items-center justify-end rounded outline-none focus-visible:bg-light-blue/40"
 						>
+							{/* Sits on the bar without taking its height, so a tall bar isn't squashed to fit the label */}
 							{bar.showValue && total > 0 && (
-								<p className="mb-1 text-xs leading-normal font-bold" aria-hidden="true">
+								<p className="absolute mb-1 text-xs leading-normal font-bold" style={{ bottom: `${(total / max) * 100}%` }} aria-hidden="true">
 									{bar.showValue}
 								</p>
 							)}
 							{/* Segments bottom up, a 1.5px surface gap between them; only the top one is rounded.
 							    18px wide, thinner when many bars (a day each for months of registrations) share the width */}
-							<div className="flex w-[min(18px,70%)] flex-col-reverse gap-0.5" style={{ height: `${(total / max) * 100}%` }}>
+							<div className="flex w-[min(18px,70%)] shrink-0 flex-col-reverse gap-0.5" style={{ height: `${(total / max) * 100}%` }}>
 								{bar.values.map((v, s) =>
 									v > 0 ? (
 										<div

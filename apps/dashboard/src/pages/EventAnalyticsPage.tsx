@@ -11,7 +11,6 @@ import {
 	byTicketType,
 	checkInMethods,
 	comparableEvents,
-	eventResult,
 	firstCheckIns,
 	formatDaysBefore,
 	formatOffset,
@@ -26,12 +25,16 @@ import {
 	registrations,
 	teamAverage,
 	thinLabels,
+	turnoutVersus,
 	versusAverage,
+	walkInsVersus,
+	type Comparison,
 } from '../lib/analytics';
 import type { ImportPlan } from '../lib/attendeeImport';
 import { useEvent, useEvents } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster, useRosters } from '../lib/roster';
+import { useTeams } from '../lib/teams';
 
 const series: Series[] = [
 	{ name: 'Pre-registered', className: 'bg-dark-blue' },
@@ -81,8 +84,12 @@ export default function EventAnalyticsPage() {
 	const split = useMemo(() => newVsReturning(event, roster, firstSeen), [event, roster, firstSeen]);
 	const registeredSplit = useMemo(() => registeredNewVsReturning(event, roster, firstSeen), [event, roster, firstSeen]);
 	const average = useMemo(() => teamAverage(comparableEvents(events, event)), [events, event]);
-	const result = eventResult(event);
+	// Walk-ins count as attendees: turnout is everyone checked in of everyone on the list
+	const turnout = percent(stats.checkedIn, stats.total);
+	const versus = average && { turnout: versusAverage(turnout, average.turnout), walkIns: versusAverage(stats.walkIns, average.walkIns) };
+	const teamName = useTeams()?.find((t) => t.id === event.ownerTeamId)?.name;
 	const started = new Date(event.startsAt).getTime() <= Date.now();
+	const ended = new Date(event.endsAt).getTime() <= Date.now();
 	const signUpTurnout = useMemo(() => turnoutBySignUp(event, roster).filter((g) => g.total), [event, roster]);
 	// Came back: the team's next few events since, which need their lists too
 	const later = useMemo(() => laterEvents(events, event), [events, event]);
@@ -97,16 +104,28 @@ export default function EventAnalyticsPage() {
 			{/* Phones: everything one above the other. Wide windows get a rail of the sections */}
 			<div className="flex items-start gap-6 px-6 pb-7">
 				<div className="flex min-w-0 flex-1 flex-col gap-8">
+					<Summary
+						started={started}
+						ended={ended}
+						stats={stats}
+						turnout={turnout}
+						versus={versus?.turnout ?? null}
+						teamName={teamName}
+						busiest={busiest?.range ?? null}
+					/>
 					<Section title="Turnout">
 						<div className="flex flex-col gap-4 md:flex-row">
 							{/* Checked in is pre-registered plus walk-ins, so they share a tile */}
 							<StatTile
 								label="Checked in"
 								value={String(stats.checkedIn)}
-								note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total} on the list, walk-ins included`}
+								note={`${turnout}% of ${stats.total} on the list, walk-ins included`}
 								compare={
-									average
-										? [`Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}`, `Walk-ins: ${versusAverage(stats.walkIns, average.walkIns, 'people')}`]
+									versus
+										? [
+												{ direction: versus.turnout.direction, text: turnoutVersus(versus.turnout, 'the team average') },
+												{ direction: versus.walkIns.direction, text: walkInsVersus(versus.walkIns, 'the team average') },
+											]
 										: undefined
 								}
 							>
@@ -440,6 +459,55 @@ function SectionRail() {
 			</ul>
 		</nav>
 	);
+}
+
+/**
+ * Not in Figma: how the night went in a sentence, for the organiser who opens this the morning
+ * after and wants something to tell the team before reading the cards.
+ */
+function Summary({
+	started,
+	ended,
+	stats,
+	turnout,
+	versus,
+	teamName,
+	busiest,
+}: {
+	started: boolean;
+	ended: boolean;
+	stats: ReturnType<typeof rosterStats>;
+	turnout: number;
+	versus: Comparison | null;
+	teamName: string | undefined;
+	busiest: string | null;
+}) {
+	const onList = `${stats.total} ${stats.total === 1 ? 'person' : 'people'} on the list`;
+	let text: ReactNode;
+	if (!started) text = `The event hasn’t started yet. There are ${onList} so far.`;
+	else if (!stats.checkedIn) text = `Nobody has checked in yet. There are ${onList}.`;
+	else {
+		const came = stats.checkedIn === 1 ? '1 person' : `${stats.checkedIn} people`;
+		const walkIns = stats.walkIns === 0 ? '' : stats.walkIns === stats.checkedIn ? ', all walk-ins' : `, ${stats.walkIns} of them walk-in${stats.walkIns === 1 ? '' : 's'}`;
+		const against = teamName ? `${teamName}’s recent average` : 'the team’s recent average';
+		text = (
+			<>
+				{ended ? (
+					<>
+						<strong>{came}</strong> came{walkIns}:
+					</>
+				) : (
+					<>
+						So far <strong>{came}</strong> {stats.checkedIn === 1 ? 'has' : 'have'} checked in{walkIns}:
+					</>
+				)}{' '}
+				<strong>{turnout}%</strong> of the {stats.total} on the list.
+				{versus && ` ${turnoutVersus(versus, against, 'That’s')}.`}
+				{busiest && ` The door was busiest from ${busiest.replace('–', ' to ')}.`}
+			</>
+		);
+	}
+	return <p className="max-w-prose text-lg leading-normal text-pretty">{text}</p>;
 }
 
 function Figure({ label, value }: { label: string; value: string }) {
