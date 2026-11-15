@@ -115,8 +115,9 @@ html {
 		}
 	}
 
-	/* The hero phone slides up into place and fades in as it goes. The fade runs on its own,
-	   linear timing: on the slide's easing it would finish almost at once and flick on. */
+	/* The hero phone slides up into place and fades in as it goes, both starting and ending
+	   together. The fade eases gently: on the slide's steeper easing it would finish almost at
+	   once and flick on. */
 	@keyframes phone-in {
 		from {
 			translate: 0 120px;
@@ -149,7 +150,7 @@ html {
 	[data-intro='phone'] {
 		animation:
 			phone-in 900ms var(--ease-out-soft) 550ms backwards,
-			phone-fade 600ms linear 550ms backwards;
+			phone-fade 900ms ease-out 550ms backwards;
 	}
 
 	[data-reveal='from-right'] {
