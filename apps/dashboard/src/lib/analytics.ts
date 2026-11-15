@@ -191,22 +191,23 @@ function dayNumber(date: Date, timeZone: string) {
 	return Date.UTC(+p.year, +p.month - 1, +p.day) / DAY;
 }
 
+/** "Fri 21 Aug" */
+const formatWeekday = (day: number) => new Intl.DateTimeFormat('en-AU', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(day * DAY)).replace(',', '');
+
 /** "21 Aug" */
 const formatDayNumber = (day: number) => new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(day * DAY));
 
 export interface RegistrationBin {
-	/** "21 Aug": the first day */
+	/** "21 Aug" */
 	label: string;
-	/** "21 Aug", or "21 Aug to 27 Aug" for a week */
+	/** "Fri 21 Aug" */
 	range: string;
 	checkedIn: number;
 	notCheckedIn: number;
 }
 
 export interface Registrations {
-	/** Days per bin: 1, or whole weeks so there are at most 16 bars. */
-	days: number;
-	/** Up to the event's day; the last bin ends on it. Empty when nobody has a date. */
+	/** One per day from the first registration to the event's day. Empty when nobody has a date. */
 	bins: RegistrationBin[];
 	/** Registered people without a registration date (imported before Checkpad kept them). */
 	undated: number;
@@ -227,30 +228,22 @@ export function registrations(event: DashboardEvent, roster: RosterAttendee[]): 
 	const dated = registered.filter((a) => a.registeredAt);
 	const last = dayNumber(new Date(event.startsAt), event.timeZone);
 	const before = dated.map((a) => Math.max(0, last - dayNumber(a.registeredAt!, event.timeZone))).sort((a, b) => a - b);
-	const empty = { days: 1, bins: [], undated: registered.length, medianDaysBefore: null, finalWeek: 0, onTheDay: 0 };
+	const empty = { bins: [], undated: registered.length, medianDaysBefore: null, finalWeek: 0, onTheDay: 0 };
 	if (!dated.length) return empty;
 
-	const span = before[before.length - 1] + 1;
-	const days = span <= 16 ? 1 : Math.ceil(span / 16 / 7) * 7;
-	const count = Math.ceil(span / days);
+	const count = before[before.length - 1] + 1;
 	const bins: RegistrationBin[] = Array.from({ length: count }, (_, i) => {
-		const first = last - (count - i) * days + 1;
-		return {
-			label: formatDayNumber(first),
-			range: days === 1 ? formatDayNumber(first) : `${formatDayNumber(first)} to ${formatDayNumber(first + days - 1)}`,
-			checkedIn: 0,
-			notCheckedIn: 0,
-		};
+		const day = last - (count - 1 - i);
+		return { label: formatDayNumber(day), range: formatWeekday(day), checkedIn: 0, notCheckedIn: 0 };
 	});
 	dated.forEach((a) => {
 		const daysBefore = Math.max(0, last - dayNumber(a.registeredAt!, event.timeZone));
-		const bin = bins[count - 1 - Math.floor(daysBefore / days)];
+		const bin = bins[count - 1 - daysBefore];
 		if (a.checkedInAt) bin.checkedIn++;
 		else bin.notCheckedIn++;
 	});
 	const mid = before.length / 2;
 	return {
-		days,
 		bins,
 		undated: registered.length - dated.length,
 		medianDaysBefore: Math.round(before.length % 2 ? before[Math.floor(mid)] : (before[mid - 1] + before[mid]) / 2),

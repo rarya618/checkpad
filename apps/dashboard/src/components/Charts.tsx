@@ -164,8 +164,9 @@ export function BarChart({ bars, series, ticks, formatTick = String, label }: { 
 									{bar.showValue}
 								</p>
 							)}
-							{/* Segments bottom up, a 1.5px surface gap between them; only the top one is rounded */}
-							<div className="flex w-[18px] flex-col-reverse gap-0.5" style={{ height: `${(total / max) * 100}%` }}>
+							{/* Segments bottom up, a 1.5px surface gap between them; only the top one is rounded.
+							    18px wide, thinner when many bars (a day each for months of registrations) share the width */}
+							<div className="flex w-[min(18px,70%)] flex-col-reverse gap-0.5" style={{ height: `${(total / max) * 100}%` }}>
 								{bar.values.map((v, s) =>
 									v > 0 ? (
 										<div

@@ -154,7 +154,7 @@ export default function EventAnalyticsPage() {
 				</div>
 				<ChartCard
 					title="Registrations"
-					caption={`Registered people per ${signUps.days === 1 ? 'day' : signUps.days === 7 ? 'week' : `${signUps.days / 7} weeks`}, up to the event${
+					caption={`Registered people per day, up to the event${
 						signUps.bins.length && signUps.undated ? ` · ${signUps.undated} without a date` : ''
 					}`}
 					legend={signUps.bins.length ? registrationSeries : undefined}
@@ -167,7 +167,7 @@ export default function EventAnalyticsPage() {
 								<Figure label="On the day" value={`${signUps.onTheDay}%`} />
 							</dl>
 							<BarChart
-								label={`Registrations per ${signUps.days === 1 ? 'day' : 'week'}`}
+								label="Registrations per day"
 								series={registrationSeries}
 								ticks={niceTicks(Math.max(1, ...signUps.bins.map((b) => b.checkedIn + b.notCheckedIn)))}
 								bars={signUps.bins.map((b, i) => ({
