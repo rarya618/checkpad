@@ -26,7 +26,9 @@ const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = fals
 <section id={id} class:list={[className, phone && 'overflow-hidden']}>
 	<div
 		class:list={[
-			'mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 py-18 md:px-12 xl:items-center xl:gap-20 xl:px-30 xl:py-30',
+			'mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 md:px-12 xl:items-center xl:gap-20 xl:px-30',
+			// Tighter with a phone, which fills the bottom of the section anyway
+			phone ? 'py-14 xl:py-24' : 'py-18 xl:py-30',
 			reverse ? 'xl:flex-row-reverse' : 'xl:flex-row',
 		]}
 	>
@@ -55,20 +57,25 @@ const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = fals
 				alt={imageAlt}
 				widths={[640, 960, 1280, 1520]}
 				sizes={`(min-width: 1280px) ${phone ? 760 : 640}px, (min-width: 768px) 720px, 100vw`}
-				class="w-full rounded-xl border border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:rounded-2xl"
+				class="w-full rounded-2xl border border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:rounded-3xl"
 			/>
 			{
 				phone && (
-					<Image
-						src={phone.src}
-						alt={phone.alt}
-						widths={[240, 420]}
-						sizes="(min-width: 1280px) 240px, (min-width: 768px) 224px, 160px"
+					// The phone's frame, with a gap around the screen; the screen's corners follow the frame's
+					<div
 						class:list={[
-							'absolute top-2/5 xl:top-1/2 w-40 rounded-3xl border-[5px] border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:w-56 md:border-[6px] xl:w-60 xl:rounded-4xl',
+							'absolute top-2/5 w-44 rounded-4xl border-[5px] border-dark-blue bg-off-white p-0.5 shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:w-64 md:border-[6px] md:p-1 xl:w-72',
 							reverse ? 'left-3 md:left-6 xl:left-16' : 'right-3 md:right-6 xl:right-16',
 						]}
-					/>
+					>
+						<Image
+							src={phone.src}
+							alt={phone.alt}
+							widths={[288, 420]}
+							sizes="(min-width: 1280px) 264px, (min-width: 768px) 232px, 158px"
+							class="w-full rounded-3xl"
+						/>
+					</div>
 				)
 			}
 		</div>
