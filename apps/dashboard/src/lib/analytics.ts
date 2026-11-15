@@ -59,6 +59,62 @@ export function byTicketType(roster: RosterAttendee[]) {
 	return [...types].map(([name, t]) => ({ name, ...t })).sort((a, b) => b.total - a.total);
 }
 
+export interface AnswerCount {
+	name: string;
+	total: number;
+	checkedIn: number;
+}
+
+export interface QuestionResult {
+	question: string;
+	/** People who answered it. */
+	answered: number;
+	/** The commonest answers, most first; the rest folded into "Everything else". Empty for free text. */
+	answers: AnswerCount[];
+}
+
+/** Questions with this few different answers are always charted; more need answers to repeat. */
+const FEW_CHOICES = 4;
+/** Answers shown per question before the rest are folded together. */
+const SHOWN_ANSWERS = 6;
+
+/**
+ * The imported registration questions, each answer with how many of those people checked in.
+ * Answers that differ only in case or spacing count as one. Questions where most answers are
+ * different (free text) come back with no answers, to list rather than chart.
+ */
+export function registrationQuestions(roster: RosterAttendee[]): QuestionResult[] {
+	const byQuestion = new Map<string, Map<string, AnswerCount>>();
+	for (const a of roster) {
+		for (const [question, raw] of Object.entries(a.answers ?? {})) {
+			const answer = raw.trim().replace(/\s+/g, ' ');
+			if (!answer) continue;
+			const answers = byQuestion.get(question) ?? new Map<string, AnswerCount>();
+			const count = answers.get(answer.toLowerCase()) ?? { name: answer, total: 0, checkedIn: 0 };
+			count.total++;
+			if (a.checkedInAt) count.checkedIn++;
+			answers.set(answer.toLowerCase(), count);
+			byQuestion.set(question, answers);
+		}
+	}
+	return [...byQuestion].map(([question, answers]) => {
+		const list = [...answers.values()].sort((x, y) => y.total - x.total || x.name.localeCompare(y.name));
+		const answered = list.reduce((n, c) => n + c.total, 0);
+		// Multiple choice when people share answers (on average two to an answer); otherwise free text
+		const choice = list.length <= FEW_CHOICES || list.length * 2 <= answered;
+		if (!choice) return { question, answered, answers: [] };
+		const shown = list.length > SHOWN_ANSWERS + 1 ? list.slice(0, SHOWN_ANSWERS) : list;
+		const rest = list.slice(shown.length);
+		return {
+			question,
+			answered,
+			answers: rest.length
+				? [...shown, { name: `Everything else (${rest.length} answers)`, total: rest.reduce((n, c) => n + c.total, 0), checkedIn: rest.reduce((n, c) => n + c.checkedIn, 0) }]
+				: shown,
+		};
+	});
+}
+
 /** A tidy axis: about four steps of 1, 2, 2.5 or 5 × 10ⁿ covering `max`. */
 export function niceTicks(max: number, steps = 3) {
 	if (max <= 0) return [0, 1];

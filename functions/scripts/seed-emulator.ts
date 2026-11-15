@@ -14,9 +14,9 @@ const FIRESTORE = (process.env.FIRESTORE_EMULATOR_HOST ??= '127.0.0.1:8080');
 // The same three people on every event: try these emails, or any other for a walk-in
 // registered: days before the event they signed up, for the Registrations chart
 const attendees: [string, Omit<AttendeeDoc, 'checkedInAt' | 'source'>, number][] = [
-	['GOOGA263293408', { email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee' }, 12],
-	['GOOGA263288757', { email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee' }, 5],
-	['GOOGA263290115', { email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe' }, 1],
+	['GOOGA263293408', { email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee', answers: { 'How did you hear about us?': 'Meetup newsletter', 'What do you hope to learn?': 'Getting started with Gemini' } }, 12],
+	['GOOGA263288757', { email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee', answers: { 'How did you hear about us?': 'A friend' } }, 5],
+	['GOOGA263290115', { email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe', answers: { 'How did you hear about us?': 'Meetup newsletter', 'What do you hope to learn?': 'Flutter tips' } }, 1],
 ];
 
 // Dashboard sign-ins, one per role (the Figma "Organisers" table). Sign in through the Auth

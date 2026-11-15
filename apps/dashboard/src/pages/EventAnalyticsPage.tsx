@@ -18,6 +18,7 @@ import {
 	newVsReturning,
 	niceTicks,
 	percent,
+	registrationQuestions,
 	registrations,
 	teamAverage,
 	thinLabels,
@@ -59,6 +60,9 @@ export default function EventAnalyticsPage() {
 	const signUpLabel = thinLabels(signUps.bins.length, 6);
 	const registeredCount = roster.filter((a) => !a.walkIn).length;
 	const canEdit = useCanEditEvents();
+	const questions = useMemo(() => registrationQuestions(roster), [roster]);
+	const chartedQuestions = questions.filter((q) => q.answers.length);
+	const freeTextQuestions = questions.filter((q) => !q.answers.length);
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 
 	// First-timers need the earlier events of any of its teams, and the team average the owner team's
@@ -140,17 +144,7 @@ export default function EventAnalyticsPage() {
 							<p className="text-xs text-med-blue">Checked in of registered</p>
 						</div>
 						{types.map((t) => (
-							<div key={t.name} className="flex flex-col gap-1.5">
-								<div className="flex items-start gap-1.5 leading-normal">
-									<p className="min-w-0 flex-1 truncate text-sm font-bold">{t.name}</p>
-									<p className="shrink-0 text-xs text-med-blue">
-										{t.checkedIn} of {t.total} · {percent(t.checkedIn, t.total)}%
-									</p>
-								</div>
-								<div className="h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
-									<div className="h-full bg-dark-blue" style={{ width: `${percent(t.checkedIn, t.total)}%` }} />
-								</div>
-							</div>
+							<CheckedInRow key={t.name} {...t} />
 						))}
 						<div className="flex items-start gap-1.5 leading-normal">
 							<p className="min-w-0 flex-1 text-sm font-bold">Walk-in</p>
@@ -203,6 +197,30 @@ export default function EventAnalyticsPage() {
 						</div>
 					)}
 				</ChartCard>
+				{/* The organiser's registration questions, from imports; nothing shows without them */}
+				{chartedQuestions.length > 0 && (
+					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+						{chartedQuestions.map((q) => (
+							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered · checked in of each answer`}>
+								{q.answers.map((a) => (
+									<CheckedInRow key={a.name} {...a} />
+								))}
+							</ChartCard>
+						))}
+					</div>
+				)}
+				{freeTextQuestions.length > 0 && (
+					<ChartCard title="Free-text questions" caption="Too many different answers to chart. Export attendance (CSV) from the ⋮ menu to read them.">
+						<ul className="flex flex-col gap-1.5 leading-normal">
+							{freeTextQuestions.map((q) => (
+								<li key={q.question} className="flex items-start gap-3">
+									<p className="min-w-0 flex-1 text-sm">{q.question}</p>
+									<p className="shrink-0 text-xs text-med-blue">{q.answered} answered</p>
+								</li>
+							))}
+						</ul>
+					</ChartCard>
+				)}
 				<div className="flex flex-col gap-4 md:flex-row md:items-start">
 					<ChartCard title="Arrival timing" caption="Running total of check-ins, from an hour before the start" className="flex-1">
 						<dl className="grid grid-cols-3 gap-3 leading-normal">
@@ -274,6 +292,25 @@ export default function EventAnalyticsPage() {
 				</Suspense>
 			)}
 		</>
+	);
+}
+
+/** One group's check-ins of its total, as a bar: a ticket type or an answer to a question. */
+function CheckedInRow({ name, checkedIn, total }: { name: string; checkedIn: number; total: number }) {
+	return (
+		<div className="flex flex-col gap-1.5">
+			<div className="flex items-start gap-1.5 leading-normal">
+				<p className="min-w-0 flex-1 truncate text-sm font-bold" title={name}>
+					{name}
+				</p>
+				<p className="shrink-0 text-xs text-med-blue">
+					{checkedIn} of {total} · {percent(checkedIn, total)}%
+				</p>
+			</div>
+			<div className="h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
+				<div className="h-full bg-dark-blue" style={{ width: `${percent(checkedIn, total)}%` }} />
+			</div>
+		</div>
 	);
 }
 
