@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, LineChart, SplitBar, StatTile, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
@@ -94,248 +94,251 @@ export default function EventAnalyticsPage() {
 		<>
 			<EventOverview event={event} />
 			<PageHeader level={2} title="Analytics" className="top-0 pt-6 pb-4" />
-			{/* Phones: everything one above the other */}
-			<div className="flex flex-col gap-8 px-6 pb-7">
-				<Section title="Turnout">
-					<div className="flex flex-col gap-4 md:flex-row">
-						{/* Checked in is pre-registered plus walk-ins, so they share a tile */}
-						<StatTile
-							label="Checked in"
-							value={String(stats.checkedIn)}
-							note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total} on the list, walk-ins included`}
-							compare={
-								average
-									? [`Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}`, `Walk-ins: ${versusAverage(stats.walkIns, average.walkIns, 'people')}`]
-									: undefined
-							}
-						>
-							<SplitBar
+			{/* Phones: everything one above the other. Wide windows get a rail of the sections */}
+			<div className="flex items-start gap-6 px-6 pb-7">
+				<div className="flex min-w-0 flex-1 flex-col gap-8">
+					<Section title="Turnout">
+						<div className="flex flex-col gap-4 md:flex-row">
+							{/* Checked in is pre-registered plus walk-ins, so they share a tile */}
+							<StatTile
 								label="Checked in"
-								parts={[
-									{ name: 'Pre-registered', value: stats.preRegistered, className: 'bg-dark-blue', detail: `${stats.preRegistered} of ${registeredCount} registered` },
-									{
-										name: 'Walk-ins',
-										value: stats.walkIns,
-										className: 'bg-med-blue',
-										detail: walkInTickets.length ? `${stats.walkIns} · ${walkInRange(walkInTickets)}` : 'None yet',
-									},
-								]}
-							/>
-						</StatTile>
-						<ChartCard level={4} title="By ticket type" caption="Checked in of registered" className={SIDE}>
-							{types.map((t) => (
-								<CheckedInRow key={t.name} {...t} />
-							))}
-							<div className="flex items-start gap-1.5 leading-normal">
-								<p className="min-w-0 flex-1 text-sm font-bold">Walk-in</p>
-								<p className="shrink-0 text-xs text-med-blue">
-									{stats.walkIns} {stats.walkIns === 1 ? 'person' : 'people'}
-								</p>
-							</div>
-						</ChartCard>
-					</div>
-				</Section>
-
-				<Section title="Registrations">
-					<div className="flex flex-col gap-4 md:flex-row md:items-start">
-						<ChartCard
-							level={4}
-							title="When people registered"
-							caption={`Registered people per day, up to the event${signUps.bins.length && signUps.undated ? ` · ${signUps.undated} without a date` : ''}`}
-							legend={signUps.bins.length ? registrationSeries : undefined}
-							className="flex-1"
-						>
-							{signUps.bins.length ? (
-								<>
-									<dl className="grid grid-cols-3 gap-3 leading-normal">
-										<Figure label="Middle registration" value={signUps.medianDaysBefore === null ? '–' : formatDaysBefore(signUps.medianDaysBefore)} />
-										<Figure label="In the final week" value={`${signUps.finalWeek}%`} />
-										<Figure label="On the day" value={`${signUps.onTheDay}%`} />
-									</dl>
-									<BarChart
-										label="Registrations per day"
-										series={registrationSeries}
-										ticks={niceTicks(Math.max(1, ...signUps.bins.map((b) => b.checkedIn + b.notCheckedIn)))}
-										bars={signUps.bins.map((b, i) => ({
-											label: signUpLabel(i) ? b.label : '',
-											values: [b.checkedIn, b.notCheckedIn],
-											title: b.range,
-											lines: [`${b.checkedIn} checked in`, `${b.notCheckedIn} not checked in`],
-										}))}
-									/>
-								</>
-							) : (
-								<div className="flex flex-col items-start gap-3">
-									<p className="text-xs text-med-blue">
-										{!registeredCount
-											? 'Nobody has registered yet.'
-											: canEdit
-												? 'No registration dates yet. Import the attendee CSV again to add them: Luma and Bevy exports include when each person registered.'
-												: 'No registration dates yet. Your team’s organisers can add them by importing the attendee list again.'}
+								value={String(stats.checkedIn)}
+								note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total} on the list, walk-ins included`}
+								compare={
+									average
+										? [`Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}`, `Walk-ins: ${versusAverage(stats.walkIns, average.walkIns, 'people')}`]
+										: undefined
+								}
+							>
+								<SplitBar
+									label="Checked in"
+									parts={[
+										{ name: 'Pre-registered', value: stats.preRegistered, className: 'bg-dark-blue', detail: `${stats.preRegistered} of ${registeredCount} registered` },
+										{
+											name: 'Walk-ins',
+											value: stats.walkIns,
+											className: 'bg-med-blue',
+											detail: walkInTickets.length ? `${stats.walkIns} · ${walkInRange(walkInTickets)}` : 'None yet',
+										},
+									]}
+								/>
+							</StatTile>
+							<ChartCard level={4} title="By ticket type" caption="Checked in of registered" className={SIDE}>
+								{types.map((t) => (
+									<CheckedInRow key={t.name} {...t} />
+								))}
+								<div className="flex items-start gap-1.5 leading-normal">
+									<p className="min-w-0 flex-1 text-sm font-bold">Walk-in</p>
+									<p className="shrink-0 text-xs text-med-blue">
+										{stats.walkIns} {stats.walkIns === 1 ? 'person' : 'people'}
 									</p>
-									{canEdit && (
-										<button type="button" onClick={() => setImporting({})} className={buttonClass('secondary')}>
-											Import attendees
-										</button>
-									)}
 								</div>
-							)}
-						</ChartCard>
-						{signUps.bins.length > 0 && (
-							<ChartCard level={4} title="Turnout by sign-up timing" caption="Checked in, by how early they registered" className={SIDE}>
-								{started ? (
-									signUpTurnout.map((g) => <CheckedInRow key={g.name} {...g} />)
+							</ChartCard>
+						</div>
+					</Section>
+
+					<Section title="Registrations">
+						<div className="flex flex-col gap-4 md:flex-row md:items-start">
+							<ChartCard
+								level={4}
+								title="When people registered"
+								caption={`Registered people per day, up to the event${signUps.bins.length && signUps.undated ? ` · ${signUps.undated} without a date` : ''}`}
+								legend={signUps.bins.length ? registrationSeries : undefined}
+								className="flex-1"
+							>
+								{signUps.bins.length ? (
+									<>
+										<dl className="grid grid-cols-3 gap-3 leading-normal">
+											<Figure label="Middle registration" value={signUps.medianDaysBefore === null ? '–' : formatDaysBefore(signUps.medianDaysBefore)} />
+											<Figure label="In the final week" value={`${signUps.finalWeek}%`} />
+											<Figure label="On the day" value={`${signUps.onTheDay}%`} />
+										</dl>
+										<BarChart
+											label="Registrations per day"
+											series={registrationSeries}
+											ticks={niceTicks(Math.max(1, ...signUps.bins.map((b) => b.checkedIn + b.notCheckedIn)))}
+											bars={signUps.bins.map((b, i) => ({
+												label: signUpLabel(i) ? b.label : '',
+												values: [b.checkedIn, b.notCheckedIn],
+												title: b.range,
+												lines: [`${b.checkedIn} checked in`, `${b.notCheckedIn} not checked in`],
+											}))}
+										/>
+									</>
 								) : (
-									<p className="text-xs text-med-blue">Shows once the event starts.</p>
+									<div className="flex flex-col items-start gap-3">
+										<p className="text-xs text-med-blue">
+											{!registeredCount
+												? 'Nobody has registered yet.'
+												: canEdit
+													? 'No registration dates yet. Import the attendee CSV again to add them: Luma and Bevy exports include when each person registered.'
+													: 'No registration dates yet. Your team’s organisers can add them by importing the attendee list again.'}
+										</p>
+										{canEdit && (
+											<button type="button" onClick={() => setImporting({})} className={buttonClass('secondary')}>
+												Import attendees
+											</button>
+										)}
+									</div>
 								)}
 							</ChartCard>
-						)}
-					</div>
-				</Section>
+							{signUps.bins.length > 0 && (
+								<ChartCard level={4} title="Turnout by sign-up timing" caption="Checked in, by how early they registered" className={SIDE}>
+									{started ? (
+										signUpTurnout.map((g) => <CheckedInRow key={g.name} {...g} />)
+									) : (
+										<p className="text-xs text-med-blue">Shows once the event starts.</p>
+									)}
+								</ChartCard>
+							)}
+						</div>
+					</Section>
 
-				<Section title="Arrivals">
-					<div className="flex flex-col gap-4 md:flex-row md:items-start">
-						<ChartCard level={4} title="When people arrived" caption="Check-ins per 15 minutes" legend={series} className="flex-1">
-							<BarChart
-								label="Check-ins per 15 minutes"
-								series={series}
-								ticks={ticks}
-								bars={bins.map((b, i) => ({
-									label: i % 2 === 0 ? b.label : '',
-									values: [b.preRegistered, b.walkIns],
-									title: b.range,
-									lines: [`${b.preRegistered} pre-registered`, `${b.walkIns} walk-in${b.walkIns === 1 ? '' : 's'}`],
-									showValue: b === busiest ? String(b.preRegistered + b.walkIns) : undefined,
+					<Section title="Arrivals">
+						<div className="flex flex-col gap-4 md:flex-row md:items-start">
+							<ChartCard level={4} title="When people arrived" caption="Check-ins per 15 minutes" legend={series} className="flex-1">
+								<BarChart
+									label="Check-ins per 15 minutes"
+									series={series}
+									ticks={ticks}
+									bars={bins.map((b, i) => ({
+										label: i % 2 === 0 ? b.label : '',
+										values: [b.preRegistered, b.walkIns],
+										title: b.range,
+										lines: [`${b.preRegistered} pre-registered`, `${b.walkIns} walk-in${b.walkIns === 1 ? '' : 's'}`],
+										showValue: b === busiest ? String(b.preRegistered + b.walkIns) : undefined,
+									}))}
+								/>
+							</ChartCard>
+							<div className={`flex flex-col gap-4 ${SIDE}`}>
+								<StatTile
+									label="Busiest 15 minutes"
+									value={busiest ? busiest.label : '–'}
+									note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrival${busiest.preRegistered + busiest.walkIns === 1 ? '' : 's'} from ${busiest.range.replace('–', ' to ')}` : 'No check-ins yet'}
+								/>
+								<ChartCard level={4} title="How people checked in" caption="On the attendee page or by an organiser">
+									{methods ? (
+										<>
+											<SplitBar
+												label="Check-in method"
+												parts={[
+													{ name: 'Self', value: methods.self, className: 'bg-dark-blue' },
+													{ name: 'Organiser', value: methods.staff, className: 'bg-med-blue' },
+												]}
+											/>
+											{methods.byOrganiser.length > 0 && (
+												<ul className="flex flex-col gap-1.5 border-t border-light-blue pt-3 leading-normal">
+													{methods.byOrganiser.map((o) => (
+														<li key={o.email} className="flex items-start gap-1.5">
+															<p className="min-w-0 flex-1 truncate text-sm" title={o.email}>
+																{o.email}
+															</p>
+															<p className="shrink-0 text-xs text-med-blue">{o.count}</p>
+														</li>
+													))}
+												</ul>
+											)}
+										</>
+									) : (
+										<p className="text-xs text-med-blue">Not recorded: this event came from the old check-in app.</p>
+									)}
+								</ChartCard>
+							</div>
+						</div>
+						<ChartCard level={4} title="Arrival timing" caption="Running total of check-ins, from an hour before the start">
+							<dl className="grid grid-cols-3 gap-3 leading-normal">
+								<Figure label="Middle arrival" value={timing.medianMinutes === null ? '–' : formatOffset(timing.medianMinutes)} />
+								<Figure label="By the start" value={`${timing.byStart}%`} />
+								<Figure label="By 30 min after" value={`${timing.byHalfHour}%`} />
+							</dl>
+							<LineChart
+								label="Running total of check-ins, per 15 minutes"
+								ticks={niceTicks(Math.max(1, stats.checkedIn))}
+								points={timing.cumulative.map((p, i) => ({
+									// Each point is the total at the end of its 15 minutes
+									label: i % 2 === 1 ? p.until : '',
+									value: p.count,
+									title: `By ${p.until}`,
+									lines: [`${p.count} checked in · ${percent(p.count, stats.checkedIn)}% of arrivals`],
 								}))}
 							/>
 						</ChartCard>
-						<div className={`flex flex-col gap-4 ${SIDE}`}>
-							<StatTile
-								label="Busiest 15 minutes"
-								value={busiest ? busiest.label : '–'}
-								note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrival${busiest.preRegistered + busiest.walkIns === 1 ? '' : 's'} from ${busiest.range.replace('–', ' to ')}` : 'No check-ins yet'}
-							/>
-							<ChartCard level={4} title="How people checked in" caption="On the attendee page or by an organiser">
-								{methods ? (
-									<>
-										<SplitBar
-											label="Check-in method"
-											parts={[
-												{ name: 'Self', value: methods.self, className: 'bg-dark-blue' },
-												{ name: 'Organiser', value: methods.staff, className: 'bg-med-blue' },
-											]}
-										/>
-										{methods.byOrganiser.length > 0 && (
-											<ul className="flex flex-col gap-1.5 border-t border-light-blue pt-3 leading-normal">
-												{methods.byOrganiser.map((o) => (
-													<li key={o.email} className="flex items-start gap-1.5">
-														<p className="min-w-0 flex-1 truncate text-sm" title={o.email}>
-															{o.email}
-														</p>
-														<p className="shrink-0 text-xs text-med-blue">{o.count}</p>
-													</li>
-												))}
-											</ul>
-										)}
-									</>
+					</Section>
+
+					<Section title="Audience">
+						<div className="flex flex-col gap-4 md:flex-row md:items-start">
+							<ChartCard level={4} className="flex-1" title="First-timers" caption={
+									event.teamIds.length === 0 ? 'Not part of a team, so everyone is new' : event.teamIds.length === 1 ? 'First event with the team' : 'First event with any of its teams'
+								}>
+								{rostersLoaded ? (
+									// Returning: came to an earlier event. Registered leaves out walk-ins; checked in counts them
+									<div className="flex flex-col gap-3">
+										{[
+											{ heading: 'Registered', counts: registeredSplit },
+											{ heading: 'Checked in', counts: split },
+										].map(({ heading, counts }) => (
+											<div key={heading} className="flex flex-col gap-1.5">
+												<p className="text-xs leading-normal font-bold">{heading}</p>
+												<SplitBar
+													label={`${heading}: first-timers and returning`}
+													parts={[
+														{ name: 'First-timers', value: counts.firstTime, className: 'bg-med-blue' },
+														{ name: 'Returning', value: counts.returning, className: 'bg-dark-blue' },
+													]}
+												/>
+											</div>
+										))}
+									</div>
 								) : (
-									<p className="text-xs text-med-blue">Not recorded: this event came from the old check-in app.</p>
+									<p className="text-xs text-med-blue">Loading earlier events…</p>
+								)}
+							</ChartCard>
+							<ChartCard
+								level={4}
+								className="flex-1"
+								title="Came back"
+								caption={
+									later.length === 1
+										? 'Checked in again at the team’s next event'
+										: later.length
+											? `Checked in again at one of the team’s next ${later.length} events`
+											: 'Whether people who checked in came to a later event'
+								}
+							>
+								{event.teamIds.length === 0 ? (
+									<p className="text-xs text-med-blue">Not part of a team, so there are no later events to look at.</p>
+								) : !later.length ? (
+									<p className="text-xs text-med-blue">The team hasn’t had an event since this one.</p>
+								) : rostersLoaded && laterLoaded ? (
+									back.map((g) => <CheckedInRow key={g.name} {...g} />)
+								) : (
+									<p className="text-xs text-med-blue">Loading later events…</p>
 								)}
 							</ChartCard>
 						</div>
-					</div>
-					<ChartCard level={4} title="Arrival timing" caption="Running total of check-ins, from an hour before the start">
-						<dl className="grid grid-cols-3 gap-3 leading-normal">
-							<Figure label="Middle arrival" value={timing.medianMinutes === null ? '–' : formatOffset(timing.medianMinutes)} />
-							<Figure label="By the start" value={`${timing.byStart}%`} />
-							<Figure label="By 30 min after" value={`${timing.byHalfHour}%`} />
-						</dl>
-						<LineChart
-							label="Running total of check-ins, per 15 minutes"
-							ticks={niceTicks(Math.max(1, stats.checkedIn))}
-							points={timing.cumulative.map((p, i) => ({
-								// Each point is the total at the end of its 15 minutes
-								label: i % 2 === 1 ? p.until : '',
-								value: p.count,
-								title: `By ${p.until}`,
-								lines: [`${p.count} checked in · ${percent(p.count, stats.checkedIn)}% of arrivals`],
-							}))}
-						/>
-					</ChartCard>
-				</Section>
-
-				<Section title="Audience">
-					<div className="flex flex-col gap-4 md:flex-row md:items-start">
-						<ChartCard level={4} className="flex-1" title="First-timers" caption={
-								event.teamIds.length === 0 ? 'Not part of a team, so everyone is new' : event.teamIds.length === 1 ? 'First event with the team' : 'First event with any of its teams'
-							}>
-							{rostersLoaded ? (
-								// Returning: came to an earlier event. Registered leaves out walk-ins; checked in counts them
-								<div className="flex flex-col gap-3">
-									{[
-										{ heading: 'Registered', counts: registeredSplit },
-										{ heading: 'Checked in', counts: split },
-									].map(({ heading, counts }) => (
-										<div key={heading} className="flex flex-col gap-1.5">
-											<p className="text-xs leading-normal font-bold">{heading}</p>
-											<SplitBar
-												label={`${heading}: first-timers and returning`}
-												parts={[
-													{ name: 'First-timers', value: counts.firstTime, className: 'bg-med-blue' },
-													{ name: 'Returning', value: counts.returning, className: 'bg-dark-blue' },
-												]}
-											/>
-										</div>
-									))}
-								</div>
-							) : (
-								<p className="text-xs text-med-blue">Loading earlier events…</p>
-							)}
-						</ChartCard>
-						<ChartCard
-							level={4}
-							className="flex-1"
-							title="Came back"
-							caption={
-								later.length === 1
-									? 'Checked in again at the team’s next event'
-									: later.length
-										? `Checked in again at one of the team’s next ${later.length} events`
-										: 'Whether people who checked in came to a later event'
-							}
-						>
-							{event.teamIds.length === 0 ? (
-								<p className="text-xs text-med-blue">Not part of a team, so there are no later events to look at.</p>
-							) : !later.length ? (
-								<p className="text-xs text-med-blue">The team hasn’t had an event since this one.</p>
-							) : rostersLoaded && laterLoaded ? (
-								back.map((g) => <CheckedInRow key={g.name} {...g} />)
-							) : (
-								<p className="text-xs text-med-blue">Loading later events…</p>
-							)}
-						</ChartCard>
-					</div>
-					{/* The organiser's registration questions, from imports; nothing shows without them */}
-					{chartedQuestions.map((q) => (
-						<ChartCard key={q.question} level={4} title={q.question} caption={`${q.answered} answered`} legend={registrationSeries}>
-							{q.answers.map((a) => (
-								<AnswerRow key={a.name} {...a} answered={q.answered} />
-							))}
-						</ChartCard>
-					))}
-					{freeTextQuestions.length > 0 && (
-						<ChartCard level={4} title="Free-text questions" caption="Too many different answers to chart. Export attendance (CSV) from the ⋮ menu to read them.">
-							<ul className="flex flex-col gap-1.5 leading-normal">
-								{freeTextQuestions.map((q) => (
-									<li key={q.question} className="flex items-start gap-3">
-										<p className="min-w-0 flex-1 text-sm">{q.question}</p>
-										<p className="shrink-0 text-xs text-med-blue">{q.answered} answered</p>
-									</li>
+						{/* The organiser's registration questions, from imports; nothing shows without them */}
+						{chartedQuestions.map((q) => (
+							<ChartCard key={q.question} level={4} title={q.question} caption={`${q.answered} answered`} legend={registrationSeries}>
+								{q.answers.map((a) => (
+									<AnswerRow key={a.name} {...a} answered={q.answered} />
 								))}
-							</ul>
-						</ChartCard>
-					)}
-				</Section>
+							</ChartCard>
+						))}
+						{freeTextQuestions.length > 0 && (
+							<ChartCard level={4} title="Free-text questions" caption="Too many different answers to chart. Export attendance (CSV) from the ⋮ menu to read them.">
+								<ul className="flex flex-col gap-1.5 leading-normal">
+									{freeTextQuestions.map((q) => (
+										<li key={q.question} className="flex items-start gap-3">
+											<p className="min-w-0 flex-1 text-sm">{q.question}</p>
+											<p className="shrink-0 text-xs text-med-blue">{q.answered} answered</p>
+										</li>
+									))}
+								</ul>
+							</ChartCard>
+						)}
+					</Section>
+				</div>
+				<SectionRail />
 			</div>
 			{importing && (
 				<Suspense fallback={null}>
@@ -349,13 +352,78 @@ export default function EventAnalyticsPage() {
 /** The side column's width: By ticket type, sign-up timing and the Arrivals side lining up. */
 const SIDE = 'shrink-0 md:w-[285px]';
 
-/** A headed group of cards: Turnout, Registrations, Arrivals, Audience. */
+const SECTIONS = ['Turnout', 'Registrations', 'Arrivals', 'Audience'];
+const sectionId = (title: string) => `analytics-${title.toLowerCase()}`;
+
+/**
+ * A headed group of cards: Turnout, Registrations, Arrivals, Audience. Jumping to one from the
+ * rail leaves room for the sticky Analytics header (about 76px).
+ */
 function Section({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<section className="flex flex-col gap-4">
+		<section id={sectionId(title)} className="flex scroll-mt-24 flex-col gap-4">
 			<h3 className="font-display text-xl">{title}</h3>
 			{children}
 		</section>
+	);
+}
+
+/**
+ * Not in Figma: the sections down the right on wide windows, sticking under the Analytics
+ * header. The one being read is marked; choosing one scrolls to it.
+ */
+function SectionRail() {
+	const [active, setActive] = useState(SECTIONS[0]);
+
+	useEffect(() => {
+		const visible = new Set<string>();
+		// A section counts once its top passes the header, until its bottom does
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) {
+					if (e.isIntersecting) visible.add(e.target.id);
+					else visible.delete(e.target.id);
+				}
+				const first = SECTIONS.find((t) => visible.has(sectionId(t)));
+				if (first) setActive(first);
+			},
+			{ rootMargin: '-100px 0px -50% 0px' },
+		);
+		for (const t of SECTIONS) {
+			const el = document.getElementById(sectionId(t));
+			if (el) observer.observe(el);
+		}
+		return () => observer.disconnect();
+	}, []);
+
+	function jump(title: string) {
+		const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		document.getElementById(sectionId(title))?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+		setActive(title);
+	}
+
+	return (
+		<nav aria-label="Analytics sections" className="sticky top-24 hidden w-40 shrink-0 xl:block">
+			<ul className="flex flex-col border-l border-light-blue">
+				{SECTIONS.map((t) => (
+					<li key={t}>
+						<a
+							href={`#${sectionId(t)}`}
+							aria-current={active === t ? 'true' : undefined}
+							onClick={(e) => {
+								e.preventDefault();
+								jump(t);
+							}}
+							className={`-ml-px block border-l-2 py-1.5 pl-3 text-sm leading-normal transition-colors ${
+								active === t ? 'border-dark-blue font-bold text-dark-blue' : 'border-transparent text-med-blue hover:text-dark-blue'
+							}`}
+						>
+							{t}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
 	);
 }
 
