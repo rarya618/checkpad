@@ -298,7 +298,7 @@ export default function AnalyticsPage() {
 										{loaded ? <PeopleList list={regularList} count={(p) => `${p.attended} of ${included.length} events`} empty="No one has come twice yet." /> : <Loading />}
 									</ChartCard>
 									<ChartCard level={3} title="Registered but never came" caption="Registered for three or more of these events and came to none">
-										{loaded ? <PeopleList list={noShowList} count={(p) => `Registered ${p.registered} times`} empty="No one." /> : <Loading />}
+										{loaded ? <NoShows list={noShowList} /> : <Loading />}
 									</ChartCard>
 								</div>
 							</Section>
@@ -529,7 +529,7 @@ function Loading() {
 }
 
 /** People with what they did, the first few; the rest as a count. */
-function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person) => string; empty: string }) {
+function PeopleList({ list, count, empty, emails = true }: { list: Person[]; count: (p: Person) => string; empty: string; emails?: boolean }) {
 	if (!list.length) return <p className="text-sm text-med-blue">{empty}</p>;
 	return (
 		<ul className="flex flex-col leading-normal">
@@ -537,13 +537,38 @@ function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person)
 				<li key={p.email} className="flex items-start gap-3 border-t border-light-blue py-2 first:border-t-0 first:pt-0">
 					<div className="min-w-0 flex-1">
 						<p className="truncate text-sm font-bold">{p.name || p.email}</p>
-						<p className="truncate text-xs text-med-blue">{p.email}</p>
+						{emails && p.name && <p className="truncate text-xs text-med-blue">{p.email}</p>}
 					</div>
 					<p className="shrink-0 text-xs text-med-blue">{count(p)}</p>
 				</li>
 			))}
 			{list.length > LIST_LENGTH && <li className="border-t border-light-blue pt-2 text-xs text-med-blue">and {list.length - LIST_LENGTH} more</li>}
 		</ul>
+	);
+}
+
+/**
+ * Repeat no-shows, as a count. Names are a deliberate step behind "Show people" and come
+ * without emails: enough for an organiser to recognise someone, without the card reading as a
+ * list kept on the community (PRODUCT.md, attendee privacy). Someone with no name shows by email,
+ * or they couldn't be told apart.
+ */
+function NoShows({ list }: { list: Person[] }) {
+	const [open, setOpen] = useState(false);
+	if (!list.length) return <p className="text-sm text-med-blue">No one.</p>;
+	return (
+		<div className="flex flex-col gap-4">
+			<div className="flex items-end justify-between gap-3">
+				<p className="flex items-baseline gap-2">
+					<span className="font-display text-4xl leading-tight">{list.length}</span>
+					<span className="text-sm text-med-blue">{list.length === 1 ? 'person' : 'people'}</span>
+				</p>
+				<button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className={buttonClass('secondary', 'sm')}>
+					{open ? 'Hide people' : 'Show people'}
+				</button>
+			</div>
+			{open && <PeopleList list={list} count={(p) => `Registered ${p.registered} times`} empty="No one." emails={false} />}
+		</div>
 	);
 }
 
