@@ -1,6 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router';
+import { Section, SectionRail } from '../components/AnalyticsSections';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, LineChart, SplitBar, StatTile, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
 import PageHeader from '../components/PageHeader';
@@ -113,7 +114,7 @@ export default function EventAnalyticsPage() {
 						teamName={teamName}
 						busiest={busiest?.range ?? null}
 					/>
-					<Section title="Turnout">
+					<Section level={3} title="Turnout">
 						<div className="flex flex-col gap-4 md:flex-row">
 							{/* Checked in is pre-registered plus walk-ins, so they share a tile */}
 							<StatTile
@@ -156,7 +157,7 @@ export default function EventAnalyticsPage() {
 						</div>
 					</Section>
 
-					<Section title="Registrations">
+					<Section level={3} title="Registrations">
 						<div className="flex flex-col gap-4 md:flex-row md:items-start">
 							<ChartCard
 								level={4}
@@ -213,7 +214,7 @@ export default function EventAnalyticsPage() {
 						</div>
 					</Section>
 
-					<Section title="Arrivals">
+					<Section level={3} title="Arrivals">
 						<div className="flex flex-col gap-4 md:flex-row md:items-start">
 							<ChartCard level={4} title="When people arrived" caption="Check-ins per 15 minutes" legend={series} className="flex-1">
 								<BarChart
@@ -284,7 +285,7 @@ export default function EventAnalyticsPage() {
 						</ChartCard>
 					</Section>
 
-					<Section title="Audience">
+					<Section level={3} title="Audience">
 						<div className="flex flex-col gap-4 md:flex-row md:items-start">
 							<ChartCard level={4} className="flex-1" title="First-timers" caption={
 									event.teamIds.length === 0 ? 'Not part of a team, so everyone is new' : event.teamIds.length === 1 ? 'First event with the team' : 'First event with any of its teams'
@@ -357,7 +358,7 @@ export default function EventAnalyticsPage() {
 						)}
 					</Section>
 				</div>
-				<SectionRail />
+				<SectionRail sections={SECTIONS} />
 			</div>
 			{importing && (
 				<Suspense fallback={null}>
@@ -372,94 +373,6 @@ export default function EventAnalyticsPage() {
 const SIDE = 'shrink-0 md:w-[285px]';
 
 const SECTIONS = ['Turnout', 'Registrations', 'Arrivals', 'Audience'];
-const sectionId = (title: string) => `analytics-${title.toLowerCase()}`;
-
-/**
- * A headed group of cards: Turnout, Registrations, Arrivals, Audience. Jumping to one from the
- * rail leaves room for the sticky Analytics header (about 76px).
- */
-function Section({ title, children }: { title: string; children: ReactNode }) {
-	return (
-		<section id={sectionId(title)} className="flex scroll-mt-24 flex-col gap-4">
-			<h3 className="font-display text-xl">{title}</h3>
-			{children}
-		</section>
-	);
-}
-
-/**
- * Not in Figma: the sections down the right on wide windows, sticking under the Analytics
- * header. The one being read is marked; choosing one scrolls to it.
- */
-function SectionRail() {
-	const [active, setActive] = useState(SECTIONS[0]);
-	const nav = useRef<HTMLElement>(null);
-	// While a jump scrolls, the section chosen stays marked, even if the page bottoms out first
-	const jumping = useRef(false);
-
-	useEffect(() => {
-		// The desktop layout scrolls in <main>, not the window
-		const scroller = nav.current?.closest('main');
-		if (!scroller) return;
-		const main = scroller;
-		function update() {
-			if (jumping.current) return;
-			// The last sections are too short to reach the top, so the bottom of the page marks the last
-			if (main.scrollTop + main.clientHeight >= main.scrollHeight - 2) return setActive(SECTIONS[SECTIONS.length - 1]);
-			// Otherwise the last section whose heading has passed under the sticky Analytics header
-			const line = main.getBoundingClientRect().top + 100;
-			setActive(SECTIONS.filter((t) => (document.getElementById(sectionId(t))?.getBoundingClientRect().top ?? Infinity) <= line).pop() ?? SECTIONS[0]);
-		}
-		function settled() {
-			jumping.current = false;
-		}
-		update();
-		main.addEventListener('scroll', update, { passive: true });
-		main.addEventListener('scrollend', settled);
-		// Browsers without scrollend: the wheel or keys mean the reader has taken over
-		main.addEventListener('wheel', settled, { passive: true });
-		main.addEventListener('keydown', settled);
-		return () => {
-			main.removeEventListener('scroll', update);
-			main.removeEventListener('scrollend', settled);
-			main.removeEventListener('wheel', settled);
-			main.removeEventListener('keydown', settled);
-		};
-	}, []);
-
-	function jump(title: string) {
-		const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		jumping.current = true;
-		setActive(title);
-		document.getElementById(sectionId(title))?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
-		// Nothing to scroll (already there) fires no scrollend, so let go after a moment regardless
-		window.setTimeout(() => (jumping.current = false), 1500);
-	}
-
-	return (
-		<nav ref={nav} aria-label="Analytics sections" className="sticky top-24 hidden w-40 shrink-0 xl:block">
-			<ul className="flex flex-col border-l border-light-blue">
-				{SECTIONS.map((t) => (
-					<li key={t}>
-						<a
-							href={`#${sectionId(t)}`}
-							aria-current={active === t ? 'true' : undefined}
-							onClick={(e) => {
-								e.preventDefault();
-								jump(t);
-							}}
-							className={`-ml-px block border-l-2 py-1.5 pl-3 text-sm leading-normal transition-colors ${
-								active === t ? 'border-dark-blue font-bold text-dark-blue' : 'border-transparent text-med-blue hover:text-dark-blue'
-							}`}
-						>
-							{t}
-						</a>
-					</li>
-				))}
-			</ul>
-		</nav>
-	);
-}
 
 /**
  * Not in Figma: how the night went in a sentence, for the organiser who opens this the morning

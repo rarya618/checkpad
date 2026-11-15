@@ -2,6 +2,7 @@ import { formatDay } from '@checkpad/shared/format';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import chevron from '../assets/chevron-small.svg';
+import { Section, SectionRail } from '../components/AnalyticsSections';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, StatTile, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
 import {
@@ -140,214 +141,166 @@ export default function AnalyticsPage() {
 					</div>
 				}
 			/>
-			<div className="flex flex-col gap-5 px-6 pt-3.5 pb-7">
-				{latest && <LatestEvent latest={latest} others={results.slice(0, -1)} date={date(latest)} />}
-				<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-					<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
-					<StatTile label="Check-ins" value={String(checkIns)} note={`of ${onList} on the list`} />
-					<StatTile label="Turnout" value={`${percent(checkIns, onList)}%`} note="of everyone on the list" />
-					<StatTile label="Returning" value={loaded ? `${returning}%` : '–'} note="came to an earlier event" />
-					<StatTile label="Walk-ins" value={`${percent(walkIns, checkIns)}%`} note={`${walkIns} of check-ins`} />
-					<StatTile
-						label="Self check-in"
-						value={!loaded ? '–' : recordedCheckIns ? `${percent(selfCheckIns, recordedCheckIns)}%` : '–'}
-						note={recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}
-					/>
+			<div className="flex flex-col gap-8 px-6 pt-3.5 pb-7">
+				<div className="flex flex-col gap-5">
+					{latest && <LatestEvent latest={latest} others={results.slice(0, -1)} date={date(latest)} />}
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+						<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
+						<StatTile label="Check-ins" value={String(checkIns)} note={`of ${onList} on the list`} />
+						<StatTile label="Turnout" value={`${percent(checkIns, onList)}%`} note="of everyone on the list" />
+						<StatTile label="Returning" value={loaded ? `${returning}%` : '–'} note="came to an earlier event" />
+						<StatTile label="Walk-ins" value={`${percent(walkIns, checkIns)}%`} note={`${walkIns} of check-ins`} />
+						<StatTile
+							label="Self check-in"
+							value={!loaded ? '–' : recordedCheckIns ? `${percent(selfCheckIns, recordedCheckIns)}%` : '–'}
+							note={recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}
+						/>
+					</div>
 				</div>
-
 				{results.length ? (
-					<div className="grid gap-4 xl:grid-cols-2">
-						<ChartCard level={2} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
-							<BarChart
-								label="Turnout by event"
-								series={turnoutSeries}
-								ticks={ticks}
-								formatTick={(n) => `${n}%`}
-								bars={results.map((r, i) => ({
-									label: axisLabel(r, i),
-									values: [r.turnout],
-									title: r.event.name,
-									lines: [`${r.checkedIn} of ${r.registered} checked in · ${r.turnout}%`],
-									showValue: r === best || r === latest ? `${r.turnout}%` : undefined,
-								}))}
-							/>
-						</ChartCard>
-						<ChartCard level={2} title="Attendance by event" caption="Everyone on the list, by whether they came" legend={attendanceSeries}>
-							<BarChart
-								label="Attendance by event"
-								series={attendanceSeries}
-								ticks={niceTicks(Math.max(1, ...results.map((r) => r.registered)))}
-								bars={results.map((r, i) => ({
-									label: axisLabel(r, i),
-									values: [r.checkedIn - r.walkIns, r.walkIns, r.registered - r.checkedIn],
-									title: r.event.name,
-									lines: [
-										`${r.checkedIn - r.walkIns} pre-registered`,
-										`${r.walkIns} walk-ins · ${percent(r.walkIns, r.checkedIn)}% of check-ins`,
-										`${r.registered - r.checkedIn} didn't come`,
-									],
-									showValue: r === latest ? String(r.checkedIn) : undefined,
-								}))}
-							/>
-						</ChartCard>
-						<ChartCard level={2} title="New and returning" caption="Check-ins by whether they came to an earlier event" legend={returningSeries}>
-							{loaded ? (
-								<BarChart
-									label="New and returning by event"
-									series={returningSeries}
-									ticks={niceTicks(Math.max(1, ...detail.map((d) => d.split.returning + d.split.firstTime)))}
-									bars={results.map((r, i) => {
-										const { returning, firstTime } = detail[i].split;
-										return {
+					// Wide windows: the sections beside a rail of them, under the overview
+					<div className="flex items-start gap-6">
+						<div className="flex min-w-0 flex-1 flex-col gap-8">
+							<Section level={2} title="Turnout">
+								<div className="grid gap-4 xl:grid-cols-2">
+								<ChartCard level={3} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
+									<BarChart
+										label="Turnout by event"
+										series={turnoutSeries}
+										ticks={ticks}
+										formatTick={(n) => `${n}%`}
+										bars={results.map((r, i) => ({
 											label: axisLabel(r, i),
-											values: [returning, firstTime],
+											values: [r.turnout],
 											title: r.event.name,
-											lines: [`${returning} returning`, `${firstTime} first-timers · ${percent(firstTime, returning + firstTime)}%`],
-										};
-									})}
-								/>
-							) : (
-								<Loading />
-							)}
-						</ChartCard>
-						<ChartCard level={2} title="How people checked in" caption="On the attendee page or by an organiser" legend={methodSeries}>
-							{loaded ? (
-								<BarChart
-									label="Check-in method by event"
-									series={methodSeries}
-									ticks={niceTicks(Math.max(1, ...detail.map((d) => (d.methods ? d.methods.self + d.methods.staff : 0))))}
-									bars={results.map((r, i) => {
-										const m = detail[i].methods;
-										return {
+											lines: [`${r.checkedIn} of ${r.registered} checked in · ${r.turnout}%`],
+											showValue: r === best || r === latest ? `${r.turnout}%` : undefined,
+										}))}
+									/>
+								</ChartCard>
+								<ChartCard level={3} title="Attendance by event" caption="Everyone on the list, by whether they came" legend={attendanceSeries}>
+									<BarChart
+										label="Attendance by event"
+										series={attendanceSeries}
+										ticks={niceTicks(Math.max(1, ...results.map((r) => r.registered)))}
+										bars={results.map((r, i) => ({
 											label: axisLabel(r, i),
-											values: m ? [m.self, m.staff] : [0, 0],
+											values: [r.checkedIn - r.walkIns, r.walkIns, r.registered - r.checkedIn],
 											title: r.event.name,
-											lines: m ? [`${m.self} self · ${percent(m.self, m.self + m.staff)}%`, `${m.staff} by an organiser`] : ['Not recorded in the old check-in app'],
-										};
-									})}
-								/>
-							) : (
-								<Loading />
-							)}
-						</ChartCard>
+											lines: [
+												`${r.checkedIn - r.walkIns} pre-registered`,
+												`${r.walkIns} walk-ins · ${percent(r.walkIns, r.checkedIn)}% of check-ins`,
+												`${r.registered - r.checkedIn} didn't come`,
+											],
+											showValue: r === latest ? String(r.checkedIn) : undefined,
+										}))}
+									/>
+								</ChartCard>
+								</div>
+								<EventTable results={results} wide={wide} date={date} />
+							</Section>
+							<Section level={2} title="Registrations">
+								<div className="grid gap-4 xl:grid-cols-2">
+								<ChartCard level={3} title="How early people register" caption="Middle registration, days before each event" legend={signUpSeries}>
+									{!loaded ? (
+										<Loading />
+									) : anyDates ? (
+										<BarChart
+											label="Middle registration by event"
+											series={signUpSeries}
+											ticks={niceTicks(Math.max(1, ...signUps.map((s) => s.medianDaysBefore ?? 0)))}
+											bars={results.map((r, i) => {
+												const s = signUps[i];
+												return {
+													label: axisLabel(r, i),
+													values: [s.medianDaysBefore ?? 0],
+													title: r.event.name,
+													lines:
+														s.medianDaysBefore === null
+															? ['No registration dates: import the list again to add them']
+															: [`Middle registration ${formatDaysBefore(s.medianDaysBefore).toLowerCase()}`, `${s.finalWeek}% in the final week · ${s.onTheDay}% on the day`],
+												};
+											})}
+										/>
+									) : (
+										<p className="text-sm text-med-blue">No registration dates yet. Import each event’s attendee list again to add them.</p>
+									)}
+								</ChartCard>
+								<ChartCard level={3} title="Turnout by sign-up timing" caption="Checked in across these events, by how early they registered">
+									{!loaded ? <Loading /> : signUpTurnout.length ? signUpTurnout.map((g) => <CheckedInRow key={g.name} {...g} />) : <p className="text-sm text-med-blue">No registration dates yet.</p>}
+								</ChartCard>
+								<ChartCard level={3} title="By ticket type" caption="Checked in of registered, across these events">
+									{!loaded ? <Loading /> : ticketTypes.length ? ticketTypes.map((t) => <CheckedInRow key={t.name} {...t} />) : <p className="text-sm text-med-blue">No one registered.</p>}
+								</ChartCard>
+								{loaded &&
+									repeatedQuestions.map((q) => (
+										<ChartCard key={q.question} level={2} title={q.question} caption={`${q.answered} answers across ${q.events} events`} legend={answerSeries}>
+											{q.answers.map((a) => (
+												<AnswerRow key={a.name} {...a} answered={q.answered} />
+											))}
+										</ChartCard>
+									))}
+								</div>
+							</Section>
+							<Section level={2} title="Audience">
+								<ChartCard level={3} title="New and returning" caption="Check-ins by whether they came to an earlier event" legend={returningSeries}>
+									{loaded ? (
+										<BarChart
+											label="New and returning by event"
+											series={returningSeries}
+											ticks={niceTicks(Math.max(1, ...detail.map((d) => d.split.returning + d.split.firstTime)))}
+											bars={results.map((r, i) => {
+												const { returning, firstTime } = detail[i].split;
+												return {
+													label: axisLabel(r, i),
+													values: [returning, firstTime],
+													title: r.event.name,
+													lines: [`${returning} returning`, `${firstTime} first-timers · ${percent(firstTime, returning + firstTime)}%`],
+												};
+											})}
+										/>
+									) : (
+										<Loading />
+									)}
+								</ChartCard>
+								<div className="grid gap-4 xl:grid-cols-2">
+									<ChartCard level={3} title="Regulars" caption="Came to two or more of these events">
+										{loaded ? <PeopleList list={regularList} count={(p) => `${p.attended} of ${included.length} events`} empty="No one has come twice yet." /> : <Loading />}
+									</ChartCard>
+									<ChartCard level={3} title="Registered but never came" caption="Registered for three or more of these events and came to none">
+										{loaded ? <PeopleList list={noShowList} count={(p) => `Registered ${p.registered} times`} empty="No one." /> : <Loading />}
+									</ChartCard>
+								</div>
+							</Section>
+							<Section level={2} title="Check-in">
+								<ChartCard level={3} title="How people checked in" caption="On the attendee page or by an organiser" legend={methodSeries}>
+									{loaded ? (
+										<BarChart
+											label="Check-in method by event"
+											series={methodSeries}
+											ticks={niceTicks(Math.max(1, ...detail.map((d) => (d.methods ? d.methods.self + d.methods.staff : 0))))}
+											bars={results.map((r, i) => {
+												const m = detail[i].methods;
+												return {
+													label: axisLabel(r, i),
+													values: m ? [m.self, m.staff] : [0, 0],
+													title: r.event.name,
+													lines: m ? [`${m.self} self · ${percent(m.self, m.self + m.staff)}%`, `${m.staff} by an organiser`] : ['Not recorded in the old check-in app'],
+												};
+											})}
+										/>
+									) : (
+										<Loading />
+									)}
+								</ChartCard>
+							</Section>
+						</div>
+						<SectionRail sections={SECTIONS} />
 					</div>
 				) : (
 					<ChartCard level={2} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
 						<p className="py-6 text-center text-sm text-med-blue">No finished events in this range.</p>
 					</ChartCard>
-				)}
-
-				{results.length > 0 && (
-					<div className="grid gap-4 xl:grid-cols-2">
-						<ChartCard level={2} title="How early people register" caption="Middle registration, days before each event" legend={signUpSeries}>
-							{!loaded ? (
-								<Loading />
-							) : anyDates ? (
-								<BarChart
-									label="Middle registration by event"
-									series={signUpSeries}
-									ticks={niceTicks(Math.max(1, ...signUps.map((s) => s.medianDaysBefore ?? 0)))}
-									bars={results.map((r, i) => {
-										const s = signUps[i];
-										return {
-											label: axisLabel(r, i),
-											values: [s.medianDaysBefore ?? 0],
-											title: r.event.name,
-											lines:
-												s.medianDaysBefore === null
-													? ['No registration dates: import the list again to add them']
-													: [`Middle registration ${formatDaysBefore(s.medianDaysBefore).toLowerCase()}`, `${s.finalWeek}% in the final week · ${s.onTheDay}% on the day`],
-										};
-									})}
-								/>
-							) : (
-								<p className="text-sm text-med-blue">No registration dates yet. Import each event’s attendee list again to add them.</p>
-							)}
-						</ChartCard>
-						<ChartCard level={2} title="Turnout by sign-up timing" caption="Checked in across these events, by how early they registered">
-							{!loaded ? <Loading /> : signUpTurnout.length ? signUpTurnout.map((g) => <CheckedInRow key={g.name} {...g} />) : <p className="text-sm text-med-blue">No registration dates yet.</p>}
-						</ChartCard>
-						<ChartCard level={2} title="By ticket type" caption="Checked in of registered, across these events">
-							{!loaded ? <Loading /> : ticketTypes.length ? ticketTypes.map((t) => <CheckedInRow key={t.name} {...t} />) : <p className="text-sm text-med-blue">No one registered.</p>}
-						</ChartCard>
-						{loaded &&
-							repeatedQuestions.map((q) => (
-								<ChartCard key={q.question} level={2} title={q.question} caption={`${q.answered} answers across ${q.events} events`} legend={answerSeries}>
-									{q.answers.map((a) => (
-										<AnswerRow key={a.name} {...a} answered={q.answered} />
-									))}
-								</ChartCard>
-							))}
-					</div>
-				)}
-
-				{results.length > 0 && (
-					<div className="grid gap-4 xl:grid-cols-2">
-						<ChartCard level={2} title="Regulars" caption="Came to two or more of these events">
-							{loaded ? <PeopleList list={regularList} count={(p) => `${p.attended} of ${included.length} events`} empty="No one has come twice yet." /> : <Loading />}
-						</ChartCard>
-						<ChartCard level={2} title="Registered but never came" caption="Registered for three or more of these events and came to none">
-							{loaded ? <PeopleList list={noShowList} count={(p) => `Registered ${p.registered} times`} empty="No one." /> : <Loading />}
-						</ChartCard>
-					</div>
-				)}
-
-				{results.length > 0 && (
-					<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
-						<table className="w-full table-fixed text-sm leading-normal">
-							<colgroup>
-								<col />
-								{wide && (
-									<>
-										<col className="w-[150px]" />
-										<col className="w-[97.5px]" />
-										<col className="w-[97.5px]" />
-									</>
-								)}
-								<col className="w-[82.5px]" />
-								{wide && <col className="w-[75px]" />}
-							</colgroup>
-							<thead>
-								<tr className="font-display text-black">
-									<th className="pt-1 pb-2 text-left">Event</th>
-									{wide && (
-										<>
-											<th className="pt-1 pb-2 text-left">Date</th>
-											<th className="pt-1 pb-2 text-right">On the list</th>
-											<th className="pt-1 pb-2 text-right">Checked in</th>
-										</>
-									)}
-									<th className="pt-1 pb-2 text-right">Turnout</th>
-									{wide && <th className="pt-1 pb-2 text-right">Walk-ins</th>}
-								</tr>
-							</thead>
-							<tbody>
-								{[...results].reverse().map((r) => (
-									<tr key={r.event.slug} className="border-t border-light-blue text-black">
-										<td className="truncate py-2.5 pr-3 font-bold text-dark-blue">
-											<Link to={`/events/${r.event.slug}/analytics`} className="hover:underline">
-												{r.event.name}
-											</Link>
-											{!wide && (
-												<span className="block truncate font-normal text-med-blue">
-													{date(r)} · {r.checkedIn} of {r.registered}
-												</span>
-											)}
-										</td>
-										{wide && (
-											<>
-												<td className="py-2.5">{date(r)}</td>
-												<td className="py-2.5 text-right">{r.registered}</td>
-												<td className="py-2.5 text-right">{r.checkedIn}</td>
-											</>
-										)}
-										<td className="py-2.5 text-right">{r.turnout}%</td>
-										{wide && <td className="py-2.5 text-right">{r.walkIns}</td>}
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
 				)}
 			</div>
 		</>
@@ -372,6 +325,108 @@ function LatestEvent({ latest, others, date }: { latest: EventResult; others: Ev
 			on {date}. <strong>{came}</strong> came{walkIns}: <strong>{latest.turnout}%</strong> of the {latest.registered} on the list.
 			{average !== null && ` ${turnoutVersus(versusAverage(latest.turnout, average), against, 'That’s')}.`}
 		</p>
+	);
+}
+
+const SECTIONS = ['Turnout', 'Registrations', 'Audience', 'Check-in'];
+
+type SortKey = 'name' | 'date' | 'onList' | 'checkedIn' | 'turnout' | 'walkIns';
+
+const columns: { key: SortKey; label: string; right?: boolean; value: (r: EventResult) => number | string; order: [string, string] }[] = [
+	{ key: 'name', label: 'Event', value: (r) => r.event.name.toLowerCase(), order: ['Event names A to Z', 'Event names Z to A'] },
+	{ key: 'date', label: 'Date', value: (r) => r.event.startsAt, order: ['Oldest first', 'Newest first'] },
+	{ key: 'onList', label: 'On the list', right: true, value: (r) => r.registered, order: ['Fewest on the list first', 'Most on the list first'] },
+	{ key: 'checkedIn', label: 'Checked in', right: true, value: (r) => r.checkedIn, order: ['Fewest checked in first', 'Most checked in first'] },
+	{ key: 'turnout', label: 'Turnout', right: true, value: (r) => r.turnout, order: ['Lowest turnout first', 'Highest turnout first'] },
+	{ key: 'walkIns', label: 'Walk-ins', right: true, value: (r) => r.walkIns, order: ['Fewest walk-ins first', 'Most walk-ins first'] },
+];
+
+/**
+ * Every event in the range, newest first, each linking to its own analytics. Any column
+ * heading sorts by it; choosing it again reverses. Narrow windows keep Event and Turnout,
+ * with the date and counts under the name.
+ */
+function EventTable({ results, wide, date }: { results: EventResult[]; wide: boolean; date: (r: EventResult) => string }) {
+	const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: 'date', descending: true });
+	const shown = columns.filter((c) => wide || c.key === 'name' || c.key === 'turnout');
+	const column = columns.find((c) => c.key === sort.key)!;
+	const rows = [...results].sort((a, b) => {
+		const x = column.value(a);
+		const y = column.value(b);
+		const order = x < y ? -1 : x > y ? 1 : b.event.startsAt.localeCompare(a.event.startsAt);
+		return sort.descending ? -order : order;
+	});
+	// The first time, also say the headings sort
+	const caption = `${column.order[sort.descending ? 1 : 0]}.${sort.key === 'date' && sort.descending ? ' Choose a column heading to sort by it.' : ''}`;
+
+	function choose(key: SortKey) {
+		// Names start A to Z; dates and numbers start with the biggest
+		setSort((s) => (s.key === key ? { key, descending: !s.descending } : { key, descending: key !== 'name' }));
+	}
+
+	return (
+		<ChartCard level={3} title="Every event" caption={caption}>
+			<table className="w-full table-fixed text-sm leading-normal">
+				<colgroup>
+					<col />
+					{wide && (
+						<>
+							<col className="w-[150px]" />
+							<col className="w-[105px]" />
+							<col className="w-[105px]" />
+						</>
+					)}
+					<col className="w-[90px]" />
+					{wide && <col className="w-[90px]" />}
+				</colgroup>
+				<thead>
+					<tr className="font-display text-black">
+						{shown.map((c) => {
+							const active = c.key === sort.key;
+							return (
+								<th key={c.key} scope="col" aria-sort={active ? (sort.descending ? 'descending' : 'ascending') : undefined} className={`pt-1 pb-2 ${c.right ? 'text-right' : 'text-left'}`}>
+									<button
+										type="button"
+										onClick={() => choose(c.key)}
+										className={`inline-flex items-center gap-1 rounded font-display outline-none hover:text-med-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue ${c.right ? 'flex-row-reverse' : ''}`}
+									>
+										{c.label}
+										<svg aria-hidden="true" viewBox="0 0 8 8" className={`size-2 shrink-0 fill-current ${active ? '' : 'invisible'}`}>
+											<path d={active && !sort.descending ? 'M4 1 8 7H0z' : 'M4 7 0 1h8z'} />
+										</svg>
+									</button>
+								</th>
+							);
+						})}
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map((r) => (
+						<tr key={r.event.slug} className="border-t border-light-blue text-black">
+							<td className="truncate py-2.5 pr-3 font-bold text-dark-blue">
+								<Link to={`/events/${r.event.slug}/analytics`} className="hover:underline">
+									{r.event.name}
+								</Link>
+								{!wide && (
+									<span className="block truncate font-normal text-med-blue">
+										{date(r)} · {r.checkedIn} of {r.registered}
+									</span>
+								)}
+							</td>
+							{wide && (
+								<>
+									<td className="py-2.5">{date(r)}</td>
+									<td className="py-2.5 text-right tabular-nums">{r.registered}</td>
+									<td className="py-2.5 text-right tabular-nums">{r.checkedIn}</td>
+								</>
+							)}
+							<td className="py-2.5 text-right tabular-nums">{r.turnout}%</td>
+							{wide && <td className="py-2.5 text-right tabular-nums">{r.walkIns}</td>}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</ChartCard>
 	);
 }
 
