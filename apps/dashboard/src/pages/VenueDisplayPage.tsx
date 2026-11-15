@@ -66,7 +66,7 @@ export default function VenueDisplayPage() {
 
 			<footer className="flex items-center justify-center gap-3 pt-8 text-base text-med-blue lg:text-lg">
 				powered by
-				<img src={logo} alt="checkpad" width={268} height={64} className="h-7 w-auto lg:h-8" />
+				<img src={logo} alt="checkpad" width={291} height={64} className="h-7 w-auto lg:h-8" />
 			</footer>
 		</main>
 	);

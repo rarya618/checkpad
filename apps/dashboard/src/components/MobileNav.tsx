@@ -71,7 +71,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 		<>
 			<header className="flex items-center justify-between gap-4 px-5 pt-5 pb-6">
 				<Link to="/events">
-					<img src={logo} alt="checkpad" width={134} height={32} />
+					<img src={logo} alt="checkpad" width={146} height={32} />
 				</Link>
 				{back && (
 					<Link to={back.to} className="-my-2 flex items-center gap-1.5 py-2 text-sm tracking-[-0.01em] text-med-blue">

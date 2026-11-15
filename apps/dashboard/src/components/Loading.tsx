@@ -64,7 +64,7 @@ export function LoadingSteps({ steps }: { steps: LoadingStep[] }) {
 	return (
 		<main aria-busy="true" className="flex min-h-dvh items-center justify-center p-6">
 			<div className="flex w-full max-w-[260px] flex-col items-center gap-8 animate-loading-in">
-				<img src={logo} alt="checkpad" width={132} height={31.5} />
+				<img src={logo} alt="checkpad" width={143} height={31.5} />
 				<ol className="flex w-full flex-col gap-3" aria-live="polite">
 					{steps.map((step) => {
 						const active = step === current;

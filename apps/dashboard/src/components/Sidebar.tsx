@@ -41,7 +41,7 @@ export default function Sidebar({ items, back, screens }: SidebarProps) {
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-4 pt-7.5 pb-4">
 			<div className="flex w-full flex-col gap-5">
 				<Link to="/events" className="self-start px-3 py-1">
-					<img src={logo} alt="checkpad" width={151} height={36} />
+					<img src={logo} alt="checkpad" width={164} height={36} />
 				</Link>
 				<nav aria-label="Main" className="flex flex-col gap-3">
 					{back && (

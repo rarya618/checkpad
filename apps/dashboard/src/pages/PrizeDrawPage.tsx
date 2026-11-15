@@ -170,7 +170,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 				</div>
 				<div className="flex items-center gap-3">
 					<p className="text-lg text-light-blue">powered by</p>
-					<img src={logo} alt="checkpad" width={134} height={32} />
+					<img src={logo} alt="checkpad" width={146} height={32} />
 				</div>
 			</footer>
 
