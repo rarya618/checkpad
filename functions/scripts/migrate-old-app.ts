@@ -22,7 +22,7 @@ import type { AttendeeDoc, EventDoc, SlugDoc } from '../src/model.ts';
 const TIME_ZONE = 'Australia/Sydney';
 const PREFIX = 'GDGWALKIN';
 // packages/shared/src/events.ts, which functions can't import
-const RESERVED_SLUGS = new Set(['api', 'check-in', 'privacy', 'team']);
+const RESERVED_SLUGS = new Set(['api', 'check-in', 'docs', 'privacy', 'team']);
 
 interface OldAttendee {
 	ticketNumber: string;

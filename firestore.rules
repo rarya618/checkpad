@@ -86,7 +86,7 @@ service cloud.firestore {
       return value is string
         && value.size() <= 100
         && value.matches('^[a-z0-9]+(-[a-z0-9]+)*$')
-        && !(value in ['api', 'check-in', 'privacy', 'team']);
+        && !(value in ['api', 'check-in', 'docs', 'privacy', 'team']);
     }
 
     // admins/{email}: role, teamId, invitedAt, invitedBy, and name and lastSignInAt once they

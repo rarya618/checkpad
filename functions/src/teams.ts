@@ -47,7 +47,7 @@ export async function deleteTeam(db: Firestore, auth: Auth, authorization: strin
 
 // Same checks as isTeam in firestore.rules
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const RESERVED_SLUGS = ['api', 'check-in', 'privacy', 'team'];
+const RESERVED_SLUGS = ['api', 'check-in', 'docs', 'privacy', 'team'];
 const COUNTRY = /^[A-Z]{2}$/;
 
 /** A time zone the server knows: Intl refuses anything else. */
