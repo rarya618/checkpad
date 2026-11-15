@@ -57,11 +57,11 @@ const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = fals
 					<Image
 						src={phone.src}
 						alt={phone.alt}
-						widths={[160, 320, 420]}
-						sizes="(min-width: 1280px) 160px, (min-width: 768px) 144px, 96px"
+						widths={[192, 384, 420]}
+						sizes="(min-width: 768px) 192px, 128px"
 						class:list={[
-							'absolute -bottom-6 w-24 rounded-2xl border-4 border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:-bottom-8 md:w-36 xl:-bottom-10 xl:w-40 xl:rounded-3xl',
-							reverse ? 'left-3 md:left-6 xl:-left-6' : 'right-3 md:right-6 xl:-right-6',
+							'absolute -bottom-10 w-32 rounded-2xl border-4 border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:-bottom-14 md:w-48 xl:-bottom-16 xl:rounded-3xl',
+							reverse ? 'left-3 md:left-6 xl:-left-10' : 'right-3 md:right-6 xl:-right-10',
 						]}
 					/>
 				)
