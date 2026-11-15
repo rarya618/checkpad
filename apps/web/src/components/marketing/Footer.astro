@@ -3,26 +3,62 @@ import { Image } from 'astro:assets';
 import logo from '@checkpad/shared/checkpad-logo.svg';
 import { DASHBOARD_URL } from '../../lib/config';
 
-const links = [
-	{ href: '/#how-it-works', label: 'How it works' },
-	{ href: '/#features', label: 'Features' },
-	{ href: '/privacy', label: 'Privacy' },
-	{ href: DASHBOARD_URL, label: 'Sign in' },
+const columns: { title: string; links: { href: string; label: string }[] }[] = [
+	{
+		title: 'Product',
+		links: [
+			{ href: '/#how-it-works', label: 'How it works' },
+			{ href: '/#features', label: 'Features' },
+			{ href: '/#walk-ins', label: 'Walk-ins' },
+			{ href: '/#analytics', label: 'Analytics' },
+		],
+	},
+	{
+		title: 'Resources',
+		links: [
+			{ href: '/docs', label: 'Docs' },
+			{ href: '/privacy', label: 'Privacy' },
+		],
+	},
+	{
+		title: 'Organisers',
+		links: [
+			{ href: DASHBOARD_URL, label: 'Sign in' },
+			{ href: '/#waitlist', label: 'Join the waitlist' },
+		],
+	},
 ];
+
+const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-light-blue">
-	<div
-		class="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-6 pt-8 md:px-12 pb-10 xl:flex-row xl:items-center xl:justify-between xl:px-30 xl:pt-10 xl:pb-14"
-	>
-		<div class="flex flex-col gap-2.5">
-			<Image src={logo} alt="checkpad" width={191} height={42} class="w-[146px]" />
-			<p class="text-base leading-6">Made for community events.</p>
+<footer class="border-t border-light-blue bg-white/60">
+	<div class="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-6 pt-12 pb-8 md:px-12 xl:px-30 xl:pt-16 xl:pb-10">
+		<div class="flex flex-col gap-10 lg:flex-row lg:justify-between lg:gap-16">
+			<div class="flex max-w-xs flex-col gap-4">
+				<a href="/" aria-label="checkpad home" class="self-start">
+					<Image src={logo} alt="checkpad" width={191} height={42} class="w-[146px]" />
+				</a>
+				<p class="text-base leading-6 text-dark-blue/85">Self check-in for community meetups. Attendees scan a QR code and you watch the room fill up.</p>
+			</div>
+			<nav aria-label="Footer" class="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:gap-x-16">
+				{columns.map((c) => (
+					<div class="flex flex-col gap-3">
+						<h2 class="text-sm leading-5 font-semibold text-med-blue">{c.title}</h2>
+						<ul class="flex flex-col gap-2.5">
+							{c.links.map((l) => (
+								<li>
+									<a href={l.href} class="text-base leading-6 font-medium transition-colors hover:text-med-blue">{l.label}</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))}
+			</nav>
 		</div>
-		<ul class="flex gap-6 xl:gap-8">
-			{links.map((l) => (
-				<li><a href={l.href} class="text-base leading-6 font-medium transition-colors hover:text-med-blue">{l.label}</a></li>
-			))}
-		</ul>
+		<div class="flex flex-col gap-2 border-t border-light-blue pt-6 text-sm leading-5 text-med-blue sm:flex-row sm:justify-between">
+			<p>© {year} Checkpad</p>
+			<p>Made for community events.</p>
+		</div>
 	</div>
 </footer>

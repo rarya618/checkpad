@@ -1,0 +1,215 @@
+---
+import Footer from '../components/marketing/Footer.astro';
+import Nav from '../components/marketing/Nav.astro';
+import Layout from '../layouts/Layout.astro';
+import { DASHBOARD_URL } from '../lib/config';
+
+// Not in Figma. The organiser guide: keep each step true to the dashboard's own wording (labels,
+// buttons and menu items in apps/dashboard), and update it when a flow changes. "docs" is a
+// reserved event link (RESERVED_SLUGS).
+
+/** A section's body: paragraphs, numbered steps, bulleted lists and tips. */
+type Block = string | { steps: string[] } | { list: string[] } | { tip: string };
+
+const sections: { id: string; title: string; body: Block[] }[] = [
+	{
+		id: 'getting-started',
+		title: 'Getting started',
+		body: [
+			'Checkpad isn’t open to new organisers yet. Join the waitlist on the home page and we’ll email you when you can set up your first event.',
+			'If someone already on Checkpad adds you as an organiser, you’ll get an invite by email. Sign in to the dashboard with Google or with a link we email you, using the address the invite went to.',
+			{ tip: 'If you were invited to start a new team, the dashboard asks you to name it and say where it meets the first time you sign in. New events start in that place’s time zone.' },
+		],
+	},
+	{
+		id: 'teams-and-roles',
+		title: 'Teams and roles',
+		body: [
+			'Events belong to teams. Everyone on a team sees and runs its events. There are three roles:',
+			{
+				list: [
+					'Organiser: creates and edits their team’s events and imports attendees.',
+					'Team member: checks people in at their team’s events, without changing the event.',
+					'Super admin: sees every event and team, and manages organisers and teams.',
+				],
+			},
+			'Super admins add people from Organisers: Add organiser on the People tab, or Manage on a team in the Teams tab. They’re emailed an invite and can sign in straight away. Organisers and team members can see who’s on their team there.',
+			'Each team has a permanent team link, like checkpad.app/team/tech-meetup. It opens the team’s event that is open for check-in, or else its next upcoming event, so you can print it on signs once and reuse them every month.',
+			{ tip: 'Changing a team’s link name breaks signs that use the old link.' },
+		],
+	},
+	{
+		id: 'create-an-event',
+		title: 'Create an event',
+		body: [
+			{
+				steps: [
+					'On Events, choose New event.',
+					'Give it a name and a link. Attendees check in at checkpad.app/<link>, so keep it short.',
+					'Set the date, start and end times and the time zone.',
+					'Choose the teams that run it. The team that creates the event owns it: only its organisers can change the teams or delete the event.',
+					'Under Walk-ins, set the ticket title and venue walk-ins get, and choose whether attendees can add themselves.',
+					'Choose Create event.',
+				],
+			},
+			'You can change all of this later in the event’s Settings. The link is locked while check-in is open, so attendees’ QR codes keep working.',
+		],
+	},
+	{
+		id: 'import-attendees',
+		title: 'Import attendees',
+		body: [
+			'Checkpad imports the attendee CSV from Bevy or Luma.',
+			{
+				list: [
+					'Bevy: open the event’s attendee list and choose Export → CSV.',
+					'Luma: download the guest list as a CSV from the event’s Guests tab.',
+				],
+			},
+			'In the dashboard, open the event, choose the options menu, then Import attendees, and pick the file. Before anything is saved you’ll see how many people are new, updated, unchanged or skipped, and why any rows were skipped.',
+			'People are matched by ticket number (guest ID in Luma), so you can import the same list again as more people register. Nobody is added twice, and anyone already checked in stays checked in.',
+			{ tip: 'The file needs columns for first name, email and a ticket number or guest ID. Upload it as a CSV, not an Excel file.' },
+		],
+	},
+	{
+		id: 'open-check-in',
+		title: 'Open check-in',
+		body: [
+			'Attendees can only check themselves in while self check-in is open. Turn on Self check-in open in the event’s Settings when doors open, and turn it off when the night’s over. Staff can check people in from the dashboard either way.',
+			'To put the QR code at the door, choose Share on the event. From there you can:',
+			{
+				list: [
+					'copy the check-in link',
+					'download the QR code as a PNG to print',
+					'open the venue display, a full-screen page with the QR code for a TV or projector',
+				],
+			},
+			'The venue display updates itself: it says “Check-in opens soon” before you open check-in and “Check-in has closed” after you close it.',
+		],
+	},
+	{
+		id: 'on-the-night',
+		title: 'On the night',
+		body: [
+			'Attendees scan the QR code with their phone camera, or type the link, and enter the email they registered with. They see “You’re checked in” with their ticket number, and your dashboard updates straight away.',
+			'If their email isn’t on the list, what happens depends on the event’s walk-in setting:',
+			{
+				list: [
+					'If attendees can add themselves, they add their name and check in as a walk-in.',
+					'If not, they’re asked to find an organiser.',
+				],
+			},
+			'Staff check people in from Check in on a laptop or phone. Search by email or ticket number and choose Check in. If nobody matches, choose Add walk-in to add them with the next walk-in ticket, like CPWALKIN0001. Walk-in numbers never repeat, even when several people are checking in on different devices.',
+			{ tip: 'Checked someone in by mistake? Choose Undo check-in next to their name, on the Check in page or in the attendee list.' },
+		],
+	},
+	{
+		id: 'prize-draw',
+		title: 'Prize draw',
+		body: [
+			'Choose Open prize draw from the event’s options menu and put it on the projector. It draws from everyone who has checked in and shows names only.',
+			'Nobody wins twice, even if the page is refreshed. If a winner isn’t in the room, mark them not here and draw again. To start over, every winner goes back into the draw, along with anyone marked not here.',
+		],
+	},
+	{
+		id: 'after-the-event',
+		title: 'After the event',
+		body: [
+			'The event’s Analytics shows who came: arrivals every 15 minutes, turnout by ticket type, walk-ins, how early people arrived, first-timers and how people checked in. The Analytics page in the sidebar compares turnout across all your events.',
+			'To report attendance back, use the event’s options menu:',
+			{
+				list: [
+					'Export for Bevy: a CSV for Bevy’s bulk upload, with walk-ins included.',
+					'Export attendance (CSV): who registered and who came, with their answers to the registration questions, for any other platform.',
+				],
+			},
+			'Deleting an event deletes its attendee list.',
+		],
+	},
+];
+
+const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
+---
+
+<Layout title="Docs · Checkpad" description="How to run check-in with Checkpad: set up a team, import attendees from Bevy or Luma, open check-in, add walk-ins and run the prize draw.">
+	<Nav />
+	<main class="mx-auto flex w-full max-w-[1440px] gap-16 px-6 pt-10 pb-18 md:px-12 xl:px-30 xl:pt-16 xl:pb-30">
+		<aside class="hidden w-56 shrink-0 lg:block">
+			<nav aria-label="On this page" class="sticky top-32 flex flex-col gap-3">
+				<p class="text-sm leading-5 font-semibold text-med-blue">On this page</p>
+				<ol class="flex flex-col border-l border-light-blue">
+					{sections.map((s) => (
+						<li>
+							<a
+								href={`#${s.id}`}
+								data-toc-link
+								class="-ml-px block border-l-2 border-transparent py-1.5 pl-4 text-base leading-6 font-medium text-dark-blue/70 transition-colors hover:text-dark-blue data-current:border-med-blue data-current:text-dark-blue"
+							>
+								{s.title}
+							</a>
+						</li>
+					))}
+				</ol>
+			</nav>
+		</aside>
+		<article class="flex max-w-[760px] min-w-0 flex-1 flex-col gap-12">
+			<header class="flex flex-col gap-3">
+				<p class="text-base leading-6 font-semibold text-med-blue">Docs</p>
+				<h1 class="font-display text-5xl xl:text-6xl">Running check-in with Checkpad</h1>
+				<p class="text-lg text-dark-blue/85 xl:text-xl">
+					Everything an organiser needs, from importing your attendee list to the last prize of the night. Already set up?{' '}
+					<a href={DASHBOARD_URL} class="font-semibold text-med-blue underline">Sign in to the dashboard</a>.
+				</p>
+			</header>
+			{sections.map((s, i) => (
+				<section id={s.id} data-docs-section class="flex scroll-mt-32 flex-col gap-4 border-t border-light-blue pt-10 first-of-type:border-t-0 first-of-type:pt-0">
+					<h2 class="flex items-baseline gap-3 font-display text-3xl">
+						<span class="text-xl text-med-blue" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+						{s.title}
+					</h2>
+					{s.body.map((block) =>
+						typeof block === 'string' ? (
+							<p class={text}>{block}</p>
+						) : 'steps' in block ? (
+							<ol class="flex flex-col gap-3">
+								{block.steps.map((step, n) => (
+									<li class="flex gap-4">
+										<span class="grid size-7 shrink-0 place-items-center rounded-full bg-dark-blue text-sm font-bold text-off-white xl:mt-0.5">{n + 1}</span>
+										<span class={text}>{step}</span>
+									</li>
+								))}
+							</ol>
+						) : 'list' in block ? (
+							<ul class={`${text} flex list-disc flex-col gap-1.5 pl-6`}>
+								{block.list.map((item) => (
+									<li>{item}</li>
+								))}
+							</ul>
+						) : (
+							<p class="rounded-2xl bg-light-blue px-5 py-4 text-base leading-7 text-dark-blue">
+								<span class="font-bold">Tip: </span>{block.tip}
+							</p>
+						),
+					)}
+				</section>
+			))}
+		</article>
+	</main>
+	<Footer />
+</Layout>
+
+<script>
+	// Marks the contents link for the section being read.
+	const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')].map((a) => [a.hash.slice(1), a]));
+	links.get(location.hash.slice(1))?.toggleAttribute('data-current', true) ?? links.values().next().value?.toggleAttribute('data-current', true);
+	const observer = new IntersectionObserver(
+		(entries) => {
+			for (const entry of entries) {
+				if (!entry.isIntersecting) continue;
+				for (const [id, link] of links) link.toggleAttribute('data-current', id === entry.target.id);
+			}
+		},
+		{ rootMargin: '-20% 0px -70% 0px' },
+	);
+	document.querySelectorAll('[data-docs-section]').forEach((section) => observer.observe(section));
+</script>
