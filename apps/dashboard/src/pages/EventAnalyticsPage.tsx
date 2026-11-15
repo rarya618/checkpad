@@ -37,12 +37,6 @@ const series: Series[] = [
 // Loaded on first use, with the CSV library it brings
 const ImportDialog = lazy(() => import('../components/ImportDialog'));
 
-// Answer bars: as long as the answer's registrations, the checked-in part darker
-const answerSeries: Series[] = [
-	{ name: 'Registered', className: 'bg-med-blue/40' },
-	{ name: 'Checked in', className: 'bg-dark-blue' },
-];
-
 const registrationSeries: Series[] = [
 	{ name: 'Checked in', className: 'bg-dark-blue' },
 	{ name: 'Not checked in', className: 'bg-med-blue' },
@@ -207,9 +201,9 @@ export default function EventAnalyticsPage() {
 				{chartedQuestions.length > 0 && (
 					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 						{chartedQuestions.map((q) => (
-							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered`} legend={answerSeries}>
+							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered`} legend={registrationSeries}>
 								{q.answers.map((a) => (
-									<AnswerRow key={a.name} {...a} most={Math.max(...q.answers.map((x) => x.total))} />
+									<AnswerRow key={a.name} {...a} />
 								))}
 							</ChartCard>
 						))}
@@ -320,11 +314,8 @@ function CheckedInRow({ name, checkedIn, total }: { name: string; checkedIn: num
 	);
 }
 
-/**
- * An answer's registrations and check-ins. The bar's length is its registrations against the
- * commonest answer's (`most`), so answers compare; the darker part is who checked in.
- */
-function AnswerRow({ name, checkedIn, total, most }: { name: string; checkedIn: number; total: number; most: number }) {
+/** An answer's registrations as a full bar: who checked in, then who didn't, as in the Registrations chart. */
+function AnswerRow({ name, checkedIn, total }: { name: string; checkedIn: number; total: number }) {
 	return (
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-start gap-1.5 leading-normal">
@@ -335,10 +326,8 @@ function AnswerRow({ name, checkedIn, total, most }: { name: string; checkedIn: 
 					{total} registered · {checkedIn} checked in
 				</p>
 			</div>
-			<div className="h-[7.5px]" role="presentation">
-				<div className="h-full overflow-hidden rounded-full bg-med-blue/40" style={{ width: `${percent(total, most)}%` }}>
-					<div className="h-full bg-dark-blue" style={{ width: `${percent(checkedIn, total)}%` }} />
-				</div>
+			<div className="h-[7.5px] overflow-hidden rounded-full bg-med-blue" role="presentation">
+				<div className="h-full bg-dark-blue" style={{ width: `${percent(checkedIn, total)}%` }} />
 			</div>
 		</div>
 	);
