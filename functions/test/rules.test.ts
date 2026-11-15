@@ -413,6 +413,14 @@ describe('imports', () => {
 		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { answers: { 'Experience with Android': 'None' } }));
 	});
 
+	test('imports record when people registered', async () => {
+		const registeredAt = Timestamp.fromDate(new Date('2026-08-21T03:12:45Z'));
+		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, registeredAt }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), { registeredAt }));
+		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA004'), { ...person, email: 'other@example.com', registeredAt: '2026-08-21' }));
+		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { registeredAt: Timestamp.fromDate(new Date('2026-08-22T00:00:00Z')) }));
+	});
+
 	test('an import can’t change someone’s check-in or email', async () => {
 		await assertFails(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA002'), { firstName: 'Samuel', checkedInAt: null }));
 		await assertFails(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), { email: 'other@example.com' }));

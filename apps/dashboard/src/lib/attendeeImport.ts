@@ -20,6 +20,8 @@ export interface ImportRow {
 	ticketType: string;
 	/** Question → answer, for the file's registration questions; blank answers left out. */
 	answers: Record<string, string>;
+	/** When they registered on the platform; absent when the file has no date we can read. */
+	registeredAt?: Date;
 }
 
 export interface ImportPlan {
@@ -50,6 +52,8 @@ const columns = {
 	ticket: ['ticketnumber', 'ticketno', 'ticketid', 'barcode', 'ticket', 'guestid', 'attendeeid', 'registrationid', 'ordernumber'],
 	ticketType: ['tickettitle', 'tickettype', 'ticketname'],
 	status: ['approvalstatus', 'attendeestatus', 'registrationstatus', 'status'],
+	// Luma's created_at, Bevy's "Paid date (UTC)"
+	registeredAt: ['registeredat', 'registrationdate', 'registrationtime', 'createdat', 'orderdate', 'paiddateutc', 'paiddate'],
 } as const;
 type Column = keyof typeof columns;
 
@@ -114,6 +118,19 @@ function splitName(name: string): [string, string] {
 	return [words.slice(0, -1).join(' '), words[words.length - 1]];
 }
 
+/**
+ * "2026-08-21T03:12:45.123Z" (Luma) or "2026-08-21 03:12:45" (Bevy), UTC unless it says
+ * otherwise. Anything else is left out rather than guessed: "08/09/2026" could be either month.
+ */
+export function parseRegisteredAt(text: string): Date | undefined {
+	const m = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?)?\s*(Z|UTC|GMT|[+-]\d{2}:?\d{2})?$/i);
+	if (!m) return undefined;
+	const [, y, mo, d, h = '00', mi = '00', s = '00', frac = '', zone = 'Z'] = m;
+	const offset = /^[+-]/.test(zone) ? zone.replace(/^([+-]\d{2})(\d{2})$/, '$1:$2') : 'Z';
+	const date = new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}${frac}${offset}`);
+	return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 /** Same questions and answers, whatever their order. */
 function sameAnswers(a: Record<string, string> = {}, b: Record<string, string> = {}) {
 	const ak = Object.keys(a);
@@ -127,7 +144,7 @@ export async function planImport(file: File, roster: RosterAttendee[]): Promise<
 	return planFromText(file.name, await file.text(), roster);
 }
 
-export function planFromText(fileName: string, text: string, roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers'>[]): ImportPlan | ImportError {
+export function planFromText(fileName: string, text: string, roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers' | 'registeredAt'>[]): ImportPlan | ImportError {
 	const [header = [], ...rows] = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ''));
 	const keys = header.map(key);
 	const index = Object.fromEntries(
@@ -192,6 +209,8 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 			if (answer) answers[question] = answer;
 		}
 		const row: ImportRow = { firstName, lastName, email: cell(index.email), ticket: cell(index.ticket), ticketType: cell(index.ticketType), answers };
+		const registeredAt = parseRegisteredAt(cell(index.registeredAt));
+		if (registeredAt) row.registeredAt = registeredAt;
 
 		if (!row.email) return skip('No email address', rowNumber);
 		// The rest match what the database accepts (firestore.rules), so one bad row can't stop the import
@@ -214,7 +233,9 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 			existing.firstName !== row.firstName ||
 			existing.lastName !== row.lastName ||
 			(row.ticketType && existing.ticketType !== row.ticketType) ||
-			(plan.questions.length > 0 && !sameAnswers(existing.answers, row.answers))
+			(plan.questions.length > 0 && !sameAnswers(existing.answers, row.answers)) ||
+			// Lists imported before Checkpad kept registration dates get them on the next import
+			(row.registeredAt && existing.registeredAt?.getTime() !== row.registeredAt.getTime())
 		)
 			plan.updated.push(row);
 		else plan.unchanged++;

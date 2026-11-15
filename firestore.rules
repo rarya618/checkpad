@@ -237,7 +237,7 @@ service cloud.firestore {
       function isAttendee(ticket, data) {
         return data.keys().hasAll(['firstName', 'lastName', 'email', 'source', 'checkedInAt'])
           && data.keys().hasOnly(['firstName', 'lastName', 'email', 'source', 'checkedInAt', 'checkedInBy', 'jobTitle',
-            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers', 'importedAt', 'importedBy'])
+            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers', 'registeredAt', 'importedAt', 'importedBy'])
           && ticket.size() <= 100
           && isName(data.firstName)
           && isText(data.lastName, 100)
@@ -245,7 +245,9 @@ service cloud.firestore {
           && data.source in ['bevy', 'luma', 'csv', 'walk-in']
           && isText(data.get('ticketType', ''), 100)
           // Registration questions → answers, from imports (attendeeImport.ts caps them)
-          && (!('answers' in data) || (data.answers is map && data.answers.size() <= 50));
+          && (!('answers' in data) || (data.answers is map && data.answers.size() <= 50))
+          // When they registered on the platform, from imports
+          && (!('registeredAt' in data) || data.registeredAt is timestamp);
       }
 
       /** Checked in now by whoever is signed in, or not checked in. */
@@ -273,7 +275,7 @@ service cloud.firestore {
           && getAfter(doc('events', eventId)).data.walkInCounter == get(doc('events', eventId)).data.walkInCounter + 1;
 
         // Imports add people who haven't arrived, stamped with who imported them and when,
-        // and update names, ticket types and answers
+        // and update names, ticket types, answers and registration dates
         allow create: if runsTeam(eventTeams(eventId))
           && isAttendee(ticket, request.resource.data)
           && request.resource.data.source in ['bevy', 'luma', 'csv']
@@ -282,7 +284,7 @@ service cloud.firestore {
           && request.resource.data.importedAt == request.time
           && request.resource.data.importedBy == myEmail();
         allow update: if runsTeam(eventTeams(eventId))
-          && changes().hasOnly(['firstName', 'lastName', 'ticketType', 'answers'])
+          && changes().hasOnly(['firstName', 'lastName', 'ticketType', 'answers', 'registeredAt'])
           && isAttendee(ticket, request.resource.data);
 
         // Organisers remove anyone; staff can undo a walk-in they added

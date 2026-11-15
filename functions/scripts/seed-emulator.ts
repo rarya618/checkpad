@@ -12,10 +12,11 @@ const PROJECT = 'demo-checkpad';
 const FIRESTORE = (process.env.FIRESTORE_EMULATOR_HOST ??= '127.0.0.1:8080');
 
 // The same three people on every event: try these emails, or any other for a walk-in
-const attendees: [string, Omit<AttendeeDoc, 'checkedInAt' | 'source'>][] = [
-	['GOOGA263293408', { email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee' }],
-	['GOOGA263288757', { email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee' }],
-	['GOOGA263290115', { email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe' }],
+// registered: days before the event they signed up, for the Registrations chart
+const attendees: [string, Omit<AttendeeDoc, 'checkedInAt' | 'source'>, number][] = [
+	['GOOGA263293408', { email: 'attendee@sample.com', firstName: 'Sample', lastName: 'Attendee' }, 12],
+	['GOOGA263288757', { email: 'attendee-2@sample.com', firstName: 'Another', lastName: 'Attendee' }, 5],
+	['GOOGA263290115', { email: 'jane@example.com', firstName: 'Jane', lastName: 'Doe' }, 1],
 ];
 
 // Dashboard sign-ins, one per role (the Figma "Organisers" table). Sign in through the Auth
@@ -73,8 +74,9 @@ for (const event of demoEvents) {
 	batch.set(ref, doc);
 	// Claims the link, as the dashboard does when it creates an event (firestore.rules)
 	batch.set(db.doc(`slugs/${event.slug}`), { eventId: ref.id } satisfies SlugDoc);
-	for (const [ticket, person] of attendees) {
-		batch.set(ref.collection('attendees').doc(ticket), { ...person, source: 'bevy', checkedInAt: null } satisfies AttendeeDoc);
+	for (const [ticket, person, daysBefore] of attendees) {
+		const registeredAt = Timestamp.fromMillis(new Date(event.startsAt).getTime() - daysBefore * 86_400_000);
+		batch.set(ref.collection('attendees').doc(ticket), { ...person, source: 'bevy', checkedInAt: null, registeredAt } satisfies AttendeeDoc);
 	}
 }
 

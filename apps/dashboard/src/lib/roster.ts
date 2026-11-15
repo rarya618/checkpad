@@ -12,6 +12,7 @@ import {
 	onSnapshot,
 	runTransaction,
 	serverTimestamp,
+	Timestamp,
 	updateDoc,
 	writeBatch,
 	type QueryDocumentSnapshot,
@@ -31,6 +32,8 @@ export interface RosterAttendee extends Attendee {
 	ticketType?: string;
 	/** Answers to the event's registration questions, question → answer; set by imports. */
 	answers?: Record<string, string>;
+	/** When they registered on the platform; set by imports whose file has a date. */
+	registeredAt?: Date;
 	walkIn: boolean;
 	/** Walk-ins staff added: who added them. Self walk-ins from the check-in page have none. */
 	addedBy?: string;
@@ -53,6 +56,7 @@ function toAttendee(snap: QueryDocumentSnapshot): RosterAttendee {
 		checkedInAt: data.checkedInAt?.toDate() ?? null,
 		...(data.ticketType && { ticketType: data.ticketType }),
 		...(data.answers && { answers: data.answers }),
+		...(data.registeredAt && { registeredAt: data.registeredAt.toDate() }),
 		walkIn: data.source === 'walk-in',
 		...(data.source === 'walk-in' && data.checkedInBy && { addedBy: data.checkedInBy }),
 		...(data.checkedInAt && data.checkedInBy && { checkedInBy: data.checkedInBy }),
@@ -134,7 +138,7 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
 
 /**
  * Applies an import: adds new tickets as not arrived, stamped with who imported them and when,
- * and updates names, ticket types and answers.
+ * and updates names, ticket types, answers and registration dates.
  * Writes 500 at a time, so a large import isn't all or nothing; it's safe to run again.
  */
 export async function importAttendees(event: DashboardEvent, roster: RosterAttendee[], plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated'>) {
@@ -152,6 +156,7 @@ export async function importAttendees(event: DashboardEvent, roster: RosterAtten
 				importedBy: myEmail(),
 				...(row.ticketType && { ticketType: row.ticketType }),
 				...(Object.keys(row.answers).length && { answers: row.answers }),
+				...(row.registeredAt && { registeredAt: Timestamp.fromDate(row.registeredAt) }),
 			},
 			create: true,
 		})),
@@ -163,6 +168,7 @@ export async function importAttendees(event: DashboardEvent, roster: RosterAtten
 				...(row.ticketType && { ticketType: row.ticketType }),
 				// A file with questions replaces the answers; one without leaves them be
 				...(plan.questions.length && { answers: Object.keys(row.answers).length ? row.answers : deleteField() }),
+				...(row.registeredAt && { registeredAt: Timestamp.fromDate(row.registeredAt) }),
 			},
 			create: false,
 		})),

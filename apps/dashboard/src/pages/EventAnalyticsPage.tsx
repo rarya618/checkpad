@@ -12,11 +12,14 @@ import {
 	comparableEvents,
 	eventResult,
 	firstCheckIns,
+	formatDaysBefore,
 	formatOffset,
 	newVsReturning,
 	niceTicks,
 	percent,
+	registrations,
 	teamAverage,
+	thinLabels,
 	versusAverage,
 } from '../lib/analytics';
 import { useEvent, useEvents } from '../lib/events';
@@ -25,6 +28,11 @@ import { rosterStats, useRoster, useRosters } from '../lib/roster';
 const series: Series[] = [
 	{ name: 'Pre-registered', className: 'bg-dark-blue' },
 	{ name: 'Walk-ins', className: 'bg-med-blue' },
+];
+
+const registrationSeries: Series[] = [
+	{ name: 'Checked in', className: 'bg-dark-blue' },
+	{ name: 'Not checked in', className: 'bg-med-blue' },
 ];
 
 // Figma "Event analytics" at 75% scale.
@@ -41,6 +49,9 @@ export default function EventAnalyticsPage() {
 	const ticks = niceTicks(Math.max(1, ...bins.map((b) => b.preRegistered + b.walkIns)));
 	const timing = useMemo(() => arrivalTiming(event, roster), [event, roster]);
 	const methods = useMemo(() => checkInMethods(event, roster), [event, roster]);
+	const signUps = useMemo(() => registrations(event, roster), [event, roster]);
+	const signUpLabel = thinLabels(signUps.bins.length, 6);
+	const registeredCount = roster.filter((a) => !a.walkIn).length;
 
 	// First-timers need the earlier events of any of its teams, and the team average the owner team's
 	const events = useEvents();
@@ -59,25 +70,38 @@ export default function EventAnalyticsPage() {
 			<EventOverview event={event} />
 			<PageHeader level={2} title="Analytics" className="top-0 pt-6 pb-4" />
 			<div className="flex flex-col gap-4 px-6 pb-7">
-				{/* Phones: the tiles two by two, and the charts one above the other */}
-				<div className="grid grid-cols-2 gap-4 md:flex">
+				{/* Phones: the tiles and charts one above the other */}
+				<div className="flex flex-col gap-4 md:flex-row">
+					{/* Checked in is pre-registered plus walk-ins, so they share a tile */}
 					<StatTile
 						label="Checked in"
 						value={String(stats.checkedIn)}
-						note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total}`}
-						compare={average ? `Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}` : undefined}
-					/>
-					<StatTile label="Pre-registered" value={String(stats.preRegistered)} note={`of ${roster.filter((a) => !a.walkIn).length} registered`} />
+						note={`${percent(stats.checkedIn, stats.total)}% of ${stats.total} on the list, walk-ins included`}
+						compare={
+							average
+								? [`Turnout ${versusAverage(result.turnout, average.turnout, 'pts')}`, `Walk-ins: ${versusAverage(stats.walkIns, average.walkIns, 'people')}`]
+								: undefined
+						}
+					>
+						<SplitBar
+							label="Checked in"
+							parts={[
+								{ name: 'Pre-registered', value: stats.preRegistered, className: 'bg-dark-blue', detail: `${stats.preRegistered} of ${registeredCount} registered` },
+								{
+									name: 'Walk-ins',
+									value: stats.walkIns,
+									className: 'bg-med-blue',
+									detail: walkInTickets.length ? `${stats.walkIns} · ${walkInRange(walkInTickets)}` : 'None yet',
+								},
+							]}
+						/>
+					</StatTile>
+					{/* As wide as By ticket type below, so the columns line up */}
 					<StatTile
-						label="Walk-ins"
-						value={String(stats.walkIns)}
-						note={walkInTickets.length ? walkInRange(walkInTickets) : 'None yet'}
-						compare={average ? versusAverage(stats.walkIns, average.walkIns, 'people') : undefined}
-					/>
-					<StatTile
+						className="md:w-[285px] md:flex-none"
 						label="Busiest 15 minutes"
 						value={busiest ? busiest.label : '–'}
-						note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrivals` : 'No check-ins yet'}
+						note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrivals from ${busiest.range.replace('–', ' to ')}` : 'No check-ins yet'}
 					/>
 				</div>
 				<div className="flex flex-col gap-4 md:flex-row md:items-start">
@@ -128,6 +152,40 @@ export default function EventAnalyticsPage() {
 						</div>
 					</section>
 				</div>
+				<ChartCard
+					title="Registrations"
+					caption={`Registered people per ${signUps.days === 1 ? 'day' : signUps.days === 7 ? 'week' : `${signUps.days / 7} weeks`}, up to the event${
+						signUps.bins.length && signUps.undated ? ` · ${signUps.undated} without a date` : ''
+					}`}
+					legend={signUps.bins.length ? registrationSeries : undefined}
+				>
+					{signUps.bins.length ? (
+						<>
+							<dl className="grid grid-cols-3 gap-3 leading-normal">
+								<Figure label="Middle registration" value={signUps.medianDaysBefore === null ? '–' : formatDaysBefore(signUps.medianDaysBefore)} />
+								<Figure label="In the final week" value={`${signUps.finalWeek}%`} />
+								<Figure label="On the day" value={`${signUps.onTheDay}%`} />
+							</dl>
+							<BarChart
+								label={`Registrations per ${signUps.days === 1 ? 'day' : 'week'}`}
+								series={registrationSeries}
+								ticks={niceTicks(Math.max(1, ...signUps.bins.map((b) => b.checkedIn + b.notCheckedIn)))}
+								bars={signUps.bins.map((b, i) => ({
+									label: signUpLabel(i) ? b.label : '',
+									values: [b.checkedIn, b.notCheckedIn],
+									title: b.range,
+									lines: [`${b.checkedIn} checked in`, `${b.notCheckedIn} not checked in`],
+								}))}
+							/>
+						</>
+					) : (
+						<p className="text-xs text-med-blue">
+							{registeredCount
+								? 'No registration dates yet. Import the attendee CSV again to add them: Luma and Bevy exports include when each person registered.'
+								: 'Nobody has registered yet.'}
+						</p>
+					)}
+				</ChartCard>
 				<div className="flex flex-col gap-4 md:flex-row md:items-start">
 					<ChartCard title="Arrival timing" caption="Running total of check-ins, from an hour before the start" className="flex-1">
 						<dl className="grid grid-cols-3 gap-3 leading-normal">

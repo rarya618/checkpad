@@ -3,18 +3,37 @@ import { useState, type ReactNode } from 'react';
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
 // charts in "Event analytics" and "Analytics".
 
-/** `compare` is a second note, e.g. how the number sits against the team's other events. */
-export function StatTile({ label, value, note, compare }: { label: string; value: string; note?: string; compare?: string }) {
+/**
+ * `compare` is a further note, or several, e.g. how the number sits against the team's other
+ * events. `children` (a SplitBar of what makes up the number) go between the note and it.
+ */
+export function StatTile({
+	label,
+	value,
+	note,
+	compare,
+	className = '',
+	children,
+}: {
+	label: string;
+	value: string;
+	note?: string;
+	compare?: string | string[];
+	className?: string;
+	children?: ReactNode;
+}) {
+	const compares = compare === undefined ? [] : [compare].flat();
 	return (
-		<div className="flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5">
+		<div className={`flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5 ${className}`}>
 			<p className="truncate text-sm leading-normal text-med-blue">{label}</p>
 			<p className="font-display text-4xl leading-tight">{value}</p>
 			{note && <p className="text-xs leading-normal text-med-blue">{note}</p>}
-			{compare && (
-				<p className="truncate text-xs leading-normal font-semibold" title={compare}>
-					{compare}
+			{children && <div className="pt-2 pb-1">{children}</div>}
+			{compares.map((c) => (
+				<p key={c} className="truncate text-xs leading-normal font-semibold" title={c}>
+					{c}
 				</p>
-			)}
+			))}
 		</div>
 	);
 }
@@ -51,8 +70,8 @@ export function ChartCard({
 	);
 }
 
-/** Two shares of one whole as a single bar, with each part labelled below. */
-export function SplitBar({ parts, label }: { parts: { name: string; value: number; className: string }[]; label: string }) {
+/** Two shares of one whole as a single bar, with each part labelled below: its value and share, or its `detail`. */
+export function SplitBar({ parts, label }: { parts: { name: string; value: number; className: string; detail?: string }[]; label: string }) {
 	const total = parts.reduce((n, p) => n + p.value, 0);
 	return (
 		<div className="flex flex-col gap-1.5">
@@ -63,7 +82,7 @@ export function SplitBar({ parts, label }: { parts: { name: string; value: numbe
 				{parts.map((p) => (
 					<li key={p.name} className="flex items-center gap-1.5">
 						<span aria-hidden="true" className={`size-[9px] rounded-xs ${p.className}`} />
-						{p.name} <span className="text-med-blue">{p.value} · {total ? Math.round((p.value / total) * 100) : 0}%</span>
+						{p.name} <span className="text-med-blue">{p.detail ?? `${p.value} · ${total ? Math.round((p.value / total) * 100) : 0}%`}</span>
 					</li>
 				))}
 			</ul>

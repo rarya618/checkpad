@@ -52,6 +52,8 @@ export interface AttendeeDoc {
 	bevyOrderNumber?: string;
 	/** Answers to the event's registration questions, question → answer, from imports. */
 	answers?: Record<string, string>;
+	/** When they registered on the platform, from imports (Luma's created_at, Bevy's paid date). Absent when the file had no date. */
+	registeredAt?: Timestamp;
 	/** When and by whom they were first imported; re-imports leave these be. Absent on walk-ins and attendees imported before these were added. */
 	importedAt?: Timestamp;
 	importedBy?: string;
