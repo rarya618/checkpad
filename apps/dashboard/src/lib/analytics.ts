@@ -188,6 +188,73 @@ export function registeredNewVsReturning(event: DashboardEvent, roster: RosterAt
 	return { returning, firstTime };
 }
 
+/** How long before the event's day people registered, in groups; each with how many checked in. */
+const SIGN_UP_GROUPS = [
+	{ name: 'On the day', upTo: 0 },
+	{ name: '1 to 6 days before', upTo: 6 },
+	{ name: '1 to 2 weeks before', upTo: 13 },
+	{ name: 'More than 2 weeks before', upTo: Infinity },
+];
+
+/**
+ * Turnout by how early people registered: does signing up weeks ahead mean coming less? Only
+ * registered people with a registration date. Every group, in order, so events add up (sumRows);
+ * leave out the empty ones to show.
+ */
+export function turnoutBySignUp(event: DashboardEvent, roster: RosterAttendee[]): AnswerCount[] {
+	const last = dayNumber(new Date(event.startsAt), event.timeZone);
+	const groups = SIGN_UP_GROUPS.map((g) => ({ name: g.name, total: 0, checkedIn: 0 }));
+	for (const a of roster) {
+		if (a.walkIn || !a.registeredAt) continue;
+		const daysBefore = Math.max(0, last - dayNumber(a.registeredAt, event.timeZone));
+		const g = groups[SIGN_UP_GROUPS.findIndex((s) => daysBefore <= s.upTo)];
+		g.total++;
+		if (a.checkedInAt) g.checkedIn++;
+	}
+	return groups;
+}
+
+/** Adds up rows with the same name, as across events, keeping the first one's order. */
+export function sumRows(rows: AnswerCount[][]): AnswerCount[] {
+	const byName = new Map<string, AnswerCount>();
+	for (const r of rows.flat()) {
+		const sum = byName.get(r.name) ?? { name: r.name, total: 0, checkedIn: 0 };
+		sum.total += r.total;
+		sum.checkedIn += r.checkedIn;
+		byName.set(r.name, sum);
+	}
+	return [...byName.values()];
+}
+
+/** The team's events after `event` that have started, soonest first, at most `count`. */
+export function laterEvents(events: DashboardEvent[], event: DashboardEvent, count = 3, now = Date.now()) {
+	return events
+		.filter((e) => e.id !== event.id && e.teamIds.some((id) => event.teamIds.includes(id)) && e.startsAt > event.startsAt && new Date(e.startsAt).getTime() < now)
+		.sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+		.slice(0, count);
+}
+
+/**
+ * Of the people who checked in, how many checked in again at one of `later` events (their
+ * rosters), first-timers and returning apart: `checkedIn` is how many came back.
+ */
+export function cameBack(event: DashboardEvent, roster: RosterAttendee[], firstSeen: Map<string, number>, later: RosterAttendee[][]): AnswerCount[] {
+	const start = new Date(event.startsAt).getTime();
+	const again = new Set(later.flat().filter((a) => a.checkedInAt).map((a) => a.email.toLowerCase()));
+	const first = { name: 'First-timers', total: 0, checkedIn: 0 };
+	const returning = { name: 'Returning', total: 0, checkedIn: 0 };
+	const seen = new Set<string>();
+	for (const a of roster) {
+		const key = a.email.toLowerCase();
+		if (!a.checkedInAt || seen.has(key)) continue;
+		seen.add(key);
+		const group = (firstSeen.get(key) ?? start) < start ? returning : first;
+		group.total++;
+		if (again.has(key)) group.checkedIn++;
+	}
+	return [first, returning];
+}
+
 /**
  * Share of check-ins (in `events`) by someone who checked in to an earlier event of theirs,
  * matched by email. `allEvents` are every earlier event to look in; `rosters` by event ID.

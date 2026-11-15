@@ -50,12 +50,12 @@ export function ChartCard({
 	title: string;
 	caption: string;
 	legend?: Series[];
-	/** 2 on a page of its own, 3 under an event's Analytics heading. */
-	level?: 2 | 3;
+	/** 2 on a page of its own, 3 under an event's Analytics heading, 4 within one of its sections. */
+	level?: 2 | 3 | 4;
 	className?: string;
 	children: ReactNode;
 }) {
-	const Heading = level === 2 ? 'h2' : 'h3';
+	const Heading = `h${level}` as const;
 	return (
 		<section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5 ${className}`}>
 			<div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
@@ -280,6 +280,50 @@ export function LineChart({ points, ticks, label }: { points: Point[]; ticks: nu
 						</div>
 					))}
 				</div>
+			</div>
+		</div>
+	);
+}
+
+const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
+
+/** One group's check-ins of its total, as a bar: a ticket type or an answer to a question. */
+export function CheckedInRow({ name, checkedIn, total }: { name: string; checkedIn: number; total: number }) {
+	return (
+		<div className="flex flex-col gap-1.5">
+			<div className="flex items-start gap-1.5 leading-normal">
+				<p className="min-w-0 flex-1 truncate text-sm font-bold" title={name}>
+					{name}
+				</p>
+				<p className="shrink-0 text-xs text-med-blue">
+					{checkedIn} of {total} · {pct(checkedIn, total)}%
+				</p>
+			</div>
+			<div className="h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
+				<div className="h-full bg-dark-blue" style={{ width: `${pct(checkedIn, total)}%` }} />
+			</div>
+		</div>
+	);
+}
+
+/**
+ * An answer's registrations as a share of everyone who answered the question: who checked in,
+ * then who didn't (the Registrations chart's colours), on a full-width track.
+ */
+export function AnswerRow({ name, checkedIn, total, answered }: { name: string; checkedIn: number; total: number; answered: number }) {
+	return (
+		<div className="flex flex-col gap-1.5">
+			<div className="flex items-start gap-1.5 leading-normal">
+				<p className="min-w-0 flex-1 truncate text-sm font-bold" title={name}>
+					{name}
+				</p>
+				<p className="shrink-0 text-xs text-med-blue">
+					{total} registered · {checkedIn} checked in
+				</p>
+			</div>
+			<div className="flex h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
+				<div className="h-full bg-dark-blue" style={{ width: `${(checkedIn / answered) * 100}%` }} />
+				<div className="h-full bg-med-blue" style={{ width: `${((total - checkedIn) / answered) * 100}%` }} />
 			</div>
 		</div>
 	);

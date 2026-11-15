@@ -2,10 +2,12 @@ import { formatDay } from '@checkpad/shared/format';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import chevron from '../assets/chevron-small.svg';
-import { BarChart, ChartCard, StatTile, type Series } from '../components/Charts';
+import { AnswerRow, BarChart, ChartCard, CheckedInRow, StatTile, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
 import {
+	byTicketType,
 	checkInMethods,
+	formatDaysBefore,
 	eventResult,
 	eventsInRange,
 	firstCheckIns,
@@ -15,10 +17,14 @@ import {
 	people,
 	percent,
 	ranges,
+	registrationQuestions,
+	registrations,
 	regulars,
 	repeatNoShows,
 	returningShare,
+	sumRows,
 	thinLabels,
+	turnoutBySignUp,
 	type Person,
 } from '../lib/analytics';
 import { useEvents } from '../lib/events';
@@ -40,6 +46,11 @@ const returningSeries: Series[] = [
 const methodSeries: Series[] = [
 	{ name: 'Self', className: 'bg-dark-blue' },
 	{ name: 'Organiser', className: 'bg-med-blue' },
+];
+const signUpSeries: Series[] = [{ name: 'Middle registration', className: 'bg-dark-blue' }];
+const answerSeries: Series[] = [
+	{ name: 'Checked in', className: 'bg-dark-blue' },
+	{ name: 'Not checked in', className: 'bg-med-blue' },
 ];
 const LIST_LENGTH = 8;
 
@@ -74,6 +85,20 @@ export default function AnalyticsPage() {
 	const everyone = useMemo(() => people(included, rosters), [included, rosters]);
 	const regularList = useMemo(() => regulars(everyone), [everyone]);
 	const noShowList = useMemo(() => repeatNoShows(everyone), [everyone]);
+
+	// Registrations and audience, event by event and added up across them
+	const signUps = useMemo(() => included.map((e) => registrations(e, rosters[e.id] ?? [])), [included, rosters]);
+	const anyDates = signUps.some((s) => s.medianDaysBefore !== null);
+	const signUpTurnout = useMemo(() => sumRows(included.map((e) => turnoutBySignUp(e, rosters[e.id] ?? []))).filter((g) => g.total), [included, rosters]);
+	const ticketTypes = useMemo(() => sumRows(included.map((e) => byTicketType(rosters[e.id] ?? []))).sort((a, b) => b.total - a.total), [included, rosters]);
+	// Questions asked at two or more of the events, their answers added up
+	const repeatedQuestions = useMemo(() => {
+		const asked = new Map<string, Set<string>>();
+		for (const e of included) for (const a of rosters[e.id] ?? []) for (const q of Object.keys(a.answers ?? {})) asked.set(q, (asked.get(q) ?? new Set()).add(e.id));
+		return registrationQuestions(included.flatMap((e) => rosters[e.id] ?? []))
+			.filter((q) => q.answers.length && (asked.get(q.question)?.size ?? 0) >= 2)
+			.map((q) => ({ ...q, events: asked.get(q.question)!.size }));
+	}, [included, rosters]);
 
 	// Label the best turnout and the latest event, not every bar
 	const best = results.reduce<(typeof results)[number] | null>((b, r) => (!b || r.turnout > b.turnout ? r : b), null);
@@ -206,6 +231,50 @@ export default function AnalyticsPage() {
 					<ChartCard level={2} title="Turnout by event" caption="Share of registered people who checked in">
 						<p className="py-6 text-center text-sm text-med-blue">No finished events in this range.</p>
 					</ChartCard>
+				)}
+
+				{results.length > 0 && (
+					<div className="grid gap-4 xl:grid-cols-2">
+						<ChartCard level={2} title="How early people register" caption="Middle registration, days before each event" legend={signUpSeries}>
+							{!loaded ? (
+								<Loading />
+							) : anyDates ? (
+								<BarChart
+									label="Middle registration by event"
+									series={signUpSeries}
+									ticks={niceTicks(Math.max(1, ...signUps.map((s) => s.medianDaysBefore ?? 0)))}
+									bars={results.map((r, i) => {
+										const s = signUps[i];
+										return {
+											label: axisLabel(r, i),
+											values: [s.medianDaysBefore ?? 0],
+											title: r.event.name,
+											lines:
+												s.medianDaysBefore === null
+													? ['No registration dates: import the list again to add them']
+													: [`Middle registration ${formatDaysBefore(s.medianDaysBefore).toLowerCase()}`, `${s.finalWeek}% in the final week · ${s.onTheDay}% on the day`],
+										};
+									})}
+								/>
+							) : (
+								<p className="text-sm text-med-blue">No registration dates yet. Import each event’s attendee list again to add them.</p>
+							)}
+						</ChartCard>
+						<ChartCard level={2} title="Turnout by sign-up timing" caption="Checked in across these events, by how early they registered">
+							{!loaded ? <Loading /> : signUpTurnout.length ? signUpTurnout.map((g) => <CheckedInRow key={g.name} {...g} />) : <p className="text-sm text-med-blue">No registration dates yet.</p>}
+						</ChartCard>
+						<ChartCard level={2} title="By ticket type" caption="Checked in of registered, across these events">
+							{!loaded ? <Loading /> : ticketTypes.length ? ticketTypes.map((t) => <CheckedInRow key={t.name} {...t} />) : <p className="text-sm text-med-blue">No one registered.</p>}
+						</ChartCard>
+						{loaded &&
+							repeatedQuestions.map((q) => (
+								<ChartCard key={q.question} level={2} title={q.question} caption={`${q.answered} answers across ${q.events} events`} legend={answerSeries}>
+									{q.answers.map((a) => (
+										<AnswerRow key={a.name} {...a} answered={q.answered} />
+									))}
+								</ChartCard>
+							))}
+					</div>
 				)}
 
 				{results.length > 0 && (
