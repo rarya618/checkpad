@@ -61,6 +61,15 @@ export default function AttendeesPage() {
 								className="min-w-0 flex-1 bg-transparent text-base tracking-tight outline-none placeholder:text-dark-blue/30"
 							/>
 						</label>
+						{/* Not in Figma: importing again picks up late registrations and registration dates.
+						    Laptops only: the row has no room on phones, where the ⋮ menu still has it. The empty state has its own. */}
+						{canEdit && roster.length > 0 && (
+							<div className="hidden shrink-0 md:block">
+								<button type="button" onClick={() => setImporting({})} className={buttonClass('secondary')}>
+									Import
+								</button>
+							</div>
+						)}
 						{/* Figma "Attendees – add walk-in" */}
 						<button type="button" onClick={() => setWalkIn('')} className={`${buttonClass('primary')} shrink-0`}>
 							Add attendee

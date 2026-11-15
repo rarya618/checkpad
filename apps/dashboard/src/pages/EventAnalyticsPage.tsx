@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { buttonClass } from '@checkpad/shared/button';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { BarChart, ChartCard, Legend, LineChart, SplitBar, StatTile, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
@@ -22,13 +23,18 @@ import {
 	thinLabels,
 	versusAverage,
 } from '../lib/analytics';
+import type { ImportPlan } from '../lib/attendeeImport';
 import { useEvent, useEvents } from '../lib/events';
+import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster, useRosters } from '../lib/roster';
 
 const series: Series[] = [
 	{ name: 'Pre-registered', className: 'bg-dark-blue' },
 	{ name: 'Walk-ins', className: 'bg-med-blue' },
 ];
+
+// Loaded on first use, with the CSV library it brings
+const ImportDialog = lazy(() => import('../components/ImportDialog'));
 
 const registrationSeries: Series[] = [
 	{ name: 'Checked in', className: 'bg-dark-blue' },
@@ -52,6 +58,8 @@ export default function EventAnalyticsPage() {
 	const signUps = useMemo(() => registrations(event, roster), [event, roster]);
 	const signUpLabel = thinLabels(signUps.bins.length, 6);
 	const registeredCount = roster.filter((a) => !a.walkIn).length;
+	const canEdit = useCanEditEvents();
+	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 
 	// First-timers need the earlier events of any of its teams, and the team average the owner team's
 	const events = useEvents();
@@ -179,11 +187,20 @@ export default function EventAnalyticsPage() {
 							/>
 						</>
 					) : (
-						<p className="text-xs text-med-blue">
-							{registeredCount
-								? 'No registration dates yet. Import the attendee CSV again to add them: Luma and Bevy exports include when each person registered.'
-								: 'Nobody has registered yet.'}
-						</p>
+						<div className="flex flex-col items-start gap-3">
+							<p className="text-xs text-med-blue">
+								{!registeredCount
+									? 'Nobody has registered yet.'
+									: canEdit
+										? 'No registration dates yet. Import the attendee CSV again to add them: Luma and Bevy exports include when each person registered.'
+										: 'No registration dates yet. Your team’s organisers can add them by importing the attendee list again.'}
+							</p>
+							{canEdit && (
+								<button type="button" onClick={() => setImporting({})} className={buttonClass('secondary')}>
+									Import attendees
+								</button>
+							)}
+						</div>
 					)}
 				</ChartCard>
 				<div className="flex flex-col gap-4 md:flex-row md:items-start">
@@ -251,6 +268,11 @@ export default function EventAnalyticsPage() {
 					</div>
 				</div>
 			</div>
+			{importing && (
+				<Suspense fallback={null}>
+					<ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />
+				</Suspense>
+			)}
 		</>
 	);
 }
