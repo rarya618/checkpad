@@ -18,6 +18,7 @@ import {
 	newVsReturning,
 	niceTicks,
 	percent,
+	registeredNewVsReturning,
 	registrationQuestions,
 	registrations,
 	teamAverage,
@@ -73,7 +74,9 @@ export default function EventAnalyticsPage() {
 	);
 	const rosters = useRosters(earlier);
 	const rostersLoaded = earlier.every((e) => e.id in rosters);
-	const split = useMemo(() => newVsReturning(event, roster, firstCheckIns(earlier, rosters)), [event, roster, earlier, rosters]);
+	const firstSeen = useMemo(() => firstCheckIns(earlier, rosters), [earlier, rosters]);
+	const split = useMemo(() => newVsReturning(event, roster, firstSeen), [event, roster, firstSeen]);
+	const registeredSplit = useMemo(() => registeredNewVsReturning(event, roster, firstSeen), [event, roster, firstSeen]);
 	const average = useMemo(() => teamAverage(comparableEvents(events, event)), [events, event]);
 	const result = eventResult(event);
 
@@ -199,7 +202,7 @@ export default function EventAnalyticsPage() {
 				</ChartCard>
 				{/* The organiser's registration questions, from imports; nothing shows without them */}
 				{chartedQuestions.length > 0 && (
-					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+					<div className="flex flex-col gap-4">
 						{chartedQuestions.map((q) => (
 							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered`} legend={registrationSeries}>
 								{q.answers.map((a) => (
@@ -245,13 +248,24 @@ export default function EventAnalyticsPage() {
 								event.teamIds.length === 0 ? 'Not part of a team, so everyone is new' : event.teamIds.length === 1 ? 'First event with the team' : 'First event with any of its teams'
 							}>
 							{rostersLoaded ? (
-								<SplitBar
-									label="First-timers and returning"
-									parts={[
-										{ name: 'First-timers', value: split.firstTime, className: 'bg-med-blue' },
-										{ name: 'Returning', value: split.returning, className: 'bg-dark-blue' },
-									]}
-								/>
+								// Returning: came to an earlier event. Registered leaves out walk-ins; checked in counts them
+								<div className="flex flex-col gap-3">
+									{[
+										{ heading: 'Registered', counts: registeredSplit },
+										{ heading: 'Checked in', counts: split },
+									].map(({ heading, counts }) => (
+										<div key={heading} className="flex flex-col gap-1.5">
+											<p className="text-xs leading-normal font-bold">{heading}</p>
+											<SplitBar
+												label={`${heading}: first-timers and returning`}
+												parts={[
+													{ name: 'First-timers', value: counts.firstTime, className: 'bg-med-blue' },
+													{ name: 'Returning', value: counts.returning, className: 'bg-dark-blue' },
+												]}
+											/>
+										</div>
+									))}
+								</div>
 							) : (
 								<p className="text-xs text-med-blue">Loading earlier events…</p>
 							)}

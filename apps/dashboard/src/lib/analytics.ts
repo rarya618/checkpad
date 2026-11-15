@@ -170,6 +170,25 @@ export function newVsReturning(event: DashboardEvent, roster: RosterAttendee[], 
 }
 
 /**
+ * One event's registered people (walk-ins aren't) split the same way: whether they came to an
+ * earlier event, so first-timers who register can be set against first-timers who come.
+ */
+export function registeredNewVsReturning(event: DashboardEvent, roster: RosterAttendee[], firstSeen: Map<string, number>) {
+	const start = new Date(event.startsAt).getTime();
+	const seen = new Set<string>();
+	let returning = 0;
+	let firstTime = 0;
+	for (const a of roster) {
+		const key = a.email.toLowerCase();
+		if (a.walkIn || seen.has(key)) continue;
+		seen.add(key);
+		if ((firstSeen.get(key) ?? start) < start) returning++;
+		else firstTime++;
+	}
+	return { returning, firstTime };
+}
+
+/**
  * Share of check-ins (in `events`) by someone who checked in to an earlier event of theirs,
  * matched by email. `allEvents` are every earlier event to look in; `rosters` by event ID.
  */
