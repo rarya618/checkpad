@@ -13,12 +13,15 @@ export function StatTile({
 	value,
 	note,
 	compare = [],
+	size = 'md',
 	className = '',
 	children,
 }: {
 	label: string;
 	value: string;
 	note?: string;
+	/** lg for the one figure a page leads with */
+	size?: 'md' | 'lg';
 	compare?: { direction: Comparison['direction']; text: string }[];
 	className?: string;
 	children?: ReactNode;
@@ -26,7 +29,7 @@ export function StatTile({
 	return (
 		<div className={`flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5 ${className}`}>
 			<p className="truncate text-sm leading-normal text-med-blue">{label}</p>
-			<p className="font-display text-4xl leading-tight">{value}</p>
+			<p className={`font-display leading-tight ${size === 'lg' ? 'text-6xl' : 'text-4xl'}`}>{value}</p>
 			{note && <p className="text-xs leading-normal text-med-blue">{note}</p>}
 			{children && <div className="pt-2 pb-1">{children}</div>}
 			{compare.length > 0 && (
@@ -81,7 +84,7 @@ export function ChartCard({
 				{/* The title keeps at least 13rem: a wide legend drops below it rather than squeezing it onto two lines */}
 				<div className="flex min-w-0 flex-1 basis-52 flex-col gap-1 leading-normal">
 					<Heading className="font-display text-lg">{title}</Heading>
-					<p className="text-xs text-med-blue">{caption}</p>
+					<p className="text-xs text-pretty text-med-blue">{caption}</p>
 				</div>
 				{legend && <Legend series={legend} />}
 			</div>
@@ -497,7 +500,8 @@ export function AnswerRow({ name, checkedIn, total, answered }: { name: string; 
 			</div>
 			<div className="flex h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
 				<div className="h-full bg-dark-blue" style={{ width: `${(checkedIn / answered) * 100}%` }} />
-				<div className="h-full bg-med-blue" style={{ width: `${((total - checkedIn) / answered) * 100}%` }} />
+				{/* Hollow, as med-blue means walk-ins */}
+				<div className="h-full border border-med-blue bg-white" style={{ width: `${((total - checkedIn) / answered) * 100}%` }} />
 			</div>
 		</div>
 	);

@@ -216,7 +216,7 @@ const SIGN_UP_GROUPS = [
 	{ name: 'On the day', upTo: 0 },
 	{ name: '1 to 6 days before', upTo: 6 },
 	{ name: '1 to 2 weeks before', upTo: 13 },
-	{ name: 'More than 2 weeks before', upTo: Infinity },
+	{ name: 'Over 2 weeks before', upTo: Infinity },
 ];
 
 /**

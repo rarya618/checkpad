@@ -41,24 +41,27 @@ import { useTeams } from '../lib/teams';
 import { useMediaQuery } from '../lib/useMediaQuery';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
-// Didn't come is hollow, so it reads by shape as well as colour
+// Med-blue means walk-ins and nothing else. Every other second series is hollow, like Didn't
+// come, so it reads by shape as well as colour and never passes for walk-ins.
+const HOLLOW = 'border border-med-blue bg-white';
 const attendanceSeries: Series[] = [
 	{ name: 'Pre-registered', className: 'bg-dark-blue' },
 	{ name: 'Walk-ins', className: 'bg-med-blue' },
-	{ name: "Didn't come", className: 'border border-med-blue bg-white' },
+	{ name: "Didn't come", className: HOLLOW },
 ];
 const returningSeries: Series[] = [
 	{ name: 'Returning', className: 'bg-dark-blue' },
-	{ name: 'First-timers', className: 'bg-med-blue' },
+	{ name: 'First-timers', className: HOLLOW },
 ];
 const methodSeries: Series[] = [
 	{ name: 'Self', className: 'bg-dark-blue' },
-	{ name: 'Organiser', className: 'bg-med-blue' },
+	{ name: 'Organiser', className: HOLLOW },
 ];
+// One series, so no legend; it still names the table view's column
 const signUpSeries: Series[] = [{ name: 'Middle registration', className: 'bg-dark-blue' }];
 const answerSeries: Series[] = [
 	{ name: 'Checked in', className: 'bg-dark-blue' },
-	{ name: 'Not checked in', className: 'bg-med-blue' },
+	{ name: 'Not checked in', className: HOLLOW },
 ];
 const LIST_LENGTH = 8;
 
@@ -131,8 +134,15 @@ export default function AnalyticsPage() {
 	// The table's full columns take about 500px, so they wait for a wide window: from 1152px the
 	// event names keep about 270px beside the sidebar. Narrower, date and counts go under the name.
 	const wide = useMediaQuery('(min-width: 1152px)');
-	const date = (r: (typeof results)[number]) => formatDay(new Date(r.event.startsAt), r.event.timeZone).replace(' ', ', ');
-	const month = (r: (typeof results)[number]) => new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: r.event.timeZone }).format(new Date(r.event.startsAt));
+	// In the event's own time zone: an event on 1 January in Sydney is still 31 December in UTC
+	const year = (r: (typeof results)[number]) => new Intl.DateTimeFormat('en-AU', { year: 'numeric', timeZone: r.event.timeZone }).format(new Date(r.event.startsAt));
+	const spansYears = new Set(results.map(year)).size > 1;
+	// The year only when the range spans more than one, so September 2025 and 2026 can't be confused
+	const date = (r: (typeof results)[number]) => {
+		const day = formatDay(new Date(r.event.startsAt), r.event.timeZone).replace(' ', ', ');
+		return spansYears ? `${day} ${year(r)}` : day;
+	};
+	const month = (r: (typeof results)[number]) => new Intl.DateTimeFormat('en-AU', { month: 'short', timeZone: r.event.timeZone }).format(new Date(r.event.startsAt));
 	const showLabel = thinLabels(results.length);
 	const axisLabel = (r: (typeof results)[number], i: number) => (showLabel(i) ? month(r) : '');
 
@@ -163,11 +173,18 @@ export default function AnalyticsPage() {
 			<div className="flex flex-col gap-8 px-6 pt-3.5 pb-7">
 				<div className="flex flex-col gap-5">
 					{latest && <LatestEvent latest={latest} others={results.slice(0, -1)} date={date(latest)} />}
-					<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-						<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
-						<StatTile label="Check-ins" value={String(checkIns)} note={`of ${onList} on the list`} />
+					{/* Turnout is how a night is judged, so it leads; the others support it. With no
+					    finished events there's nothing to show, and NothingToCompare says so below. */}
+					{results.length > 0 && (
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
 						{/* A share of nothing is no result, not 0%: those tiles show a dash until there's something to divide */}
-						<StatTile label="Turnout" value={onList ? `${percent(checkIns, onList)}%` : '–'} note="of everyone on the list" />
+						<StatTile
+							size="lg"
+							className="col-span-2 md:col-span-3 xl:col-span-2"
+							label="Turnout"
+							value={onList ? `${percent(checkIns, onList)}%` : '–'}
+							note={`${checkIns} of the ${onList} on the list came, walk-ins included, across ${included.length} ${included.length === 1 ? 'event' : 'events'} (${monthSpan(included)})`}
+						/>
 						<StatTile
 							label="Returning"
 							value={loaded && checkIns ? `${returning}%` : '–'}
@@ -180,6 +197,7 @@ export default function AnalyticsPage() {
 							note={!loaded ? 'Loading attendee lists…' : recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}
 						/>
 					</div>
+					)}
 				</div>
 				{results.length >= 2 ? (
 					// Wide windows: the sections beside a rail of them, under the overview
@@ -228,7 +246,7 @@ export default function AnalyticsPage() {
 							</Section>
 							<Section level={2} title="Registrations">
 								<div className="grid gap-4 xl:grid-cols-2">
-								<ChartCard level={3} title="How early people register" caption="Middle registration, days before each event" legend={signUpSeries}>
+								<ChartCard level={3} title="How early people register" caption="Middle registration, days before each event">
 									{!loaded ? (
 										<Loading />
 									) : anyDates ? (
@@ -258,12 +276,15 @@ export default function AnalyticsPage() {
 								<ChartCard level={3} title="Turnout by sign-up timing" caption="Checked in across these events, by how early they registered">
 									{!loaded ? <Loading /> : signUpTurnout.length ? signUpTurnout.map((g) => <CheckedInRow key={g.name} {...g} />) : <p className="text-sm text-med-blue">No registration dates yet.</p>}
 								</ChartCard>
-								<ChartCard level={3} title="By ticket type" caption="Checked in of registered, across these events">
-									{!loaded ? <Loading /> : ticketTypes.length ? ticketTypes.map((t) => <CheckedInRow key={t.name} {...t} />) : <p className="text-sm text-med-blue">No one registered.</p>}
-								</ChartCard>
+								{/* A single ticket type ("Other" when the import had none) has nothing to break down */}
+								{(!loaded || ticketTypes.length > 1) && (
+									<ChartCard level={3} title="By ticket type" caption="Checked in of registered, across these events">
+										{!loaded ? <Loading /> : ticketTypes.map((t) => <CheckedInRow key={t.name} {...t} />)}
+									</ChartCard>
+								)}
 								{loaded &&
 									repeatedQuestions.map((q) => (
-										<ChartCard key={q.question} level={2} title={q.question} caption={`${q.answered} answers across ${q.events} events`} legend={answerSeries}>
+										<ChartCard key={q.question} level={3} title={q.question} caption={`${q.answered} answers across ${q.events} events`} legend={answerSeries}>
 											{q.answers.map((a) => (
 												<AnswerRow key={a.name} {...a} answered={q.answered} />
 											))}
@@ -293,7 +314,7 @@ export default function AnalyticsPage() {
 										<Loading />
 									)}
 								</ChartCard>
-								<div className="grid gap-4 xl:grid-cols-2">
+								<div className="grid items-start gap-4 xl:grid-cols-2">
 									<ChartCard level={3} title="Regulars" caption="Came to two or more of these events">
 										{loaded ? <PeopleList list={regularList} count={(p) => `${p.attended} of ${included.length} events`} empty="No one has come twice yet." /> : <Loading />}
 									</ChartCard>
@@ -529,15 +550,15 @@ function Loading() {
 }
 
 /** People with what they did, the first few; the rest as a count. */
-function PeopleList({ list, count, empty, emails = true }: { list: Person[]; count: (p: Person) => string; empty: string; emails?: boolean }) {
+function PeopleList({ list, count, empty }: { list: Person[]; count: (p: Person) => string; empty: string }) {
 	if (!list.length) return <p className="text-sm text-med-blue">{empty}</p>;
 	return (
 		<ul className="flex flex-col leading-normal">
 			{list.slice(0, LIST_LENGTH).map((p) => (
 				<li key={p.email} className="flex items-start gap-3 border-t border-light-blue py-2 first:border-t-0 first:pt-0">
 					<div className="min-w-0 flex-1">
+						{/* Names only, as an organiser might share their screen; the email stands in for a missing name */}
 						<p className="truncate text-sm font-bold">{p.name || p.email}</p>
-						{emails && p.name && <p className="truncate text-xs text-med-blue">{p.email}</p>}
 					</div>
 					<p className="shrink-0 text-xs text-med-blue">{count(p)}</p>
 				</li>
@@ -567,7 +588,7 @@ function NoShows({ list }: { list: Person[] }) {
 					{open ? 'Hide people' : 'Show people'}
 				</button>
 			</div>
-			{open && <PeopleList list={list} count={(p) => `Registered ${p.registered} times`} empty="No one." emails={false} />}
+			{open && <PeopleList list={list} count={(p) => `Registered ${p.registered} times`} empty="No one." />}
 		</div>
 	);
 }
