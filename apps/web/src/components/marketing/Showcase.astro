@@ -12,12 +12,14 @@ interface Props {
 	points: string[];
 	image: ImageMetadata;
 	imageAlt: string;
+	// A phone screenshot overlapping the screenshot's bottom corner
+	phone?: { src: ImageMetadata; alt: string };
 	// Puts the screenshot on the left on desktop
 	reverse?: boolean;
 	class?: string;
 }
 
-const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, class: className } = Astro.props;
+const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = false, class: className } = Astro.props;
 ---
 
 <section id={id} class={className}>
@@ -38,14 +40,32 @@ const { id, eyebrow, title, body, points, image, imageAlt, reverse = false, clas
 				))}
 			</ul>
 		</div>
-		<Image
-			src={image}
-			alt={imageAlt}
-			widths={[640, 960, 1280]}
-			sizes="(min-width: 1024px) 640px, (min-width: 768px) 720px, 100vw"
+		<div
 			data-reveal={reverse ? 'from-left' : 'from-right'}
 			style="--reveal-delay: 120ms"
-			class="w-full shrink-0 rounded-xl border md:max-w-[720px] border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:w-5/9 xl:max-w-[640px] xl:rounded-2xl"
-		/>
+			class="relative w-full shrink-0 md:max-w-[720px] xl:w-5/9 xl:max-w-[640px]"
+		>
+			<Image
+				src={image}
+				alt={imageAlt}
+				widths={[640, 960, 1280]}
+				sizes="(min-width: 1024px) 640px, (min-width: 768px) 720px, 100vw"
+				class="w-full rounded-xl border border-light-blue shadow-[0_16px_40px_rgb(17_45_78/0.14)] xl:rounded-2xl"
+			/>
+			{
+				phone && (
+					<Image
+						src={phone.src}
+						alt={phone.alt}
+						widths={[160, 320, 420]}
+						sizes="(min-width: 1280px) 160px, (min-width: 768px) 144px, 96px"
+						class:list={[
+							'absolute -bottom-6 w-24 rounded-2xl border-4 border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:-bottom-8 md:w-36 xl:-bottom-10 xl:w-40 xl:rounded-3xl',
+							reverse ? 'left-3 md:left-6 xl:-left-6' : 'right-3 md:right-6 xl:-right-6',
+						]}
+					/>
+				)
+			}
+		</div>
 	</div>
 </section>
