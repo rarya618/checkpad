@@ -16,6 +16,7 @@ import {
 	formatDaysBefore,
 	formatOffset,
 	newVsReturning,
+	maxOf,
 	niceTicks,
 	percent,
 	cameBack,
@@ -61,7 +62,7 @@ export default function EventAnalyticsPage() {
 	const busiest = busiestBin(bins);
 	const types = useMemo(() => byTicketType(roster), [roster]);
 	const walkInTickets = roster.filter((a) => a.walkIn && a.ticket).map((a) => a.ticket!).sort();
-	const ticks = niceTicks(Math.max(1, ...bins.map((b) => b.preRegistered + b.walkIns)));
+	const ticks = niceTicks(maxOf(bins.map((b) => b.preRegistered + b.walkIns), 1));
 	const timing = useMemo(() => arrivalTiming(event, roster), [event, roster]);
 	const methods = useMemo(() => checkInMethods(event, roster), [event, roster]);
 	const signUps = useMemo(() => registrations(event, roster), [event, roster]);
@@ -176,7 +177,7 @@ export default function EventAnalyticsPage() {
 										<BarChart
 											label="Registrations per day"
 											series={registrationSeries}
-											ticks={niceTicks(Math.max(1, ...signUps.bins.map((b) => b.checkedIn + b.notCheckedIn)))}
+											ticks={niceTicks(maxOf(signUps.bins.map((b) => b.checkedIn + b.notCheckedIn), 1))}
 											bars={signUps.bins.map((b, i) => ({
 												label: signUpLabel(i) ? b.label : '',
 												values: [b.checkedIn, b.notCheckedIn],

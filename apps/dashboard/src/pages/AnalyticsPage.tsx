@@ -1,6 +1,6 @@
 import { formatDay } from '@checkpad/shared/format';
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import chevron from '../assets/chevron-small.svg';
 import { Section, SectionRail } from '../components/AnalyticsSections';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, StatTile, type Series } from '../components/Charts';
@@ -14,6 +14,7 @@ import {
 	firstCheckIns,
 	monthSpan,
 	newVsReturning,
+	maxOf,
 	niceTicks,
 	people,
 	percent,
@@ -26,12 +27,14 @@ import {
 	sumRows,
 	thinLabels,
 	turnoutBySignUp,
+	latestTeam,
 	turnoutVersus,
 	versusAverage,
 	type EventResult,
 	type Person,
 } from '../lib/analytics';
 import { useEvents } from '../lib/events';
+import { useMe } from '../lib/organisers';
 import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { useMediaQuery } from '../lib/useMediaQuery';
@@ -63,9 +66,22 @@ const LIST_LENGTH = 8;
 export default function AnalyticsPage() {
 	const events = useEvents();
 	const teams = useTeams() ?? [];
-	const [team, setTeam] = useState(teams[0]?.id ?? '');
-	const [rangeId, setRangeId] = useState('6');
-	const range = ranges.find((r) => r.id === rangeId)!;
+	const me = useMe();
+	// The filters live in the URL (?team=…&range=…), so a reload, Back or a shared link keeps them.
+	// Worked out every render rather than held in state, so a team list that arrives late still counts.
+	const [params, setParams] = useSearchParams();
+	const team = [params.get('team'), me.teamId, latestTeam(events, teams)].find((id) => id && teams.some((t) => t.id === id)) ?? teams[0]?.id ?? '';
+	const range = ranges.find((r) => r.id === params.get('range')) ?? ranges.find((r) => r.id === '6')!;
+	function setFilter(key: 'team' | 'range', value: string) {
+		setParams(
+			(p) => {
+				const next = new URLSearchParams(p);
+				next.set(key, value);
+				return next;
+			},
+			{ replace: true },
+		);
+	}
 
 	const included = useMemo(() => eventsInRange(events, team, range.months), [events, team, range]);
 	const results = useMemo(() => included.map((e) => eventResult(e)), [included]);
@@ -107,7 +123,7 @@ export default function AnalyticsPage() {
 	// Label the best turnout and the latest event, not every bar
 	const best = results.reduce<(typeof results)[number] | null>((b, r) => (!b || r.turnout > b.turnout ? r : b), null);
 	const latest = results[results.length - 1];
-	const top = Math.max(75, Math.ceil(Math.max(0, ...results.map((r) => r.turnout)) / 25) * 25);
+	const top = Math.max(75, Math.ceil(maxOf(results.map((r) => r.turnout)) / 25) * 25);
 	const ticks = Array.from({ length: top / 25 + 1 }, (_, i) => i * 25);
 	// The table's full columns take about 500px, so they wait for a wide window: from 1152px the
 	// event names keep about 270px beside the sidebar. Narrower, date and counts go under the name.
@@ -124,14 +140,14 @@ export default function AnalyticsPage() {
 				title="Analytics"
 				actions={
 					<div className="flex items-center gap-2.5 max-md:w-full max-md:*:flex-1">
-						<Filter label="Team" value={team} onChange={setTeam}>
+						<Filter label="Team" value={team} onChange={(v) => setFilter('team', v)}>
 							{teams.map((t) => (
 								<option key={t.id} value={t.id}>
 									{t.name}
 								</option>
 							))}
 						</Filter>
-						<Filter label="Time range" value={rangeId} onChange={setRangeId}>
+						<Filter label="Time range" value={range.id} onChange={(v) => setFilter('range', v)}>
 							{ranges.map((r) => (
 								<option key={r.id} value={r.id}>
 									{r.label}
@@ -147,13 +163,18 @@ export default function AnalyticsPage() {
 					<div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
 						<StatTile label="Events" value={String(included.length)} note={monthSpan(included)} />
 						<StatTile label="Check-ins" value={String(checkIns)} note={`of ${onList} on the list`} />
-						<StatTile label="Turnout" value={`${percent(checkIns, onList)}%`} note="of everyone on the list" />
-						<StatTile label="Returning" value={loaded ? `${returning}%` : '–'} note="came to an earlier event" />
-						<StatTile label="Walk-ins" value={`${percent(walkIns, checkIns)}%`} note={`${walkIns} of check-ins`} />
+						{/* A share of nothing is no result, not 0%: those tiles show a dash until there's something to divide */}
+						<StatTile label="Turnout" value={onList ? `${percent(checkIns, onList)}%` : '–'} note="of everyone on the list" />
+						<StatTile
+							label="Returning"
+							value={loaded && checkIns ? `${returning}%` : '–'}
+							note={loaded ? 'came to an earlier event' : 'Loading attendee lists…'}
+						/>
+						<StatTile label="Walk-ins" value={checkIns ? `${percent(walkIns, checkIns)}%` : '–'} note={`${walkIns} of check-ins`} />
 						<StatTile
 							label="Self check-in"
-							value={!loaded ? '–' : recordedCheckIns ? `${percent(selfCheckIns, recordedCheckIns)}%` : '–'}
-							note={recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}
+							value={loaded && recordedCheckIns ? `${percent(selfCheckIns, recordedCheckIns)}%` : '–'}
+							note={!loaded ? 'Loading attendee lists…' : recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}
 						/>
 					</div>
 				</div>
@@ -182,7 +203,7 @@ export default function AnalyticsPage() {
 									<BarChart
 										label="Attendance by event"
 										series={attendanceSeries}
-										ticks={niceTicks(Math.max(1, ...results.map((r) => r.registered)))}
+										ticks={niceTicks(maxOf(results.map((r) => r.registered), 1))}
 										bars={results.map((r, i) => ({
 											label: axisLabel(r, i),
 											values: [r.checkedIn - r.walkIns, r.walkIns, r.registered - r.checkedIn],
@@ -192,7 +213,8 @@ export default function AnalyticsPage() {
 												`${r.walkIns} walk-ins · ${percent(r.walkIns, r.checkedIn)}% of check-ins`,
 												`${r.registered - r.checkedIn} didn't come`,
 											],
-											showValue: r === latest ? String(r.checkedIn) : undefined,
+											// Came, of everyone on the list, so the label matches the whole stack it sits on
+											showValue: r === latest ? `${r.checkedIn} of ${r.registered}` : undefined,
 										}))}
 									/>
 								</ChartCard>
@@ -208,7 +230,7 @@ export default function AnalyticsPage() {
 										<BarChart
 											label="Middle registration by event"
 											series={signUpSeries}
-											ticks={niceTicks(Math.max(1, ...signUps.map((s) => s.medianDaysBefore ?? 0)))}
+											ticks={niceTicks(maxOf(signUps.map((s) => s.medianDaysBefore ?? 0), 1))}
 											bars={results.map((r, i) => {
 												const s = signUps[i];
 												return {
@@ -248,7 +270,7 @@ export default function AnalyticsPage() {
 										<BarChart
 											label="New and returning by event"
 											series={returningSeries}
-											ticks={niceTicks(Math.max(1, ...detail.map((d) => d.split.returning + d.split.firstTime)))}
+											ticks={niceTicks(maxOf(detail.map((d) => d.split.returning + d.split.firstTime), 1))}
 											bars={results.map((r, i) => {
 												const { returning, firstTime } = detail[i].split;
 												return {
@@ -278,7 +300,7 @@ export default function AnalyticsPage() {
 										<BarChart
 											label="Check-in method by event"
 											series={methodSeries}
-											ticks={niceTicks(Math.max(1, ...detail.map((d) => (d.methods ? d.methods.self + d.methods.staff : 0))))}
+											ticks={niceTicks(maxOf(detail.map((d) => (d.methods ? d.methods.self + d.methods.staff : 0)), 1))}
 											bars={results.map((r, i) => {
 												const m = detail[i].methods;
 												return {

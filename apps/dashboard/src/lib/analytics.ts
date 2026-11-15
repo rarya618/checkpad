@@ -17,13 +17,23 @@ const QUARTER = 15 * 60_000;
 /** The charts start this long before the event, so early arrivals show. */
 const LEAD = 60 * 60_000;
 
+/** A day of quarter-hours: the most the arrivals charts draw. */
+const MAX_BINS = 96;
+
 /**
  * Check-ins every 15 minutes from an hour before the start to the end of the event (earlier
- * arrivals join the first bin, later ones the last).
+ * arrivals join the first bin, later ones the last). An event open for days or years (a demo,
+ * a standing check-in link) would need thousands of bars, so its chart covers the day from its
+ * first check-in instead.
  */
 export function arrivalBins(event: DashboardEvent, roster: RosterAttendee[]): ArrivalBin[] {
-	const start = new Date(event.startsAt).getTime() - LEAD;
-	const end = new Date(event.endsAt).getTime();
+	let start = new Date(event.startsAt).getTime() - LEAD;
+	let end = new Date(event.endsAt).getTime();
+	if ((end - start) / QUARTER > MAX_BINS) {
+		const first = roster.reduce((m, a) => (a.checkedInAt && a.checkedInAt.getTime() < m ? a.checkedInAt.getTime() : m), Infinity);
+		if (Number.isFinite(first)) start = Math.max(start, Math.floor(first / QUARTER) * QUARTER);
+		end = start + MAX_BINS * QUARTER;
+	}
 	const count = Math.max(1, Math.ceil((end - start) / QUARTER));
 	const bins: ArrivalBin[] = Array.from({ length: count }, (_, i) => ({
 		label: formatClockTime(new Date(start + i * QUARTER), event.timeZone),
@@ -115,15 +125,28 @@ export function registrationQuestions(roster: RosterAttendee[]): QuestionResult[
 	});
 }
 
-/** A tidy axis: about four steps of 1, 2, 2.5 or 5 × 10ⁿ covering `max`. */
+/**
+ * A tidy axis for counts: about four steps of 1, 2, 2.5 or 5 × 10ⁿ covering `max`, always whole
+ * numbers, since there's no half a person (so 0, 1 rather than 0, 0.5, 1).
+ */
 export function niceTicks(max: number, steps = 3) {
 	if (max <= 0) return [0, 1];
 	const raw = max / steps;
 	const pow = 10 ** Math.floor(Math.log10(raw));
-	const step = [1, 2, 2.5, 5, 10].map((m) => m * pow).find((s) => s >= raw)!;
+	const step = [1, 2, 2.5, 5, 10]
+		.map((m) => m * pow)
+		.filter((s) => Number.isInteger(s))
+		// Under 1 step (a max below 3) there may be no whole candidate: step by 1
+		.find((s) => s >= raw) ?? 1;
 	const top = Math.ceil(max / step) * step;
 	return Array.from({ length: Math.round(top / step) + 1 }, (_, i) => +(i * step).toFixed(6));
 }
+
+/**
+ * The largest of `values`, or `floor` if that's bigger. Unlike Math.max(...values) this doesn't
+ * run out of stack on a long list, such as a chart's bars.
+ */
+export const maxOf = (values: number[], floor = 0) => values.reduce((m, v) => (v > m ? v : m), floor);
 
 export const percent = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
@@ -496,6 +519,16 @@ export const thinLabels = (count: number, fit = 8) => {
 	const step = Math.max(1, Math.ceil(count / fit));
 	return (i: number) => (count - 1 - i) % step === 0;
 };
+
+/** The team of the most recent event that has started, of `teams`: where a super admin, who has no team, most likely wants to look. */
+export function latestTeam(events: DashboardEvent[], teams: { id: string }[], now = Date.now()) {
+	let latest: DashboardEvent | null = null;
+	for (const e of events) {
+		if (new Date(e.startsAt).getTime() > now || !e.teamIds.some((id) => teams.some((t) => t.id === id))) continue;
+		if (!latest || e.startsAt > latest.startsAt) latest = e;
+	}
+	return latest?.teamIds.find((id) => teams.some((t) => t.id === id)) ?? null;
+}
 
 export const ranges = [
 	{ id: '3', label: 'Last 3 months', months: 3 },
