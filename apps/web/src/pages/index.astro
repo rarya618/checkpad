@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { buttonClass } from '@checkpad/shared/button';
 import attendeesDashboard from '../assets/screens/attendees-dashboard.png';
+import checkInPhone from '../assets/screens/check-in-phone.png';
 import checkedInPhone from '../assets/screens/checked-in-phone.png';
 import eventAnalytics from '../assets/screens/event-analytics.png';
 import staffCheckIn from '../assets/screens/staff-check-in.png';
@@ -86,6 +87,16 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 						data-intro="dashboard"
 						class="absolute top-8 left-[120px] w-[560px] max-w-none rounded-xl md:top-12 md:left-[200px] md:w-[800px] shadow-[0_12px_32px_rgb(17_45_78/0.12)] xl:top-0 xl:left-20 xl:w-[800px] xl:rounded-2xl xl:border xl:border-light-blue xl:shadow-[0_24px_64px_rgb(17_45_78/0.16)]"
 					/>
+					{/* The attendee's two steps: the email form, then the confirmation overlapping it */}
+					<Image
+						src={checkInPhone}
+						alt="An attendee’s phone showing the check-in form with their email typed in"
+						widths={[210, 420]}
+						sizes="(min-width: 768px) 210px, 168px"
+						loading="eager"
+						data-intro="phone"
+						class="absolute top-4 left-8 w-[168px] rounded-3xl border-[5px] border-dark-blue md:top-4 md:left-16 md:w-[210px] md:border-[6px] shadow-[0_16px_36px_rgb(17_45_78/0.22)] xl:top-32 xl:left-0 xl:w-[210px] xl:rounded-4xl xl:border-[6px] xl:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
+					/>
 					<Image
 						src={checkedInPhone}
 						alt="An attendee’s phone showing “You’re checked in”"
@@ -93,7 +104,8 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 						sizes="(min-width: 768px) 210px, 168px"
 						loading="eager"
 						data-intro="phone"
-						class="absolute top-[52px] left-8 w-[168px] rounded-3xl border-[5px] border-dark-blue md:top-20 md:left-16 md:w-[210px] md:border-[6px] shadow-[0_16px_36px_rgb(17_45_78/0.22)] xl:top-[190px] xl:left-0 xl:w-[210px] xl:rounded-4xl xl:border-[6px] xl:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
+						style="--phone-delay: 750ms"
+						class="absolute top-16 left-36 w-[168px] rounded-3xl border-[5px] border-dark-blue md:top-20 md:left-54 md:w-[210px] md:border-[6px] shadow-[0_16px_36px_rgb(17_45_78/0.22)] xl:top-52 xl:left-38 xl:w-[210px] xl:rounded-4xl xl:border-[6px] xl:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
 					/>
 				</div>
 			</div>

@@ -142,7 +142,8 @@ html {
 	}
 
 	[data-intro='phone'] {
-		animation: phone-in 800ms var(--ease-out-soft) 550ms backwards;
+		/* The second phone (the confirmation) sets a later --phone-delay */
+		animation: phone-in 800ms var(--ease-out-soft) var(--phone-delay, 550ms) backwards;
 	}
 
 	[data-reveal='from-right'] {
