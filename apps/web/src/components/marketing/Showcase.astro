@@ -22,7 +22,8 @@ interface Props {
 const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = false, class: className } = Astro.props;
 ---
 
-<section id={id} class={className}>
+<!-- A phone runs off the bottom of the section, cropped by it -->
+<section id={id} class:list={[className, phone && 'overflow-hidden']}>
 	<div
 		class:list={[
 			'mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 py-18 md:px-12 xl:items-center xl:gap-20 xl:px-30 xl:py-30',
@@ -43,7 +44,7 @@ const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = fals
 		<div
 			data-reveal={reverse ? 'from-left' : 'from-right'}
 			style="--reveal-delay: 120ms"
-			class:list={['relative w-full shrink-0 md:max-w-[720px] xl:w-5/9 xl:max-w-[640px]', phone && 'mb-12 md:mb-16 xl:mb-0']}
+			class="relative w-full shrink-0 md:max-w-[720px] xl:w-5/9 xl:max-w-[640px]"
 		>
 			<Image
 				src={image}
@@ -60,7 +61,7 @@ const { id, eyebrow, title, body, points, image, imageAlt, phone, reverse = fals
 						widths={[240, 420]}
 						sizes="(min-width: 1280px) 240px, (min-width: 768px) 224px, 160px"
 						class:list={[
-							'absolute -bottom-16 w-40 rounded-3xl border-[5px] border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:-bottom-20 md:w-56 md:border-[6px] xl:w-60 xl:rounded-4xl',
+							'absolute top-2/5 w-40 rounded-3xl border-[5px] border-dark-blue shadow-[0_16px_36px_rgb(17_45_78/0.22)] md:w-56 md:border-[6px] xl:w-60 xl:rounded-4xl',
 							reverse ? 'left-3 md:left-6 xl:-left-12' : 'right-3 md:right-6 xl:-right-12',
 						]}
 					/>
