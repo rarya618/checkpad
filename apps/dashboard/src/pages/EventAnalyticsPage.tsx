@@ -37,6 +37,12 @@ const series: Series[] = [
 // Loaded on first use, with the CSV library it brings
 const ImportDialog = lazy(() => import('../components/ImportDialog'));
 
+// Answer bars: as long as the answer's registrations, the checked-in part darker
+const answerSeries: Series[] = [
+	{ name: 'Registered', className: 'bg-med-blue/40' },
+	{ name: 'Checked in', className: 'bg-dark-blue' },
+];
+
 const registrationSeries: Series[] = [
 	{ name: 'Checked in', className: 'bg-dark-blue' },
 	{ name: 'Not checked in', className: 'bg-med-blue' },
@@ -113,7 +119,7 @@ export default function EventAnalyticsPage() {
 						className="md:w-[285px] md:flex-none"
 						label="Busiest 15 minutes"
 						value={busiest ? busiest.label : '–'}
-						note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrivals from ${busiest.range.replace('–', ' to ')}` : 'No check-ins yet'}
+						note={busiest ? `${busiest.preRegistered + busiest.walkIns} arrival${busiest.preRegistered + busiest.walkIns === 1 ? '' : 's'} from ${busiest.range.replace('–', ' to ')}` : 'No check-ins yet'}
 					/>
 				</div>
 				<div className="flex flex-col gap-4 md:flex-row md:items-start">
@@ -201,9 +207,9 @@ export default function EventAnalyticsPage() {
 				{chartedQuestions.length > 0 && (
 					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 						{chartedQuestions.map((q) => (
-							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered · checked in of each answer`}>
+							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered`} legend={answerSeries}>
 								{q.answers.map((a) => (
-									<CheckedInRow key={a.name} {...a} />
+									<AnswerRow key={a.name} {...a} most={Math.max(...q.answers.map((x) => x.total))} />
 								))}
 							</ChartCard>
 						))}
@@ -309,6 +315,30 @@ function CheckedInRow({ name, checkedIn, total }: { name: string; checkedIn: num
 			</div>
 			<div className="h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
 				<div className="h-full bg-dark-blue" style={{ width: `${percent(checkedIn, total)}%` }} />
+			</div>
+		</div>
+	);
+}
+
+/**
+ * An answer's registrations and check-ins. The bar's length is its registrations against the
+ * commonest answer's (`most`), so answers compare; the darker part is who checked in.
+ */
+function AnswerRow({ name, checkedIn, total, most }: { name: string; checkedIn: number; total: number; most: number }) {
+	return (
+		<div className="flex flex-col gap-1.5">
+			<div className="flex items-start gap-1.5 leading-normal">
+				<p className="min-w-0 flex-1 truncate text-sm font-bold" title={name}>
+					{name}
+				</p>
+				<p className="shrink-0 text-xs text-med-blue">
+					{total} registered · {checkedIn} checked in
+				</p>
+			</div>
+			<div className="h-[7.5px]" role="presentation">
+				<div className="h-full overflow-hidden rounded-full bg-med-blue/40" style={{ width: `${percent(total, most)}%` }}>
+					<div className="h-full bg-dark-blue" style={{ width: `${percent(checkedIn, total)}%` }} />
+				</div>
 			</div>
 		</div>
 	);
