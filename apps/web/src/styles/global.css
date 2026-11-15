@@ -115,10 +115,17 @@ html {
 		}
 	}
 
-	/* The hero phone slides up into place, with no fade, so it never flicks on */
+	/* The hero phone slides up into place and fades in as it goes. The fade runs on its own,
+	   linear timing: on the slide's easing it would finish almost at once and flick on. */
 	@keyframes phone-in {
 		from {
 			translate: 0 120px;
+		}
+	}
+
+	@keyframes phone-fade {
+		from {
+			opacity: 0;
 		}
 	}
 
@@ -140,7 +147,9 @@ html {
 	}
 
 	[data-intro='phone'] {
-		animation: phone-in 900ms var(--ease-out-soft) 550ms backwards;
+		animation:
+			phone-in 900ms var(--ease-out-soft) 550ms backwards,
+			phone-fade 600ms linear 550ms backwards;
 	}
 
 	[data-reveal='from-right'] {
