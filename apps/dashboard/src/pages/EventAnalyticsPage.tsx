@@ -85,12 +85,12 @@ export default function EventAnalyticsPage() {
 						<div className="flex items-start gap-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal">
 								<h3 className="font-display text-lg">Arrivals</h3>
-								<p className="text-xs text-med-blue">Check-ins every 15 minutes</p>
+								<p className="text-xs text-med-blue">Check-ins per 15 minutes</p>
 							</div>
 							<Legend series={series} />
 						</div>
 						<BarChart
-							label="Check-ins every 15 minutes"
+							label="Check-ins per 15 minutes"
 							series={series}
 							ticks={ticks}
 							bars={bins.map((b, i) => ({
@@ -133,10 +133,10 @@ export default function EventAnalyticsPage() {
 						<dl className="grid grid-cols-3 gap-3 leading-normal">
 							<Figure label="Middle arrival" value={timing.medianMinutes === null ? '–' : formatOffset(timing.medianMinutes)} />
 							<Figure label="By the start" value={`${timing.byStart}%`} />
-							<Figure label="Within 30 minutes" value={`${timing.byHalfHour}%`} />
+							<Figure label="By 30 min after" value={`${timing.byHalfHour}%`} />
 						</dl>
 						<LineChart
-							label="Check-ins so far, every 15 minutes"
+							label="Running total of check-ins, per 15 minutes"
 							ticks={niceTicks(Math.max(1, stats.checkedIn))}
 							points={timing.cumulative.map((p, i) => ({
 								// Each point is the total at the end of its 15 minutes
