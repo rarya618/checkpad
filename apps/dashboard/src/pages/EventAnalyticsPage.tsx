@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, LineChart, SplitBar, StatTile, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
@@ -374,36 +374,51 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
  */
 function SectionRail() {
 	const [active, setActive] = useState(SECTIONS[0]);
+	const nav = useRef<HTMLElement>(null);
+	// While a jump scrolls, the section chosen stays marked, even if the page bottoms out first
+	const jumping = useRef(false);
 
 	useEffect(() => {
-		const visible = new Set<string>();
-		// A section counts once its top passes the header, until its bottom does
-		const observer = new IntersectionObserver(
-			(entries) => {
-				for (const e of entries) {
-					if (e.isIntersecting) visible.add(e.target.id);
-					else visible.delete(e.target.id);
-				}
-				const first = SECTIONS.find((t) => visible.has(sectionId(t)));
-				if (first) setActive(first);
-			},
-			{ rootMargin: '-100px 0px -50% 0px' },
-		);
-		for (const t of SECTIONS) {
-			const el = document.getElementById(sectionId(t));
-			if (el) observer.observe(el);
+		// The desktop layout scrolls in <main>, not the window
+		const scroller = nav.current?.closest('main');
+		if (!scroller) return;
+		const main = scroller;
+		function update() {
+			if (jumping.current) return;
+			// The last sections are too short to reach the top, so the bottom of the page marks the last
+			if (main.scrollTop + main.clientHeight >= main.scrollHeight - 2) return setActive(SECTIONS[SECTIONS.length - 1]);
+			// Otherwise the last section whose heading has passed under the sticky Analytics header
+			const line = main.getBoundingClientRect().top + 100;
+			setActive(SECTIONS.filter((t) => (document.getElementById(sectionId(t))?.getBoundingClientRect().top ?? Infinity) <= line).pop() ?? SECTIONS[0]);
 		}
-		return () => observer.disconnect();
+		function settled() {
+			jumping.current = false;
+		}
+		update();
+		main.addEventListener('scroll', update, { passive: true });
+		main.addEventListener('scrollend', settled);
+		// Browsers without scrollend: the wheel or keys mean the reader has taken over
+		main.addEventListener('wheel', settled, { passive: true });
+		main.addEventListener('keydown', settled);
+		return () => {
+			main.removeEventListener('scroll', update);
+			main.removeEventListener('scrollend', settled);
+			main.removeEventListener('wheel', settled);
+			main.removeEventListener('keydown', settled);
+		};
 	}, []);
 
 	function jump(title: string) {
 		const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		document.getElementById(sectionId(title))?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+		jumping.current = true;
 		setActive(title);
+		document.getElementById(sectionId(title))?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+		// Nothing to scroll (already there) fires no scrollend, so let go after a moment regardless
+		window.setTimeout(() => (jumping.current = false), 1500);
 	}
 
 	return (
-		<nav aria-label="Analytics sections" className="sticky top-24 hidden w-40 shrink-0 xl:block">
+		<nav ref={nav} aria-label="Analytics sections" className="sticky top-24 hidden w-40 shrink-0 xl:block">
 			<ul className="flex flex-col border-l border-light-blue">
 				{SECTIONS.map((t) => (
 					<li key={t}>
