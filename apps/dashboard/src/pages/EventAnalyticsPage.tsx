@@ -203,7 +203,7 @@ export default function EventAnalyticsPage() {
 						{chartedQuestions.map((q) => (
 							<ChartCard key={q.question} title={q.question} caption={`${q.answered} answered`} legend={registrationSeries}>
 								{q.answers.map((a) => (
-									<AnswerRow key={a.name} {...a} />
+									<AnswerRow key={a.name} {...a} answered={q.answered} />
 								))}
 							</ChartCard>
 						))}
@@ -314,8 +314,11 @@ function CheckedInRow({ name, checkedIn, total }: { name: string; checkedIn: num
 	);
 }
 
-/** An answer's registrations as a full bar: who checked in, then who didn't, as in the Registrations chart. */
-function AnswerRow({ name, checkedIn, total }: { name: string; checkedIn: number; total: number }) {
+/**
+ * An answer's registrations as a share of everyone who answered the question: who checked in,
+ * then who didn't (the Registrations chart's colours), on a full-width track.
+ */
+function AnswerRow({ name, checkedIn, total, answered }: { name: string; checkedIn: number; total: number; answered: number }) {
 	return (
 		<div className="flex flex-col gap-1.5">
 			<div className="flex items-start gap-1.5 leading-normal">
@@ -326,8 +329,9 @@ function AnswerRow({ name, checkedIn, total }: { name: string; checkedIn: number
 					{total} registered · {checkedIn} checked in
 				</p>
 			</div>
-			<div className="h-[7.5px] overflow-hidden rounded-full bg-med-blue" role="presentation">
-				<div className="h-full bg-dark-blue" style={{ width: `${percent(checkedIn, total)}%` }} />
+			<div className="flex h-[7.5px] overflow-hidden rounded-full bg-light-blue" role="presentation">
+				<div className="h-full bg-dark-blue" style={{ width: `${(checkedIn / answered) * 100}%` }} />
+				<div className="h-full bg-med-blue" style={{ width: `${((total - checkedIn) / answered) * 100}%` }} />
 			</div>
 		</div>
 	);
