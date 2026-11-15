@@ -37,8 +37,10 @@ export function SectionRail({ sections }: { sections: string[] }) {
 			if (jumping.current) return;
 			// The last sections are too short to reach the top, so the bottom of the page marks the last
 			if (main.scrollTop + main.clientHeight >= main.scrollHeight - 2) return setActive(list[list.length - 1]);
-			// Otherwise the last section whose heading has passed under the sticky header
-			const line = main.getBoundingClientRect().top + 100;
+			// Otherwise the last section whose heading is in the top third of the view: the one being
+			// read, even before its heading reaches the sticky header
+			const box = main.getBoundingClientRect();
+			const line = box.top + Math.max(100, box.height / 3);
 			setActive(list.filter((t) => (document.getElementById(sectionId(t))?.getBoundingClientRect().top ?? Infinity) <= line).pop() ?? list[0]);
 		}
 		function settled() {

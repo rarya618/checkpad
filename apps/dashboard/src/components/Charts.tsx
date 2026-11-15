@@ -78,7 +78,8 @@ export function ChartCard({
 	return (
 		<section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5 ${className}`}>
 			<div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
-				<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal">
+				{/* The title keeps at least 13rem: a wide legend drops below it rather than squeezing it onto two lines */}
+				<div className="flex min-w-0 flex-1 basis-52 flex-col gap-1 leading-normal">
 					<Heading className="font-display text-lg">{title}</Heading>
 					<p className="text-xs text-med-blue">{caption}</p>
 				</div>
@@ -132,7 +133,7 @@ export interface Bar {
 
 export function Legend({ series }: { series: Series[] }) {
 	return (
-		<ul className="flex shrink-0 items-center gap-4">
+		<ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
 			{series.map((s) => (
 				<li key={s.name} className="flex items-center gap-1.5 text-xs leading-normal">
 					<span aria-hidden="true" className={`size-[9px] rounded-xs ${s.className}`} />
