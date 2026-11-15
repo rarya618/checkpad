@@ -1,3 +1,4 @@
+import { buttonClass } from '@checkpad/shared/button';
 import { formatDay } from '@checkpad/shared/format';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
@@ -84,6 +85,8 @@ export default function AnalyticsPage() {
 	}
 
 	const included = useMemo(() => eventsInRange(events, team, range.months), [events, team, range]);
+	// For offering a wider range when this one is too thin to compare
+	const allTime = useMemo(() => eventsInRange(events, team, Infinity).length, [events, team]);
 	const results = useMemo(() => included.map((e) => eventResult(e)), [included]);
 	// Returning attendees needs every list of the team's past events, matched by email
 	const teamEvents = useMemo(() => events.filter((e) => e.teamIds.includes(team) && new Date(e.startsAt).getTime() < Date.now()), [events, team]);
@@ -178,7 +181,7 @@ export default function AnalyticsPage() {
 						/>
 					</div>
 				</div>
-				{results.length ? (
+				{results.length >= 2 ? (
 					// Wide windows: the sections beside a rail of them, under the overview
 					<div className="flex items-start gap-6">
 						<div className="flex min-w-0 flex-1 flex-col gap-8">
@@ -327,9 +330,13 @@ export default function AnalyticsPage() {
 						<SectionRail sections={SECTIONS} />
 					</div>
 				) : (
-					<ChartCard level={2} title="Turnout by event" caption="Share of everyone on the list who checked in, walk-ins included">
-						<p className="py-6 text-center text-sm text-med-blue">No finished events in this range.</p>
-					</ChartCard>
+					<NothingToCompare
+						results={results}
+						teamName={teams.find((t) => t.id === team)?.name ?? 'This team'}
+						range={range}
+						allTime={allTime}
+						onShowAllTime={() => setFilter('range', 'all')}
+					/>
 				)}
 			</div>
 		</>
@@ -351,7 +358,14 @@ function LatestEvent({ latest, others, date }: { latest: EventResult; others: Ev
 			<Link to={`/events/${latest.event.slug}/analytics`} className="font-bold underline decoration-med-blue/50 underline-offset-4 hover:decoration-dark-blue">
 				{latest.event.name}
 			</Link>{' '}
-			on {date}. <strong>{came}</strong> came{walkIns}: <strong>{latest.turnout}%</strong> of the {latest.registered} on the list.
+			on {date}.{' '}
+			{latest.checkedIn ? (
+				<>
+					<strong>{came}</strong> came{walkIns}: <strong>{latest.turnout}%</strong> of the {latest.registered} on the list.
+				</>
+			) : (
+				`None of the ${latest.registered} on the list checked in.`
+			)}
 			{average !== null && ` ${turnoutVersus(versusAverage(latest.turnout, average), against, 'That’s')}.`}
 		</p>
 	);
@@ -456,6 +470,57 @@ function EventTable({ results, wide, date }: { results: EventResult[]; wide: boo
 				</tbody>
 			</table>
 		</ChartCard>
+	);
+}
+
+/**
+ * Under two finished events there's nothing to compare, and every chart would be one bar or
+ * none. Say so, and point to what does have something to show: the one event's own analytics,
+ * or a wider range when the team has more events outside this one.
+ */
+function NothingToCompare({
+	results,
+	teamName,
+	range,
+	allTime,
+	onShowAllTime,
+}: {
+	results: EventResult[];
+	teamName: string;
+	range: (typeof ranges)[number];
+	allTime: number;
+	onShowAllTime: () => void;
+}) {
+	const only = results[0];
+	const within = range.id === 'all' ? '' : ` in the ${range.label.toLowerCase()}`;
+	const widen = range.id !== 'all' && allTime > results.length;
+	return (
+		<section className="flex flex-col items-start gap-4 rounded-xl border border-med-blue bg-white px-6 py-6">
+			<div className="flex max-w-prose flex-col gap-1.5 leading-normal">
+				<h2 className="font-display text-lg">{only ? 'Nothing to compare yet' : `No finished events${within}`}</h2>
+				<p className="text-sm text-pretty">
+					{only
+						? `${only.event.name} is ${teamName}’s only finished event${within}. This page compares events, so its charts fill in after the next one. Until then, the event’s own analytics has the detail.`
+						: allTime
+							? `${teamName} has ${allTime} finished ${allTime === 1 ? 'event' : 'events'} outside this range.`
+							: `Analytics fills in once ${teamName}’s first event has finished.`}
+				</p>
+			</div>
+			{(only || widen) && (
+				<div className="flex flex-wrap gap-2.5">
+					{only && (
+						<Link to={`/events/${only.event.slug}/analytics`} className={buttonClass('primary')}>
+							See {only.event.name}’s analytics
+						</Link>
+					)}
+					{widen && (
+						<button type="button" onClick={onShowAllTime} className={buttonClass(only ? 'secondary' : 'primary')}>
+							Show all time ({allTime} {allTime === 1 ? 'event' : 'events'})
+						</button>
+					)}
+				</div>
+			)}
+		</section>
 	);
 }
 
