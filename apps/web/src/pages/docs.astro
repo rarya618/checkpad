@@ -1,10 +1,20 @@
 ---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import analytics from '../assets/docs/analytics.png';
+import importAttendees from '../assets/docs/import.png';
+import newEvent from '../assets/docs/new-event.png';
+import organisers from '../assets/docs/organisers.png';
+import prizeDraw from '../assets/docs/prize-draw.png';
+import share from '../assets/docs/share.png';
+import signIn from '../assets/docs/sign-in.png';
+import staffCheckIn from '../assets/screens/staff-check-in.png';
 import Footer from '../components/marketing/Footer.astro';
 import Nav from '../components/marketing/Nav.astro';
 import Layout from '../layouts/Layout.astro';
 import { DASHBOARD_URL } from '../lib/config';
 
-// Not in Figma. The organiser guide: keep each step true to the dashboard's own wording (labels,
+// Figma "Docs – desktop" and "Docs – mobile". The organiser guide: keep each step true to the dashboard's own wording (labels,
 // buttons and menu items in apps/dashboard), and update it when a flow changes. "docs" is a
 // reserved event link (RESERVED_SLUGS).
 
@@ -129,6 +139,19 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 ];
 
 const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
+
+// A screenshot for each section, shown after its first paragraph. They're exported from the
+// "Website screenshots" section of the Checkpad Figma file (Screens page), named docs-*.png there.
+const images: Record<string, { src: ImageMetadata; alt: string }> = {
+	'getting-started': { src: signIn, alt: 'The dashboard’s sign-in page, with Continue with Google and an email sign-in link' },
+	'teams-and-roles': { src: organisers, alt: 'The Organisers page listing people with their roles and teams' },
+	'create-an-event': { src: newEvent, alt: 'The New event page with Details, When, Teams and Walk-ins' },
+	'import-attendees': { src: importAttendees, alt: 'The Import attendees dialog showing new, updated and skipped rows before importing' },
+	'open-check-in': { src: share, alt: 'The Share check-in dialog with the QR code, the check-in link and Open venue display' },
+	'on-the-night': { src: staffCheckIn, alt: 'The staff Check in page offering to add an unregistered email as a walk-in' },
+	'prize-draw': { src: prizeDraw, alt: 'The prize draw on the projector showing the third winner' },
+	'after-the-event': { src: analytics, alt: 'Event analytics with arrivals, turnout by ticket type, arrival timing and first-timers' },
+};
 ---
 
 <Layout title="Docs · Checkpad" description="How to run check-in with Checkpad: set up a team, import attendees from Bevy or Luma, open check-in, add walk-ins and run the prize draw.">
@@ -167,7 +190,7 @@ const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
 						<span class="text-xl text-med-blue" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
 						{s.title}
 					</h2>
-					{s.body.map((block) =>
+					{s.body.map((block, b) => [
 						typeof block === 'string' ? (
 							<p class={text}>{block}</p>
 						) : 'steps' in block ? (
@@ -190,7 +213,16 @@ const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
 								<span class="font-bold">Tip: </span>{block.tip}
 							</p>
 						),
-					)}
+						b === 0 && images[s.id] && (
+							<Image
+								src={images[s.id].src}
+								alt={images[s.id].alt}
+								widths={[760, 1520]}
+								sizes="(min-width: 1024px) 760px, 100vw"
+								class="my-2 w-full rounded-xl border border-light-blue shadow-[0_12px_32px_rgb(17_45_78/0.10)]"
+							/>
+						),
+					])}
 				</section>
 			))}
 		</article>
