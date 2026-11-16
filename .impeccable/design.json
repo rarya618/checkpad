@@ -211,7 +211,7 @@
       {
         "name": "ease-out-quick",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Check-in step changes and the confirmation."
+        "purpose": "Check-in step changes and the confirmation; dashboard count changes and menus."
       },
       {
         "name": "menu-close",
@@ -242,6 +242,21 @@
         "name": "color-transition",
         "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
         "purpose": "Button and link hover colour (Tailwind transition-colors)."
+      },
+      {
+        "name": "arrival-wash",
+        "value": "2400ms, light blue mixed 55% with white, held for the first 30% then faded",
+        "purpose": "A dashboard attendee row when someone checks in while the table is open; kept under reduced motion."
+      },
+      {
+        "name": "count-change",
+        "value": "500ms bar segments, 600ms ring arc, ease-out-quick",
+        "purpose": "The Attendees progress bar and event-card rings moving to a new count."
+      },
+      {
+        "name": "menu-in",
+        "value": "140ms, opacity and scale from 0.96, from the button's corner",
+        "purpose": "Dashboard ⋮ menus opening."
       }
     ],
     "breakpoints": [
