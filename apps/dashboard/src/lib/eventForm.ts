@@ -76,7 +76,8 @@ function zonedParts(date: Date, timeZone: string) {
 	}).formatToParts(date)) {
 		parts[type] = value;
 	}
-	return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
+	// Year padded: Intl writes year 2 as "2", and "2-05-11" doesn't parse back
+	return { date: `${parts.year.padStart(4, '0')}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }
 
 /** The instant when the clock in `timeZone` shows `date` `time`. */
@@ -165,23 +166,40 @@ export function formTimes(form: EventForm) {
 	return { startsAt: start.toISOString(), endsAt: end.toISOString() };
 }
 
-/** What's wrong with the dates and times, or null: only an end date before the start can be. */
+/**
+ * Whether a date field holds a whole date worth working with. While someone types a year the
+ * browser reports it digit by digit ("0002-05-11", then "0020-05-11"), so anything before 1900
+ * counts as not there yet.
+ */
+export function isFullDate(value: string) {
+	return /^\d{4}-\d{2}-\d{2}$/.test(value) && Number(value.slice(0, 4)) >= 1900 && !Number.isNaN(Date.parse(value));
+}
+
+/**
+ * What's wrong with the dates and times, or null: only an end date before the start can be.
+ * Runs on every keystroke, so it says nothing until both dates are whole, and never throws.
+ */
 export function formTimesError(form: EventForm) {
-	if (!form.date || !form.start || !form.end || !form.timeZone) return null;
-	const { startsAt, endsAt } = formTimes(form);
-	return new Date(endsAt) <= new Date(startsAt) ? 'It ends before it starts. Check the end date.' : null;
+	if (!isFullDate(form.date) || !isFullDate(form.endDate || form.date) || !form.start || !form.end || !form.timeZone) return null;
+	try {
+		const { startsAt, endsAt } = formTimes(form);
+		return new Date(endsAt) <= new Date(startsAt) ? 'It ends before it starts. Check the end date.' : null;
+	} catch {
+		return null;
+	}
 }
 
 /** The end date after the start date moves from `from` to `to`, by the same number of days, so
- *  an event over several days keeps its length. Empty dates follow the start. */
+ *  an event over several days keeps its length. An empty or part-typed end date follows the start. */
 export function shiftedEndDate(endDate: string, from: string, to: string) {
-	if (!endDate || !from || !to) return to;
+	if (!isFullDate(endDate) || !isFullDate(from) || !isFullDate(to)) return to;
 	const days = (Date.parse(to) - Date.parse(from)) / 86_400_000;
 	return new Date(Date.parse(endDate) + days * 86_400_000).toISOString().slice(0, 10);
 }
 
 export function formIsComplete(form: EventForm) {
-	return Boolean(form.name.trim() && form.slug && form.date && form.start && form.end) && !formTimesError(form);
+	const datesWhole = isFullDate(form.date) && isFullDate(form.endDate || form.date);
+	return Boolean(form.name.trim() && form.slug && datesWhole && form.start && form.end) && !formTimesError(form);
 }
 
 const labels: Record<keyof EventForm, string> = {

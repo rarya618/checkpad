@@ -1,5 +1,6 @@
 import { countries } from '@checkpad/shared/countries';
-import { endsNextDay, formTimesError, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
+import { useRef } from 'react';
+import { endsNextDay, formTimesError, isFullDate, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
@@ -12,6 +13,9 @@ type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
 // its start date before its start time runs past midnight, and the end date says so.
 export function DateTimeFields({ form, update }: { form: EventForm; update: Update }) {
 	const nextDay = endsNextDay(form);
+	// The last whole start date: while a year is being typed the field passes through "0002",
+	// "0020" and so on, and the end date only follows once the start is a real date again
+	const lastStart = useRef(form.date);
 	return (
 		<>
 			{/* Start on one row and end on the next, each a date and a short time box */}
@@ -22,9 +26,13 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 					required
 					value={form.date}
 					onChange={(e) => {
+						const date = e.target.value;
+						update('date', date);
 						// The end date moves with it, keeping an event over several days the same length
-						update('endDate', shiftedEndDate(form.endDate, form.date, e.target.value));
-						update('date', e.target.value);
+						if (isFullDate(date)) {
+							update('endDate', shiftedEndDate(form.endDate, lastStart.current, date));
+							lastStart.current = date;
+						}
 					}}
 					className="min-w-0"
 				/>
