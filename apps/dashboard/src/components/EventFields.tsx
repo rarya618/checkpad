@@ -1,5 +1,5 @@
 import { countries } from '@checkpad/shared/countries';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { endsNextDay, formTimesError, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
@@ -16,15 +16,40 @@ type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
 export function DateTimeFields({ form, update }: { form: EventForm; update: Update }) {
 	const nextDay = endsNextDay(form);
 	const [picking, setPicking] = useState<'start' | 'end' | null>(null);
+	// The field that opened the calendar, which it stays under while it moves on from the start
+	// to the end, so it doesn't jump a row mid-pick
+	const [anchor, setAnchor] = useState<'start' | 'end'>('start');
+	const [top, setTop] = useState<number | null>(null);
 	const area = useRef<HTMLDivElement>(null);
+	const popover = useRef<HTMLDivElement>(null);
 	const startButton = useRef<HTMLButtonElement>(null);
 	const endButton = useRef<HTMLButtonElement>(null);
 	const endDate = form.endDate || form.date;
 
+	const open = (mode: 'start' | 'end', from: 'start' | 'end') => {
+		if (picking && anchor === from) return setPicking(null);
+		setAnchor(from);
+		setTop(null);
+		setPicking(mode);
+	};
 	const close = (focusField = true) => {
-		if (focusField) (picking === 'end' ? endButton : startButton).current?.focus();
+		if (focusField) (anchor === 'end' ? endButton : startButton).current?.focus();
 		setPicking(null);
 	};
+
+	// Always right under the field that opened it, 8px clear, measured before paint so it never
+	// shows in the wrong place. When that runs past the bottom of the window, the page scrolls
+	// just enough to show it all.
+	useLayoutEffect(() => {
+		if (!picking || !area.current) return;
+		const field = (anchor === 'end' ? endButton : startButton).current!.getBoundingClientRect();
+		setTop(field.bottom - area.current.getBoundingClientRect().top + 8);
+	}, [picking, anchor]);
+	useEffect(() => {
+		if (top === null) return;
+		const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+		popover.current?.scrollIntoView({ block: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
+	}, [top]);
 	// A click anywhere else closes the calendar, leaving focus where the click put it
 	useEffect(() => {
 		if (!picking) return;
@@ -51,24 +76,26 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 	return (
 		<>
 			{/* Start on one row and end on the next, each a date and a short time box. The
-			    calendar opens under both dates, so both stay in view while picking. */}
+			    calendar opens under the date field that was clicked. */}
 			<div ref={area} className="relative">
 				<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
-					<DateTrigger ref={startButton} label="Start date" value={form.date} open={picking === 'start'} onOpen={() => setPicking(picking === 'start' ? null : 'start')} />
+					<DateTrigger ref={startButton} label="Start date" value={form.date} open={picking !== null && anchor === 'start'} onOpen={() => open('start', 'start')} />
 					<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
 					<DateTrigger
 						ref={endButton}
 						label="End date"
 						value={endDate}
-						open={picking === 'end'}
-						onOpen={() => setPicking(picking === 'end' ? null : form.date ? 'end' : 'start')}
+						open={picking !== null && anchor === 'end'}
+						onOpen={() => open(form.date ? 'end' : 'start', 'end')}
 						hint={nextDay ? 'Ends the next day, after midnight' : undefined}
 						error={formTimesError(form)}
 					/>
 					<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
 				</div>
-				{picking && (
-					<div className="absolute top-full left-0 z-30 mt-2 w-full">
+				{/* Mounted once its place is known, already visible, so focus can move into it */}
+				{picking && top !== null && (
+					// On phones the scroll that shows it clears the fixed bottom nav
+					<div ref={popover} style={{ top }} className="absolute left-0 z-30 w-full scroll-mb-28 md:scroll-mb-6">
 						<RangeCalendar mode={picking} start={form.date} end={endDate} onPick={pick} onClose={close} />
 					</div>
 				)}

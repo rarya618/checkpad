@@ -131,9 +131,6 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 		if (moves[e.key]) {
 			e.preventDefault();
 			go(moves[e.key]());
-		} else if (e.key === 'Escape') {
-			e.preventDefault();
-			onClose();
 		}
 	};
 
@@ -150,6 +147,12 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 		<div
 			role="dialog"
 			aria-label={mode === 'start' ? 'Choose the start date' : 'Choose the end date'}
+			// Escape closes from anywhere in it, the month buttons included
+			onKeyDown={(e) => {
+				if (e.key !== 'Escape') return;
+				e.preventDefault();
+				onClose();
+			}}
 			data-popover
 			className="flex w-[min(100%,20.5rem)] flex-col gap-3 rounded-xl border border-line bg-white p-3 shadow-[0_9px_30px_rgb(17_45_78/0.14)] md:p-4"
 		>
