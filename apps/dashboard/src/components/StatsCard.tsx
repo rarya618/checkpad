@@ -8,7 +8,7 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 		{ label: 'Not arrived', count: stats.notArrived, color: 'bg-light-blue' },
 	];
 	return (
-		<section aria-label="Check-in progress" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 pt-6 pb-4">
+		<section aria-label="Check-in progress" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 pt-6 pb-4 tabular-nums">
 			<div className="flex items-baseline justify-between gap-6">
 				<p className="flex items-baseline gap-2.5">
 					<span className="font-display text-4xl leading-none">{stats.checkedIn}</span>
@@ -29,7 +29,7 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 					{keys.map((key) => (
 						<li key={key.color} className="flex items-center gap-2">
 							<span aria-hidden="true" className={`size-2 rounded-full ${key.color}`} />
-							<span className="flex items-center gap-2 text-black">
+							<span className="flex items-center gap-2 text-dark-blue">
 								<span className="font-display text-base">{key.count}</span>
 								<span className="text-sm tracking-tight">{key.label}</span>
 							</span>

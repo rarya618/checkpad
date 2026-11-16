@@ -38,7 +38,7 @@ export default function CheckInRing({ checkedIn, total, status, size = 'md' }: P
 	}
 	return (
 		// Hidden from screen readers: the card's link describes itself with the same count
-		<div aria-hidden="true" className={`relative shrink-0 ${s.box}`}>
+		<div aria-hidden="true" className={`relative shrink-0 tabular-nums ${s.box}`}>
 			<svg viewBox={`0 0 ${SIZE} ${SIZE}`} fill="none" aria-hidden="true" className="absolute inset-0 size-full -rotate-90">
 				<circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={full ? 'var(--color-dark-blue)' : 'var(--color-light-blue)'} strokeWidth={STROKE} />
 				{/* Always drawn, so a check-in sweeps it on from where it was (index.css): out from

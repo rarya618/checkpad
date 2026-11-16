@@ -81,7 +81,7 @@ export function TeamFields({ form, onChange, teams, me, event }: TeamFieldsProps
 			<div className="flex flex-col gap-1.5 leading-normal">
 				<p className="text-sm">Teams</p>
 				<p className="text-base">{[...(owner ? [`${name(owner)} (owner)`] : []), ...form.otherTeams.map(name)].join(', ') || 'None'}</p>
-				{owner && <p className="text-xs text-med-blue">Only {name(owner)}’s organisers can change the teams.</p>}
+				{owner && <p className="text-sm text-med-blue">Only {name(owner)}’s organisers can change the teams.</p>}
 			</div>
 		);
 	}
@@ -131,7 +131,7 @@ export function TeamFields({ form, onChange, teams, me, event }: TeamFieldsProps
 							{t.name}
 						</label>
 					))}
-					<p className="text-xs leading-normal text-med-blue">
+					<p className="text-sm leading-normal text-med-blue">
 						Every team here sees and runs the event, and its team link points here while this is its next event.
 					</p>
 				</fieldset>

@@ -104,7 +104,7 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 
 				{(members.length > 0 || invites.length > 0) && (
 					<div className="flex flex-col gap-1">
-						<p className="text-sm leading-normal text-black">Members</p>
+						<p className="text-sm leading-normal text-dark-blue">Members</p>
 						<ul className="flex flex-col">
 							{members.map((o) => (
 								<Member
@@ -184,8 +184,8 @@ function Member({ initials, name, detail, invited, role, onRemove }: { initials:
 				{initials}
 			</span>
 			<div className="flex min-w-0 flex-1 flex-col leading-normal">
-				<p className="truncate text-sm font-bold text-black">{name}</p>
-				<p className={`truncate text-xs ${invited ? 'text-med-blue' : 'text-black'}`}>{detail}</p>
+				<p className="truncate text-sm font-bold text-dark-blue">{name}</p>
+				<p className={`truncate text-xs ${invited ? 'text-med-blue' : 'text-dark-blue'}`}>{detail}</p>
 			</div>
 			<span className="shrink-0 rounded-full bg-light-blue px-2.5 py-1 text-xs leading-normal font-bold tracking-normal">{role}</span>
 			<button type="button" aria-label={`Remove ${name} from the team`} onClick={onRemove} className="shrink-0 rounded p-0.5 hover:bg-light-blue/60">

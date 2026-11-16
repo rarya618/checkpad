@@ -202,6 +202,17 @@ Hover fills are derived, not chosen: each is the base colour mixed in OKLab towa
 - **Body** (400, 1rem, 1.5): all running copy; tile copy capped at about 36rem.
 - **Label** (500-600, 0.875rem, 1.5): chips, footer headings, small print under the hero form, toast secondary line (0.75rem on phones).
 
+### Dashboard hierarchy
+The dashboard is read in glances, so each role keeps one size everywhere and each heading level sits a visible step below the one above it:
+- **Page title** (800, 1.5rem phones, 1.875rem desktop): Events, Organisers, Analytics, and the event's name on its pages.
+- **Event section** (800, 1.5rem): Attendees, Check in, Analytics and Settings under the event's name.
+- **Analytics section** (800, 1.25rem): Turnout, Registrations, Arrivals, Audience.
+- **Card title** (800, 1.125rem to 1.25rem): card and tile headings, attendee names on Check in.
+- **Body** (400, 0.875rem to 1rem, 1.5): names, emails, table cells, inputs.
+- **Help** (400, 0.875rem, med-blue): field hints and any explanation a sentence long. 0.75rem is only for single-line metadata: arrival times, badges, chart labels, table counts.
+
+All dashboard text is navy, with med-blue for secondary text; never black. Counts, times and percentages use tabular figures so they don't shift as they change.
+
 Line heights follow the Figma rule written into `theme.css`: 1.5 for sizes up to 24px, 1.2 from 30px up. Bold and semibold text is tightened to `--tracking-tight` like the display style.
 
 ### Named Rules

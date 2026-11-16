@@ -9,7 +9,7 @@ const sizes = {
 		gap: 'gap-1.5',
 		label: 'text-sm',
 		box: 'rounded-lg px-5 py-3 text-base focus-within:outline-[1.5px] focus-within:-outline-offset-[1.5px]',
-		note: 'text-xs',
+		note: 'text-sm',
 		chevron: { size: 15, right: 'right-[18px]', pad: 'pr-11' },
 	},
 	lg: {
@@ -22,7 +22,7 @@ const sizes = {
 };
 type Size = keyof typeof sizes;
 
-const boxBase = 'w-full bg-off-white leading-normal text-black outline-none focus-within:outline-med-blue';
+const boxBase = 'w-full bg-off-white leading-normal text-dark-blue outline-none focus-within:outline-med-blue';
 const box = (size: Size) => `${boxBase} ${sizes[size].box}`;
 
 interface FieldProps {
@@ -40,7 +40,7 @@ export function Field({ label, hint, error, size = 'md', className = '', childre
 	const note = error ?? hint;
 	return (
 		<div className={`flex flex-col ${sizes[size].gap} ${className}`}>
-			<label htmlFor={id} className={`${sizes[size].label} leading-normal text-black`}>
+			<label htmlFor={id} className={`${sizes[size].label} leading-normal text-dark-blue`}>
 				{label}
 			</label>
 			{children({ id, 'aria-describedby': note ? `${id}-note` : undefined, 'aria-invalid': error ? true : undefined })}

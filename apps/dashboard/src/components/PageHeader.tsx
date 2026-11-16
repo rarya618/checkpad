@@ -56,7 +56,8 @@ export default function PageHeader({
 			    leaves narrow windows little room */}
 			<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-3 md:gap-y-4">
 				<div className="flex min-h-9 min-w-0 items-center gap-3">
-					<Heading className="font-display text-2xl md:text-3xl">{title}</Heading>
+					{/* A section inside an event page sits a step below the event's name above it */}
+					<Heading className={`font-display text-2xl ${level === 1 ? 'md:text-3xl' : ''}`}>{title}</Heading>
 					{titleAddon}
 				</div>
 				{/* As tall as the sidebar logo (36px), which the title fills; taller buttons overhang it

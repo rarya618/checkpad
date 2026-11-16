@@ -13,7 +13,7 @@ export function Section({ title, level, children }: { title: string; level: 2 | 
 	const Heading = `h${level}` as const;
 	return (
 		<section id={sectionId(title)} className="flex scroll-mt-24 flex-col gap-4 border-t border-light-blue pt-6">
-			<Heading className="font-display text-2xl">{title}</Heading>
+			<Heading className="font-display text-xl">{title}</Heading>
 			{children}
 		</section>
 	);

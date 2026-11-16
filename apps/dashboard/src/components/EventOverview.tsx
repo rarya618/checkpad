@@ -37,7 +37,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 		<section className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:flex-wrap md:items-center md:gap-x-3 md:pt-14">
 			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px md:w-auto md:basis-64">
 				<nav aria-label="Breadcrumb">
-					<ol className="flex items-center gap-1.5 text-sm text-black">
+					<ol className="flex items-center gap-1.5 text-sm text-dark-blue">
 						<li>
 							<Link to="/events" className="tracking-tight hover:underline">
 								Events
@@ -51,7 +51,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				</nav>
 				<div className="flex flex-col gap-1">
 					<h1 className="font-display text-2xl md:text-3xl">{event.name}</h1>
-					<p className="text-sm font-semibold text-black">
+					<p className="text-sm font-semibold text-dark-blue">
 						{formatDate(start, event.timeZone)}, {formatTimeRange(start, end, event.timeZone)}
 					</p>
 				</div>

@@ -444,7 +444,7 @@ function EventTable({ results, wide, date }: { results: EventResult[]; wide: boo
 					{wide && <col className="w-[90px]" />}
 				</colgroup>
 				<thead>
-					<tr className="font-display text-black">
+					<tr className="font-display text-dark-blue">
 						{shown.map((c) => {
 							const active = c.key === sort.key;
 							return (
@@ -466,7 +466,7 @@ function EventTable({ results, wide, date }: { results: EventResult[]; wide: boo
 				</thead>
 				<tbody>
 					{rows.map((r) => (
-						<tr key={r.event.slug} className="border-t border-light-blue text-black">
+						<tr key={r.event.slug} className="border-t border-light-blue text-dark-blue">
 							<td className="truncate py-2.5 pr-3 font-bold text-dark-blue">
 								<Link to={`/events/${r.event.slug}/analytics`} className="hover:underline">
 									{r.event.name}
@@ -581,7 +581,7 @@ function NoShows({ list }: { list: Person[] }) {
 		<div className="flex flex-col gap-4">
 			<div className="flex items-end justify-between gap-3">
 				<p className="flex items-baseline gap-2">
-					<span className="font-display text-4xl leading-tight">{list.length}</span>
+					<span className="font-display text-4xl leading-tight tabular-nums">{list.length}</span>
 					<span className="text-sm text-med-blue">{list.length === 1 ? 'person' : 'people'}</span>
 				</p>
 				<button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className={buttonClass('secondary', 'sm')}>

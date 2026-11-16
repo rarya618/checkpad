@@ -72,7 +72,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
-						<tr className="text-left font-display text-sm leading-normal text-black">
+						<tr className="text-left font-display text-sm leading-normal text-dark-blue">
 							<th className="pr-5 pb-1.5">Person</th>
 							{desktop && <th className="pr-5 pb-1.5">Status</th>}
 							<th className="pb-1.5">
@@ -101,7 +101,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 												{s.email.slice(0, 2).toUpperCase()}
 											</span>
 											<div className="flex min-w-0 flex-col gap-0.5 leading-normal">
-												<p className="truncate text-sm text-black">{s.email}</p>
+												<p className="truncate text-sm text-dark-blue">{s.email}</p>
 												<p className="truncate text-sm text-med-blue">
 													Signed up {formatDate(new Date(s.signedUpAt), SYDNEY)}
 													{s.entryIds.length > 1 && ` · ${s.entryIds.length} times`}

@@ -38,7 +38,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 					<col className={desktop ? 'w-[42px]' : 'w-[30px]'} />
 				</colgroup>
 				<thead>
-					<tr className="text-left font-display text-sm text-black">
+					<tr className="text-left font-display text-sm text-dark-blue">
 						<th className="pr-2 pb-2">Attendee</th>
 						{showTicket && <th className="pr-2 pb-2">Ticket</th>}
 						<th className="pb-2">Action</th>
@@ -94,14 +94,14 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 					>
 						{initials}
 					</span>
-					<div className="flex min-w-0 flex-col gap-0.5 px-2 text-black">
+					<div className="flex min-w-0 flex-col gap-0.5 px-2 text-dark-blue">
 						<p className="truncate font-display text-base">{name}</p>
 						<p className="truncate text-xs">{attendee.email}</p>
 					</div>
 				</div>
 			</td>
 			{showTicket && (
-				<td className="py-1.5 pr-2 font-mono text-xs text-black">
+				<td className="py-1.5 pr-2 font-mono text-xs text-dark-blue">
 					{/* Walk-ins added before tickets were numbered have none */}
 					{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
 				</td>
@@ -111,7 +111,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 					<div data-arrived-status={arrived || undefined} className="flex items-center justify-end gap-3">
 						<p className="flex flex-col items-end text-xs">
 							<span className="font-bold">Arrived</span>
-							<span className="text-med-blue">{formatClockTime(attendee.checkedInAt, timeZone)}</span>
+							<span className="text-med-blue tabular-nums">{formatClockTime(attendee.checkedInAt, timeZone)}</span>
 						</p>
 						<button
 							ref={actionRef}

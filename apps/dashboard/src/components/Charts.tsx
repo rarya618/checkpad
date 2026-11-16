@@ -29,8 +29,8 @@ export function StatTile({
 	return (
 		<div className={`flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5 ${className}`}>
 			<p className="truncate text-sm leading-normal text-med-blue">{label}</p>
-			<p className={`font-display leading-tight ${size === 'lg' ? 'text-6xl' : 'text-4xl'}`}>{value}</p>
-			{note && <p className="text-xs leading-normal text-med-blue">{note}</p>}
+			<p className={`font-display leading-tight tabular-nums ${size === 'lg' ? 'text-6xl' : 'text-4xl'}`}>{value}</p>
+			{note && <p className="text-sm leading-normal text-med-blue">{note}</p>}
 			{children && <div className="pt-2 pb-1">{children}</div>}
 			{compare.length > 0 && (
 				<ul className="flex flex-wrap gap-1.5 pt-2">
@@ -472,7 +472,7 @@ export function CheckedInRow({ name, checkedIn, total }: { name: string; checked
 				<p className="min-w-0 flex-1 truncate text-sm font-bold" title={name}>
 					{name}
 				</p>
-				<p className="shrink-0 text-xs text-med-blue">
+				<p className="shrink-0 text-xs text-med-blue tabular-nums">
 					{checkedIn} of {total} · {pct(checkedIn, total)}%
 				</p>
 			</div>

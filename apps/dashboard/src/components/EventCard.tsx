@@ -117,7 +117,7 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 							<span id={`${id}-status`}>
 								<StatusBadge open={status.open} label={status.label} />
 							</span>
-							<p className="text-sm leading-normal font-medium tracking-tight text-black">
+							<p className="text-sm leading-normal font-medium tracking-tight text-dark-blue">
 								{phase === 'stale-open' ? `Ended ${formatDate(end, event.timeZone)}` : when(start, end, event.timeZone, startsToday(event))}
 							</p>
 							{team && <p className="text-sm leading-normal tracking-tight text-dark-blue/75">{team}</p>}
@@ -127,11 +127,11 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 						</div>
 					</div>
 					{phase === 'stale-open' && (
-						<p className="text-sm leading-normal text-black">
+						<p className="text-sm leading-normal text-dark-blue">
 							Attendees can still check themselves in.{canEdit ? '' : ' Ask an organiser to close check-in.'}
 						</p>
 					)}
-					{!featured && event.description && <p className="line-clamp-2 text-sm leading-normal whitespace-pre-line text-black">{event.description}</p>}
+					{!featured && event.description && <p className="line-clamp-2 text-sm leading-normal whitespace-pre-line text-dark-blue">{event.description}</p>}
 					{actions && <div className="relative flex flex-wrap gap-3 *:whitespace-nowrap">{actions}</div>}
 				</div>
 			</div>

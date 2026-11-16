@@ -255,7 +255,7 @@ export function NoAccessPage() {
 				<span aria-hidden="true" className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xs">
 					{initials}
 				</span>
-				<div className="flex min-w-0 flex-col gap-0.5 leading-normal text-black">
+				<div className="flex min-w-0 flex-col gap-0.5 leading-normal text-dark-blue">
 					<p className="truncate font-display text-sm">{name}</p>
 					<p className="truncate text-sm">{session.email}</p>
 				</div>

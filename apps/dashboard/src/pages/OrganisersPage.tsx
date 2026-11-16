@@ -109,7 +109,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 						<col className="w-[30px]" />
 					</colgroup>
 					<thead>
-						<tr className="text-left font-display text-sm text-black">
+						<tr className="text-left font-display text-sm text-dark-blue">
 							<th className="pt-1 pr-4 pb-2">Person</th>
 							{wide && (
 								<>
@@ -132,7 +132,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 											{initialsOf(o)}
 										</span>
 										<div className="flex min-w-0 flex-col">
-											<p className="truncate font-display text-base leading-tight text-black" title={o.name ?? o.email}>
+											<p className="truncate font-display text-base leading-tight text-dark-blue" title={o.name ?? o.email}>
 												{o.name ?? o.email}
 											</p>
 											{o.invited ? (
@@ -146,7 +146,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 												</p>
 											)}
 											{!wide && (
-												<p className="flex min-w-0 items-center gap-2.5 pt-2.5 text-base text-black">
+												<p className="flex min-w-0 items-center gap-2.5 pt-2.5 text-base text-dark-blue">
 													<RoleBadge organiser={o} />
 													<span className="truncate">{organiserTeam(teams, o)}</span>
 												</p>
@@ -159,7 +159,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 										<td className="py-4 pr-4">
 											<RoleBadge organiser={o} />
 										</td>
-										<td className="truncate py-4 pr-4 text-sm text-black">{organiserTeam(teams, o)}</td>
+										<td className="truncate py-4 pr-4 text-sm text-dark-blue">{organiserTeam(teams, o)}</td>
 									</>
 								)}
 								<td className="py-4">
@@ -270,11 +270,11 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 							</button>
 						</div>
 						<div className="flex flex-wrap items-center gap-2.5 leading-normal">
-							<p className="text-sm text-black">Points to</p>
+							<p className="text-sm text-dark-blue">Points to</p>
 							{target ? (
 								<>
 									<p className="font-display text-sm">{target.name}</p>
-									<p className="text-sm text-black">· {formatDate(new Date(target.startsAt), target.timeZone)}</p>
+									<p className="text-sm text-dark-blue">· {formatDate(new Date(target.startsAt), target.timeZone)}</p>
 									<StatusBadge open={target.selfCheckInOpen} />
 								</>
 							) : (

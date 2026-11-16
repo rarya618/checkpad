@@ -157,11 +157,11 @@ export default function CheckInPage() {
 								>
 									{initials(a)}
 								</span>
-								<div className="flex min-w-0 flex-1 flex-col gap-0.5 text-black">
+								<div className="flex min-w-0 flex-1 flex-col gap-0.5 text-dark-blue">
 									<p className="truncate font-display text-sm">{fullName(a)}</p>
 									<p className="truncate text-xs">{a.email}</p>
 								</div>
-								<p className="shrink-0 font-mono text-sm text-black">{a.ticket}</p>
+								<p className="shrink-0 font-mono text-sm text-dark-blue">{a.ticket}</p>
 								<p className="w-[45px] shrink-0 text-right text-sm text-med-blue">{formatClockTime(a.checkedInAt!, event.timeZone)}</p>
 							</li>
 						))}
@@ -199,13 +199,13 @@ function DesktopFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { atte
 			<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xl">
 				{initials(attendee)}
 			</span>
-			<div className="flex min-w-0 flex-1 flex-col gap-1 text-black">
+			<div className="flex min-w-0 flex-1 flex-col gap-1 text-dark-blue">
 				<h3 className="truncate font-display text-2xl leading-tight">{name}</h3>
 				<p className="truncate text-sm leading-normal">{attendee.email}</p>
 			</div>
 			<div className="flex shrink-0 flex-col gap-1 pr-5 leading-normal">
 				<p className="text-sm font-bold text-med-blue">Ticket</p>
-				<p className="font-mono text-sm text-black">{attendee.ticket}</p>
+				<p className="font-mono text-sm text-dark-blue">{attendee.ticket}</p>
 			</div>
 			{attendee.checkedInAt ? (
 				<div className="flex shrink-0 items-center gap-3">
@@ -293,7 +293,7 @@ function MobileCheckIn(p: MobileProps) {
 							<ul className="flex flex-col gap-2">
 								{p.recent.map((a) => (
 									<li key={a.id} className="flex items-center gap-3 py-1 text-base">
-										<p className="min-w-0 flex-1 truncate font-bold text-black">{fullName(a)}</p>
+										<p className="min-w-0 flex-1 truncate font-bold text-dark-blue">{fullName(a)}</p>
 										<p className="shrink-0 text-sm text-med-blue">{formatClockTime(a.checkedInAt!, p.event.timeZone)}</p>
 									</li>
 								))}
@@ -313,14 +313,14 @@ function MobileFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { atten
 				<span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-sm">
 					{initials(attendee)}
 				</span>
-				<div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal text-black">
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal text-dark-blue">
 					<h2 className="truncate font-display text-xl leading-tight">{fullName(attendee)}</h2>
 					<p className="truncate text-sm">{attendee.email}</p>
 				</div>
 			</div>
 			<div className="flex items-center gap-2.5 rounded-lg bg-off-white px-4 py-2 leading-normal">
 				<p className="min-w-0 flex-1 text-sm font-bold text-med-blue">Ticket</p>
-				<p className="shrink-0 font-mono text-sm text-black">{attendee.ticket}</p>
+				<p className="shrink-0 font-mono text-sm text-dark-blue">{attendee.ticket}</p>
 			</div>
 			{attendee.checkedInAt ? (
 				<div className="flex items-center gap-3 rounded-lg bg-off-white py-2 pr-2 pl-4">

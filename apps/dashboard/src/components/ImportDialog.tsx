@@ -192,7 +192,7 @@ function SummaryRow({ count, label, detail }: { count: number; label: string; de
 		<div className="flex items-center gap-3 border-light-blue py-2.5 not-first:border-t">
 			<dt className="w-[54px] shrink-0 font-display text-2xl leading-tight">{count}</dt>
 			<dd className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal">
-				<span className="text-sm font-bold text-black">{label}</span>
+				<span className="text-sm font-bold text-dark-blue">{label}</span>
 				<span className="text-xs text-med-blue">{detail}</span>
 			</dd>
 		</div>
