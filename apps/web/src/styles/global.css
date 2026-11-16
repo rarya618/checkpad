@@ -12,6 +12,17 @@
 	--breakpoint-nav: 72rem;
 }
 
+::selection {
+	background: var(--color-light-blue);
+	color: var(--color-dark-blue);
+}
+
+/* Cropped screenshots on the home page fade out where the app carries on past the crop */
+.fade-crop {
+	mask-image: linear-gradient(to right, black 85%, transparent), linear-gradient(to bottom, black 78%, transparent);
+	mask-composite: intersect;
+}
+
 /* Stop the page scrolling behind the open mobile menu */
 html:has(dialog[open]) {
 	overflow: hidden;
@@ -151,6 +162,13 @@ html {
 		animation:
 			phone-in 900ms var(--ease-out-soft) 550ms backwards,
 			phone-fade 900ms ease-out 550ms backwards;
+	}
+
+	/* The hero's sample arrival lands once the phone is in */
+	[data-intro='arrival'] {
+		--reveal-from: 0 12px;
+		--reveal-delay: 1300ms;
+		animation-duration: 500ms;
 	}
 
 	[data-reveal='from-right'] {

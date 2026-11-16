@@ -9,7 +9,6 @@ declare global {
 	}
 }
 
-// Sits on the dark blue call-to-action card on the marketing page. Not in Figma yet.
 function validateEmail(email: string) {
 	if (!email.trim()) return 'Enter your email address';
 	if (!EMAIL_PATTERN.test(email.trim()) || email.trim().length > MAX_EMAIL_LENGTH) {
@@ -18,7 +17,10 @@ function validateEmail(email: string) {
 	return null;
 }
 
-export default function WaitlistForm() {
+// On the marketing page twice: in the hero, on the off-white ground ("light"), and on the dark
+// blue call to action at the end ("dark"). Not in Figma yet.
+export default function WaitlistForm({ tone = 'dark' }: { tone?: 'light' | 'dark' }) {
+	const light = tone === 'light';
 	const id = useId();
 	const errorId = `${id}-error`;
 	const [email, setEmail] = useState('');
@@ -45,7 +47,7 @@ export default function WaitlistForm() {
 
 	if (joined) {
 		return (
-			<p role="status" className="text-base text-off-white xl:text-xl">
+			<p role="status" className={`text-base xl:text-xl ${light ? 'text-dark-blue' : 'text-off-white'}`}>
 				You’re on the list. We’ll email <span className="font-semibold">{joined}</span> when Checkpad opens.
 			</p>
 		);
@@ -66,14 +68,16 @@ export default function WaitlistForm() {
 					onChange={(e) => setEmail(e.target.value)}
 					aria-invalid={error ? true : undefined}
 					aria-describedby={error ? errorId : undefined}
-					className={`min-w-0 flex-1 rounded-xl bg-off-white px-5 py-2.5 text-lg text-dark-blue placeholder:text-dark-blue/50 focus:outline-2 focus:outline-offset-2 focus:outline-light-blue ${error ? 'inset-ring-2 inset-ring-error' : ''}`}
+					className={`min-w-0 flex-1 rounded-xl px-5 py-2.5 text-lg text-dark-blue placeholder:text-dark-blue/70 focus:outline-2 focus:outline-offset-2 ${
+						light ? 'bg-white inset-ring inset-ring-dark-blue/20 focus:outline-med-blue' : 'bg-off-white focus:outline-light-blue'
+					} ${error ? 'inset-ring-2 inset-ring-error' : ''}`}
 				/>
-				<SubmitButton loading={submitting} loadingLabel="Joining the waitlist" variant="secondary">
+				<SubmitButton loading={submitting} loadingLabel="Joining the waitlist" variant={light ? 'primary' : 'secondary'}>
 					Join the waitlist
 				</SubmitButton>
 			</div>
 			{error && (
-				<p id={errorId} className="text-base text-off-white">
+				<p id={errorId} className={`text-base ${light ? 'text-error' : 'text-off-white'}`}>
 					{error}
 				</p>
 			)}

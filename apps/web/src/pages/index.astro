@@ -1,6 +1,5 @@
 ---
 import { Image } from 'astro:assets';
-import { buttonClass } from '@checkpad/shared/button';
 import attendeesDashboard from '../assets/screens/attendees-dashboard.png';
 import checkInPhone from '../assets/screens/check-in-phone.png';
 import eventAnalytics from '../assets/screens/event-analytics.png';
@@ -8,46 +7,41 @@ import staffCheckIn from '../assets/screens/staff-check-in.png';
 import staffCheckInPhone from '../assets/screens/staff-check-in-phone.png';
 import Analytics from '../components/marketing/Analytics.astro';
 import Footer from '../components/marketing/Footer.astro';
-import Icon, { type IconName } from '../components/marketing/Icon.astro';
+import Icon from '../components/marketing/Icon.astro';
 import Nav from '../components/marketing/Nav.astro';
-import SectionHeader from '../components/marketing/SectionHeader.astro';
-import Showcase from '../components/marketing/Showcase.astro';
 import WaitlistForm from '../components/marketing/WaitlistForm';
 import Layout from '../layouts/Layout.astro';
 
-// Copy and layout follow the Figma "Marketing site – desktop" and "– mobile" frames.
+// The category-standard product page (apps/web/.impeccable/surfaces/src-pages-index-astro.md):
+// the offer and the waitlist up top with the product working under it, then how it works, one
+// feature grid, what a venue needs, and the close.
 const steps: { title: string; body: string }[] = [
 	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy or Luma. Checkpad matches people by ticket number, so you can import again when more register.' },
 	{ title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
 	{ title: 'Watch arrivals live', body: 'Your dashboard counts who’s in, who hasn’t arrived yet and how many walk-ins you’ve had.' },
 ];
 
-const features: { icon: IconName; title: string; body: string }[] = [
-	{ icon: 'smartphone', title: 'Self check-in on their phone', body: 'Attendees scan the QR with their phone camera and type their email. The confirmation shows their ticket number.' },
-	{ icon: 'user-check', title: 'Staff check-in and walk-ins', body: 'Look someone up from a laptop or phone, or add a walk-in with a ticket on the spot.' },
-	{ icon: 'layout-dashboard', title: 'A live dashboard', body: 'See who’s arrived, undo a mistake and search the list while the room fills up.' },
-	{ icon: 'gift', title: 'Prize draw on the projector', body: 'Draw winners from everyone checked in. The projector shows names only, and nobody wins twice, even after a refresh.' },
-	{ icon: 'bar-chart', title: 'Analytics', body: 'Arrivals every 15 minutes, turnout by ticket type and trends across your events.' },
-	{ icon: 'users', title: 'Teams and organisers', body: 'Give each group a permanent check-in link. Add co-organisers, and volunteers who can check people in without changing the event.' },
+// Under the feature grid, as a quiet list
+const extras: { title: string; body: string }[] = [
+	{ title: 'Prize draw on the projector', body: 'Draw winners from everyone checked in. The projector shows names only, and nobody wins twice.' },
+	{ title: 'Teams and organisers', body: 'A permanent check-in link for each group, co-organisers, and volunteers who can check people in without changing the event.' },
 ];
 
 // Bevy's and Luma's CSV imports are built. Keep the others marked as planned until they ship.
-const platforms: { name: string; supported: boolean }[] = [
-	{ name: 'Bevy', supported: true },
-	{ name: 'Luma', supported: true },
-	{ name: 'Eventbrite', supported: false },
-	{ name: 'Humanitix', supported: false },
-	{ name: 'Meetup', supported: false },
-	{ name: 'Any CSV file', supported: false },
+const supported = ['Bevy', 'Luma'];
+const planned = ['Eventbrite', 'Humanitix', 'Meetup', 'Any CSV file'];
+
+const venueNeeds: { title: string; body: string }[] = [
+	{ title: 'A screen or a printed sign', body: 'Show the QR on a TV or projector, or print it.' },
+	{ title: 'Attendees’ own phones', body: 'They scan with the camera or type the short link, on mobile data or the venue’s Wi-Fi.' },
+	{ title: 'A laptop or phone for staff', body: 'Look people up and add walk-ins in the browser.' },
 ];
 
-const venueNeeds: { icon: IconName; title: string; body: string }[] = [
-	{ icon: 'qr-code', title: 'A screen or a printed sign', body: 'Show the QR code on a TV or projector, or download it as a PNG and print it.' },
-	{ icon: 'smartphone', title: 'Attendees’ own phones', body: 'They scan with the camera or type the short link, over mobile data or the venue’s Wi-Fi.' },
-	{ icon: 'layout-dashboard', title: 'A laptop or phone for staff', body: 'Look people up and add walk-ins from either one, in the browser.' },
-];
-
-const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
+const container = 'mx-auto w-full max-w-[1280px] px-6 md:px-12';
+const frame = 'rounded-2xl border border-light-blue bg-white shadow-[0_24px_60px_-12px_rgb(17_45_78/0.18)]';
+const tile = 'flex flex-col overflow-hidden rounded-3xl border shadow-[0_16px_40px_-16px_rgb(17_45_78/0.2)]';
+// A screenshot cropped into one corner of a tile, zoomed on the part the tile is about
+const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-light-blue';
 ---
 
 <Layout
@@ -57,182 +51,204 @@ const container = 'mx-auto w-full max-w-[1440px] px-6 md:px-12 xl:px-30';
 	<Analytics slot="head" />
 	<Nav />
 	<main>
-		<!-- Hero -->
-		<section class="overflow-hidden">
-			<div class="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 pt-6 md:px-12 pb-18 xl:min-h-[min(calc(100svh/var(--page-zoom)-var(--header-height)),900px)] xl:flex-row xl:items-center xl:gap-16 xl:pt-6 xl:pr-0 xl:pb-24 xl:pl-30">
-				<div class="flex flex-col gap-8 xl:mb-10 xl:w-[540px] xl:shrink-0 xl:gap-7">
-					<p data-intro class="self-start rounded-full bg-light-blue px-3.5 py-1.5 text-sm font-medium xl:px-4 xl:text-base xl:leading-6">
-						For community event organisers
-					</p>
-					<div class="flex flex-col gap-4 xl:gap-7">
-						<h1 data-intro style="--reveal-delay: 80ms" class="font-display text-5xl text-balance xl:text-6xl">Attendees check themselves in.</h1>
-						<p data-intro style="--reveal-delay: 160ms" class="text-lg text-dark-blue/85 xl:text-xl">
-							They scan a QR code when they arrive and type their email. You watch the room fill up from your laptop or phone.
+		<!-- Hero: the offer and the waitlist, then the product at work -->
+		<section class="relative overflow-hidden">
+			<div class={`${container} flex flex-col items-center gap-6 pt-10 text-center md:pt-14 xl:pt-12`}>
+				<h1 data-intro class="max-w-4xl font-display text-5xl text-balance md:text-6xl xl:text-7xl">Attendees check themselves in</h1>
+				<p data-intro style="--reveal-delay: 80ms" class="max-w-2xl text-lg text-pretty text-dark-blue/80 xl:text-xl">
+					They scan a QR code when they arrive and type their email. You watch the room fill up from your laptop or phone.
+				</p>
+				<div data-intro style="--reveal-delay: 160ms" class="flex w-full flex-col items-center gap-3">
+					<WaitlistForm tone="light" client:load />
+					<p class="text-sm text-dark-blue/70">Imports attendee lists from Bevy and Luma. Not open to new organisers yet.</p>
+				</div>
+			</div>
+
+			<!-- The product on a light-blue band that starts halfway down the dashboard -->
+			<div class="relative mt-10 xl:mt-12">
+				<div aria-hidden="true" class="absolute inset-x-0 top-1/2 bottom-0 bg-light-blue"></div>
+				<div class={`${container} relative pb-14 xl:pb-20`}>
+					<div class="relative mx-auto max-w-[1080px]">
+						<!-- On phones, cropped to the count so the phone and the arrival have room -->
+						<div data-intro="dashboard" class={`overflow-hidden ${frame}`}>
+							<Image
+								src={attendeesDashboard}
+								alt="The Attendees dashboard showing 41 people checked in"
+								widths={[640, 960, 1280, 1600]}
+								sizes="(min-width: 1180px) 1080px, 140vw"
+								loading="eager"
+								class="aspect-[4/3] w-full origin-[97%_100%] scale-[1.3] object-cover md:aspect-auto md:scale-100"
+							/>
+						</div>
+						<!-- The attendee's phone, cropped to its form; on phones it sits bottom right, clear of the count -->
+						<div
+							data-intro="phone"
+							class="absolute -right-1 -bottom-8 w-[40%] max-w-[230px] rounded-4xl border-[5px] border-dark-blue bg-off-white p-0.5 shadow-[0_24px_48px_-8px_rgb(17_45_78/0.35)] md:top-[25.5%] md:right-auto md:bottom-auto md:-left-8 md:w-[30%] md:border-[6px] md:p-1 xl:-left-16"
+						>
+							<Image
+								src={checkInPhone}
+								alt="An attendee’s phone showing the check-in form"
+								widths={[230, 460, 690]}
+								sizes="(min-width: 768px) 230px, 40vw"
+								loading="eager"
+								class="aspect-[9/14] w-full rounded-3xl object-cover object-bottom"
+							/>
+						</div>
+						<!-- A sample arrival beside the dashboard's count -->
+						<p
+							data-intro="arrival"
+							aria-hidden="true"
+							class="absolute -top-5 left-2 flex items-center gap-2 rounded-xl bg-dark-blue py-2 pr-3 pl-2 text-left text-off-white shadow-[0_16px_40px_-8px_rgb(17_45_78/0.45)] md:top-[35.5%] md:right-auto md:left-[44%] md:gap-3 md:rounded-2xl md:py-3 md:pr-5 md:pl-3"
+						>
+							<span class="grid size-7 place-items-center rounded-full bg-med-blue md:size-9">
+								<Icon name="check" size={18} strokeWidth={3} />
+							</span>
+							<span class="flex flex-col">
+								<span class="text-sm font-semibold md:text-base">Jane Doe checked in</span>
+								<span class="text-xs text-light-blue md:text-sm">Just now · 19:32</span>
+							</span>
 						</p>
 					</div>
-					<div data-intro style="--reveal-delay: 240ms" class="flex flex-wrap gap-3">
-						<a href="#waitlist" class={buttonClass('primary')}>Join the waitlist</a>
-						<a href="#how-it-works" class={buttonClass('secondary')}>See how it works</a>
-					</div>
-				</div>
-				<div
-					class="relative h-[400px] shrink-0 overflow-hidden rounded-3xl bg-light-blue md:h-[500px] xl:h-[600px] xl:w-[760px] xl:overflow-visible xl:rounded-none xl:bg-transparent"
-				>
-					<Image
-						src={attendeesDashboard}
-						alt="The Attendees dashboard showing 41 people checked in"
-						widths={[560, 800, 1120, 1600]}
-						sizes="(min-width: 768px) 800px, 560px"
-						loading="eager"
-						data-intro="dashboard"
-						class="absolute top-8 left-[120px] w-[560px] max-w-none rounded-xl md:top-12 md:left-[200px] md:w-[800px] shadow-[0_12px_32px_rgb(17_45_78/0.12)] xl:top-0 xl:left-20 xl:w-[800px] xl:rounded-2xl xl:border xl:border-light-blue xl:shadow-[0_24px_64px_rgb(17_45_78/0.16)]"
-					/>
-					<Image
-						src={checkInPhone}
-						alt="An attendee’s phone showing the check-in form"
-						widths={[210, 420, 630]}
-						sizes="(min-width: 768px) 210px, 168px"
-						loading="eager"
-						data-intro="phone"
-						class="absolute top-[52px] left-8 w-[168px] rounded-3xl border-[5px] border-dark-blue md:top-20 md:left-16 md:w-[210px] md:border-[6px] shadow-[0_16px_36px_rgb(17_45_78/0.22)] xl:top-[190px] xl:left-0 xl:w-[210px] xl:rounded-4xl xl:border-[6px] xl:shadow-[0_24px_48px_rgb(17_45_78/0.22)]"
-					/>
 				</div>
 			</div>
 		</section>
 
 		<!-- How it works -->
-		<section id="how-it-works" class="bg-white">
-			<div class={`${container} flex flex-col gap-8 py-18 xl:gap-14 xl:py-30`}>
-				<SectionHeader eyebrow="How it works" title="Three steps from your attendee list to check-in." />
-				{/* A timeline: each number is joined to the next by a line, down the page on
-				    phones and tablets and across it in three columns on large screens. */}
-				<ol class="grid lg:grid-cols-3">
+		<section id="how-it-works">
+			<div class={`${container} flex flex-col gap-10 py-20 xl:gap-14 xl:py-28`}>
+				<h2 data-reveal class="max-w-3xl font-display text-3xl text-balance xl:text-5xl">From your attendee list to a door with no queue</h2>
+				<ol class="grid gap-8 md:grid-cols-3 md:gap-10">
 					{steps.map((s, i) => (
-						<li data-reveal style={`--reveal-delay: ${i * 120}ms`} class="flex gap-5 lg:flex-col lg:gap-6">
-							<div aria-hidden="true" class="flex w-12 shrink-0 flex-col items-center lg:w-auto lg:flex-row">
-								<span class="font-display text-5xl leading-none text-med-blue lg:text-6xl">{i + 1}</span>
-								{i < steps.length - 1 && <span data-line class="my-3 w-0.5 flex-1 rounded-full bg-light-blue lg:mx-6 lg:my-0 lg:h-0.5 lg:w-auto" />}
-							</div>
-							<div class="flex flex-col gap-2 pt-2 pb-10 lg:gap-3 lg:pt-0 lg:pr-10 lg:pb-0">
-								<h3 class="font-display text-xl">{s.title}</h3>
-								<p class="text-base text-dark-blue/85">{s.body}</p>
-							</div>
+						<li data-reveal style={`--reveal-delay: ${i * 100}ms`} class="flex flex-col gap-3 border-t-2 border-light-blue pt-6">
+							<span class="font-display text-lg text-med-blue">{i + 1}</span>
+							<h3 class="font-display text-xl">{s.title}</h3>
+							<p class="text-base text-dark-blue/80">{s.body}</p>
+							{i === 0 && (
+								<ul class="mt-1 flex flex-wrap gap-2" aria-label="Import platforms">
+									{supported.map((name) => (
+										<li class="flex items-center gap-1.5 rounded-full bg-dark-blue px-3 py-1 text-sm font-semibold text-off-white">
+											<Icon name="check" size={14} strokeWidth={3} />
+											{name}
+										</li>
+									))}
+									{planned.map((name) => (
+										<li class="rounded-full bg-light-blue px-3 py-1 text-sm font-medium">
+											{name} <span class="text-dark-blue/70">· planned</span>
+										</li>
+									))}
+								</ul>
+							)}
 						</li>
 					))}
 				</ol>
 			</div>
 		</section>
 
-		<!-- Features -->
+		<!-- Features: the product in mixed-size tiles, then the smaller features as a list -->
 		<section id="features">
-			<div class={`${container} flex flex-col gap-8 py-18 xl:gap-14 xl:py-30`}>
-				<SectionHeader
-					eyebrow="Features"
-					title="Everything for meetup night."
-					subtitle="From the first scan to the last walk-in of the night."
-					center
-				/>
-				<ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:gap-10">
-					{features.map((f, i) => (
-						<li
-							data-reveal
-							style={`--reveal-delay: ${(i % 3) * 80}ms`}
-							class="flex flex-col gap-5 rounded-3xl border-[1.5px] border-light-blue bg-white p-8 transition-[translate,border-color,box-shadow] duration-200 ease-out hover:border-med-blue/40 hover:shadow-[0_16px_32px_rgb(17_45_78/0.08)] motion-safe:hover:-translate-y-1"
-						>
-							<span class="grid size-14 place-items-center rounded-2xl bg-light-blue">
-								<Icon name={f.icon} />
-							</span>
-							<div class="flex flex-col gap-1.5">
-								<h3 class="font-display text-xl">{f.title}</h3>
-								<p class="text-base text-dark-blue/85">{f.body}</p>
-							</div>
-						</li>
-					))}
-				</ul>
-			</div>
-		</section>
-
-		<Showcase
-			id="walk-ins"
-			class="bg-light-blue"
-			eyebrow="Walk-ins"
-			title="Walk-ins get a ticket too."
-			body="Staff look people up by email or ticket number from a laptop or phone. Anyone who didn’t register gets the next walk-in ticket and is checked in on the spot."
-			points={['Numbered walk-in tickets, with no repeats across devices', 'Walk-ins show separately in your counts', 'Choose per event if attendees can add themselves']}
-			image={staffCheckIn}
-			imageAlt="The staff Check in page offering to add an unregistered email as walk-in CPWALKIN0005"
-			phone={{ src: staffCheckInPhone, alt: 'The staff Check in page on a phone, with Jane Doe found and ready to check in' }}
-		/>
-
-		<Showcase
-			id="analytics"
-			eyebrow="Analytics"
-			title="Know how the night went."
-			body="See when people arrived, how many walk-ins you had and how turnout compares across your events."
-			points={['Arrivals every 15 minutes', 'Turnout by ticket type', 'Trends across every event']}
-			image={eventAnalytics}
-			imageAlt="Event analytics with arrivals every 15 minutes and turnout by ticket type"
-			reverse
-		/>
-
-		<!-- Supported platforms -->
-		<section id="platforms" class="bg-white">
-			<div class={`${container} flex flex-col gap-8 py-18 xl:flex-row xl:items-start xl:gap-20 xl:py-30`}>
-				<div class="flex-1">
-					<SectionHeader
-						eyebrow="Supported platforms"
-						title="Import from Bevy or Luma today, with more platforms planned."
-						subtitle="Export the attendee CSV from Bevy or Luma and import it before the event. Using another platform? You can still join the waitlist."
-					/>
+			<div class={`${container} flex flex-col gap-10 py-20 xl:gap-14 xl:py-28`}>
+				<div data-reveal class="flex max-w-3xl flex-col gap-4">
+					<h2 class="font-display text-3xl text-balance xl:text-5xl">Everything for meetup night</h2>
+					<p class="text-lg text-dark-blue/80 xl:text-xl">From the first scan to the last walk-in of the night.</p>
 				</div>
-				<ul class="flex flex-col xl:w-5/9 xl:max-w-[640px] xl:shrink-0">
-					{platforms.map((p, i) => (
-						<li data-reveal style={`--reveal-delay: ${i * 60}ms`} class="flex items-center justify-between gap-4 border-b border-light-blue py-4 first:border-t">
-							<span class="text-lg font-semibold">{p.name}</span>
-							<span
-								class:list={[
-									'rounded-full px-3 py-1 text-sm font-semibold',
-									p.supported ? 'bg-dark-blue text-off-white' : 'bg-light-blue text-dark-blue',
-								]}
-							>
-								{p.supported ? 'Supported' : 'Planned'}
-							</span>
-						</li>
+
+				<div class="grid gap-4 lg:grid-cols-6 xl:gap-6">
+					<!-- Walk-ins, zoomed on the "add as walk-in" card and recent check-ins -->
+					<article id="walk-ins" data-reveal class={`${tile} border-light-blue bg-white lg:col-span-4`}>
+						<div class="flex flex-col gap-3 p-8 xl:p-10">
+							<h3 class="font-display text-2xl xl:text-3xl">Walk-ins get a ticket too</h3>
+							<p class="max-w-xl text-base text-dark-blue/80 xl:text-lg">
+								Staff look people up by email or ticket number. Anyone who didn’t register gets the next numbered walk-in ticket, with no repeats across devices, and shows up separately in your counts.
+							</p>
+						</div>
+						<div class={`${crop} fade-crop mt-auto ml-8 xl:ml-10`}>
+							<Image
+								src={staffCheckIn}
+								alt="The staff Check in page offering to add an unregistered email as walk-in CPWALKIN0005"
+								widths={[960, 1280, 1600]}
+								sizes="(min-width: 1024px) 1200px, 150vw"
+								class="aspect-[16/8] w-full origin-[80%_84%] scale-[1.45] object-cover"
+							/>
+						</div>
+					</article>
+
+					<!-- Staff on a phone -->
+					<article data-reveal style="--reveal-delay: 80ms" class={`${tile} border-dark-blue bg-dark-blue text-off-white lg:col-span-2`}>
+						<div class="flex flex-col gap-3 p-8 xl:p-10">
+							<h3 class="font-display text-2xl">Staff can use a phone too</h3>
+							<p class="text-base text-light-blue">Look people up by email or ticket number and add walk-ins from a phone, in the browser.</p>
+						</div>
+						<div class="mt-auto flex justify-center px-8 pt-2">
+							<div class="-mb-24 w-56 rounded-t-4xl border-x-[6px] border-t-[6px] border-med-blue bg-off-white p-1 pb-0 xl:w-64">
+								<Image
+									src={staffCheckInPhone}
+									alt="The staff Check in page on a phone, with Jane Doe found and ready to check in"
+									widths={[256, 420]}
+									sizes="256px"
+									class="w-full rounded-t-3xl"
+								/>
+							</div>
+						</div>
+					</article>
+
+					<!-- Analytics, zoomed on the arrivals chart -->
+					<article id="analytics" data-reveal class={`${tile} border-light-blue bg-white lg:col-span-6 lg:flex-row`}>
+						<div class="flex flex-col gap-3 p-8 lg:w-2/5 lg:justify-center xl:p-12">
+							<h3 class="font-display text-2xl xl:text-3xl">Know how the night went</h3>
+							<p class="text-base text-dark-blue/80 xl:text-lg">See when people arrived, how many walk-ins you had and how turnout compares across your events.</p>
+							<ul class="mt-2 flex flex-col gap-2 text-base font-medium">
+								{['Arrivals every 15 minutes', 'Turnout by ticket type', 'Trends across every event'].map((p) => (
+									<li class="flex items-center gap-2.5">
+										<Icon name="check" size={20} strokeWidth={2.5} class="shrink-0 text-med-blue" />
+										{p}
+									</li>
+								))}
+							</ul>
+						</div>
+						<div class={`${crop} fade-crop ml-8 lg:mt-12 lg:w-3/5 xl:mt-14`}>
+							<Image
+								src={eventAnalytics}
+								alt="Event analytics with arrivals every 15 minutes and turnout by ticket type"
+								widths={[960, 1280, 1600]}
+								sizes="(min-width: 1024px) 1200px, 150vw"
+								class="aspect-[16/9] w-full origin-[69%_83%] scale-[1.6] object-cover"
+							/>
+						</div>
+					</article>
+				</div>
+
+				<dl class="grid gap-x-10 gap-y-6 border-t border-light-blue pt-8 md:grid-cols-2">
+					{extras.map((x) => (
+						<div class="flex flex-col gap-1">
+							<dt class="font-display text-lg">{x.title}</dt>
+							<dd class="text-base text-dark-blue/80">{x.body}</dd>
+						</div>
 					))}
-				</ul>
+				</dl>
 			</div>
 		</section>
 
-		<!-- Supported venues -->
-		<section id="venues">
-			<div class={`${container} flex flex-col gap-8 py-18 xl:gap-14 xl:py-30`}>
-				<SectionHeader
-					eyebrow="Supported venues"
-					title="Any venue where attendees can get online."
-					subtitle="Checkpad runs in the browser, so a venue only needs three things."
-				/>
-				<ul class="grid gap-10 lg:grid-cols-3">
+		<!-- What a venue needs -->
+		<section id="venues" class="border-t border-light-blue">
+			<div class={`${container} flex flex-col gap-10 py-20 xl:gap-12 xl:py-28`}>
+				<h2 data-reveal class="max-w-3xl font-display text-3xl text-balance xl:text-5xl">Any venue where people can get online</h2>
+				<dl class="grid gap-8 md:grid-cols-3 md:gap-10">
 					{venueNeeds.map((v, i) => (
-						<li data-reveal style={`--reveal-delay: ${i * 100}ms`} class="flex flex-col gap-5">
-							<span class="grid size-14 place-items-center rounded-2xl bg-light-blue">
-								<Icon name={v.icon} />
-							</span>
-							<div class="flex flex-col gap-1.5">
-								<h3 class="font-display text-xl">{v.title}</h3>
-								<p class="text-base text-dark-blue/85">{v.body}</p>
-							</div>
-						</li>
+						<div data-reveal style={`--reveal-delay: ${i * 80}ms`} class="flex flex-col gap-2 border-t-2 border-light-blue pt-6">
+							<dt class="font-display text-xl">{v.title}</dt>
+							<dd class="text-base text-dark-blue/80">{v.body}</dd>
+						</div>
 					))}
-				</ul>
+				</dl>
 			</div>
 		</section>
 
 		<!-- Call to action -->
 		<section id="waitlist">
-			<div class={`${container} pt-2 pb-18 xl:pt-10 xl:pb-30`}>
-				<div data-reveal class="flex flex-col items-center gap-4 rounded-3xl bg-dark-blue px-7 py-12 text-center xl:gap-6 xl:rounded-4xl xl:px-20 xl:py-22">
-					<h2 class="font-display text-3xl text-balance text-off-white xl:text-5xl">Use Checkpad at your next meetup.</h2>
-					<p class="text-base text-light-blue xl:text-xl">
+			<div class={`${container} py-20 xl:py-28`}>
+				<div data-reveal class="flex flex-col items-center gap-5 rounded-3xl bg-dark-blue px-7 py-14 text-center xl:gap-6 xl:rounded-4xl xl:px-20 xl:py-24">
+					<h2 class="font-display text-3xl text-balance text-off-white xl:text-5xl">Use Checkpad at your next meetup</h2>
+					<p class="max-w-2xl text-base text-light-blue xl:text-xl">
 						Checkpad isn’t open to new organisers yet. Leave your email and we’ll let you know when you can set up your first event.
 					</p>
 					<div class="mt-2 flex w-full justify-center xl:mt-4">
