@@ -26,7 +26,8 @@ export default function TextField({ label, hint, error, ...inputProps }: Props) 
 				{...inputProps}
 			/>
 			{note && (
-				<p id={noteId} className={`mt-1 text-base ${error ? 'text-error' : 'text-med-blue'}`}>
+				// Keyed so a new error fades in rather than replacing the hint in place
+				<p key={error ? 'error' : 'hint'} id={noteId} data-message={error ? '' : undefined} className={`mt-1 text-base ${error ? 'text-error' : 'text-med-blue'}`}>
 					{note}
 				</p>
 			)}

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/src/components/CheckInFlow.tsx"
+        ],
+        "createdAt": "2026-11-16T04:16:36.167Z",
+        "reason": "Claude triage: the check-in and confirmation cards' thick bottom edge is the ticket-card look from the Figma file (PRODUCT.md names Figma as the source for designed screens); it predates this session"
+      }
+    ]
+  }
+}

@@ -185,3 +185,98 @@ html {
 		animation: draw 600ms var(--ease-out-soft) calc(var(--reveal-delay, 0ms) + 350ms) backwards;
 	}
 }
+
+/* Check-in steps (CheckInFlow.tsx). Moving between steps, the card resizes (in the script) and
+   the next step slides in from the side it's going: [data-direction] is set on the page only
+   once someone moves on, so the form doesn't animate on load. The confirmation then lands in
+   turn and the walk-in ticket prints. Quick throughout: people are standing at the door. */
+@keyframes checkin-step-fade {
+	from {
+		opacity: 0;
+	}
+}
+
+[data-checkin][data-direction] [data-checkin-step] {
+	animation: checkin-step-fade 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	:root {
+		--ease-out-quick: cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes checkin-step-in {
+		from {
+			opacity: 0;
+			translate: var(--step-from, 24px) 0;
+		}
+	}
+
+	[data-checkin][data-direction] [data-checkin-step] {
+		animation: checkin-step-in 300ms var(--ease-out-quick) 40ms backwards;
+	}
+
+	[data-checkin][data-direction='back'] [data-checkin-step] {
+		--step-from: -24px;
+	}
+
+	/* The confirmation: status, then name, then the ticket number prints left to right */
+	@keyframes confirm-in {
+		from {
+			opacity: 0;
+			translate: 0 10px;
+		}
+	}
+
+	@keyframes ticket-print {
+		from {
+			clip-path: inset(0 100% 0 0);
+		}
+	}
+
+	[data-checkin] [data-confirm] {
+		animation: confirm-in 360ms var(--ease-out-quick) var(--confirm-delay, 0ms) backwards;
+	}
+
+	[data-confirm='status'] {
+		--confirm-delay: 120ms;
+	}
+
+	[data-checkin] [data-confirm='name'] {
+		--confirm-delay: 180ms;
+		animation-duration: 440ms;
+	}
+
+	[data-confirm='ticket'] {
+		--confirm-delay: 280ms;
+	}
+
+	[data-checkin] [data-confirm='ticket-number'] {
+		animation: ticket-print 420ms steps(14, end) 380ms backwards;
+	}
+
+	[data-confirm='note'] {
+		--confirm-delay: 340ms;
+	}
+
+	/* Tapped buttons press in */
+	[data-checkin] .button {
+		transition-property: color, background-color, scale;
+		transition-duration: 150ms;
+	}
+
+	[data-checkin] .button:not(:disabled):active {
+		scale: 0.97;
+	}
+}
+
+/* Error messages fade in, also with reduced motion: they're new information, not movement */
+@keyframes message-in {
+	from {
+		opacity: 0;
+	}
+}
+
+[data-checkin] [data-message] {
+	animation: message-in 180ms ease-out;
+}

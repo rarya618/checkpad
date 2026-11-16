@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import type { CheckedIn, PublicEvent } from '@checkpad/shared/api';
 import { buttonClass } from '@checkpad/shared/button';
 import { checkInStatus } from '@checkpad/shared/events';
@@ -23,6 +24,42 @@ interface Props {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
+/**
+ * Moves between steps inside one card: the card grows or shrinks to the next step's height and
+ * the step slides in from the side it's going (global.css, "Check-in steps"). The event header
+ * is the same element throughout, so it holds still.
+ */
+function transition(update: () => void, direction: 'forward' | 'back' = 'forward') {
+	const before = document.querySelector<HTMLElement>('[data-checkin-card]')?.offsetHeight;
+	const main = document.querySelector<HTMLElement>('[data-checkin]');
+	if (main) main.dataset.direction = direction;
+	flushSync(update);
+	const card = document.querySelector<HTMLElement>('[data-checkin-card]');
+	if (!card || !before || reducedMotion()) return;
+	const after = card.offsetHeight;
+	if (after === before) return;
+	card.animate(
+		[
+			{ height: `${before}px`, overflow: 'hidden' },
+			{ height: `${after}px`, overflow: 'hidden' },
+		],
+		{ duration: 340, easing: EASE_OUT },
+	);
+}
+
+/** A small no on the email field when it can't be sent, as well as the message under it. */
+function nudge(element: HTMLElement | null) {
+	if (!element || reducedMotion()) return;
+	element.animate(
+		[{ translate: '0' }, { translate: '-6px' }, { translate: '5px' }, { translate: '-3px' }, { translate: '0' }],
+		{ duration: 320, easing: 'ease-out' },
+	);
+}
 
 function validateEmail(email: string) {
 	if (!email.trim()) return 'Enter your email address';
@@ -79,7 +116,7 @@ export default function CheckInFlow({ event, children }: Props) {
 			if (code === 'closed') setClosed(true);
 			else if (code === 'not-found') setGone(true);
 			// Turned off since the page loaded
-			else if (code === 'walk-ins-off') setStep({ name: 'not-registered' });
+			else if (code === 'walk-ins-off') transition(() => setStep({ name: 'not-registered' }));
 			else if (code === 'rate-limited') setRequestError('Too many check-ins from this network. Wait a few minutes and try again, or find one of the organisers.');
 			else if (code === 'invalid') setRequestError('Check your details and try again.');
 			else setRequestError('Something went wrong. Check your connection and try again.');
@@ -94,16 +131,19 @@ export default function CheckInFlow({ event, children }: Props) {
 		setEmailError(error);
 		if (error) {
 			emailInput.current?.focus();
+			nudge(emailInput.current);
 			return;
 		}
 		return submit(async () => {
 			const result = await checkIn(event.slug, email.trim());
-			setStep(
-				result.status === 'checked-in'
-					? { name: 'done', result }
-					: result.selfWalkIns
-						? { name: 'walk-in' }
-						: { name: 'not-registered' },
+			transition(() =>
+				setStep(
+					result.status === 'checked-in'
+						? { name: 'done', result }
+						: result.selfWalkIns
+							? { name: 'walk-in' }
+							: { name: 'not-registered' },
+				),
 			);
 		});
 	};
@@ -112,12 +152,12 @@ export default function CheckInFlow({ event, children }: Props) {
 		e.preventDefault();
 		return submit(async () => {
 			const result = await checkInWalkIn(event.slug, { email: email.trim(), firstName: firstName.trim(), lastName: lastName.trim() });
-			setStep({ name: 'done', result });
+			transition(() => setStep({ name: 'done', result }));
 		});
 	};
 
 	return (
-		<main className="mx-auto flex min-h-viewport max-w-[480px] flex-col items-center justify-center gap-7.5 px-4 py-12">
+		<main data-checkin className="mx-auto flex min-h-viewport max-w-[480px] flex-col items-center justify-center gap-7.5 px-4 py-12">
 			{step.name === 'done' ? (
 				<Confirmation event={event} result={step.result} />
 			) : (
@@ -126,6 +166,7 @@ export default function CheckInFlow({ event, children }: Props) {
 				// Closer on the email step, where the field follows the event name; the other steps
 				// keep more room, since they open with a heading of their own
 				<div
+					data-checkin-card
 					className={`flex w-full flex-col ${step.name === 'email' ? 'gap-5' : 'gap-8'} rounded-xl border-2 border-b-6 border-med-blue bg-white px-8 py-10`}
 				>
 					<header className="flex flex-col gap-1">
@@ -138,7 +179,7 @@ export default function CheckInFlow({ event, children }: Props) {
 					</header>
 
 					{step.name === 'email' ? (
-						<form noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-10">
+						<form key="email" data-checkin-step noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-10">
 							<TextField
 								ref={emailInput}
 								label="Email"
@@ -160,7 +201,7 @@ export default function CheckInFlow({ event, children }: Props) {
 							{requestError && <RequestError message={requestError} />}
 						</form>
 					) : step.name === 'not-registered' ? (
-						<section aria-live="polite" className="flex w-full flex-col gap-7.5">
+						<section key="not-registered" data-checkin-step aria-live="polite" className="flex w-full flex-col gap-7.5">
 							<EmailSummary email={email} />
 							<div className="flex w-full flex-col gap-2">
 								<h2 className="font-display text-2xl leading-tight">You’re not on the list</h2>
@@ -168,12 +209,12 @@ export default function CheckInFlow({ event, children }: Props) {
 									Check it’s the email you registered with, or find one of the organisers and they’ll add you.
 								</p>
 							</div>
-							<button type="button" onClick={() => setStep({ name: 'email' })} className={`w-full ${buttonClass('secondary', 'tall')}`}>
+							<button type="button" onClick={() => transition(() => setStep({ name: 'email' }), 'back')} className={`w-full ${buttonClass('secondary', 'tall')}`}>
 								Try another email
 							</button>
 						</section>
 					) : (
-						<form onSubmit={submitWalkIn} className="flex w-full flex-col gap-6">
+						<form key="walk-in" data-checkin-step onSubmit={submitWalkIn} className="flex w-full flex-col gap-6">
 							{/* Otherwise people not on the list are asked for their name with no reason given */}
 							<div className="flex w-full flex-col gap-2">
 								<h2 className="font-display text-2xl leading-tight">Add your name</h2>
@@ -205,7 +246,7 @@ export default function CheckInFlow({ event, children }: Props) {
 									disabled={submitting}
 									onClick={() => {
 										setRequestError(null);
-										setStep({ name: 'email' });
+										transition(() => setStep({ name: 'email' }), 'back');
 									}}
 									className={buttonClass('secondary', 'tall')}
 								>
@@ -231,22 +272,24 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 	return (
 		<section
 			aria-live="polite"
+			data-checkin-card
 			className="flex w-full flex-col items-center gap-9 rounded-xl border-2 border-b-6 border-med-blue bg-white px-7 py-10 text-center"
 		>
 			<h2 className="font-display text-3xl">{event.name}</h2>
-			<div className="flex w-full flex-col items-center gap-7.5">
+			{/* The confirmation lands in turn: the status, the name, then the ticket prints (global.css) */}
+			<div data-checkin-step className="flex w-full flex-col items-center gap-7.5">
 				<div className="flex flex-col items-center gap-1">
-					<p className="text-2xl text-med-blue">{alreadyCheckedIn ? 'You’re already checked in' : 'You’re checked in'}</p>
-					<h1 className="font-display text-5xl break-words">{firstName}</h1>
+					<p data-confirm="status" className="text-2xl text-med-blue">{alreadyCheckedIn ? 'You’re already checked in' : 'You’re checked in'}</p>
+					<h1 data-confirm="name" className="font-display text-5xl break-words">{firstName}</h1>
 				</div>
 				{/* Figma "Checked in with ticket (mobile-first)" */}
 				{ticket && (
-					<div className="flex flex-col items-center gap-1 rounded-xl bg-off-white px-5 py-3">
+					<div data-confirm="ticket" className="flex flex-col items-center gap-1 rounded-xl bg-off-white px-5 py-3">
 						<p className="text-base text-med-blue">Ticket</p>
-						<p className="font-mono text-xl leading-normal">{ticket}</p>
+						<p data-confirm="ticket-number" className="font-mono text-xl leading-normal">{ticket}</p>
 					</div>
 				)}
-				<p className="text-lg tracking-tight text-med-blue">
+				<p data-confirm="note" className="text-lg tracking-tight text-med-blue">
 					{alreadyCheckedIn
 						? `Checked in at ${formatTime(new Date(checkedInAt), event.timeZone)}. ${note}`
 						: note}
@@ -267,7 +310,7 @@ function EmailSummary({ email }: { email: string }) {
 
 function RequestError({ message }: { message: string }) {
 	return (
-		<p role="alert" className="-mt-4.5 text-center text-base text-error">
+		<p role="alert" data-message className="-mt-4.5 text-center text-base text-error">
 			{message}
 		</p>
 	);
