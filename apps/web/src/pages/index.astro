@@ -93,6 +93,8 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 								loading="eager"
 								class="aspect-[9/14] w-full rounded-3xl object-cover object-bottom"
 							/>
+							<!-- A tap on the phone's Check in button, just before the arrival appears -->
+							<span data-tap aria-hidden="true" class="absolute top-[48%] left-1/2 -mt-6 -ml-6 size-12 rounded-full border-2 border-med-blue bg-med-blue/20"></span>
 							<!-- What the phone's Check in does, pointing at it: below the button on larger
 							     screens, above the phone on small ones -->
 							<p
@@ -121,7 +123,8 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 				<h2 data-reveal class="max-w-3xl font-display text-3xl text-balance xl:text-5xl">From your attendee list to a door with no queue</h2>
 				<ol class="grid gap-8 md:grid-cols-3 md:gap-10">
 					{steps.map((s, i) => (
-						<li data-reveal style={`--reveal-delay: ${i * 100}ms`} class="flex flex-col gap-3 border-t-2 border-light-blue pt-6">
+						<li data-reveal style={`--reveal-delay: ${i * 120}ms`} class="relative flex flex-col gap-3 pt-6">
+							<span data-rule aria-hidden="true" class="absolute inset-x-0 top-0 h-0.5 bg-light-blue"></span>
 							<span class="font-display text-lg text-med-blue">{i + 1}</span>
 							<h3 class="font-display text-xl">{s.title}</h3>
 							<p class="text-base text-dark-blue/80">{s.body}</p>
@@ -156,7 +159,7 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 
 				<div class="grid gap-4 lg:grid-cols-6 xl:gap-6">
 					<!-- Walk-ins, zoomed on the "add as walk-in" card and recent check-ins -->
-					<article id="walk-ins" data-reveal class={`${tile} border-light-blue bg-white lg:col-span-4`}>
+					<article id="walk-ins" data-reveal="tile" class={`${tile} border-light-blue bg-white lg:col-span-4`}>
 						<div class="flex flex-col gap-3 p-8 xl:p-10">
 							<h3 class="font-display text-2xl xl:text-3xl">Walk-ins get a ticket too</h3>
 							<p class="max-w-xl text-base text-dark-blue/80 xl:text-lg">
@@ -169,19 +172,20 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 								alt="The staff Check in page offering to add an unregistered email as walk-in CPWALKIN0005"
 								widths={[960, 1280, 1600]}
 								sizes="(min-width: 1024px) 1200px, 150vw"
+								data-shot
 								class="aspect-[16/8] w-full origin-[80%_84%] scale-[1.45] object-cover"
 							/>
 						</div>
 					</article>
 
 					<!-- Staff on a phone -->
-					<article data-reveal style="--reveal-delay: 80ms" class={`${tile} border-dark-blue bg-dark-blue text-off-white lg:col-span-2`}>
+					<article data-reveal="tile" style="--reveal-delay: 80ms" class={`${tile} border-dark-blue bg-dark-blue text-off-white lg:col-span-2`}>
 						<div class="flex flex-col gap-3 p-8 xl:p-10">
 							<h3 class="font-display text-2xl">Staff can use a phone too</h3>
 							<p class="text-base text-light-blue">Look people up by email or ticket number and add walk-ins from a phone, in the browser.</p>
 						</div>
 						<div class="mt-auto flex justify-center px-8 pt-2">
-							<div class="-mb-24 w-56 rounded-t-4xl border-x-[6px] border-t-[6px] border-med-blue bg-off-white p-1 pb-0 xl:w-64">
+							<div data-shot class="-mb-24 w-56 rounded-t-4xl border-x-[6px] border-t-[6px] border-med-blue bg-off-white p-1 pb-0 xl:w-64">
 								<Image
 									src={staffCheckInPhone}
 									alt="The staff Check in page on a phone, with Jane Doe found and ready to check in"
@@ -194,7 +198,7 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 					</article>
 
 					<!-- Analytics, zoomed on the arrivals chart -->
-					<article id="analytics" data-reveal class={`${tile} border-light-blue bg-white lg:col-span-6 lg:flex-row`}>
+					<article id="analytics" data-reveal="tile" class={`${tile} border-light-blue bg-white lg:col-span-6 lg:flex-row`}>
 						<div class="flex flex-col gap-3 p-8 lg:w-2/5 lg:justify-center xl:p-12">
 							<h3 class="font-display text-2xl xl:text-3xl">Know how the night went</h3>
 							<p class="text-base text-dark-blue/80 xl:text-lg">See when people arrived, how many walk-ins you had and how turnout compares across your events.</p>
@@ -213,6 +217,7 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 								alt="Event analytics with arrivals every 15 minutes and turnout by ticket type"
 								widths={[960, 1280, 1600]}
 								sizes="(min-width: 1024px) 1200px, 150vw"
+								data-shot
 								class="aspect-[16/9] w-full origin-[69%_83%] scale-[1.6] object-cover"
 							/>
 						</div>

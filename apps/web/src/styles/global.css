@@ -110,13 +110,21 @@ html {
 	scrollbar-gutter: stable;
 }
 
-/* Marketing page entrances (index.astro). [data-intro] plays on load; [data-reveal] plays
-   when the page's observer marks it [data-revealed]. Each fills only backwards, so once it
-   ends it lets go of translate and hover effects (the feature cards' lift) work as normal.
-   --reveal-delay staggers items in a list. */
+/* Home page motion (index.astro). One authored moment, in the hero: the dashboard lands, the
+   attendee's phone rises, a tap lands on its Check in button and the arrival pops out of it.
+   Below the hero, motion only explains: each step's rule draws in order, and each feature
+   tile's screenshot slides up into its crop. [data-intro] plays on load; [data-reveal] plays
+   when the page's observer marks it [data-revealed]; --reveal-delay staggers a list. Every
+   entrance fills backwards only, so content is in place once it ends, and with reduced motion
+   nothing moves and the tap never shows. */
+[data-tap] {
+	opacity: 0;
+}
+
 @media (prefers-reduced-motion: no-preference) {
 	:root {
 		--ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+		--ease-out-quick: cubic-bezier(0.16, 1, 0.3, 1);
 	}
 
 	@keyframes reveal {
@@ -141,9 +149,39 @@ html {
 		}
 	}
 
-	@keyframes draw {
+	/* A fingertip on the phone's Check in button: a ring that lands and spreads out */
+	@keyframes tap {
+		0% {
+			opacity: 0;
+			scale: 0.3;
+		}
+		25% {
+			opacity: 0.9;
+			scale: 0.6;
+		}
+		100% {
+			opacity: 0;
+			scale: 1.8;
+		}
+	}
+
+	/* The arrival grows out of its pointer, which sits on the button the tap landed on */
+	@keyframes arrival-in {
 		from {
-			scale: var(--draw-from);
+			opacity: 0;
+			scale: 0.8;
+		}
+	}
+
+	@keyframes rule-in {
+		from {
+			scale: 0 1;
+		}
+	}
+
+	@keyframes shot-in {
+		from {
+			translate: 0 48px;
 		}
 	}
 
@@ -152,31 +190,51 @@ html {
 		animation: reveal 700ms var(--ease-out-soft) var(--reveal-delay, 0ms) backwards;
 	}
 
+	/* The product lands under the offer: up from below, not in from the side */
 	[data-intro='dashboard'] {
-		--reveal-from: 48px 0;
-		--reveal-delay: 200ms;
+		--reveal-from: 0 32px;
+		--reveal-delay: 250ms;
 		animation-duration: 900ms;
 	}
 
 	[data-intro='phone'] {
 		animation:
-			phone-in 900ms var(--ease-out-soft) 550ms backwards,
-			phone-fade 900ms ease-out 550ms backwards;
+			phone-in 900ms var(--ease-out-soft) 600ms backwards,
+			phone-fade 900ms ease-out 600ms backwards;
 	}
 
-	/* The hero's sample arrival lands once the phone is in */
+	[data-tap] {
+		animation: tap 560ms ease-out 1350ms both;
+	}
+
 	[data-intro='arrival'] {
-		--reveal-from: 0 12px;
-		--reveal-delay: 1300ms;
-		animation-duration: 500ms;
+		/* The pointer: bottom right of the note on phones, top left from md up */
+		transform-origin: calc(100% - 46px) 100%;
+		animation: arrival-in 420ms var(--ease-out-quick) 1550ms backwards;
 	}
 
-	[data-reveal='from-right'] {
-		--reveal-from: 40px 0;
+	@media (min-width: 48rem) {
+		[data-intro='arrival'] {
+			transform-origin: 30px 0;
+		}
 	}
 
-	[data-reveal='from-left'] {
-		--reveal-from: -40px 0;
+	/* Feature tiles fade in without moving; their screenshot is what moves, up into the crop */
+	[data-reveal='tile'] {
+		--reveal-from: 0 0;
+	}
+
+	[data-revealed] [data-shot] {
+		animation: shot-in 900ms var(--ease-out-soft) calc(var(--reveal-delay, 0ms) + 150ms) backwards;
+	}
+
+	/* How it works: each step's rule draws left to right as the step comes in, one after another */
+	[data-rule] {
+		transform-origin: left;
+	}
+
+	[data-revealed] [data-rule] {
+		animation: rule-in 600ms var(--ease-out-soft) calc(var(--reveal-delay, 0ms) + 100ms) backwards;
 	}
 
 	/* Keep [data-reveal] hidden until it's revealed, but only when the observer can run */
@@ -184,23 +242,6 @@ html {
 		[data-reveal]:not([data-revealed]) {
 			opacity: 0;
 		}
-	}
-
-	/* How it works: each step's connector draws towards the next once the step is in */
-	[data-line] {
-		--draw-from: 1 0;
-		transform-origin: top;
-	}
-
-	@media (min-width: 64rem) {
-		[data-line] {
-			--draw-from: 0 1;
-			transform-origin: left;
-		}
-	}
-
-	[data-revealed] [data-line] {
-		animation: draw 600ms var(--ease-out-soft) calc(var(--reveal-delay, 0ms) + 350ms) backwards;
 	}
 }
 
@@ -219,10 +260,6 @@ html {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	:root {
-		--ease-out-quick: cubic-bezier(0.16, 1, 0.3, 1);
-	}
-
 	@keyframes checkin-step-in {
 		from {
 			opacity: 0;
