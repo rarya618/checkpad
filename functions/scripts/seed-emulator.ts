@@ -33,6 +33,12 @@ const admins: [string, Pick<AdminDoc, 'role' | 'teamId'> & { name?: string }][] 
 // The marketing site's waitlist, which super admins see on the Organisers page. Alex signed up twice.
 const waitlist = ['alex@example.com', 'casey@example.com', 'alex@example.com', 'devi@example.com'];
 
+// Triggers stay off while the data is wiped and written back. The wipe would otherwise run
+// countAttendees for every deleted attendee a moment later, against the events written back
+// under the same IDs, and the counts would end wherever the race left them (2 of 1 checked in).
+// So the counts are written directly below instead.
+const HUB = process.env.FIREBASE_EMULATOR_HUB ?? '127.0.0.1:4400';
+await fetch(`http://${HUB}/functions/disableBackgroundTriggers`, { method: 'PUT' });
 await fetch(`http://${FIRESTORE}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: 'DELETE' });
 const db = getFirestore(initializeApp({ projectId: PROJECT }));
 const batch = db.batch();
@@ -63,8 +69,8 @@ for (const event of demoEvents) {
 		timeZone: event.timeZone,
 		teamIds: event.teamSlug ? [event.teamSlug] : [],
 		ownerTeamId: event.teamSlug ?? null,
-		// The countAttendees trigger counts the attendees written below
-		counts: { registered: 0, checkedIn: 0, walkIns: 0 },
+		// What countAttendees would count for the attendees written below, none checked in yet
+		counts: { registered: attendees.length, checkedIn: 0, walkIns: 0 },
 		walkInCounter: 0,
 		walkInTicketPrefix: 'CPWALKIN',
 		selfWalkIns: event.selfWalkIns,
@@ -81,6 +87,7 @@ for (const event of demoEvents) {
 }
 
 await batch.commit();
+await fetch(`http://${HUB}/functions/enableBackgroundTriggers`, { method: 'PUT' });
 console.log(`Seeded ${demoEvents.length} events, ${demoTeams.length + 1} teams, ${admins.length} organisers and ${waitlist.length} waitlist signups into ${PROJECT}. Try:`);
 for (const event of demoEvents) console.log(`  http://localhost:4321/${event.slug}  (${event.selfCheckInOpen ? 'open' : 'closed'})`);
 for (const team of demoTeams) console.log(`  http://localhost:4321/team/${team.slug}`);
