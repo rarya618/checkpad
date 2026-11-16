@@ -17,6 +17,20 @@
   }
 }
 
+/* Keyboard focus, in the palette rather than the browser's own blue. In the base layer, so the
+   fields that draw their own focus outline (Field, search boxes) keep theirs. On the prize
+   draw's navy screen it turns light blue to stay visible. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-med-blue);
+    outline-offset: 2px;
+  }
+
+  [data-surface="dark"] :focus-visible {
+    outline-color: var(--color-light-blue);
+  }
+}
+
 /* Time fields are only w-24 wide: no room for the browser's clock icon */
 input[type="time"]::-webkit-calendar-picker-indicator {
   display: none;

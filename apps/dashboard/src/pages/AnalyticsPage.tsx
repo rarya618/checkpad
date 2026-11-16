@@ -192,6 +192,8 @@ export default function AnalyticsPage() {
 						/>
 						<StatTile label="Walk-ins" value={checkIns ? `${percent(walkIns, checkIns)}%` : '–'} note={`${walkIns} of check-ins`} />
 						<StatTile
+							// The fourth small tile: the full row on phones, rather than half of it
+							className="col-span-2 md:col-span-1"
 							label="Self check-in"
 							value={loaded && recordedCheckIns ? `${percent(selfCheckIns, recordedCheckIns)}%` : '–'}
 							note={!loaded ? 'Loading attendee lists…' : recorded.length < included.length ? 'not recorded for older events' : 'on the attendee page'}

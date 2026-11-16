@@ -3,7 +3,7 @@ import { formatClockTime } from '@checkpad/shared/format';
 import { useEffect, useRef, useState } from 'react';
 import more from '../assets/more.svg';
 import trash from '../assets/trash.svg';
-import undo from '../assets/undo.png';
+import undo from '../assets/undo.svg';
 import { myEmail } from '../lib/auth';
 import { checkIn, undoCheckIn } from '../lib/checkIn';
 import type { DashboardEvent } from '../lib/events';
@@ -29,7 +29,7 @@ export default function AttendeeTable({ event, attendees }: Props) {
 	// The ticket column needs a wide window: below 1024px the sidebar leaves the names too little room
 	const showTicket = useMediaQuery('(min-width: 1024px)');
 	return (
-		<div className="rounded-2xl bg-white px-4 py-5 md:px-6">
+		<div className="rounded-xl border border-line bg-white px-4 py-4 md:px-6">
 			<table className="w-full table-fixed">
 				<colgroup>
 					<col />
@@ -85,8 +85,8 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 	};
 
 	return (
-		<tr data-arrived={arrived || undefined}>
-			<td className="rounded-l-lg py-1.5 pr-2">
+		<tr data-arrived={arrived || undefined} className="border-t border-light-blue">
+			<td className="rounded-l-lg py-2.5 pr-2">
 				<div className="flex items-center gap-2 py-0.5">
 					<span
 						aria-hidden="true"
@@ -101,12 +101,12 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 				</div>
 			</td>
 			{showTicket && (
-				<td className="py-1.5 pr-2 font-mono text-xs text-dark-blue">
+				<td className="py-2.5 pr-2 font-mono text-xs text-dark-blue">
 					{/* Walk-ins added before tickets were numbered have none */}
 					{attendee.ticket ?? <span className="font-sans text-med-blue">Walk-in</span>}
 				</td>
 			)}
-			<td className="py-1.5">
+			<td className="py-2.5">
 				{attendee.checkedInAt ? (
 					<div data-arrived-status={arrived || undefined} className="flex items-center justify-end gap-3">
 						<p className="flex flex-col items-end text-xs">
@@ -121,10 +121,8 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 							onClick={() => toggle(false)}
 							className="rounded p-0.5 hover:bg-light-blue/60"
 						>
-							{/* Cropped exactly as in the Figma file */}
-							<span className="relative block h-[20.25px] w-[22.5px] overflow-hidden">
-								<img src={undo} alt="" className="absolute top-[-20.37%] left-[-3.33%] h-[129.63%] w-[116.67%] max-w-none" />
-							</span>
+							{/* The navy undo icon, as on Check in */}
+							<img src={undo} alt="" width={21} height={21} />
 						</button>
 					</div>
 				) : (
@@ -140,7 +138,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 				)}
 			</td>
 			{/* Not in Figma: the toast's Undo is the only other way to take a walk-in off the list */}
-			<td className="rounded-r-lg py-1.5 pl-1 text-right md:pl-3">
+			<td className="rounded-r-lg py-2.5 pl-1 text-right md:pl-3">
 				{removable && (
 					<Menu
 						label={`Options for ${name}`}

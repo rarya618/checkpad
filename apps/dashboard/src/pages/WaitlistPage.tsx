@@ -62,7 +62,7 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 	if (!waitlist.length) return <p className="text-sm leading-normal text-med-blue">Nobody’s on the waitlist yet.</p>;
 	return (
 		<>
-			<div className="rounded-2xl bg-white px-4 py-5 md:px-6">
+			<div className="rounded-xl border border-line bg-white px-4 py-4 md:px-6">
 				{/* Laid out like the Organisers table: avatar and two lines per person, status as a pill
 				    (under the email on phones) */}
 				<table className="w-full table-fixed">
@@ -93,8 +93,8 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 								</span>
 							);
 							return (
-								<tr key={s.email}>
-									<td className="py-2 pr-5">
+								<tr key={s.email} className="border-t border-light-blue">
+									<td className="py-3 pr-5">
 										{/* Phones: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
 										<div className="flex items-start gap-4 md:items-center md:gap-3">
 											<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-sm">
@@ -110,8 +110,8 @@ function WaitlistTable({ onInvite }: { onInvite: (email: string) => void }) {
 											</div>
 										</div>
 									</td>
-									{desktop && <td className="py-2 pr-5">{status}</td>}
-									<td className="py-2">
+									{desktop && <td className="py-3 pr-5">{status}</td>}
+									<td className="py-3">
 										<WaitlistMenu signup={s} invited={!!organiser} onInvite={onInvite} />
 									</td>
 								</tr>

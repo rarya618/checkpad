@@ -248,7 +248,9 @@ The dashboard uses a tighter family on the same navy tint (for example `0 9px 30
 
 **The Product-Lifts Rule.** Elevation is for framed product imagery and floating moments (device, toast, popover). Text sections and lists stay flat and use hairlines.
 
-**The Quiet Edge Rule.** In the dashboard, cards, panels, lists, menus, tooltips and the sidebar are edged with the `line` token: navy at 12% opacity, a hairline that sits back on white, off-white and the tinted live card alike, so the content inside reads first. Form controls (search boxes, selects, drop zones) keep stronger edges, since their outline is how you spot them, and so do chart marks.
+**The Quiet Edge Rule.** In the dashboard, cards, panels, lists, menus, tooltips and the sidebar are edged with the `line` token: navy at 12% opacity, a hairline that sits back on white, off-white and the tinted live card alike, so the content inside reads first. Form controls (search boxes, selects, drop zones) keep stronger edges, since their outline is how you spot them, and so do chart marks. Tables and lists (attendees, organisers, waitlist, the Events page's rows) share one pattern: a white box with that hairline, and light-blue dividers between rows.
+
+**The Visible Focus Rule.** Keyboard focus is a 2px med-blue ring, 2px clear of the element, everywhere in the dashboard; on the prize draw's navy screen it turns light blue. Fields that draw their own focus outline keep it.
 
 ## Shapes
 

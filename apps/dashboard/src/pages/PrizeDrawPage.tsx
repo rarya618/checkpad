@@ -87,7 +87,7 @@ function PrizeDraw({ event }: { event: DashboardEvent }) {
 	return (
 		// The venue's projector: dark, so it holds up in a lit room. The audience sees one thing
 		// in the middle; the event name sits small at the top and the organiser's controls at the bottom.
-		<main className="flex min-h-dvh flex-col gap-8 bg-dark-blue p-8 text-off-white md:p-12">
+		<main data-surface="dark" className="flex min-h-dvh flex-col gap-8 bg-dark-blue p-8 text-off-white md:p-12">
 			<header className="flex flex-col gap-1">
 				<h1 className="font-display text-3xl md:text-4xl">{name}</h1>
 				<p className="text-xl text-light-blue md:text-2xl">Prize draw</p>

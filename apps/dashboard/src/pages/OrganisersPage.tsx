@@ -146,9 +146,10 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 												</p>
 											)}
 											{!wide && (
-												<p className="flex min-w-0 items-center gap-2.5 pt-2.5 text-base text-dark-blue">
+												<p className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 pt-2.5 text-base text-dark-blue">
 													<RoleBadge organiser={o} />
-													<span className="truncate">{organiserTeam(teams, o)}</span>
+													{/* Wraps under the badge rather than cutting a team's name short */}
+													<span>{organiserTeam(teams, o)}</span>
 												</p>
 											)}
 										</div>
