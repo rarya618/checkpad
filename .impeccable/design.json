@@ -250,7 +250,7 @@
       },
       {
         "name": "count-change",
-        "value": "500ms bar segments, 600ms ring arc, ease-out-quick",
+        "value": "500ms bar segments, 700ms ring arc sweep, 450ms count roll from below, ease-out-quick",
         "purpose": "The Attendees progress bar and event-card rings moving to a new count."
       },
       {
