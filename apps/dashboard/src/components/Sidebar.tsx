@@ -110,7 +110,7 @@ function AccountSummary() {
 		<div className="flex min-w-0 flex-col gap-0.5">
 			{/* Smaller than Figma's 28px at 75% scale, to sit with the menu items; 1.2 line height, not text-lg's 1.5 */}
 			<p className="truncate font-display text-lg leading-tight">{me?.name ?? session?.email}</p>
-			<p className="text-sm text-med-blue">{me ? roleLabel(me.role) : ''}</p>
+			<p className="text-sm text-dark-blue/75">{me ? roleLabel(me.role) : ''}</p>
 		</div>
 	);
 }

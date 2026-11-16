@@ -28,7 +28,8 @@ export default function CheckInRing({ checkedIn, total, status, size = 'md' }: P
 	const full = status === 'open' && total > 0 && checkedIn >= total;
 	const progress = upcoming || full || total === 0 ? 0 : Math.min(checkedIn / total, 1);
 	return (
-		<div className={`relative shrink-0 ${s.box}`}>
+		// Hidden from screen readers: the card's link describes itself with the same count
+		<div aria-hidden="true" className={`relative shrink-0 ${s.box}`}>
 			<svg viewBox={`0 0 ${SIZE} ${SIZE}`} fill="none" aria-hidden="true" className="absolute inset-0 size-full -rotate-90">
 				<circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={full ? 'var(--color-dark-blue)' : 'var(--color-light-blue)'} strokeWidth={STROKE} />
 				{progress > 0 && (

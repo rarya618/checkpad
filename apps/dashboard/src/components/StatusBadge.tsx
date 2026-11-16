@@ -1,8 +1,9 @@
 // Figma "Status badge": whether self check-in is open. "md" is Figma's small pill size on
 // phones (14px, as in "Organisers – manage team") and the desktop's 75% scale from md up; "lg"
 // is full size everywhere. Like every Figma badge, no letter spacing, though the rest of the
-// bold text is tightened.
-export default function StatusBadge({ open, size = 'md' }: { open: boolean; size?: 'md' | 'lg' }) {
+// bold text is tightened. `label` replaces "Open"/"Closed" where the badge stands on its own
+// (the Events page says "Check-in open", "Not open yet" and so on).
+export default function StatusBadge({ open, size = 'md', label }: { open: boolean; size?: 'md' | 'lg'; label?: string }) {
 	const lg = size === 'lg';
 	return (
 		<span
@@ -11,7 +12,7 @@ export default function StatusBadge({ open, size = 'md' }: { open: boolean; size
 			} ${open ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'}`}
 		>
 			<span aria-hidden="true" className={`rounded-full ${lg ? 'size-2' : 'size-1.5'} ${open ? 'bg-white' : 'bg-med-blue'}`} />
-			{open ? 'Open' : 'Closed'}
+			{label ?? (open ? 'Open' : 'Closed')}
 		</span>
 	);
 }

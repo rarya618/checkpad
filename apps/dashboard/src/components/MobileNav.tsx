@@ -145,7 +145,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 					<div className="my-2 h-px bg-med-blue/40" />
 					<div className="flex flex-col gap-0.5 pl-3 leading-normal">
 						<p className="truncate font-display text-lg">{me?.name ?? session?.email}</p>
-						<p className="text-sm text-med-blue">{me ? roleLabel(me.role) : ''}</p>
+						<p className="text-sm text-dark-blue/75">{me ? roleLabel(me.role) : ''}</p>
 					</div>
 				</div>
 			</dialog>

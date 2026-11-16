@@ -13,6 +13,7 @@ import {
 	query,
 	serverTimestamp,
 	Timestamp,
+	updateDoc,
 	where,
 	writeBatch,
 	type DocumentSnapshot,
@@ -195,6 +196,15 @@ export function updateEvent(event: DashboardEvent, input: EventInput, by: string
 		renames.delete(input.slug);
 	}
 	return batch.commit();
+}
+
+/** Opens or closes self check-in from the Events page, recording `by` and when, as Event settings does. */
+export function setSelfCheckIn(event: DashboardEvent, open: boolean, by: string) {
+	return updateDoc(doc(db, 'events', event.id), {
+		status: open ? 'open' : 'closed',
+		statusChangedBy: by,
+		statusChangedAt: serverTimestamp(),
+	});
 }
 
 /** Deletes the event; a function deletes its attendees, prize draw and links after it. */
