@@ -38,7 +38,7 @@ export interface SidebarProps {
 
 export default function Sidebar({ items, back, screens }: SidebarProps) {
 	return (
-		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-med-blue bg-light-blue px-4 pt-7.5 pb-4">
+		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-line bg-light-blue px-4 pt-7.5 pb-4">
 			<div className="flex w-full flex-col gap-5">
 				<Link to="/events" className="self-start px-3 py-1">
 					<img src={logo} alt="checkpad" width={164} height={36} />
@@ -47,7 +47,7 @@ export default function Sidebar({ items, back, screens }: SidebarProps) {
 					{back && (
 						<Link
 							to={back.to}
-							className="flex items-center gap-2 border-b border-med-blue/50 px-3 pb-3 text-sm tracking-[-0.01em] text-med-blue hover:text-dark-blue"
+							className="flex items-center gap-2 border-b border-line px-3 pb-3 text-sm tracking-[-0.01em] text-med-blue hover:text-dark-blue"
 						>
 							<img src={arrow} alt="" width={18} height={18} className="rotate-180" />
 							{back.label}
@@ -95,7 +95,7 @@ export default function Sidebar({ items, back, screens }: SidebarProps) {
 					</section>
 				)}
 			</div>
-			<div className="flex w-full items-center justify-between border-t border-med-blue/50 px-3.5 py-5">
+			<div className="flex w-full items-center justify-between border-t border-line px-3.5 py-5">
 				<AccountSummary />
 				<AccountMenu />
 			</div>

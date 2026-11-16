@@ -160,7 +160,7 @@ export default function EventsPage() {
 									</ul>
 								) : (
 									// One list, scanned by date. Not overflow-hidden, so row menus can open past its edge.
-									<ul className="divide-y divide-light-blue rounded-xl border border-med-blue bg-white">
+									<ul className="divide-y divide-light-blue rounded-xl border border-line bg-white">
 										{shown.map((summary, i) => (
 											<li key={summary.event.slug}>
 												<EventRow

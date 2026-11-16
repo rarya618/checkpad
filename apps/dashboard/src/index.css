@@ -4,6 +4,10 @@
 @theme {
   /* Ticket numbers in the attendees table */
   --font-mono: "Geist Mono", ui-monospace, monospace;
+  /* The hairline round cards, panels, lists and menus (border-line): navy at a low opacity, so
+     it sits quietly on white, off-white and the tinted live card alike. Form controls keep
+     stronger edges, since their outline is how you spot them. */
+  --color-line: color-mix(in oklab, var(--color-dark-blue) 12%, transparent);
 }
 
 @layer base {

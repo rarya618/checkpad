@@ -96,7 +96,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 	const wide = useMediaQuery('(min-width: 1024px)');
 	return (
 		<>
-			<div className="rounded-xl border border-med-blue bg-white px-4 py-4 md:px-6">
+			<div className="rounded-xl border border-line bg-white px-4 py-4 md:px-6">
 				<table className="w-full table-fixed leading-normal">
 					<colgroup>
 						<col />
@@ -170,7 +170,7 @@ function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organ
 					</tbody>
 				</table>
 			</div>
-			<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white px-4 py-4 leading-normal md:px-6">
+			<section className="flex flex-col gap-3 rounded-xl border border-line bg-white px-4 py-4 leading-normal md:px-6">
 				<h2 className="font-display text-sm">What each role can do</h2>
 				<dl className="flex flex-col gap-3 md:flex-row md:gap-6">
 					{roles.map((r) => (
@@ -239,7 +239,7 @@ function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => 
 				const target = teamLinkTarget(team, events);
 				const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
 				return (
-					<section key={team.id} className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
+					<section key={team.id} className="flex flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5">
 						<div className="flex items-center gap-3">
 							<div className="flex min-w-0 flex-1 flex-col gap-1">
 								<h2 className="truncate font-display text-2xl leading-tight">{team.name}</h2>

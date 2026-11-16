@@ -28,7 +28,7 @@ export function AuthLayout({ title, description, children }: { title: string; de
 		<main className="flex min-h-dvh items-center justify-center p-6">
 			<div className="flex w-full max-w-[390px] flex-col items-center gap-8">
 				<img src={logo} alt="checkpad" width={191} height={42} />
-				<section className="flex w-full flex-col gap-5 rounded-xl border border-med-blue bg-white p-9">
+				<section className="flex w-full flex-col gap-5 rounded-xl border border-line bg-white p-9">
 					<div className="flex flex-col gap-2">
 						<h1 className="font-display text-2xl leading-tight">{title}</h1>
 						<p className="text-sm leading-normal text-med-blue">{description}</p>

@@ -17,7 +17,7 @@ export default function EmptyState({
 	compact?: boolean;
 }) {
 	return (
-		<section className={`flex flex-col items-center gap-5 rounded-xl border border-med-blue bg-white px-6 text-center md:px-9 ${compact ? 'py-9' : 'py-14'}`}>
+		<section className={`flex flex-col items-center gap-5 rounded-xl border border-line bg-white px-6 text-center md:px-9 ${compact ? 'py-9' : 'py-14'}`}>
 			<span className="flex size-[66px] items-center justify-center rounded-full bg-light-blue">
 				<img src={icon} alt="" width={30} height={30} />
 			</span>

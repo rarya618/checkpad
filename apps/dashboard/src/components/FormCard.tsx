@@ -15,7 +15,7 @@ interface Props {
 export default function FormCard({ title, description, badge, level = 2, className = '', children }: Props) {
 	const Heading = level === 2 ? 'h2' : 'h3';
 	return (
-		<section className={`flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5 ${className}`}>
+		<section className={`flex flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5 ${className}`}>
 			<div className="flex flex-col gap-1.5">
 				<div className="flex items-center gap-2.5">
 					<Heading className="min-w-0 flex-1 font-display text-xl leading-tight">{title}</Heading>

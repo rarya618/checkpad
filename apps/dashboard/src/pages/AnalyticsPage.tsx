@@ -516,7 +516,7 @@ function NothingToCompare({
 	const within = range.id === 'all' ? '' : ` in the ${range.label.toLowerCase()}`;
 	const widen = range.id !== 'all' && allTime > results.length;
 	return (
-		<section className="flex flex-col items-start gap-4 rounded-xl border border-med-blue bg-white px-6 py-6">
+		<section className="flex flex-col items-start gap-4 rounded-xl border border-line bg-white px-6 py-6">
 			<div className="flex max-w-prose flex-col gap-1.5 leading-normal">
 				<h2 className="font-display text-lg">{only ? 'Nothing to compare yet' : `No finished events${within}`}</h2>
 				<p className="text-sm text-pretty">

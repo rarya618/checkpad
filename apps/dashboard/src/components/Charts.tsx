@@ -27,7 +27,7 @@ export function StatTile({
 	children?: ReactNode;
 }) {
 	return (
-		<div className={`flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-med-blue bg-white px-5 py-4 md:px-5 md:py-5 ${className}`}>
+		<div className={`flex min-w-0 flex-1 flex-col gap-1 rounded-xl border border-line bg-white px-5 py-4 md:px-5 md:py-5 ${className}`}>
 			<p className="truncate text-sm leading-normal text-med-blue">{label}</p>
 			<p className={`font-display leading-tight tabular-nums ${size === 'lg' ? 'text-6xl' : 'text-4xl'}`}>{value}</p>
 			{note && <p className="text-sm leading-normal text-med-blue">{note}</p>}
@@ -79,7 +79,7 @@ export function ChartCard({
 }) {
 	const Heading = `h${level}` as const;
 	return (
-		<section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5 ${className}`}>
+		<section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5 ${className}`}>
 			<div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
 				{/* The title keeps at least 13rem: a wide legend drops below it rather than squeezing it onto two lines */}
 				<div className="flex min-w-0 flex-1 basis-52 flex-col gap-1 leading-normal">
@@ -332,7 +332,7 @@ export function BarChart({
 							{active === i && (
 								<div
 									aria-hidden="true"
-									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-med-blue bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
+									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-line bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
 										flip ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
 									}`}
 									style={{ bottom: `${Math.min(80, (total / max) * 100)}%` }}
@@ -431,7 +431,7 @@ export function LineChart({ points, ticks, label, heading, valueName }: { points
 							{active === i && (
 								<div
 									aria-hidden="true"
-									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-med-blue bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
+									className={`pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border border-line bg-white py-2.5 pr-3 pl-2.5 text-left whitespace-nowrap shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] ${
 										i > points.length * 0.6 ? 'right-[calc(50%+15px)]' : 'left-[calc(50%+15px)]'
 									}`}
 									style={{ bottom: `${Math.min(80, 100 - y(p.value))}%` }}

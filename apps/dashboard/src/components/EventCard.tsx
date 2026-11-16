@@ -119,7 +119,7 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 		// Wide windows: what and when on the left with the buttons under them, the count on the
 		// right. Narrower: one column, the count between the name and the buttons.
 		<article
-			className={`relative grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-5 rounded-xl border border-dark-blue px-5 py-5 md:px-7 md:py-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)_auto] xl:items-center xl:gap-x-10 ${
+			className={`relative grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-5 rounded-xl border border-line px-5 py-5 md:px-7 md:py-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)_auto] xl:items-center xl:gap-x-10 ${
 				phase === 'live' ? 'bg-light-blue/40 hover:bg-light-blue/60' : 'bg-white hover:bg-off-white/60'
 			}`}
 		>

@@ -9,7 +9,7 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 		{ label: 'Not arrived', count: stats.notArrived, color: 'bg-light-blue' },
 	];
 	return (
-		<section aria-label="Check-in progress" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 pt-6 pb-4 tabular-nums">
+		<section aria-label="Check-in progress" className="flex flex-col gap-4 rounded-xl border border-line bg-white px-6 pt-6 pb-4 tabular-nums">
 			<div className="flex items-baseline justify-between gap-6">
 				<p className="flex items-baseline gap-2.5">
 					<RollingCount value={stats.checkedIn} className="font-display text-4xl leading-none" />

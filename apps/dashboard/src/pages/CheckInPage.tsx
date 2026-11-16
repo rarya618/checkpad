@@ -112,7 +112,7 @@ export default function CheckInPage() {
 		<>
 			{header}
 			<div className="flex flex-col gap-4 px-6 pb-7">
-				<form onSubmit={find} className="flex items-end gap-3 rounded-xl border border-med-blue bg-white px-6 py-5">
+				<form onSubmit={find} className="flex items-end gap-3 rounded-xl border border-line bg-white px-6 py-5">
 					<TextField
 						ref={input}
 						label="Email or ticket number"
@@ -132,7 +132,7 @@ export default function CheckInPage() {
 
 				{result?.kind === 'found' && <DesktopFound attendee={result.attendee} timeZone={event.timeZone} {...actions} />}
 				{result?.kind === 'not-found' && (
-					<section aria-live="polite" className="flex items-center gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
+					<section aria-live="polite" className="flex items-center gap-4 rounded-xl border border-line bg-white px-6 py-5">
 						<div className="flex min-w-0 flex-1 flex-col gap-1">
 							<h3 className="font-display text-xl leading-tight">{notFoundTitle(result.query)}</h3>
 							<p className="text-sm leading-normal text-med-blue">
@@ -145,7 +145,7 @@ export default function CheckInPage() {
 					</section>
 				)}
 
-				<section className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
+				<section className="flex flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5">
 					<h3 className="font-display text-lg">Recent check-ins</h3>
 					{recent.length === 0 && <p className="text-sm text-med-blue">No one has checked in yet.</p>}
 					<ul className="flex flex-col gap-4">
@@ -195,7 +195,7 @@ interface Actions {
 function DesktopFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { attendee: RosterAttendee; timeZone: string } & Actions) {
 	const name = fullName(attendee);
 	return (
-		<section aria-live="polite" aria-label="Result" className="flex items-center gap-4 rounded-xl border border-med-blue bg-white px-6 py-5">
+		<section aria-live="polite" aria-label="Result" className="flex items-center gap-4 rounded-xl border border-line bg-white px-6 py-5">
 			<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xl">
 				{initials(attendee)}
 			</span>
@@ -256,7 +256,7 @@ function MobileCheckIn(p: MobileProps) {
 				) : (
 					<>
 						{/* The box with Find below it, full width and as tall as the box */}
-						<form onSubmit={p.find} className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white p-5">
+						<form onSubmit={p.find} className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5">
 							<TextField
 								ref={p.input}
 								label="Email or ticket number"
@@ -276,7 +276,7 @@ function MobileCheckIn(p: MobileProps) {
 
 						{p.result?.kind === 'found' && <MobileFound attendee={p.result.attendee} timeZone={p.event.timeZone} {...p} />}
 						{p.result?.kind === 'not-found' && (
-							<section aria-live="polite" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
+							<section aria-live="polite" className="flex flex-col gap-4 rounded-xl border border-line bg-white p-5">
 								<div className="flex flex-col gap-1">
 									<h2 className="font-display text-xl leading-tight">{notFoundTitle(p.result.query)}</h2>
 									<p className="text-sm leading-normal text-med-blue">Check the spelling, or add them as a walk-in. They’ll get ticket {p.ticket}.</p>
@@ -287,7 +287,7 @@ function MobileCheckIn(p: MobileProps) {
 							</section>
 						)}
 
-						<section className="flex flex-col gap-3 rounded-xl border border-med-blue bg-white p-5 leading-normal">
+						<section className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 leading-normal">
 							<h2 className="font-display text-lg">Recent check-ins</h2>
 							{p.recent.length === 0 && <p className="text-sm text-med-blue">No one has checked in yet.</p>}
 							<ul className="flex flex-col gap-2">
@@ -308,7 +308,7 @@ function MobileCheckIn(p: MobileProps) {
 
 function MobileFound({ attendee, timeZone, checkIn, undo: undoCheckIn }: { attendee: RosterAttendee; timeZone: string } & Actions) {
 	return (
-		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-4 rounded-xl border border-med-blue bg-white p-5">
+		<section aria-live="polite" aria-label="Result" className="flex flex-col gap-4 rounded-xl border border-line bg-white p-5">
 			<div className="flex items-center gap-3">
 				<span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-sm">
 					{initials(attendee)}
