@@ -84,6 +84,7 @@ export default function Menu({ label, items, buttonClassName, header, placement 
 					id={id}
 					role="menu"
 					aria-label={label}
+					data-placement={placement}
 					className={`absolute z-20 flex w-[225px] flex-col gap-1 rounded-xl border border-med-blue bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
 						placement === 'above-left' ? 'bottom-[calc(100%+6px)] left-0' : 'top-[calc(100%+6px)] right-0'
 					}`}

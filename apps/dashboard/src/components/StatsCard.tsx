@@ -21,8 +21,8 @@ export default function StatsCard({ stats }: { stats: RosterStats }) {
 			</div>
 			<div className="flex flex-col gap-2">
 				<div aria-hidden="true" className="flex h-2 gap-px overflow-hidden rounded-full bg-off-white">
-					{stats.preRegistered > 0 && <div className="bg-dark-blue" style={{ width: pct(stats.preRegistered) }} />}
-					{stats.walkIns > 0 && <div className="bg-med-blue" style={{ width: pct(stats.walkIns) }} />}
+					{stats.preRegistered > 0 && <div data-progress-segment className="bg-dark-blue" style={{ width: pct(stats.preRegistered) }} />}
+					{stats.walkIns > 0 && <div data-progress-segment className="bg-med-blue" style={{ width: pct(stats.walkIns) }} />}
 					<div className="flex-1 bg-light-blue" />
 				</div>
 				<ul className="flex flex-wrap gap-x-6 gap-y-1 py-2">

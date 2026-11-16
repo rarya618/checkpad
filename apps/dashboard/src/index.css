@@ -40,6 +40,19 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   }
 }
 
+/* With reduced motion the toast still fades in, since it's new information, but doesn't rise */
+@media (prefers-reduced-motion: reduce) {
+  .animate-toast-in {
+    animation-name: fade-in;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @theme {
   /* The prize draw's winner: the one moment on that screen that moves on its own */
   --animate-winner-in: winner-in 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -48,6 +61,72 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     from {
       opacity: 0;
       scale: 0.92;
+    }
+  }
+}
+
+/* An arrival in the attendees table (AttendeeTable). Organisers glance at the dashboard
+   between other jobs, so a check-in, from the attendee's phone or the door, washes its row
+   light blue and fades out over a couple of seconds: long enough to catch on a glance, gone
+   before the next. It's a colour change, not movement, so it stays with reduced motion. The
+   first and last cells' shadows carry the wash past the row's edge without moving the layout. */
+tr[data-arrived] > td {
+  animation: arrival-wash 2400ms ease-out;
+}
+
+tr[data-arrived] > td:first-child {
+  --wash-spread: -8px 0 0;
+}
+
+tr[data-arrived] > td:last-child {
+  --wash-spread: 8px 0 0;
+}
+
+/* Lighter than light blue, so the initials circle still shows against it */
+@keyframes arrival-wash {
+  from,
+  30% {
+    background-color: color-mix(in srgb, var(--color-light-blue) 55%, white);
+    box-shadow: var(--wash-spread, 0 0 0) color-mix(in srgb, var(--color-light-blue) 55%, white);
+  }
+  to {
+    background-color: transparent;
+    box-shadow: var(--wash-spread, 0 0 0) transparent;
+  }
+}
+
+/* The row's "Arrived" and time fade in where the Check in button was */
+[data-arrived-status] {
+  animation: fade-in 200ms ease-out;
+}
+
+/* Counts move to their new value instead of jumping: the progress bar's segments and the
+   event cards' rings */
+@media (prefers-reduced-motion: no-preference) {
+  [data-progress-segment] {
+    transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-ring-arc] {
+    transition: stroke-dasharray 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* Menus open out of their button: down from the top right, or up from the bottom left */
+@media (prefers-reduced-motion: no-preference) {
+  [role="menu"][data-placement] {
+    transition: opacity 140ms ease-out, scale 140ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top right;
+  }
+
+  [role="menu"][data-placement="above-left"] {
+    transform-origin: bottom left;
+  }
+
+  @starting-style {
+    [role="menu"][data-placement] {
+      opacity: 0;
+      scale: 0.96;
     }
   }
 }

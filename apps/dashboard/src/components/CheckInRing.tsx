@@ -34,6 +34,7 @@ export default function CheckInRing({ checkedIn, total, status, size = 'md' }: P
 				<circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} stroke={full ? 'var(--color-dark-blue)' : 'var(--color-light-blue)'} strokeWidth={STROKE} />
 				{progress > 0 && (
 					<circle
+						data-ring-arc
 						cx={SIZE / 2}
 						cy={SIZE / 2}
 						r={RADIUS}

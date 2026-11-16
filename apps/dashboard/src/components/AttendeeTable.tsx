@@ -66,9 +66,16 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 	// The action button swaps between "Check in" and undo; keep keyboard focus on it.
 	const actionRef = useRef<HTMLButtonElement>(null);
 	const refocus = useRef(false);
+	// Marks a check-in that happens while the table is open, from the door or the attendee's
+	// phone, so the row washes light blue (index.css). Rows that load already checked in don't.
+	const [arrived, setArrived] = useState(false);
+	const wasCheckedIn = useRef(!!attendee.checkedInAt);
 	useEffect(() => {
 		if (refocus.current) actionRef.current?.focus();
 		refocus.current = false;
+		const checkedIn = !!attendee.checkedInAt;
+		if (checkedIn !== wasCheckedIn.current) setArrived(checkedIn);
+		wasCheckedIn.current = checkedIn;
 	}, [attendee.checkedInAt]);
 	const toggle = (checkingIn: boolean) => {
 		refocus.current = true;
@@ -78,8 +85,8 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 	};
 
 	return (
-		<tr>
-			<td className="py-1.5 pr-2">
+		<tr data-arrived={arrived || undefined}>
+			<td className="rounded-l-lg py-1.5 pr-2">
 				<div className="flex items-center gap-2 py-0.5">
 					<span
 						aria-hidden="true"
@@ -101,7 +108,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 			)}
 			<td className="py-1.5">
 				{attendee.checkedInAt ? (
-					<div className="flex items-center justify-end gap-3">
+					<div data-arrived-status={arrived || undefined} className="flex items-center justify-end gap-3">
 						<p className="flex flex-col items-end text-xs">
 							<span className="font-bold">Arrived</span>
 							<span className="text-med-blue">{formatClockTime(attendee.checkedInAt, timeZone)}</span>
@@ -133,7 +140,7 @@ function AttendeeRow({ event, attendee, removable, showTicket }: { event: Dashbo
 				)}
 			</td>
 			{/* Not in Figma: the toast's Undo is the only other way to take a walk-in off the list */}
-			<td className="py-1.5 pl-1 text-right md:pl-3">
+			<td className="rounded-r-lg py-1.5 pl-1 text-right md:pl-3">
 				{removable && (
 					<Menu
 						label={`Options for ${name}`}
