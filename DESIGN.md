@@ -11,6 +11,7 @@ colors:
   dark-blue-hover: "#1c3d65"
   light-blue-hover: "#bbcbe3"
   med-blue-hover: "#5b86bb"
+  line: "rgb(17 45 78 / 0.12)"
 typography:
   display:
     fontFamily: "Plus Jakarta Sans, sans-serif"
@@ -51,6 +52,35 @@ typography:
     fontSize: "1.25rem"
     fontWeight: 400
     lineHeight: 1.5
+  page-title:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "1.875rem"
+    fontWeight: 800
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+  section-title:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 800
+    lineHeight: 1.5
+    letterSpacing: "-0.025em"
+  card-title:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 800
+    lineHeight: 1.5
+    letterSpacing: "-0.025em"
+  help:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 400
+    lineHeight: 1.5
+  status:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 700
+    lineHeight: 1.5
+    letterSpacing: "-0.025em"
 rounded:
   md: "6px"
   lg: "8px"
@@ -138,6 +168,34 @@ components:
     backgroundColor: "{colors.dark-blue}"
     textColor: "{colors.off-white}"
     rounded: "{rounded.3xl}"
+  dashboard-card:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.dark-blue}"
+    rounded: "{rounded.xl}"
+    padding: "20px 24px"
+  event-card-live:
+    backgroundColor: "rgb(219 226 239 / 0.4)"
+    textColor: "{colors.dark-blue}"
+    rounded: "{rounded.xl}"
+    padding: "24px 28px"
+  event-row:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.dark-blue}"
+    padding: "16px 16px 16px 20px"
+  check-in-bar:
+    backgroundColor: "{colors.light-blue}"
+    rounded: "{rounded.full}"
+    height: "8px"
+  check-in-bar-thin:
+    backgroundColor: "{colors.light-blue}"
+    rounded: "{rounded.full}"
+    height: "6px"
+  status-indicator-open:
+    textColor: "{colors.dark-blue}"
+    typography: "{typography.status}"
+  status-indicator-closed:
+    textColor: "rgb(17 45 78 / 0.6)"
+    typography: "{typography.status}"
     padding: "56px 28px"
 ---
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-16T05:05:42+00:00",
+  "generatedAt": "2026-11-16T18:19:05.401Z",
   "title": "Design System: Checkpad",
   "extensions": {
     "colorMeta": {
@@ -138,6 +138,21 @@
           "#adccf3",
           "#d7f1ff"
         ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Navy Hairline",
+        "canonical": "color-mix(in oklab, var(--color-dark-blue) 12%, transparent)",
+        "tonalRamp": [
+          "rgb(17 45 78 / 0.04)",
+          "rgb(17 45 78 / 0.08)",
+          "rgb(17 45 78 / 0.12)",
+          "rgb(17 45 78 / 0.16)",
+          "rgb(17 45 78 / 0.2)",
+          "rgb(17 45 78 / 0.24)",
+          "rgb(17 45 78 / 0.28)",
+          "rgb(17 45 78 / 0.32)"
+        ]
       }
     },
     "typographyMeta": {
@@ -168,6 +183,26 @@
       "ticket-mono": {
         "displayName": "Ticket Mono",
         "purpose": "Walk-in ticket numbers on the check-in confirmation only."
+      },
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "Dashboard page titles (Events, Organisers, Analytics) and the event's name on its pages; 1.5rem on phones."
+      },
+      "section-title": {
+        "displayName": "Event Section",
+        "purpose": "Attendees, Check in, Analytics and Settings under the event's name: a step below it."
+      },
+      "card-title": {
+        "displayName": "Card Title",
+        "purpose": "Dashboard card and tile headings, attendee names on Check in."
+      },
+      "help": {
+        "displayName": "Help",
+        "purpose": "Field hints and any explanation a sentence long, in med-blue. 0.75rem is only for single-line metadata."
+      },
+      "status": {
+        "displayName": "Status",
+        "purpose": "The status indicator's label: bold, tightly tracked, navy (60% when closed)."
       }
     },
     "shadows": [
@@ -257,6 +292,11 @@
         "name": "menu-in",
         "value": "140ms, opacity and scale from 0.96, from the button's corner",
         "purpose": "Dashboard ⋮ menus opening."
+      },
+      {
+        "name": "past-fold",
+        "value": "450ms cubic-bezier(0.33, 1, 0.68, 1) open, 320ms cubic-bezier(0.65, 0, 0.35, 1) close, grid-template-rows 0fr to 1fr",
+        "purpose": "Events page \"Show all past events\" folding the extra rows open as they fade in, and closed again; the Past heading scrolls back into view when it is above the screen."
       }
     ],
     "breakpoints": [
@@ -352,11 +392,43 @@
       "description": "The one navy band that closes the home page, with the dark-tone waitlist form.",
       "html": "<section class=\"ds-band\"><h2>Use Checkpad at your next meetup</h2><p>Leave your email and we’ll let you know when you can set up your first event.</p><form class=\"ds-band-form\" onsubmit=\"return false\"><input type=\"email\" placeholder=\"you@example.com\" aria-label=\"Email address\"><button>Join the waitlist</button></form></section>",
       "css": ".ds-band { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center; padding: 56px 28px; border-radius: 24px; background: var(--color-dark-blue, #112d4e); color: var(--color-off-white, #f9f7f7); } .ds-band h2 { margin: 0; font-size: 1.875rem; line-height: 1.2; font-weight: 800; letter-spacing: -0.025em; } .ds-band p { margin: 0; max-width: 42rem; color: var(--color-light-blue, #dbe2ef); font-size: 1rem; line-height: 1.5; } .ds-band-form { display: flex; gap: 12px; width: 100%; max-width: 520px; } .ds-band-form input { flex: 1; min-width: 0; font: inherit; font-size: 1.125rem; padding: 10px 20px; border: none; border-radius: 12px; background: var(--color-off-white, #f9f7f7); color: var(--color-dark-blue, #112d4e); } .ds-band-form input:focus { outline: 2px solid var(--color-light-blue, #dbe2ef); outline-offset: 2px; } .ds-band-form button { font: inherit; font-weight: 800; letter-spacing: -0.025em; padding: 6px 24px; border: none; border-radius: 8px; background: var(--color-light-blue, #dbe2ef); color: var(--color-dark-blue, #112d4e); cursor: pointer; transition: background-color 150ms; } .ds-band-form button:hover { background: #bbcbe3; } .ds-band-form button:focus-visible { outline: 2px solid var(--color-light-blue, #dbe2ef); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Indicator",
+      "kind": "chip",
+      "refersTo": "status-indicator-open",
+      "description": "Whether self check-in is open, wherever it appears: a dot and a bold label in navy alone, no pill. Solid dot when open, faint hollow dot and lighter label when not.",
+      "html": "<div class=\"ds-status-row\"><span class=\"ds-status ds-status-open\"><span class=\"ds-status-dot\"></span>Check-in open</span><span class=\"ds-status ds-status-closed\"><span class=\"ds-status-dot\"></span>Not open yet</span></div>",
+      "css": ".ds-status-row { display: flex; gap: 24px; } .ds-status { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; line-height: 1.5; font-weight: 700; letter-spacing: -0.025em; white-space: nowrap; } .ds-status-dot { width: 6px; height: 6px; border-radius: 9999px; flex-shrink: 0; } .ds-status-open { color: var(--color-dark-blue, #112d4e); } .ds-status-open .ds-status-dot { background: var(--color-dark-blue, #112d4e); } .ds-status-closed { color: rgb(17 45 78 / 0.6); } .ds-status-closed .ds-status-dot { border: 1px solid rgb(17 45 78 / 0.4); }"
+    },
+    {
+      "name": "Check-in Bar",
+      "kind": "custom",
+      "refersTo": "check-in-bar",
+      "description": "The dashboard's one progress mark: pre-registered arrivals in navy, walk-ins in med-blue, on a light-blue track, split by 1px gaps. Segments slide to a new count.",
+      "html": "<div class=\"ds-bar\"><span class=\"ds-bar-seg ds-bar-pre\" style=\"width:34%\"></span><span class=\"ds-bar-seg ds-bar-walk\" style=\"width:8%\"></span><span class=\"ds-bar-rest\"></span></div>",
+      "css": ".ds-bar { display: flex; gap: 1px; height: 8px; width: 320px; border-radius: 9999px; overflow: hidden; background: var(--color-off-white, #f9f7f7); } .ds-bar-seg { transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-bar-pre { background: var(--color-dark-blue, #112d4e); } .ds-bar-walk { background: var(--color-med-blue, #3f72af); } .ds-bar-rest { flex: 1; background: var(--color-light-blue, #dbe2ef); }"
+    },
+    {
+      "name": "Now Event Card",
+      "kind": "card",
+      "refersTo": "event-card-live",
+      "description": "An event on tonight: status, time and team, the name, the live count over the check-in bar, and the phase's buttons. Tinted light blue while check-in is open; edged with the navy hairline.",
+      "html": "<article class=\"ds-now\"><div class=\"ds-now-meta\"><span class=\"ds-now-status\"><span class=\"ds-now-dot\"></span>Check-in open</span><span>Today · 18:00–21:00</span><span class=\"ds-now-team\">GDG Sydney</span></div><h3 class=\"ds-now-name\">September Meetup</h3><p class=\"ds-now-count\"><span><b>41</b> checked in</span><span>of <b class=\"ds-now-total\">109</b></span></p><div class=\"ds-now-bar\"><span style=\"width:34%;background:#112d4e\"></span><span style=\"width:4%;background:#3f72af\"></span><span style=\"flex:1;background:#dbe2ef\"></span></div><p class=\"ds-now-split\">37 pre-registered · 4 walk-ins</p><a class=\"ds-now-btn\" href=\"#\">Check in</a></article>",
+      "css": ".ds-now { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; color: var(--color-dark-blue, #112d4e); display: flex; flex-direction: column; gap: 10px; max-width: 520px; padding: 24px 28px; border-radius: 12px; border: 1px solid rgb(17 45 78 / 0.12); background: rgb(219 226 239 / 0.4); } .ds-now:hover { background: rgb(219 226 239 / 0.6); } .ds-now-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 0.875rem; font-weight: 500; letter-spacing: -0.025em; } .ds-now-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; } .ds-now-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--color-dark-blue, #112d4e); } .ds-now-team { color: var(--color-med-blue, #3f72af); } .ds-now-name { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.5; } .ds-now-count { margin: 6px 0 0; display: flex; justify-content: space-between; align-items: baseline; color: var(--color-med-blue, #3f72af); } .ds-now-count b { font-size: 2.25rem; font-weight: 800; color: var(--color-dark-blue, #112d4e); font-variant-numeric: tabular-nums; } .ds-now-count b.ds-now-total { font-size: 1.5rem; } .ds-now-bar { display: flex; gap: 1px; height: 8px; border-radius: 9999px; overflow: hidden; } .ds-now-split { margin: 0; font-size: 0.875rem; color: rgb(17 45 78 / 0.8); } .ds-now-btn { align-self: flex-start; margin-top: 8px; padding: 6px 24px; border-radius: 8px; background: var(--color-dark-blue, #112d4e); color: var(--color-off-white, #f9f7f7); font-weight: 800; letter-spacing: -0.025em; text-decoration: none; transition: background-color 150ms; } .ds-now-btn:hover { background: var(--color-dark-blue-hover, #1c3d65); } .ds-now-btn:focus-visible { outline: 2px solid var(--color-med-blue, #3f72af); outline-offset: 2px; }"
+    },
+    {
+      "name": "Event Rows",
+      "kind": "custom",
+      "refersTo": "event-row",
+      "description": "Upcoming and past events as one white list with a navy hairline and light-blue dividers, scanned by a date column; past rows show turnout over a thin check-in bar.",
+      "html": "<ul class=\"ds-rows\"><li class=\"ds-row\"><p class=\"ds-date\"><span>Sep</span><b>10</b></p><div><p class=\"ds-row-name\">September Meetup</p><p class=\"ds-row-meta\">Thu · 17:00–20:00 <span>· GDG Sydney</span></p></div><div class=\"ds-row-count\"><p><b>38</b> of 90 attended <span>· 42%</span></p><div class=\"ds-row-bar\"><i style=\"width:38%;background:#112d4e\"></i><i style=\"width:4%;background:#3f72af\"></i><i style=\"flex:1;background:#dbe2ef\"></i></div></div></li><li class=\"ds-row\"><p class=\"ds-date\"><span>Aug</span><b>13</b></p><div><p class=\"ds-row-name\">August Meetup</p><p class=\"ds-row-meta\">Thu · 17:00–20:00 <span>· GDG Sydney</span></p></div><div class=\"ds-row-count\"><p><b>64</b> of 120 attended <span>· 53%</span></p><div class=\"ds-row-bar\"><i style=\"width:47%;background:#112d4e\"></i><i style=\"width:6%;background:#3f72af\"></i><i style=\"flex:1;background:#dbe2ef\"></i></div></div></li></ul>",
+      "css": ".ds-rows { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; color: var(--color-dark-blue, #112d4e); list-style: none; margin: 0; padding: 0; max-width: 620px; background: #fff; border: 1px solid rgb(17 45 78 / 0.12); border-radius: 12px; } .ds-row { display: grid; grid-template-columns: 3.5rem minmax(0,1fr) 11rem; align-items: center; gap: 24px; padding: 16px 16px 16px 20px; } .ds-row + .ds-row { border-top: 1px solid var(--color-light-blue, #dbe2ef); } .ds-row:hover { background: rgb(249 247 247 / 0.7); } .ds-date { margin: 0; display: flex; flex-direction: column; align-items: center; } .ds-date span { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--color-med-blue, #3f72af); } .ds-date b { font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; } .ds-row-name { margin: 0; font-size: 1.125rem; font-weight: 800; letter-spacing: -0.025em; } .ds-row-meta { margin: 0; font-size: 0.875rem; color: rgb(17 45 78 / 0.8); } .ds-row-meta span { color: var(--color-med-blue, #3f72af); } .ds-row-count p { margin: 0 0 6px; font-size: 0.875rem; text-align: right; font-variant-numeric: tabular-nums; } .ds-row-count span { color: var(--color-med-blue, #3f72af); } .ds-row-bar { display: flex; gap: 1px; height: 6px; border-radius: 9999px; overflow: hidden; } .ds-row-bar i { display: block; }"
     }
   ],
   "narrative": {
     "northStar": "The Well-Run Door",
-    "overview": "**Creative North Star: \"The Well-Run Door\"**\n\nCheckpad's system is one small, fixed palette of navy and blues on an off-white ground, set entirely in Plus Jakarta Sans. It is shared by every surface: the marketing site and the attendee check-in page (`apps/web`) and the organiser dashboard (`apps/dashboard`), all importing the same tokens from `packages/shared/theme.css` and the same button recipe from `packages/shared/src/button.ts`. The home page is the marketing expression of that system; the check-in page is its most pared-back one; the dashboard is its densest.\n\nThe mood is calm, plain and capable: a volunteer at a busy venue should read any screen at a glance. Depth is soft and navy-tinted, never grey or hard-edged. The product itself is the imagery: real dashboard and phone screenshots sit in thin light-blue frames, cropped on the part that matters and faded where the app carries on. Navy is used as a solid surface sparingly (one closing band on the home page, one dark feature tile, the sample-arrival toast) so it reads as emphasis.\n\nThe user pinned the logo and the five colours; they are not up for reinterpretation.",
+    "overview": "Checkpad's system is one small, fixed palette of navy and blues on an off-white ground, set entirely in Plus Jakarta Sans. It is shared by every surface: the marketing site and the attendee check-in page (`apps/web`) and the organiser dashboard (`apps/dashboard`), all importing the same tokens from `packages/shared/theme.css` and the same button recipe from `packages/shared/src/button.ts`. The home page is the marketing expression of that system; the check-in page is its most pared-back one; the dashboard is its densest.\n\nThe mood is calm, plain and capable: a volunteer at a busy venue should read any screen at a glance. Depth is soft and navy-tinted, never grey or hard-edged. The product itself is the imagery: real dashboard and phone screenshots sit in thin light-blue frames, cropped on the part that matters and faded where the app carries on. Navy is used as a solid surface sparingly (one closing band on the home page, one dark feature tile, the sample-arrival toast) so it reads as emphasis.\n\nThe user pinned the logo and the five colours; they are not up for reinterpretation.",
     "keyCharacteristics": [
       "Five pinned colours (navy, med-blue, light-blue, off-white, error) plus white for raised surfaces.",
       "One typeface, Plus Jakarta Sans, with ExtraBold (800) tightened display for headings and button labels.",
@@ -394,6 +466,16 @@
       {
         "name": "The Product-Lifts Rule",
         "body": "Elevation is for framed product imagery and floating moments (device, toast, popover). Text sections and lists stay flat and use hairlines.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Quiet Edge Rule",
+        "body": "In the dashboard, cards, panels, lists, menus, tooltips and the sidebar are edged with the `line` token: navy at 12% opacity, a hairline that sits back on white, off-white and the tinted live card alike, so the content inside reads first. Form controls (search boxes, selects, drop zones) keep stronger edges, since their outline is how you spot them, and so do chart marks. Tables and lists (attendees, organisers, waitlist, the Events page's rows) share one pattern: a white box with that hairline, and light-blue dividers between rows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Visible Focus Rule",
+        "body": "Keyboard focus is a 2px med-blue ring, 2px clear of the element, everywhere in the dashboard; on the prize draw's navy screen it turns light blue. Fields that draw their own focus outline keep it.",
         "section": "elevation"
       }
     ],
