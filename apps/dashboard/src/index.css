@@ -100,22 +100,25 @@ tr[data-arrived] > td:last-child {
   animation: fade-in 200ms ease-out;
 }
 
-/* Counts move to their new value instead of jumping: the progress bar's segments and the
-   event cards' rings */
+/* Counts move to their new value instead of jumping (CheckInBar, RollingCount): the bar's
+   segments slide, and a segment that wasn't there, the night's first walk-in say, grows out
+   from nothing; the number rolls up into place from below its line as the bar moves */
+[data-progress-segment] {
+  width: var(--segment);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   [data-progress-segment] {
     transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  [data-ring-arc] {
-    transition:
-      stroke-dasharray 700ms cubic-bezier(0.16, 1, 0.3, 1),
-      stroke 300ms ease-out,
-      opacity 120ms ease-out;
+  @starting-style {
+    [data-progress-segment] {
+      width: 0;
+    }
   }
 
-  /* The ring's count rolls up as the arc sweeps: the new number rises in from below its line */
-  [data-ring-count] {
+  [data-count-roll] {
     animation: count-roll 450ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
@@ -129,7 +132,7 @@ tr[data-arrived] > td:last-child {
 
 /* With reduced motion the new count only fades in */
 @media (prefers-reduced-motion: reduce) {
-  [data-ring-count] {
+  [data-count-roll] {
     animation: fade-in 200ms ease-out;
   }
 }

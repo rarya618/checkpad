@@ -2,32 +2,24 @@ import { buttonClass } from '@checkpad/shared/button';
 import { formatClockTime, formatDate } from '@checkpad/shared/format';
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
-import download from '../assets/download.svg';
-import ellipsis from '../assets/ellipsis-vertical.svg';
-import link from '../assets/link.svg';
-import sliders from '../assets/sliders.svg';
-import trash from '../assets/trash.svg';
-import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import { useSession } from '../lib/auth';
-import { checkInUrl } from '../lib/config';
-import { eventPhase, groupOf, ringStatus, startsToday, type EventPhase } from '../lib/eventPhase';
-import { ownsEvent, setSelfCheckIn, type EventSummary } from '../lib/events';
+import { eventPhase, startsToday, type EventPhase } from '../lib/eventPhase';
+import { setSelfCheckIn, type EventSummary } from '../lib/events';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import { showToast } from '../lib/toast';
-import { useIsDesktop } from '../lib/useMediaQuery';
-import CheckInRing from './CheckInRing';
-import DeleteEventDialog from './DeleteEventDialog';
-import Menu from './Menu';
+import { useIsDesktop, useMediaQuery } from '../lib/useMediaQuery';
+import CheckInBar from './CheckInBar';
+import EventMenu from './EventMenu';
+import RollingCount from './RollingCount';
 import StatusBadge from './StatusBadge';
 
-// The badge says what self check-in is doing; filled while attendees can check themselves in
-const statuses: Record<EventPhase, { label: string; open: boolean }> = {
+// The badge says what self check-in is doing; filled while attendees can check themselves in.
+// Only Now's phases reach this card: upcoming and past events are rows (EventRow).
+const statuses: Partial<Record<EventPhase, { label: string; open: boolean }>> = {
 	live: { label: 'Check-in open', open: true },
 	'stale-open': { label: 'Still open', open: true },
 	today: { label: 'Not open yet', open: false },
 	'closed-early': { label: 'Check-in closed', open: false },
-	upcoming: { label: 'Upcoming', open: false },
-	past: { label: 'Closed', open: false },
 };
 
 /** "Today · 18:00–21:00", "Thu, 14 March 2030 · 18:00–21:00", or a date range when it runs over several days. */
@@ -37,30 +29,28 @@ function when(start: Date, end: Date, timeZone: string, today: boolean) {
 	return `${today ? 'Today' : formatDate(start, timeZone)} · ${times}`;
 }
 
+/**
+ * An event on now: open, on today, or left open after it ended. Built for a glance on the night,
+ * around the live count and the way into checking people in. The count sits beside the name on
+ * desktop, and between the name and the buttons on phones.
+ */
 export default function EventCard({ summary, team }: { summary: EventSummary; /** Shown when the viewer sees several teams' events. */ team?: string }) {
 	const { event, stats } = summary;
 	const phase = eventPhase(event);
-	const status = statuses[phase];
-	const ring = ringStatus[phase];
-	const featured = groupOf(phase) === 'now';
-	const [deleting, setDeleting] = useState(false);
+	const status = statuses[phase] ?? statuses.today!;
 	const [switching, setSwitching] = useState(false);
 	const canEdit = useCanEditEvents();
 	const me = useMe();
 	const session = useSession();
-	const canDelete = ownsEvent(me, event);
 	const desktop = useIsDesktop();
+	// Side by side needs a wide window: below 1280px the sidebar leaves the name too little room
+	const wide = useMediaQuery('(min-width: 1280px)');
 	const id = useId();
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
 	const checkInPath = `/events/${event.slug}/check-in`;
 	// Taller buttons on phones, a comfortable tap while greeting people
 	const size = desktop ? 'md' : 'tall';
-
-	const count =
-		ring === 'not-open'
-			? `${stats.total} registered`
-			: `${stats.checkedIn} of ${stats.total} ${ring === 'closed' ? 'attended' : 'checked in'}`;
 
 	const switchSelfCheckIn = (open: boolean) => {
 		setSwitching(true);
@@ -97,65 +87,65 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 			</button>
 		) : null;
 
+	const buttons = (actions || phase === 'stale-open') && (
+		<div className="flex flex-col items-start gap-3">
+			{phase === 'stale-open' && <p className="text-sm leading-normal">Attendees can still check themselves in.{canEdit ? '' : ' Ask an organiser to close check-in.'}</p>}
+			{actions && <div className="relative flex flex-wrap gap-3 *:whitespace-nowrap">{actions}</div>}
+		</div>
+	);
+
+	const walkIns = stats.walkIns === 1 ? '1 walk-in' : `${stats.walkIns} walk-ins`;
+
+	const count = (
+		<div className="flex flex-col gap-2.5">
+			<p id={`${id}-count`} className="flex items-baseline justify-between gap-4">
+				<span className="flex items-baseline gap-2">
+					<RollingCount value={stats.checkedIn} className="font-display text-4xl leading-none" />
+					<span className="text-base leading-none text-med-blue">checked in</span>
+				</span>
+				<span className="flex items-baseline gap-2">
+					<span className="text-base leading-none text-med-blue">of</span>
+					<span className="font-display text-2xl leading-none tabular-nums">{stats.total}</span>
+				</span>
+			</p>
+			<CheckInBar stats={stats} />
+			<p className="text-sm leading-normal text-dark-blue/80 tabular-nums">
+				{stats.preRegistered} pre-registered · {walkIns}
+			</p>
+		</div>
+	);
+
 	return (
+		// Wide windows: what and when on the left with the buttons under them, the count on the
+		// right. Narrower: one column, the count between the name and the buttons.
 		<article
-			className={`relative flex items-start justify-between gap-3 rounded-xl border py-5 pr-4 pl-5 md:items-center md:gap-6 md:px-7 md:py-6 ${
-				phase === 'live' ? 'border-dark-blue bg-light-blue/40 hover:bg-light-blue/60' : `bg-white hover:bg-off-white/60 ${featured ? 'border-dark-blue' : 'border-med-blue'}`
+			className={`relative grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-5 rounded-xl border border-dark-blue px-5 py-5 md:px-7 md:py-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)_auto] xl:items-center xl:gap-x-10 ${
+				phase === 'live' ? 'bg-light-blue/40 hover:bg-light-blue/60' : 'bg-white hover:bg-off-white/60'
 			}`}
 		>
-			<div className="flex min-w-0 items-start gap-4 md:items-center md:gap-7.5">
-				<CheckInRing checkedIn={stats.checkedIn} total={stats.total} status={ring} size={desktop ? 'md' : 'sm'} />
-				<div className="flex min-w-0 flex-col items-start gap-3 md:gap-4">
-					<div className="flex flex-col items-start gap-2 md:gap-1.5">
-						<h3 className="font-display text-lg leading-normal md:text-2xl">
-							{/* Stretched link: the whole card opens the event, except its buttons */}
-							<Link to={`/events/${event.slug}`} aria-describedby={`${id}-status ${id}-count`} className="after:absolute after:inset-0 after:rounded-xl">
-								{event.name}
-							</Link>
-						</h3>
-						<div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-							<span id={`${id}-status`}>
-								<StatusBadge open={status.open} label={status.label} />
-							</span>
-							<p className="text-sm leading-normal font-medium tracking-tight text-dark-blue">
-								{phase === 'stale-open' ? `Ended ${formatDate(end, event.timeZone)}` : when(start, end, event.timeZone, startsToday(event))}
-							</p>
-							{team && <p className="text-sm leading-normal tracking-tight text-dark-blue/75">{team}</p>}
-							<span id={`${id}-count`} className="sr-only">
-								{count}
-							</span>
-						</div>
-					</div>
-					{phase === 'stale-open' && (
-						<p className="text-sm leading-normal text-dark-blue">
-							Attendees can still check themselves in.{canEdit ? '' : ' Ask an organiser to close check-in.'}
+			<div className="flex min-w-0 flex-col items-start gap-4">
+				<div className="flex flex-col items-start gap-2">
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+						<span id={`${id}-status`}>
+							<StatusBadge open={status.open} label={status.label} />
+						</span>
+						<p className="text-sm leading-normal font-medium tracking-tight">
+							{phase === 'stale-open' ? `Ended ${formatDate(end, event.timeZone)}` : when(start, end, event.timeZone, startsToday(event))}
 						</p>
-					)}
-					{!featured && event.description && <p className="line-clamp-2 text-sm leading-normal whitespace-pre-line text-dark-blue">{event.description}</p>}
-					{actions && <div className="relative flex flex-wrap gap-3 *:whitespace-nowrap">{actions}</div>}
+						{team && <p className="text-sm leading-normal text-med-blue">{team}</p>}
+					</div>
+					<h3 className="font-display text-xl md:text-2xl">
+						{/* Stretched link: the whole card opens the event, except its buttons and menu */}
+						<Link to={`/events/${event.slug}`} aria-describedby={`${id}-status ${id}-count`} className="after:absolute after:inset-0 after:rounded-xl">
+							{event.name}
+						</Link>
+					</h3>
 				</div>
+				{wide && buttons}
 			</div>
-			{/* Figma "Events – card menu". relative lifts it above the card's stretched link; a 44px target on phones. */}
-			<div className="relative -mt-2.5 -mr-2.5 shrink-0 md:m-0">
-				<Menu
-					label={`Options for ${event.name}`}
-					buttonClassName="flex size-11 items-center justify-center rounded-md hover:bg-light-blue/60 md:size-auto md:p-1"
-					items={[
-						...(canEdit ? [{ label: 'Settings', icon: sliders, to: `/events/${event.slug}/settings` }] : []),
-						{
-							label: 'Copy check-in link',
-							icon: link,
-							onSelect: () => navigator.clipboard.writeText(checkInUrl(event.slug)).then(() => showToast('Check-in link copied')),
-						},
-						{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event) },
-						{ label: 'Export attendance (CSV)', icon: download, onSelect: () => exportAttendance(event) },
-						...(canDelete ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
-					]}
-				>
-					<img src={ellipsis} alt="" width={18} height={18} />
-				</Menu>
-			</div>
-			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
+			<EventMenu event={event} className="-mt-2.5 -mr-2.5 self-start md:-mt-1 md:-mr-2 xl:col-start-3" />
+			<div className="col-span-2 xl:col-span-1 xl:col-start-2 xl:row-start-1">{count}</div>
+			{!wide && buttons && <div className="col-span-2">{buttons}</div>}
 		</article>
 	);
 }

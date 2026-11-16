@@ -6,6 +6,7 @@ import magnifyingGlass from '../assets/magnifying-glass.svg';
 import searchEmpty from '../assets/search-empty.svg';
 import EmptyState from '../components/EmptyState';
 import EventCard from '../components/EventCard';
+import EventRow from '../components/EventRow';
 import PageHeader from '../components/PageHeader';
 import { eventPhase, groupOf, type EventGroup } from '../lib/eventPhase';
 import { useEventSummaries, type EventSummary } from '../lib/events';
@@ -126,13 +127,24 @@ export default function EventsPage() {
 								<h2 id={`events-${group}`} className="font-display text-lg leading-normal">
 									{title}
 								</h2>
-								<ul className="flex flex-col gap-3">
-									{shown.map((summary) => (
-										<li key={summary.event.slug}>
-											<EventCard summary={summary} team={team(summary)} />
-										</li>
-									))}
-								</ul>
+								{group === 'now' ? (
+									<ul className="flex flex-col gap-3">
+										{shown.map((summary) => (
+											<li key={summary.event.slug}>
+												<EventCard summary={summary} team={team(summary)} />
+											</li>
+										))}
+									</ul>
+								) : (
+									// One list, scanned by date. Not overflow-hidden, so row menus can open past its edge.
+									<ul className="divide-y divide-light-blue rounded-xl border border-med-blue bg-white">
+										{shown.map((summary) => (
+											<li key={summary.event.slug} className="group">
+												<EventRow summary={summary} team={team(summary)} />
+											</li>
+										))}
+									</ul>
+								)}
 								{group === 'past' && list.length > PAST_SHOWN + 2 && !needle && grouped.now.length + grouped.upcoming.length > 0 && (
 									<button type="button" onClick={() => setAllPast(!allPast)} className={`${buttonClass('secondary')} self-start`}>
 										{allPast ? 'Show fewer' : `Show all ${list.length} past events`}

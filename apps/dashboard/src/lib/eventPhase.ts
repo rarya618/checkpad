@@ -1,7 +1,6 @@
 // Where an event is in its life, for the Events page. The shared checkInStatus() answers what
 // attendees see ("Not open yet" or "Check-in closed"); organisers also need to know that an
 // event is on today but nobody has opened check-in, or that check-in was left on after it ended.
-import type { CheckInStatus } from '@checkpad/shared/events';
 import type { DashboardEvent } from './events';
 
 export type EventPhase =
@@ -35,16 +34,6 @@ export function eventPhase(event: Pick<DashboardEvent, 'startsAt' | 'endsAt' | '
 	const changed = event.selfCheckInChangedAt ? new Date(event.selfCheckInChangedAt).getTime() : 0;
 	return changed >= start.getTime() - 12 * HOUR ? 'closed-early' : 'today';
 }
-
-/** What the check-in ring shows: registrations until check-in opens, arrivals after. */
-export const ringStatus: Record<EventPhase, CheckInStatus> = {
-	live: 'open',
-	'stale-open': 'open',
-	today: 'not-open',
-	upcoming: 'not-open',
-	'closed-early': 'closed',
-	past: 'closed',
-};
 
 export type EventGroup = 'now' | 'upcoming' | 'past';
 

@@ -250,8 +250,8 @@
       },
       {
         "name": "count-change",
-        "value": "500ms bar segments, 700ms ring arc sweep, 450ms count roll from below, ease-out-quick",
-        "purpose": "The Attendees progress bar and event-card rings moving to a new count."
+        "value": "500ms bar segments (new segments grow from 0), 450ms count roll from below, ease-out-quick",
+        "purpose": "The check-in bar and live count moving to a new value on the Attendees stats card and the Events page's Now cards."
       },
       {
         "name": "menu-in",
