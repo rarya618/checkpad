@@ -6,9 +6,11 @@ export interface EventForm {
 	name: string;
 	slug: string;
 	description: string;
-	/** Wall-clock date and times in the event's time zone: "2026-09-10", "17:00". */
+	/** Wall-clock dates and times in the event's time zone: "2026-09-10", "17:00". `date` is the
+	 *  start date; `endDate` is a later one for an event over several days, or the same. */
 	date: string;
 	start: string;
+	endDate: string;
 	end: string;
 	timeZone: string;
 	/** The owner team's ID; empty for none. */
@@ -98,6 +100,7 @@ export function eventToForm(event: DashboardEvent): EventForm {
 		description: event.description,
 		date: start.date,
 		start: start.time,
+		endDate: end.date,
 		end: end.time,
 		timeZone: event.timeZone,
 		ownerTeam: event.ownerTeamId ?? '',
@@ -147,16 +150,38 @@ export function withOwner(form: Pick<EventForm, 'ownerTeam' | 'otherTeams'>, own
 	return { ownerTeam: owner, otherTeams: [...others].sort() };
 }
 
-/** Start and end as ISO timestamps; an end at or before the start finishes the next day. */
+/** Whether the end, on the start date at or before the start time, means the next day: an
+ *  evening that runs past midnight ("18:00" to "01:00"). */
+export function endsNextDay(form: Pick<EventForm, 'date' | 'endDate' | 'start' | 'end'>) {
+	return Boolean(form.start && form.end) && (form.endDate || form.date) === form.date && form.end <= form.start;
+}
+
+/** Start and end as ISO timestamps. An event can run over several days (`endDate`); one that
+ *  ends on its start date at or before its start time finishes the next day (endsNextDay). */
 export function formTimes(form: EventForm) {
 	const start = zonedToDate(form.date, form.start, form.timeZone);
-	let end = zonedToDate(form.date, form.end, form.timeZone);
-	if (end <= start) end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+	let end = zonedToDate(form.endDate || form.date, form.end, form.timeZone);
+	if (endsNextDay(form)) end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
 	return { startsAt: start.toISOString(), endsAt: end.toISOString() };
 }
 
+/** What's wrong with the dates and times, or null: only an end date before the start can be. */
+export function formTimesError(form: EventForm) {
+	if (!form.date || !form.start || !form.end || !form.timeZone) return null;
+	const { startsAt, endsAt } = formTimes(form);
+	return new Date(endsAt) <= new Date(startsAt) ? 'It ends before it starts. Check the end date.' : null;
+}
+
+/** The end date after the start date moves from `from` to `to`, by the same number of days, so
+ *  an event over several days keeps its length. Empty dates follow the start. */
+export function shiftedEndDate(endDate: string, from: string, to: string) {
+	if (!endDate || !from || !to) return to;
+	const days = (Date.parse(to) - Date.parse(from)) / 86_400_000;
+	return new Date(Date.parse(endDate) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
 export function formIsComplete(form: EventForm) {
-	return Boolean(form.name.trim() && form.slug && form.date && form.start && form.end);
+	return Boolean(form.name.trim() && form.slug && form.date && form.start && form.end) && !formTimesError(form);
 }
 
 const labels: Record<keyof EventForm, string> = {
@@ -165,6 +190,7 @@ const labels: Record<keyof EventForm, string> = {
 	description: 'description',
 	date: 'date and time',
 	start: 'date and time',
+	endDate: 'date and time',
 	end: 'date and time',
 	timeZone: 'time zone',
 	ownerTeam: 'owner team',

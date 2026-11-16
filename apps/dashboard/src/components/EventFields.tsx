@@ -1,5 +1,5 @@
 import { countries } from '@checkpad/shared/countries';
-import { timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
+import { endsNextDay, formTimesError, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
@@ -7,41 +7,40 @@ import { SelectField, TextField } from './Field';
 
 type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
 
-// Date, start and end on one row, then the time zone: shared by New event ("When")
-// and Event settings ("Details").
+// When it starts and ends, a date and a time each, then the time zone: shared by New event
+// ("When") and Event settings ("Details"). An event can run over several days; one that ends on
+// its start date before its start time runs past midnight, and the end date says so.
 export function DateTimeFields({ form, update }: { form: EventForm; update: Update }) {
+	const nextDay = endsNextDay(form);
 	return (
 		<>
-			{/* One row when the card has room (384px, from its own width, not the window's): the date
-			    then two short time boxes. Narrower, the date takes a row of its own, as it needs
-			    about 160px, and the times share the row below. */}
-			<div className="@container">
-				<div className="grid grid-cols-2 gap-3 @sm:grid-cols-[minmax(0,1fr)_6rem_6rem]">
-					<TextField
-						label="Date"
-						type="date"
-						required
-						value={form.date}
-						onChange={(e) => update('date', e.target.value)}
-						className="col-span-2 min-w-0 @sm:col-span-1"
-					/>
-					<TextField
-						label="Starts"
-						type="time"
-						required
-						value={form.start}
-						onChange={(e) => update('start', e.target.value)}
-						className="min-w-0"
-					/>
-					<TextField
-						label="Ends"
-						type="time"
-						required
-						value={form.end}
-						onChange={(e) => update('end', e.target.value)}
-						className="min-w-0"
-					/>
-				</div>
+			{/* Start on one row and end on the next, each a date and a short time box */}
+			<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
+				<TextField
+					label="Start date"
+					type="date"
+					required
+					value={form.date}
+					onChange={(e) => {
+						// The end date moves with it, keeping an event over several days the same length
+						update('endDate', shiftedEndDate(form.endDate, form.date, e.target.value));
+						update('date', e.target.value);
+					}}
+					className="min-w-0"
+				/>
+				<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
+				<TextField
+					label="End date"
+					type="date"
+					required
+					min={form.date || undefined}
+					value={form.endDate || form.date}
+					onChange={(e) => update('endDate', e.target.value)}
+					hint={nextDay ? 'Ends the next day, after midnight' : undefined}
+					error={formTimesError(form)}
+					className="min-w-0"
+				/>
+				<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
 			</div>
 			<SelectField label="Time zone" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)}>
 				{countries.map((c) => (

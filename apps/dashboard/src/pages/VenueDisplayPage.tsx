@@ -1,5 +1,5 @@
 import { checkInStatus, type CheckInStatus } from '@checkpad/shared/events';
-import { formatDay, formatTimeRange } from '@checkpad/shared/format';
+import { formatSchedule } from '@checkpad/shared/format';
 import logo from '@checkpad/shared/checkpad-logo.svg';
 import { Navigate, useParams } from 'react-router';
 import QrCode from '../components/QrCode';
@@ -32,7 +32,7 @@ export default function VenueDisplayPage() {
 				<div className="flex flex-col items-center gap-6 text-center lg:items-start lg:gap-8 lg:text-left">
 					<div className="flex flex-col items-center gap-3 lg:items-start lg:gap-4">
 						<p className="text-lg font-semibold text-med-blue lg:text-xl 2xl:text-2xl">
-							{formatDay(start, event.timeZone)} · {formatTimeRange(start, new Date(event.endsAt), event.timeZone)}
+							{formatSchedule(start, new Date(event.endsAt), event.timeZone, { year: false })}
 						</p>
 						<h1 className="font-display text-4xl leading-tight text-balance lg:text-6xl 2xl:text-7xl">{event.name}</h1>
 						{event.description && <p className="text-xl leading-snug whitespace-pre-line text-med-blue lg:text-2xl 2xl:text-3xl">{event.description}</p>}

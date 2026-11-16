@@ -20,6 +20,7 @@ const blank: EventForm = {
 	description: '',
 	date: '',
 	start: '17:00',
+	endDate: '',
 	end: '20:00',
 	timeZone: '',
 	ownerTeam: '',

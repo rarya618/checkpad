@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { formatDate, formatTimeRange } from '@checkpad/shared/format';
+import { formatSchedule } from '@checkpad/shared/format';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import clipboard from '../assets/clipboard.svg';
@@ -52,7 +52,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				<div className="flex flex-col gap-1">
 					<h1 className="font-display text-2xl md:text-3xl">{event.name}</h1>
 					<p className="text-sm font-semibold text-dark-blue">
-						{formatDate(start, event.timeZone)}, {formatTimeRange(start, end, event.timeZone)}
+						{formatSchedule(start, end, event.timeZone)}
 					</p>
 				</div>
 				<CheckInLink url={checkInUrl(event.slug)} />

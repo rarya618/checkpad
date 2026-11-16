@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { formatClockTime, formatDate } from '@checkpad/shared/format';
+import { formatClockTime, formatDate, formatDay, isMultiDay } from '@checkpad/shared/format';
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
 import { useSession } from '../lib/auth';
@@ -22,15 +22,17 @@ const statuses: Partial<Record<EventPhase, { label: string; open: boolean }>> = 
 	'closed-early': { label: 'Check-in closed', open: false },
 };
 
-const DAY = 24 * 60 * 60 * 1000;
-
 /**
- * "Today · 18:00–21:00", "Thu, 14 March 2030 · 18:00–21:00", or a date range when it runs over
- * several days. An event that ends after midnight is still one evening ("Today · 18:00–01:00");
- * only one a day or longer, like the demo event, shows dates.
+ * "Today · 18:00–21:00" or "Thu, 14 March 2030 · 18:00–21:00"; an evening that ends after
+ * midnight is still one evening ("Today · 18:00–01:00"). Over several days, both ends:
+ * "Sat 14 March, 09:00 – Sun 15 March, 17:00", with years when they differ.
  */
 function when(start: Date, end: Date, timeZone: string, today: boolean) {
-	if (end.getTime() - start.getTime() >= DAY) return `${formatDate(start, timeZone)} – ${formatDate(end, timeZone)}`;
+	if (isMultiDay(start, end, timeZone)) {
+		const year = (d: Date) => d.toLocaleDateString('en-AU', { timeZone, year: 'numeric' });
+		const day = (d: Date) => `${formatDay(d, timeZone)}${year(start) === year(end) ? '' : ` ${year(d)}`}`;
+		return `${day(start)}, ${formatClockTime(start, timeZone)} – ${day(end)}, ${formatClockTime(end, timeZone)}`;
+	}
 	const times = `${formatClockTime(start, timeZone)}–${formatClockTime(end, timeZone)}`;
 	return `${today ? 'Today' : formatDate(start, timeZone)} · ${times}`;
 }

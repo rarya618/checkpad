@@ -1,4 +1,4 @@
-import { formatClockTime, formatDate } from '@checkpad/shared/format';
+import { formatClockTime, isMultiDay } from '@checkpad/shared/format';
 import { useId } from 'react';
 import { Link } from 'react-router';
 import { eventPhase } from '../lib/eventPhase';
@@ -6,18 +6,21 @@ import type { EventSummary } from '../lib/events';
 import CheckInBar from './CheckInBar';
 import EventMenu from './EventMenu';
 
-const DAY = 24 * 60 * 60 * 1000;
-
 const part = (date: Date, timeZone: string, options: Intl.DateTimeFormatOptions) =>
 	new Intl.DateTimeFormat('en-AU', { timeZone, ...options }).format(date);
 
 /**
- * "Thu · 18:00–21:00", or the dates when it runs over several days. The form makes events under
- * a day long, ending after midnight when they run late ("Fri · 18:00–01:00"), so only a longer
- * one, like the demo event, shows dates.
+ * "Thu · 18:00–21:00", ending after midnight when it runs late ("Fri · 18:00–01:00"). Over
+ * several days, through to the end: "Sat 09:00 – Sun 15 Mar 17:00" (the date column has the start).
  */
 function when(start: Date, end: Date, timeZone: string) {
-	if (end.getTime() - start.getTime() >= DAY) return `${formatDate(start, timeZone)} – ${formatDate(end, timeZone)}`;
+	if (isMultiDay(start, end, timeZone)) {
+		// Built from parts: en-AU would put a comma after the weekday ("Sun, 12 May")
+		const year = (d: Date) => part(d, timeZone, { year: 'numeric' });
+		const endDay = [part(end, timeZone, { weekday: 'short' }), part(end, timeZone, { day: 'numeric' }), part(end, timeZone, { month: 'short' }).slice(0, 3)];
+		if (year(end) !== year(start)) endDay.push(year(end));
+		return `${part(start, timeZone, { weekday: 'short' })} ${formatClockTime(start, timeZone)} – ${endDay.join(' ')} ${formatClockTime(end, timeZone)}`;
+	}
 	return `${part(start, timeZone, { weekday: 'short' })} · ${formatClockTime(start, timeZone)}–${formatClockTime(end, timeZone)}`;
 }
 

@@ -1,6 +1,7 @@
 // Where an event is in its life, for the Events page. The shared checkInStatus() answers what
 // attendees see ("Not open yet" or "Check-in closed"); organisers also need to know that an
 // event is on today but nobody has opened check-in, or that check-in was left on after it ended.
+import { isMultiDay } from '@checkpad/shared/format';
 import type { DashboardEvent } from './events';
 
 export type EventPhase =
@@ -30,9 +31,13 @@ export function eventPhase(event: Pick<DashboardEvent, 'startsAt' | 'endsAt' | '
 	if (event.selfCheckInOpen) return ended ? 'stale-open' : 'live';
 	if (ended) return 'past';
 	if (now < start && !startsToday(event, now)) return 'upcoming';
-	// Switched off within 12 hours of the start: it was opened for this event and closed again
-	const changed = event.selfCheckInChangedAt ? new Date(event.selfCheckInChangedAt).getTime() : 0;
-	return changed >= start.getTime() - 12 * HOUR ? 'closed-early' : 'today';
+	// Switched off within 12 hours of the start: it was opened for this event and closed again.
+	// Over several days, closing it at the end of one day leaves the next "not open yet", so
+	// there only closing it today counts.
+	const changed = event.selfCheckInChangedAt ? new Date(event.selfCheckInChangedAt) : null;
+	const closedForThisEvent = changed !== null && changed.getTime() >= start.getTime() - 12 * HOUR;
+	const closedToday = changed !== null && day(changed, event.timeZone) === day(now, event.timeZone);
+	return closedForThisEvent && (closedToday || !isMultiDay(start, end, event.timeZone)) ? 'closed-early' : 'today';
 }
 
 export type EventGroup = 'now' | 'upcoming' | 'past';

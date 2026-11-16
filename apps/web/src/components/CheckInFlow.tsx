@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 import type { CheckedIn, PublicEvent } from '@checkpad/shared/api';
 import { buttonClass } from '@checkpad/shared/button';
 import { checkInStatus } from '@checkpad/shared/events';
-import { formatDay, formatTime, formatTimeRange } from '@checkpad/shared/format';
+import { formatDay, formatSchedule, formatTime } from '@checkpad/shared/format';
 import { ApiFailure, checkIn, checkInWalkIn } from '../lib/api';
 import LinkNotFound from './LinkNotFound';
 import StatusScreen from './StatusScreen';
@@ -172,8 +172,7 @@ export default function CheckInFlow({ event, children }: Props) {
 					<header className="flex flex-col gap-1">
 						{/* So attendees can see it's tonight's event */}
 						<p className="text-base font-semibold text-med-blue">
-							{formatDay(new Date(event.startsAt), event.timeZone)} ·{' '}
-							{formatTimeRange(new Date(event.startsAt), new Date(event.endsAt), event.timeZone)}
+							{formatSchedule(new Date(event.startsAt), new Date(event.endsAt), event.timeZone, { year: false })}
 						</p>
 						<h1 className="font-display text-3xl leading-tight break-words">{event.name}</h1>
 					</header>
