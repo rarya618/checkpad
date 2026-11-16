@@ -126,7 +126,8 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 			<div className="flex min-w-0 flex-col items-start gap-4">
 				<div className="flex flex-col items-start gap-2">
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-						<span id={`${id}-status`}>
+						{/* flex, so the wrapper is the indicator's own height and its label shares the date's line */}
+						<span id={`${id}-status`} className="flex">
 							<StatusBadge open={status.open} label={status.label} />
 						</span>
 						<p className="text-sm leading-normal font-medium tracking-tight">
