@@ -20,7 +20,19 @@ function when(start: Date, end: Date, timeZone: string) {
  * needed. Upcoming rows say how many registered; past rows say how many came, with a thin
  * turnout bar. On phones the number moves under the name.
  */
-export default function EventRow({ summary, team }: { summary: EventSummary; /** Shown when the viewer sees several teams' events. */ team?: string }) {
+export default function EventRow({
+	summary,
+	team,
+	first,
+	last,
+}: {
+	summary: EventSummary;
+	/** Shown when the viewer sees several teams' events. */
+	team?: string;
+	/** The list's first and last visible rows, whose hover fills its rounded corners. */
+	first: boolean;
+	last: boolean;
+}) {
 	const { event, stats } = summary;
 	const past = eventPhase(event) === 'past';
 	const id = useId();
@@ -30,10 +42,11 @@ export default function EventRow({ summary, team }: { summary: EventSummary; /**
 	// Only events from another year say which, under the day
 	const year = part(start, timeZone, { year: 'numeric' });
 	const thisYear = year === part(new Date(), timeZone, { year: 'numeric' });
+	const corners = `${first ? 'rounded-t-xl' : ''} ${last ? 'rounded-b-xl' : ''}`;
 	const turnout = stats.total ? Math.round((stats.checkedIn / stats.total) * 100) : 0;
 
 	return (
-		<div className="relative grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 py-4 pr-3 pl-4 group-first:rounded-t-xl group-last:rounded-b-xl hover:bg-off-white/70 md:grid-cols-[3.5rem_minmax(0,1fr)_auto_auto] md:gap-x-6 md:py-4 md:pr-4 md:pl-5">
+		<div className={`relative grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 py-4 pr-3 pl-4 hover:bg-off-white/70 ${corners} md:grid-cols-[3.5rem_minmax(0,1fr)_auto_auto] md:gap-x-6 md:py-4 md:pr-4 md:pl-5`}>
 			{/* The date, for scanning down the list */}
 			<p className="row-span-2 flex flex-col items-center self-start md:row-span-1 md:self-center">
 				<span className="text-xs leading-normal font-bold tracking-normal text-med-blue uppercase">{/* Three letters for every month (en-AU writes "Sept"), so the column keeps its rhythm */}
@@ -45,7 +58,7 @@ export default function EventRow({ summary, team }: { summary: EventSummary; /**
 			<div className="flex min-w-0 flex-col gap-0.5">
 				<h3 className="line-clamp-2 font-display text-base md:truncate md:text-lg">
 					{/* Stretched link: the whole row opens the event, except its menu */}
-					<Link to={`/events/${event.slug}`} aria-describedby={`${id}-count`} className="after:absolute after:inset-0 group-first:after:rounded-t-xl group-last:after:rounded-b-xl">
+					<Link to={`/events/${event.slug}`} aria-describedby={`${id}-count`} className={`after:absolute after:inset-0 ${first ? 'after:rounded-t-xl' : ''} ${last ? 'after:rounded-b-xl' : ''}`}>
 						{event.name}
 					</Link>
 				</h3>

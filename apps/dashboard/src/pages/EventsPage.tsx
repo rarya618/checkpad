@@ -1,5 +1,5 @@
 import { buttonClass } from '@checkpad/shared/button';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import calendar from '../assets/calendar.svg';
 import magnifyingGlass from '../assets/magnifying-glass.svg';
@@ -34,6 +34,20 @@ export default function EventsPage() {
 	const teams = useTeams(superAdmin);
 	const [query, setQuery] = useState('');
 	const [allPast, setAllPast] = useState(false);
+	// The extra past rows clip while they open and close, and stop clipping once open, so
+	// their menus can open past the list's edge
+	const [pastSettled, setPastSettled] = useState(false);
+	const pastSection = useRef<HTMLElement>(null);
+	const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const togglePast = () => {
+		const opening = !allPast;
+		setAllPast(opening);
+		setPastSettled(opening && reduceMotion());
+		// Collapsing from far down the list: bring the Past heading back into view, so the
+		// page doesn't strand the reader below a list that just got shorter
+		const top = pastSection.current?.getBoundingClientRect().top ?? 0;
+		if (!opening && top < 0) pastSection.current?.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+	};
 
 	const team = (summary: EventSummary) => (superAdmin ? (summary.event.ownerTeamId === null ? 'No team' : teamName(teams, summary.event.ownerTeamId)) : undefined);
 	const needle = query.trim().toLowerCase();
@@ -50,7 +64,8 @@ export default function EventsPage() {
 	grouped.upcoming.sort(byStart);
 	grouped.past.sort((a, b) => byStart(b, a));
 	// Collapse the past only when something else leads the page and there's a lot of it
-	const collapsePast = !needle && !allPast && grouped.past.length > PAST_SHOWN + 2 && grouped.now.length + grouped.upcoming.length > 0;
+	// Collapse the past only when something else leads the page and there's a lot of it
+	const collapsible = !needle && grouped.past.length > PAST_SHOWN + 2 && grouped.now.length + grouped.upcoming.length > 0;
 
 	return (
 		<>
@@ -121,9 +136,17 @@ export default function EventsPage() {
 					{sections.map(({ group, title }) => {
 						const list = grouped[group];
 						if (list.length === 0) return null;
-						const shown = group === 'past' && collapsePast ? list.slice(0, PAST_SHOWN) : list;
+						// Past keeps its extra rows in the list, folded away until "Show all"
+						const folds = group === 'past' && collapsible;
+						const shown = folds ? list.slice(0, PAST_SHOWN) : list;
+						const extra = folds ? list.slice(PAST_SHOWN) : [];
 						return (
-							<section key={group} aria-labelledby={`events-${group}`} className="flex flex-col gap-3">
+							<section
+								key={group}
+								ref={group === 'past' ? pastSection : undefined}
+								aria-labelledby={`events-${group}`}
+								className="flex scroll-mt-24 flex-col gap-3"
+							>
 								<h2 id={`events-${group}`} className="font-display text-lg leading-normal">
 									{title}
 								</h2>
@@ -138,15 +161,41 @@ export default function EventsPage() {
 								) : (
 									// One list, scanned by date. Not overflow-hidden, so row menus can open past its edge.
 									<ul className="divide-y divide-light-blue rounded-xl border border-med-blue bg-white">
-										{shown.map((summary) => (
-											<li key={summary.event.slug} className="group">
-												<EventRow summary={summary} team={team(summary)} />
+										{shown.map((summary, i) => (
+											<li key={summary.event.slug}>
+												<EventRow
+													summary={summary}
+													team={team(summary)}
+													first={i === 0}
+													last={i === shown.length - 1 && !(extra.length > 0 && allPast)}
+												/>
 											</li>
 										))}
+										{extra.length > 0 && (
+											// Opens to the rows' height (index.css). Inert while folded, so its rows
+											// can't be tabbed to; no divider of its own, its first row brings one.
+											<li
+												data-expander
+												data-open={allPast || undefined}
+												inert={!allPast}
+												onTransitionEnd={(e) => {
+													if (e.target === e.currentTarget && e.propertyName === 'grid-template-rows') setPastSettled(allPast);
+												}}
+												className="border-t-0!"
+											>
+												<ul className={`divide-y divide-light-blue ${pastSettled && allPast ? '' : 'overflow-hidden'}`}>
+													{extra.map((summary, i) => (
+														<li key={summary.event.slug} className={i === 0 ? 'border-t border-light-blue' : ''}>
+															<EventRow summary={summary} team={team(summary)} first={false} last={i === extra.length - 1} />
+														</li>
+													))}
+												</ul>
+											</li>
+										)}
 									</ul>
 								)}
-								{group === 'past' && list.length > PAST_SHOWN + 2 && !needle && grouped.now.length + grouped.upcoming.length > 0 && (
-									<button type="button" onClick={() => setAllPast(!allPast)} className={`${buttonClass('secondary')} self-start`}>
+								{folds && (
+									<button type="button" aria-expanded={allPast} onClick={togglePast} className={`${buttonClass('secondary')} self-start`}>
 										{allPast ? 'Show fewer' : `Show all ${list.length} past events`}
 									</button>
 								)}
