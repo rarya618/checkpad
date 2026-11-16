@@ -1,54 +1,77 @@
 import { countries } from '@checkpad/shared/countries';
-import { useRef } from 'react';
-import { endsNextDay, formTimesError, isFullDate, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
+import { useEffect, useRef, useState } from 'react';
+import { endsNextDay, formTimesError, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
+import { DateTrigger, RangeCalendar } from './DatePicker';
 import { SelectField, TextField } from './Field';
 
 type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
 
 // When it starts and ends, a date and a time each, then the time zone: shared by New event
-// ("When") and Event settings ("Details"). An event can run over several days; one that ends on
-// its start date before its start time runs past midnight, and the end date says so.
+// ("When") and Event settings ("Details"). The dates open one calendar that picks the start
+// day, then the end day (DatePicker); one that ends on its start date before its start time
+// runs past midnight, and the end date says so.
 export function DateTimeFields({ form, update }: { form: EventForm; update: Update }) {
 	const nextDay = endsNextDay(form);
-	// The last whole start date: while a year is being typed the field passes through "0002",
-	// "0020" and so on, and the end date only follows once the start is a real date again
-	const lastStart = useRef(form.date);
+	const [picking, setPicking] = useState<'start' | 'end' | null>(null);
+	const area = useRef<HTMLDivElement>(null);
+	const startButton = useRef<HTMLButtonElement>(null);
+	const endButton = useRef<HTMLButtonElement>(null);
+	const endDate = form.endDate || form.date;
+
+	const close = (focusField = true) => {
+		if (focusField) (picking === 'end' ? endButton : startButton).current?.focus();
+		setPicking(null);
+	};
+	// A click anywhere else closes the calendar, leaving focus where the click put it
+	useEffect(() => {
+		if (!picking) return;
+		const onDown = (e: PointerEvent) => {
+			if (!area.current?.contains(e.target as Node)) setPicking(null);
+		};
+		document.addEventListener('pointerdown', onDown);
+		return () => document.removeEventListener('pointerdown', onDown);
+	}, [picking]);
+
+	const pick = (date: string) => {
+		if (picking === 'start') {
+			update('date', date);
+			// The end date moves with it, keeping an event over several days the same length;
+			// then the calendar asks for the end
+			update('endDate', shiftedEndDate(form.endDate, form.date, date));
+			setPicking('end');
+		} else {
+			update('endDate', date);
+			close();
+		}
+	};
+
 	return (
 		<>
-			{/* Start on one row and end on the next, each a date and a short time box */}
-			<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
-				<TextField
-					label="Start date"
-					type="date"
-					required
-					value={form.date}
-					onChange={(e) => {
-						const date = e.target.value;
-						update('date', date);
-						// The end date moves with it, keeping an event over several days the same length
-						if (isFullDate(date)) {
-							update('endDate', shiftedEndDate(form.endDate, lastStart.current, date));
-							lastStart.current = date;
-						}
-					}}
-					className="min-w-0"
-				/>
-				<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
-				<TextField
-					label="End date"
-					type="date"
-					required
-					min={form.date || undefined}
-					value={form.endDate || form.date}
-					onChange={(e) => update('endDate', e.target.value)}
-					hint={nextDay ? 'Ends the next day, after midnight' : undefined}
-					error={formTimesError(form)}
-					className="min-w-0"
-				/>
-				<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
+			{/* Start on one row and end on the next, each a date and a short time box. The
+			    calendar opens under both dates, so both stay in view while picking. */}
+			<div ref={area} className="relative">
+				<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
+					<DateTrigger ref={startButton} label="Start date" value={form.date} open={picking === 'start'} onOpen={() => setPicking(picking === 'start' ? null : 'start')} />
+					<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
+					<DateTrigger
+						ref={endButton}
+						label="End date"
+						value={endDate}
+						open={picking === 'end'}
+						onOpen={() => setPicking(picking === 'end' ? null : form.date ? 'end' : 'start')}
+						hint={nextDay ? 'Ends the next day, after midnight' : undefined}
+						error={formTimesError(form)}
+					/>
+					<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
+				</div>
+				{picking && (
+					<div className="absolute top-full left-0 z-30 mt-2 w-full">
+						<RangeCalendar mode={picking} start={form.date} end={endDate} onPick={pick} onClose={close} />
+					</div>
+				)}
 			</div>
 			<SelectField label="Time zone" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)}>
 				{countries.map((c) => (
