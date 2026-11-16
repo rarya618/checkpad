@@ -83,7 +83,7 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 						<!-- The attendee's whole phone screen, and the arrival it makes; on phones it sits bottom right, clear of the count -->
 						<div
 							data-intro="phone"
-							class="absolute -right-1 -bottom-8 w-[34%] max-w-[230px] rounded-4xl border-[5px] border-dark-blue bg-off-white p-0.5 shadow-[0_24px_48px_-8px_rgb(17_45_78/0.35)] md:top-[20%] md:right-auto md:bottom-auto md:-left-8 md:w-[30%] md:border-[6px] md:p-1 xl:-left-16"
+							class="absolute -right-1 -bottom-8 w-[34%] max-w-[230px] rounded-3xl bg-dark-blue p-1.5 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.18),0_0_0_1px_rgb(17_45_78/0.5),0_24px_48px_-8px_rgb(17_45_78/0.35)] md:top-[20%] md:right-auto md:bottom-auto md:-left-8 md:w-[30%] md:rounded-4xl md:p-2 xl:-left-16"
 						>
 							<Image
 								src={checkInPhone}
@@ -91,8 +91,13 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 								widths={[230, 460, 690]}
 								sizes="(min-width: 768px) 230px, 34vw"
 								loading="eager"
-								class="w-full rounded-3xl"
-							/>							<!-- A tap on the phone's Check in button, just before the arrival appears -->
+								class="w-full rounded-2xl md:rounded-3xl"
+							/>
+							<!-- The side buttons: volume on the left, power on the right -->
+							<span aria-hidden="true" class="absolute top-[20%] -left-1 h-[7%] w-1 rounded-l-sm bg-dark-blue"></span>
+							<span aria-hidden="true" class="absolute top-[29%] -left-1 h-[7%] w-1 rounded-l-sm bg-dark-blue"></span>
+							<span aria-hidden="true" class="absolute top-[24%] -right-1 h-[11%] w-1 rounded-r-sm bg-dark-blue"></span>
+							<!-- A tap on the phone's Check in button, just before the arrival appears -->
 							<span data-tap aria-hidden="true" class="absolute top-[58%] left-1/2 -mt-6 -ml-6 size-12 rounded-full border-2 border-med-blue bg-med-blue/20"></span>
 							<!-- What the phone's Check in does, pointing at it: below the button on larger
 							     screens, above the phone on small ones -->
