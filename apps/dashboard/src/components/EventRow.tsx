@@ -6,12 +6,18 @@ import type { EventSummary } from '../lib/events';
 import CheckInBar from './CheckInBar';
 import EventMenu from './EventMenu';
 
+const DAY = 24 * 60 * 60 * 1000;
+
 const part = (date: Date, timeZone: string, options: Intl.DateTimeFormatOptions) =>
 	new Intl.DateTimeFormat('en-AU', { timeZone, ...options }).format(date);
 
-/** "Thu · 18:00–21:00", or the dates when it runs over several days. */
+/**
+ * "Thu · 18:00–21:00", or the dates when it runs over several days. The form makes events under
+ * a day long, ending after midnight when they run late ("Fri · 18:00–01:00"), so only a longer
+ * one, like the demo event, shows dates.
+ */
 function when(start: Date, end: Date, timeZone: string) {
-	if (formatDate(start, timeZone) !== formatDate(end, timeZone)) return `${formatDate(start, timeZone)} – ${formatDate(end, timeZone)}`;
+	if (end.getTime() - start.getTime() >= DAY) return `${formatDate(start, timeZone)} – ${formatDate(end, timeZone)}`;
 	return `${part(start, timeZone, { weekday: 'short' })} · ${formatClockTime(start, timeZone)}–${formatClockTime(end, timeZone)}`;
 }
 

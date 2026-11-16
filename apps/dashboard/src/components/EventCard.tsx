@@ -22,9 +22,15 @@ const statuses: Partial<Record<EventPhase, { label: string; open: boolean }>> = 
 	'closed-early': { label: 'Check-in closed', open: false },
 };
 
-/** "Today · 18:00–21:00", "Thu, 14 March 2030 · 18:00–21:00", or a date range when it runs over several days. */
+const DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * "Today · 18:00–21:00", "Thu, 14 March 2030 · 18:00–21:00", or a date range when it runs over
+ * several days. An event that ends after midnight is still one evening ("Today · 18:00–01:00");
+ * only one a day or longer, like the demo event, shows dates.
+ */
 function when(start: Date, end: Date, timeZone: string, today: boolean) {
-	if (formatDate(start, timeZone) !== formatDate(end, timeZone)) return `${formatDate(start, timeZone)} – ${formatDate(end, timeZone)}`;
+	if (end.getTime() - start.getTime() >= DAY) return `${formatDate(start, timeZone)} – ${formatDate(end, timeZone)}`;
 	const times = `${formatClockTime(start, timeZone)}–${formatClockTime(end, timeZone)}`;
 	return `${today ? 'Today' : formatDate(start, timeZone)} · ${times}`;
 }
