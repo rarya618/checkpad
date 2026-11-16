@@ -65,7 +65,9 @@ function toEvent(snap: DocumentSnapshot): DashboardEvent {
 		endsAt: iso(data.endsAt)!,
 		timeZone: data.timeZone,
 		teamIds: data.teamIds ?? [],
-		ownerTeamId: data.ownerTeamId ?? null,
+		// Events made before owners existed have none: their first team owns them, as the
+		// migration would have set, so saving settings keeps the team rather than dropping it
+		ownerTeamId: data.ownerTeamId ?? data.teamIds?.[0] ?? null,
 		selfWalkIns: data.selfWalkIns,
 		selfCheckInOpen: data.status === 'open',
 		walkInTicketTitle: data.walkInTicketTitle ?? '',
