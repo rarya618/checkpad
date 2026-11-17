@@ -45,3 +45,11 @@ export type EventGroup = 'now' | 'upcoming' | 'past';
 /** Now: open, or on today. Upcoming: later days. Past: ended and closed. */
 export const groupOf = (phase: EventPhase): EventGroup =>
 	phase === 'upcoming' ? 'upcoming' : phase === 'past' ? 'past' : 'now';
+
+/** What self check-in is doing in a Now phase, for its status indicator (Events page cards, the sidebar). */
+export const nowStatus: Partial<Record<EventPhase, { label: string; open: boolean }>> = {
+	live: { label: 'Check-in open', open: true },
+	'stale-open': { label: 'Still open', open: true },
+	today: { label: 'Not open yet', open: false },
+	'closed-early': { label: 'Check-in closed', open: false },
+};

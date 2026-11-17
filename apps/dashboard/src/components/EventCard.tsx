@@ -3,7 +3,7 @@ import { formatClockTime, formatDate, formatDay, isMultiDay } from '@checkpad/sh
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
 import { useSession } from '../lib/auth';
-import { eventPhase, startsToday, type EventPhase } from '../lib/eventPhase';
+import { eventPhase, nowStatus, startsToday } from '../lib/eventPhase';
 import { setSelfCheckIn, type EventSummary } from '../lib/events';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import { eventNameOut, useTransitionLink } from '../lib/pageTransition';
@@ -17,12 +17,7 @@ import StatusBadge from './StatusBadge';
 
 // The badge says what self check-in is doing; filled while attendees can check themselves in.
 // Only Now's phases reach this card: upcoming and past events are rows (EventRow).
-const statuses: Partial<Record<EventPhase, { label: string; open: boolean }>> = {
-	live: { label: 'Check-in open', open: true },
-	'stale-open': { label: 'Still open', open: true },
-	today: { label: 'Not open yet', open: false },
-	'closed-early': { label: 'Check-in closed', open: false },
-};
+const statuses = nowStatus;
 
 /**
  * "Today · 18:00–21:00" or "Thu, 14 March 2030 · 18:00–21:00"; an evening that ends after

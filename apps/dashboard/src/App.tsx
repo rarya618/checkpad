@@ -102,9 +102,7 @@ function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: Mobile
 	}
 	return (
 		<div className="flex h-dvh overflow-hidden">
-			<div className="shrink-0 py-6 pr-3 pl-6">
-				<Sidebar {...sidebar} />
-			</div>
+			<Sidebar {...sidebar} />
 			<div className="relative min-w-0 flex-1">
 				{/* No top padding here: page headers carry it so they can stick flush to the top */}
 				<main style={pageLayer} className="h-full overflow-y-auto overscroll-none pr-6 pb-6">
@@ -147,6 +145,7 @@ function EventLayout() {
 	return (
 		<DashboardLayout
 			items={items}
+			event={event}
 			back={{ to: '/events', label: 'All events' }}
 			screens={screens}
 			// Phones get the same pages in the tab bar (Figma "Staff check in (mobile) – menu" left out Analytics)

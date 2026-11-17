@@ -1,10 +1,16 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Link } from 'react-router';
+import check from '../assets/check-blue.svg';
 
 // Figma "Menu" (event ⋮ menus) at 75% scale: a bordered popover under its button.
 export interface MenuItem {
 	label: string;
-	icon: string;
+	/** Optional: the event switcher's items are text only. */
+	icon?: string;
+	/** A second, quieter line under the label, e.g. an event's date. */
+	detail?: string;
+	/** The page you're on: marked with a tick and aria-current. */
+	current?: boolean;
 	/** A link, or an action. */
 	to?: string;
 	onSelect?: () => void;
@@ -20,12 +26,17 @@ interface Props {
 	buttonClassName: string;
 	/** Shown above the items, e.g. who is signed in (Figma "Account menu"). */
 	header?: ReactNode;
-	/** "above-left" opens upwards from a button near the bottom-left (the sidebar's account button). */
-	placement?: 'below-right' | 'above-left';
+	/**
+	 * "above-left" opens upwards from a button near the bottom-left (the sidebar's account button);
+	 * "below-left" opens down from a wide button's left edge (the sidebar's event switcher).
+	 */
+	placement?: 'below-right' | 'above-left' | 'below-left';
+	/** The popover's width, when 225px doesn't suit. */
+	menuWidth?: string;
 	children: ReactNode;
 }
 
-export default function Menu({ label, items, buttonClassName, header, placement = 'below-right', children }: Props) {
+export default function Menu({ label, items, buttonClassName, header, placement = 'below-right', menuWidth = 'w-[225px]', children }: Props) {
 	const [open, setOpen] = useState(false);
 	const root = useRef<HTMLDivElement>(null);
 	const button = useRef<HTMLButtonElement>(null);
@@ -85,8 +96,8 @@ export default function Menu({ label, items, buttonClassName, header, placement 
 					role="menu"
 					aria-label={label}
 					data-placement={placement}
-					className={`absolute z-20 flex w-[225px] flex-col gap-1 rounded-xl border border-line bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
-						placement === 'above-left' ? 'bottom-[calc(100%+6px)] left-0' : 'top-[calc(100%+6px)] right-0'
+					className={`absolute z-20 flex max-h-[min(480px,70dvh)] ${menuWidth} flex-col gap-1 overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
+						placement === 'above-left' ? 'bottom-[calc(100%+6px)] left-0' : placement === 'below-left' ? 'top-[calc(100%+6px)] left-0' : 'top-[calc(100%+6px)] right-0'
 					}`}
 				>
 					{header && (
@@ -98,15 +109,23 @@ export default function Menu({ label, items, buttonClassName, header, placement 
 					{items.map((item) => {
 						const content = (
 							<>
-								<img src={item.icon} alt="" width={18} height={18} />
-								{item.label}
+								{item.icon && <img src={item.icon} alt="" width={18} height={18} />}
+								{item.detail ? (
+									<span className="flex min-w-0 flex-1 flex-col">
+										<span className="line-clamp-2">{item.label}</span>
+										<span className="text-xs font-normal text-med-blue">{item.detail}</span>
+									</span>
+								) : (
+									<span className="min-w-0 flex-1">{item.label}</span>
+								)}
+								{item.current && <img src={check} alt="" width={16} height={16} className="shrink-0" />}
 							</>
 						);
 						return (
-							<div key={item.label} role="none" className="contents">
+							<div key={item.to ?? item.label} role="none" className="contents">
 								{item.separated && <div role="separator" className="h-px bg-light-blue" />}
 								{item.to && !item.disabled ? (
-									<Link role="menuitem" to={item.to} onClick={() => setOpen(false)} className={itemClass}>
+									<Link role="menuitem" to={item.to} aria-current={item.current ? 'page' : undefined} onClick={() => setOpen(false)} className={itemClass}>
 										{content}
 									</Link>
 								) : (

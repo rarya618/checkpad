@@ -347,6 +347,12 @@ Solid, compact and confident, with an ExtraBold label.
 - **Mobile:** below 72rem a 44px menu button opens a full-screen off-white dialog that unrolls from under the header; links are 1.875rem display text on light-blue row rules with a med-blue chevron, buttons at the bottom. Page scroll locks while it is open.
 - **Footer:** white at 60% over the ground, light-blue top rule, logo and one-line description, three link columns headed in small semibold med-blue, a bottom row of small med-blue text.
 
+### Dashboard sidebar
+From 768px the dashboard has a quiet column down the left, 232px wide, on the page's own off-white ground with a `line` hairline on its right, so the page reads first. The logo sits level with the page titles (58px down). Menu items are a small navy Lucide icon beside a 1rem label; the page you're on gets a light-blue fill and a bold label, and the others take a faint light-blue fill on hover. Small med-blue headings (Screens, Now) start the groups under the menu. The account sits at the bottom behind a hairline: initials circle, name, role and the ⋮ menu.
+
+- **Main pages:** under the menu, **Now** lists the events on now (up to three), each with its status indicator, its name and "41 checked in, of 109", tinted light blue while check-in is open, and each opens that event's Check in page. With nothing on, **Next** shows the next upcoming event and its date. It isn't shown on Events, which leads with the same events.
+- **Inside an event:** All events in small med-blue over the event's name (card-title display type, up to three lines), its date and its status indicator. Pressing the name opens a menu of events (on now, the next six coming up, the last three) with each one's status or date beneath, the current one ticked in med-blue; choosing one opens the same page of that event. Then the event's pages, then Screens.
+
 ### Framed Product Shot (signature)
 The system's imagery: a real screenshot in a white frame with a light-blue hairline, 16px corners and the screenshot frame shadow. In the hero it sits on a light-blue band that starts halfway down, with the attendee's phone overlapping one edge and a navy arrival toast (med-blue check badge, semibold name, light-blue time) floating over it. Inside tiles, screenshots are cropped and zoomed on the relevant part and fade out where the app continues.
 
