@@ -59,8 +59,9 @@ ${current} → ${next}${lastTag ? `, ${changes.length} commits since ${lastTag}`
 1. Tidy the new entry at the top of CHANGELOG.md: merge, reword or drop lines as you like.
 2. Commit and tag it:
      git commit -am "Release ${next}"
-     git tag v${next}
+     git tag -a v${next} -m "Release ${next}"
 3. Deploy, so what's live is ${next}:
      npx -y firebase-tools@latest deploy --only functions,hosting --project checkpad-app
-4. Push the tag with the commit: git push --follow-tags
+4. Push the commit and its tag together (annotated, so --follow-tags sends it):
+     git push --follow-tags
 `);

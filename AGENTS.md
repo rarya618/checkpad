@@ -72,7 +72,7 @@ Emails (dashboard sign-in links and organiser invites) go through Resend from `n
 
 ## Versions
 
-One version for the whole product, SemVer from 1.0.0, in the root `package.json` (every package and the lockfile match it). A patch for fixes and polish, a minor version for something new for organisers or attendees, a major one for a change people have to relearn or redo. `npm run release -- patch | minor | major` bumps everything and drafts the version's entry in `CHANGELOG.md` from the commits since the last tag; then commit it as `Release x.y.z`, tag it `vx.y.z`, and deploy everything. The dashboard shows the version on Profile, and Sentry reports carry it as `checkpad@x.y.z`.
+One version for the whole product, SemVer from 1.0.0, in the root `package.json` (every package and the lockfile match it). A patch for fixes and polish, a minor version for something new for organisers or attendees, a major one for a change people have to relearn or redo. `npm run release -- patch | minor | major` bumps everything and drafts the version's entry in `CHANGELOG.md` from the commits since the last tag; then commit it as `Release x.y.z`, tag it with an annotated `vx.y.z` tag (`git tag -a vx.y.z -m "Release x.y.z"`, which `git push --follow-tags` sends; a plain tag isn't), and deploy everything. The dashboard shows the version on Profile, and Sentry reports carry it as `checkpad@x.y.z`.
 
 ## Error tracking
 
