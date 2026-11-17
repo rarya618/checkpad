@@ -217,15 +217,24 @@ tr[data-arrived] > td:last-child {
   }
 }
 
-/* Opening New event from the Events page, and going back: the page header holds while the
-   body turns over. The two pages cross-fade quickly, the primary button keeps its corner and
-   becomes the other page's ("New event" to "Create event"), and the form's cards rise 12px
-   into place a beat apart. With reduced motion the page just changes. */
+/* Moving between Events, New event and an event's page (pageTransition): the old page fades
+   out in 90ms and the new one fades in after it, so the two never show through each other,
+   while the sidebar and tab bar stay put. Opening New event, the primary button travels to
+   become the other page's ("New event" to "Create event") and the form's cards rise 12px into
+   place a beat apart. With reduced motion the page just changes. */
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-group(root),
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation-duration: 180ms;
+  }
+
+  ::view-transition-old(page) {
+    animation: fade-out 90ms ease-out both;
+  }
+
+  ::view-transition-new(page) {
+    animation: fade-in 160ms ease-out 90ms both;
   }
 
   ::view-transition-group(primary-action) {
@@ -240,7 +249,7 @@ tr[data-arrived] > td:last-child {
 
   /* Opening an event from Events, and going back: its name travels between its row or card
      and the page's title, growing or shrinking as one line of text (each snapshot keeps its
-     proportions, held to the left) while the pages cross-fade around it. */
+     proportions, held to the left) while one page gives way to the other around it. */
   ::view-transition-group(event-title) {
     animation-duration: 320ms;
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
@@ -284,6 +293,12 @@ tr[data-arrived] > td:last-child {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
   }
 }
 

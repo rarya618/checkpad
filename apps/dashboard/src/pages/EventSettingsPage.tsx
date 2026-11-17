@@ -27,6 +27,7 @@ import { useSession } from '../lib/auth';
 import { useMe } from '../lib/organisers';
 import { nextWalkInTicket } from '../lib/roster';
 import { useTeams } from '../lib/teams';
+import { useLeaveGuard } from '../lib/pageTransition';
 import { showToast } from '../lib/toast';
 
 // Keyed by slug so moving between events (or saving a new link) starts a fresh form.
@@ -67,6 +68,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 	const blocker = useBlocker(
 		({ currentLocation, nextLocation }) => dirtyRef.current && currentLocation.pathname !== nextLocation.pathname,
 	);
+	useLeaveGuard(dirty);
 	useEffect(() => {
 		if (!dirty) return;
 		const warn = (e: BeforeUnloadEvent) => e.preventDefault();

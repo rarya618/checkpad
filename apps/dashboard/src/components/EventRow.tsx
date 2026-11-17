@@ -3,6 +3,7 @@ import { useId } from 'react';
 import { Link } from 'react-router';
 import { eventPhase } from '../lib/eventPhase';
 import { eventNameOut, useTransitionLink } from '../lib/pageTransition';
+import { preloadRoster } from '../lib/roster';
 import type { EventSummary } from '../lib/events';
 import CheckInBar from './CheckInBar';
 import EventMenu from './EventMenu';
@@ -47,6 +48,8 @@ export default function EventRow({
 	const past = eventPhase(event) === 'past';
 	const id = useId();
 	const open = useTransitionLink(`/events/${event.slug}`, eventNameOut);
+	// The press or focus that comes before a click starts the attendees loading
+	const preload = () => preloadRoster(event.id);
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
 	const { timeZone } = event;
@@ -70,7 +73,7 @@ export default function EventRow({
 				{/* The name travels to the event's page title when the row is opened (pageTransition) */}
 				<h3 data-event-name={event.slug} className="line-clamp-2 font-display text-base md:truncate md:text-lg">
 					{/* Stretched link: the whole row opens the event, except its menu */}
-					<Link to={`/events/${event.slug}`} onClick={open} aria-describedby={`${id}-count`} className={`after:absolute after:inset-0 ${first ? 'after:rounded-t-xl' : ''} ${last ? 'after:rounded-b-xl' : ''}`}>
+					<Link to={`/events/${event.slug}`} onClick={open} onPointerDown={preload} onFocus={preload} aria-describedby={`${id}-count`} className={`after:absolute after:inset-0 ${first ? 'after:rounded-t-xl' : ''} ${last ? 'after:rounded-b-xl' : ''}`}>
 						{event.name}
 					</Link>
 				</h3>

@@ -74,5 +74,10 @@ export function liveStore<T>(start: Start<T>) {
 		return entries.get(key)?.state.value;
 	}
 
-	return { use, useResult, peek };
+	/** Starts loading `key` ahead of the page that reads it, and keeps it as long as any value a reader has left. */
+	function warm(key: string) {
+		subscribe(key, () => {})();
+	}
+
+	return { use, useResult, peek, warm };
 }

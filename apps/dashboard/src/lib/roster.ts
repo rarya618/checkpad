@@ -70,6 +70,11 @@ export function useRosterLoading(eventSlug: string) {
 	return store.use(useEvent(eventSlug)?.id ?? null);
 }
 
+/** Starts loading an event's attendees as its row is pressed, so its page is ready sooner. */
+export function preloadRoster(eventId: string) {
+	store.warm(eventId);
+}
+
 /** One event's attendees, by link; empty while they load. */
 export function useRoster(eventSlug: string) {
 	return useRosterLoading(eventSlug) ?? EMPTY;

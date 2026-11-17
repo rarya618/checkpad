@@ -53,6 +53,10 @@ const mainItems: SidebarItem[] = [
 ];
 const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Waitlist', icon: list }];
 
+// The page inside the layout is its own layer in a view transition, so one page can fade out
+// and the next in while the sidebar and tab bar stay put (index.css)
+const pageLayer = { viewTransitionName: 'page' };
+
 // The window never scrolls: the sidebar is locked in place and only the content
 // column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and a
 // tab bar along the bottom instead (MobileNav), and the page scrolls normally.
@@ -64,7 +68,7 @@ function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: Mobile
 			<div className="min-h-dvh">
 				<MobileNav {...mobile} back={back} />
 				{/* Clear of the tab bar, which the toasts sit above too */}
-				<main className="pb-24">
+				<main style={pageLayer} className="pb-24">
 					<Outlet />
 				</main>
 				<div className="fixed inset-x-0 bottom-20">
@@ -80,7 +84,7 @@ function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: Mobile
 			</div>
 			<div className="relative min-w-0 flex-1">
 				{/* No top padding here: page headers carry it so they can stick flush to the top */}
-				<main className="h-full overflow-y-auto overscroll-none pr-6 pb-6">
+				<main style={pageLayer} className="h-full overflow-y-auto overscroll-none pr-6 pb-6">
 					<Outlet />
 				</main>
 				<Toaster />

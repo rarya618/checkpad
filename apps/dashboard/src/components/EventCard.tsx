@@ -7,6 +7,7 @@ import { eventPhase, startsToday, type EventPhase } from '../lib/eventPhase';
 import { setSelfCheckIn, type EventSummary } from '../lib/events';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import { eventNameOut, useTransitionLink } from '../lib/pageTransition';
+import { preloadRoster } from '../lib/roster';
 import { showToast } from '../lib/toast';
 import { useIsDesktop, useMediaQuery } from '../lib/useMediaQuery';
 import CheckInBar from './CheckInBar';
@@ -56,6 +57,8 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 	const wide = useMediaQuery('(min-width: 1280px)');
 	const id = useId();
 	const open = useTransitionLink(`/events/${event.slug}`, eventNameOut);
+	// The press or focus that comes before a click starts the attendees loading
+	const preload = () => preloadRoster(event.id);
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
 	const checkInPath = `/events/${event.slug}/check-in`;
@@ -148,7 +151,7 @@ export default function EventCard({ summary, team }: { summary: EventSummary; /*
 					{/* The name travels to the event's page title when the card is opened (pageTransition) */}
 					<h3 data-event-name={event.slug} className="font-display text-xl md:text-2xl">
 						{/* Stretched link: the whole card opens the event, except its buttons and menu */}
-						<Link to={`/events/${event.slug}`} onClick={open} aria-describedby={`${id}-status ${id}-count`} className="after:absolute after:inset-0 after:rounded-xl">
+						<Link to={`/events/${event.slug}`} onClick={open} onPointerDown={preload} onFocus={preload} aria-describedby={`${id}-status ${id}-count`} className="after:absolute after:inset-0 after:rounded-xl">
 							{event.name}
 						</Link>
 					</h3>

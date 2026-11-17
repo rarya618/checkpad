@@ -1,4 +1,4 @@
-import { useLayoutEffect, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, type MouseEvent } from 'react';
 import { useNavigate } from 'react-router';
 
 // Moving between two pages as one view transition (index.css says what moves), for links
@@ -6,8 +6,8 @@ import { useNavigate } from 'react-router';
 // button, and an event's name travels between its row on Events and its page's title. Also
 // for the move to an event once it's created. The router's own `viewTransition` option
 // doesn't reach it from routes declared with <Routes>, so the link starts the transition
-// itself and the page it goes to says when it has rendered (a page loaded on first use takes a
-// moment, and the old one stays up until then).
+// itself and the page it goes to says when it has rendered. The old page waits a moment for
+// that; a page that takes longer fades in by itself when it arrives.
 
 /**
  * Something that travels between the two pages under a view-transition-name. The page being
@@ -22,12 +22,20 @@ export interface Shared {
 
 let arrived: (() => void) | null = null;
 let arriving: Shared | null = null;
+/** The transition went ahead without the new page, which fades in by itself when it arrives. */
+let late = false;
+/** A page that asks before it's left (Event settings with unsaved changes): no transition. */
+let guarded = false;
+
+/** How long the old page waits for the new one before the transition goes ahead without it. */
+const WAIT_MS = 150;
 
 /** Goes to a page inside a view transition, where the browser has them: for after a save. */
 export function useTransitionNavigate() {
 	const navigate = useNavigate();
 	return (to: string, shared?: Shared) => {
-		if (!document.startViewTransition) return void navigate(to);
+		if (!document.startViewTransition || guarded) return void navigate(to);
+		late = false;
 		const named: HTMLElement[] = [];
 		arriving = shared?.arriveAt ? shared : null;
 		if (shared?.from) {
@@ -38,6 +46,7 @@ export function useTransitionNavigate() {
 			() =>
 				new Promise<void>((resolve) => {
 					arrived = () => {
+						clearTimeout(waiting);
 						const target = arriving?.arriveAt ? document.querySelector<HTMLElement>(arriving.arriveAt) : null;
 						if (target && arriving && inView(target)) {
 							target.style.viewTransitionName = arriving.name;
@@ -47,8 +56,11 @@ export function useTransitionNavigate() {
 						resolve();
 					};
 					navigate(to);
-					// Never hold the page for a render that doesn't come
-					setTimeout(resolve, 400);
+					// Never hold the page long for one that's still loading
+					const waiting = setTimeout(() => {
+						late = arrived !== null;
+						resolve();
+					}, WAIT_MS);
 				}),
 		);
 		// The names are only for this move: two elements with one name would stop the next
@@ -86,7 +98,25 @@ export function eventNameBack(): Shared | undefined {
 /** Called by a page that such a link goes to: tells the waiting transition it's on screen. */
 export function usePageArrival() {
 	useLayoutEffect(() => {
+		if (late) {
+			// The transition has been and gone, to a loading page: fade in, as it would have
+			late = false;
+			arrived = null;
+			arriving = null;
+			document.querySelector('main')?.animate({ opacity: [0, 1] }, { duration: 160, easing: 'ease-out' });
+			return;
+		}
 		arrived?.();
 		arrived = null;
 	}, []);
+}
+
+/** Called by a page that asks before it's left: while `on`, links from it skip the transition. */
+export function useLeaveGuard(on: boolean) {
+	useEffect(() => {
+		guarded = on;
+		return () => {
+			guarded = false;
+		};
+	}, [on]);
 }
