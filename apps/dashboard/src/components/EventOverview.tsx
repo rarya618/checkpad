@@ -12,7 +12,6 @@ import trash from '../assets/trash.svg';
 import upload from '../assets/upload.svg';
 import { checkInUrl } from '../lib/config';
 import type { ImportPlan } from '../lib/attendeeImport';
-import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import { ownsEvent, setSelfCheckIn, type DashboardEvent } from '../lib/events';
 import { useSession } from '../lib/auth';
 import { eventPhase, nowStatus } from '../lib/eventPhase';
@@ -20,6 +19,7 @@ import { showToast } from '../lib/toast';
 import StatusBadge from './StatusBadge';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
+import ExportDialog from './ExportDialog';
 import Menu from './Menu';
 import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
 
@@ -36,6 +36,7 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 	const end = new Date(event.endsAt);
 	const [deleting, setDeleting] = useState(false);
 	const [sharing, setSharing] = useState(false);
+	const [exporting, setExporting] = useState(false);
 	const canEdit = useCanEditEvents();
 	const toEvents = useTransitionLink('/events', eventNameBack);
 	const toSettings = useTransitionLink(`/events/${event.slug}/settings`);
@@ -116,14 +117,9 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 									]
 								: []),
 							{
-								label: 'Export for Bevy',
+								label: 'Export attendees',
 								icon: download,
-								onSelect: () => exportForBevy(event),
-							},
-							{
-								label: 'Export attendance (CSV)',
-								icon: download,
-								onSelect: () => exportAttendance(event),
+								onSelect: () => setExporting(true),
 							},
 							{
 								label: 'Open prize draw',
@@ -147,6 +143,7 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 				</div>
 			</div>
 			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
+			{exporting && <ExportDialog event={event} onClose={() => setExporting(false)} />}
 			<Suspense fallback={null}>
 				{sharing && <ShareDialog event={event} onClose={() => setSharing(false)} />}
 				{importing && <ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />}

@@ -4,12 +4,12 @@ import ellipsis from '../assets/ellipsis-vertical.svg';
 import link from '../assets/link.svg';
 import sliders from '../assets/sliders.svg';
 import trash from '../assets/trash.svg';
-import { exportAttendance, exportForBevy } from '../lib/attendeeExport';
 import { checkInUrl } from '../lib/config';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import { showToast } from '../lib/toast';
 import DeleteEventDialog from './DeleteEventDialog';
+import ExportDialog from './ExportDialog';
 import Menu from './Menu';
 
 /**
@@ -20,6 +20,7 @@ export default function EventMenu({ event, className = '' }: { event: DashboardE
 	const canEdit = useCanEditEvents();
 	const canDelete = ownsEvent(useMe(), event);
 	const [deleting, setDeleting] = useState(false);
+	const [exporting, setExporting] = useState(false);
 	return (
 		<div className={`relative shrink-0 ${className}`}>
 			<Menu
@@ -32,14 +33,14 @@ export default function EventMenu({ event, className = '' }: { event: DashboardE
 						icon: link,
 						onSelect: () => navigator.clipboard.writeText(checkInUrl(event.slug)).then(() => showToast('Check-in link copied')),
 					},
-					{ label: 'Export for Bevy', icon: download, onSelect: () => exportForBevy(event) },
-					{ label: 'Export attendance (CSV)', icon: download, onSelect: () => exportAttendance(event) },
+					{ label: 'Export attendees', icon: download, onSelect: () => setExporting(true) },
 					...(canDelete ? [{ label: 'Delete event', icon: trash, separated: true, onSelect: () => setDeleting(true) }] : []),
 				]}
 			>
 				<img src={ellipsis} alt="" width={18} height={18} />
 			</Menu>
 			{deleting && <DeleteEventDialog event={event} onClose={() => setDeleting(false)} />}
+			{exporting && <ExportDialog event={event} onClose={() => setExporting(false)} />}
 		</div>
 	);
 }
