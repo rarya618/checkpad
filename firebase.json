@@ -15,6 +15,7 @@
     {
       "target": "dashboard",
       "public": "apps/dashboard/dist",
+      "predeploy": ["npm --prefix \"$PROJECT_DIR\" run build -w @checkpad/dashboard"],
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
@@ -53,6 +54,7 @@
     {
       "target": "web",
       "public": "apps/web/dist",
+      "predeploy": ["npm --prefix \"$PROJECT_DIR\" run build -w @checkpad/web"],
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "trailingSlash": false,
       "rewrites": [
