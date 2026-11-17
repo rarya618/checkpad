@@ -119,9 +119,9 @@ export function useOrganisers(me: Organiser) {
 /** Invited to start a new team and hasn't set it up yet: the dashboard shows onboarding until they do. */
 export const needsTeam = (o: Pick<Organiser, 'role' | 'teamId'>) => o.role === 'organiser' && o.teamId === null;
 
-/** Their team’s name for the Organisers page: "All teams" for super admins, "New team" until an invited organiser sets theirs up. */
+/** Their team’s name for the Organisers page: "All teams" for super admins, "No team yet" until an invited organiser sets theirs up. */
 export function organiserTeam(teams: Team[] | undefined, o: Pick<Organiser, 'role' | 'teamId'>) {
-	return needsTeam(o) ? 'New team' : teamName(teams, o.teamId);
+	return needsTeam(o) ? 'No team yet' : teamName(teams, o.teamId);
 }
 
 export function isOrganiser(organisers: Organiser[], email: string) {

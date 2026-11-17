@@ -83,13 +83,16 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 	);
 }
 
-/** `email` fills in the address, for someone invited from the waitlist, who starts a new team. */
-export function AddOrganiserDialog({ email: initialEmail = '', onClose }: { email?: string; onClose: () => void }) {
+/**
+ * `email` fills in the address, for someone invited from the waitlist, who starts a new team.
+ * `teamId` picks the team, for adding someone from that team's panel on the Organisers page.
+ */
+export function AddOrganiserDialog({ email: initialEmail = '', teamId, onClose }: { email?: string; teamId?: string; onClose: () => void }) {
 	const teams = useTeams() ?? [];
 	const organisers = useOrganisers(useMe()) ?? [];
 	const [email, setEmail] = useState(initialEmail);
 	const [role, setRole] = useState<Role>('organiser');
-	const [team, setTeam] = useState(initialEmail ? NEW_TEAM : (teams[0]?.id ?? ''));
+	const [team, setTeam] = useState(teamId ?? (initialEmail ? NEW_TEAM : (teams[0]?.id ?? '')));
 	const taken = looksLikeEmail(email) && isOrganiser(organisers, email);
 	const valid = looksLikeEmail(email) && !taken && (role === 'super-admin' || team !== '');
 

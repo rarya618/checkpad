@@ -1,7 +1,8 @@
 import { buttonClass } from '@checkpad/shared/button';
+import { findCountry } from '@checkpad/shared/countries';
 import { formatDate } from '@checkpad/shared/format';
-import { useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import copyLink from '../assets/copy-link.svg';
 import more from '../assets/more.svg';
 import shield from '../assets/shield.svg';
@@ -15,71 +16,93 @@ import StatusBadge from '../components/StatusBadge';
 import { WEB_URL } from '../lib/config';
 import { useSession } from '../lib/auth';
 import { useEvents, type DashboardEvent } from '../lib/events';
-import { initialsOf, organiserTeam, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
+import { initialsOf, needsTeam, organiserTeam, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { usePageArrival } from '../lib/pageTransition';
 
-// Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
-// the URL (?tab=teams) so it survives a reload. On phones each person's role and team go
-// under their name instead of in columns.
+// The Organisers page: a rail of views (everyone, people still to sign in, each team, super
+// admins, organisers still to set up their team) beside a panel for the chosen one. A team's
+// panel holds its sign link, the event that link opens and its people, so who runs a team and
+// where its printed signs point are read together. The view lives in the URL (?team=<slug> or
+// ?show=invited) so it survives a reload. Only super admins see every team: everyone else sees
+// their own team's panel and no rail (firestore.rules lets them read only their team).
+
+type View =
+	| { kind: 'everyone' }
+	| { kind: 'invited' }
+	| { kind: 'super-admins' }
+	| { kind: 'no-team' }
+	| { kind: 'team'; team: Team };
+
+type Dialog =
+	| { kind: 'add'; teamId?: string }
+	| { kind: 'edit' | 'remove'; organiser: Organiser }
+	| { kind: 'team'; team: Team | null }
+	| { kind: 'delete-team'; team: Team };
+
+const SHOW = { invited: 'invited', 'super-admins': 'super-admins', 'no-team': 'no-team' } as const;
+
 export default function OrganisersPage() {
-	const [params, setParams] = useSearchParams();
 	usePageArrival();
-	const tab = params.get('tab') === 'teams' ? 'teams' : 'people';
-	const [dialog, setDialog] = useState<
-		| { kind: 'add' }
-		| { kind: 'edit' | 'remove'; organiser: Organiser }
-		| { kind: 'team'; team: Team | null }
-		| { kind: 'delete-team'; team: Team }
-		| null
-	>(null);
+	const me = useMe();
+	const admin = me.role === 'super-admin';
+	const organisers = useOrganisers(me) ?? [];
+	const teams = useTeams() ?? [];
+	const [params] = useSearchParams();
+	const [dialog, setDialog] = useState<Dialog | null>(null);
 	const close = () => setDialog(null);
-	// Only super admins change organisers and teams (firestore.rules)
-	const admin = useMe().role === 'super-admin';
+
+	// Super admins choose a view in the rail; anyone else has only their own team
+	const ownTeam = teams.find((t) => t.id === me.teamId);
+	const chosenTeam = teams.find((t) => t.slug === params.get('team'));
+	const show = params.get('show');
+	const view: View | null = !admin
+		? ownTeam
+			? { kind: 'team', team: ownTeam }
+			: null
+		: chosenTeam
+			? { kind: 'team', team: chosenTeam }
+			: show === SHOW.invited || show === SHOW['super-admins'] || show === SHOW['no-team']
+				? { kind: show }
+				: { kind: 'everyone' };
+
+	const actions = {
+		admin,
+		onAdd: (teamId?: string) => setDialog({ kind: 'add', teamId }),
+		onEdit: (organiser: Organiser) => setDialog({ kind: 'edit', organiser }),
+		onRemove: (organiser: Organiser) => setDialog({ kind: 'remove', organiser }),
+		onManage: (team: Team) => setDialog({ kind: 'team', team }),
+	};
 
 	return (
 		<>
 			<PageHeader
 				title="Organisers"
 				actions={
-					!admin ? null : tab === 'people' ? (
+					admin && (
 						<button type="button" onClick={() => setDialog({ kind: 'add' })} className={buttonClass('primary')}>
 							Add organiser
-						</button>
-					) : (
-						<button type="button" onClick={() => setDialog({ kind: 'team', team: null })} className={buttonClass('primary')}>
-							New team
 						</button>
 					)
 				}
 			/>
-			<div className="flex flex-col gap-5 px-6 pt-3.5 pb-7">
-				<div role="tablist" aria-label="Organisers" className="flex gap-1 self-start rounded-lg bg-light-blue p-1">
-					{(['people', 'teams'] as const).map((t) => (
-						<button
-							key={t}
-							type="button"
-							role="tab"
-							aria-selected={tab === t}
-							onClick={() => setParams(t === 'teams' ? { tab: 'teams' } : {}, { replace: true })}
-							className={`rounded-md px-4 py-2 font-display text-sm leading-normal transition-colors ${
-								tab === t ? 'bg-dark-blue text-white' : 'hover:bg-white/50'
-							}`}
-						>
-							{t === 'people' ? 'People' : 'Teams'}
-						</button>
-					))}
-				</div>
-				{tab === 'people' ? (
-					<People admin={admin} onEdit={(o) => setDialog({ kind: 'edit', organiser: o })} onRemove={(o) => setDialog({ kind: 'remove', organiser: o })} />
-				) : (
-					<Teams admin={admin} onManage={(team) => setDialog({ kind: 'team', team })} />
+			<div className="flex flex-col gap-4 px-6 pt-3.5 pb-7 lg:flex-row lg:items-start lg:gap-6">
+				{admin && view && <Rail view={view} organisers={organisers} teams={teams} onNewTeam={() => setDialog({ kind: 'team', team: null })} />}
+				{view && (
+					// Keyed by the view, so the panel fades in afresh when another is chosen
+					<section key={viewKey(view)} aria-labelledby="organisers-view" className="@container min-w-0 flex-1 animate-panel-in rounded-xl border border-line bg-white px-4 py-5 md:px-6">
+						{view.kind === 'team' ? (
+							<TeamPanel team={view.team} organisers={organisers} {...actions} />
+						) : (
+							<ListPanel view={view} organisers={organisers} teams={teams} {...actions} />
+						)}
+					</section>
 				)}
 			</div>
 
-			{dialog?.kind === 'add' && <AddOrganiserDialog onClose={close} />}
+			{dialog?.kind === 'add' && <AddOrganiserDialog teamId={dialog.teamId} onClose={close} />}
 			{dialog?.kind === 'edit' && <EditOrganiserDialog organiser={dialog.organiser} onClose={close} />}
 			{dialog?.kind === 'remove' && <RemoveOrganiserDialog organiser={dialog.organiser} onClose={close} />}
 			{dialog?.kind === 'team' && (
@@ -90,111 +113,308 @@ export default function OrganisersPage() {
 	);
 }
 
-function People({ admin, onEdit, onRemove }: { admin: boolean; onEdit: (o: Organiser) => void; onRemove: (o: Organiser) => void }) {
-	const organisers = useOrganisers(useMe()) ?? [];
-	const teams = useTeams();
-	// Role and Team get columns of their own from 1024px. Below that (phones, and narrow windows
-	// beside the sidebar) they sit under the email, so the names keep their room.
-	const wide = useMediaQuery('(min-width: 1024px)');
+const viewKey = (view: View) => (view.kind === 'team' ? `team:${view.team.id}` : view.kind);
+
+const viewSearch = (view: View) => (view.kind === 'team' ? `?team=${view.team.slug}` : view.kind === 'everyone' ? '' : `?show=${view.kind}`);
+
+interface Actions {
+	admin: boolean;
+	onAdd: (teamId?: string) => void;
+	onEdit: (o: Organiser) => void;
+	onRemove: (o: Organiser) => void;
+	onManage: (team: Team) => void;
+}
+
+// The rail: a column beside the panel from 1024px, a row of entries that scrolls sideways above
+// it below that. The chosen entry's light-blue fill slides to the next one chosen.
+function Rail({ view, organisers, teams, onNewTeam }: { view: View; organisers: Organiser[]; teams: Team[]; onNewTeam: () => void }) {
+	const column = useMediaQuery('(min-width: 1024px)');
+	const invited = organisers.filter((o) => o.invited).length;
+	const noTeam = organisers.filter(needsTeam).length;
+	const entries: ({ view: View; label: string; count: number } | 'divider')[] = [
+		{ view: { kind: 'everyone' }, label: 'Everyone', count: organisers.length },
+		{ view: { kind: 'invited' }, label: 'Invited', count: invited },
+		'divider',
+		...teams.map((team) => ({ view: { kind: 'team', team } as View, label: team.name, count: organisers.filter((o) => o.teamId === team.id).length })),
+		{ view: { kind: 'super-admins' }, label: 'Super admins', count: organisers.filter((o) => o.role === 'super-admin').length },
+		// Only while someone is still to set up their team
+		...(noTeam || view.kind === 'no-team' ? [{ view: { kind: 'no-team' } as View, label: 'No team yet', count: noTeam }] : []),
+	];
+	const current = viewKey(view);
+
+	const list = useRef<HTMLUListElement>(null);
+	const [fill, setFill] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+	// The fill appears where it is at first and only slides once it's been drawn
+	const [drawn, setDrawn] = useState(false);
+	useLayoutEffect(() => {
+		// The entry's list item: the link's own offsets are measured from it
+		const active = list.current?.querySelector<HTMLElement>('[aria-current="page"]')?.parentElement;
+		if (!list.current || !active) return setFill(null);
+		const measure = () => setFill({ x: active.offsetLeft, y: active.offsetTop, w: active.offsetWidth, h: active.offsetHeight });
+		measure();
+		if (!column) active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+		const resized = new ResizeObserver(measure);
+		resized.observe(list.current);
+		return () => resized.disconnect();
+	}, [current, column, entries.length]);
+	useLayoutEffect(() => {
+		if (fill && !drawn) requestAnimationFrame(() => setDrawn(true));
+	}, [fill, drawn]);
+
 	return (
-		<>
-			<div className="rounded-xl border border-line bg-white px-4 py-4 md:px-6">
-				<table className="w-full table-fixed leading-normal">
-					<colgroup>
-						<col />
-						{wide && (
-							<>
-								<col className="w-[135px]" />
-								<col className="w-[165px]" />
-							</>
-						)}
-						<col className="w-[30px]" />
-					</colgroup>
-					<thead>
-						<tr className="text-left font-display text-sm text-dark-blue">
-							<th className="pt-1 pr-4 pb-2">Person</th>
-							{wide && (
-								<>
-									<th className="pt-1 pr-4 pb-2">Role</th>
-									<th className="pt-1 pr-4 pb-2">Team</th>
-								</>
-							)}
-							<th className="pt-1 pb-2">
-								<span className="sr-only">Options</span>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{organisers.map((o) => (
-							<tr key={o.id} className="border-t border-light-blue">
-								<td className="py-4 pr-4">
-									{/* Stacked: Figma "Organisers (mobile)"'s 48px avatar, level with the name */}
-									<div className="flex items-start gap-4 lg:items-center lg:gap-3">
-										<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base lg:size-9 lg:text-sm">
-											{initialsOf(o)}
-										</span>
-										<div className="flex min-w-0 flex-col">
-											<p className="truncate font-display text-base leading-tight text-dark-blue" title={o.name ?? o.email}>
-												{o.name ?? o.email}
-											</p>
-											{o.invited ? (
-												<p className="flex min-w-0 items-center gap-1.5 text-xs text-med-blue">
-													<span className="shrink-0 rounded-full border border-med-blue px-2 py-px font-bold">Invited</span>
-													<span className="truncate">hasn’t signed in yet</span>
-												</p>
-											) : (
-												<p className="truncate text-sm leading-snug text-med-blue" title={o.email}>
-													{o.email}
-												</p>
-											)}
-											{!wide && (
-												<p className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 pt-2.5 text-base text-dark-blue">
-													<RoleBadge organiser={o} />
-													{/* Wraps under the badge rather than cutting a team's name short */}
-													<span>{organiserTeam(teams, o)}</span>
-												</p>
-											)}
-										</div>
-									</div>
-								</td>
-								{wide && (
-									<>
-										<td className="py-4 pr-4">
-											<RoleBadge organiser={o} />
-										</td>
-										<td className="truncate py-4 pr-4 text-sm text-dark-blue">{organiserTeam(teams, o)}</td>
-									</>
-								)}
-								<td className="py-4">
-									{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
-			<section className="flex flex-col gap-3 rounded-xl border border-line bg-white px-4 py-4 leading-normal md:px-6">
-				<h2 className="font-display text-sm">What each role can do</h2>
-				<dl className="flex flex-col gap-3 md:flex-row md:gap-6">
-					{roles.map((r) => (
-						<div key={r.id} className="flex min-w-0 flex-1 flex-col gap-2">
-							<dt>
-								<RoleBadge organiser={{ role: r.id }} />
-							</dt>
-							<dd className="text-xs text-med-blue">{r.description}</dd>
-						</div>
-					))}
-				</dl>
-			</section>
-		</>
+		<nav aria-label="Organisers by team" className="-mx-6 shrink-0 lg:mx-0 lg:w-60 lg:rounded-xl lg:border lg:border-line lg:bg-white lg:p-2">
+			<ul ref={list} className="relative flex gap-1 overflow-x-auto px-6 pb-1 [scrollbar-width:none] lg:flex-col lg:gap-0.5 lg:overflow-visible lg:p-0">
+				{fill && (
+					<li
+						aria-hidden="true"
+						className={`pointer-events-none absolute top-0 left-0 rounded-lg bg-light-blue ${drawn ? 'motion-safe:transition-[translate,width,height] motion-safe:duration-220 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)]' : ''}`}
+						style={{ translate: `${fill.x}px ${fill.y}px`, width: fill.w, height: fill.h }}
+					/>
+				)}
+				{entries.map((entry, i) =>
+					entry === 'divider' ? (
+						<li key={`divider-${i}`} aria-hidden="true" className="mx-1 w-px shrink-0 self-stretch bg-light-blue lg:mx-3 lg:my-1.5 lg:h-px lg:w-auto" />
+					) : (
+						<li key={viewKey(entry.view)} className="relative shrink-0">
+							<Link
+								to={{ search: viewSearch(entry.view) }}
+								replace
+								aria-current={viewKey(entry.view) === current ? 'page' : undefined}
+								className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm leading-normal whitespace-nowrap text-dark-blue transition-colors hover:bg-light-blue/50 aria-[current=page]:font-bold aria-[current=page]:hover:bg-transparent lg:whitespace-normal"
+							>
+								<span className="min-w-0 lg:truncate">{entry.label}</span>
+								<span className="text-xs text-med-blue tabular-nums">{entry.count}</span>
+							</Link>
+						</li>
+					),
+				)}
+				<li className="shrink-0 lg:mt-1.5 lg:border-t lg:border-light-blue lg:pt-1.5">
+					<button type="button" onClick={onNewTeam} className="w-full rounded-lg px-3 py-2 text-left text-sm leading-normal font-bold whitespace-nowrap text-med-blue transition-colors hover:bg-light-blue/50">
+						New team
+					</button>
+				</li>
+			</ul>
+		</nav>
 	);
 }
 
-// Figma "Organisers" role pill: the small pill size on phones (as in "Organisers – manage team"), 75% from md up
+// Everyone, Invited, Super admins and No team yet: one list each, with a line on what it holds
+function ListPanel({ view, organisers, teams, ...actions }: { view: Exclude<View, { kind: 'team' }>; organisers: Organiser[]; teams: Team[] } & Actions) {
+	const panels = {
+		everyone: { title: 'Everyone', about: 'Everyone who can sign in to the dashboard.', people: organisers, empty: 'No one has been added yet.' },
+		invited: { title: 'Invited', about: 'Added, and hasn’t signed in yet.', people: organisers.filter((o) => o.invited), empty: 'Everyone you’ve added has signed in.' },
+		'super-admins': { title: 'Super admins', about: `${roles[0].description}.`, people: organisers.filter((o) => o.role === 'super-admin'), empty: 'No super admins.' },
+		'no-team': {
+			title: 'No team yet',
+			about: 'Organisers invited to start a new team. They name it and say where it meets when they first sign in.',
+			people: organisers.filter(needsTeam),
+			empty: 'Everyone invited to start a team has set it up.',
+		},
+	};
+	const panel = panels[view.kind];
+	// A team column only where people from different teams share the list
+	const showTeam = view.kind === 'everyone' || view.kind === 'invited';
+	return (
+		<div className="flex flex-col gap-4">
+			<PanelHeading title={panel.title} about={panel.about} />
+			{panel.people.length ? <People people={panel.people} teams={teams} showTeam={showTeam} {...actions} /> : <p className="border-t border-light-blue pt-4 text-sm leading-normal text-med-blue">{panel.empty}</p>}
+			{view.kind === 'everyone' && <RoleGuide />}
+		</div>
+	);
+}
+
+function TeamPanel({ team, organisers, ...actions }: { team: Team; organisers: Organiser[] } & Actions) {
+	const members = organisers.filter((o) => o.teamId === team.id);
+	const place = [team.city, findCountry(team.country)?.name].filter(Boolean).join(', ');
+	const count = `${members.length} member${members.length === 1 ? '' : 's'}`;
+	return (
+		<div className="flex flex-col gap-5">
+			<PanelHeading
+				title={team.name}
+				about={place ? `${place} · ${count}` : count}
+				action={
+					actions.admin && (
+						<button type="button" onClick={() => actions.onManage(team)} className={buttonClass('secondary')}>
+							Manage
+						</button>
+					)
+				}
+			/>
+			<TeamLink team={team} />
+			<div className="flex flex-col gap-1">
+				<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+					<h3 className="font-display text-lg">Members</h3>
+					{actions.admin && (
+						<button type="button" onClick={() => actions.onAdd(team.id)} className={buttonClass('secondary', 'sm')}>
+							Add to {team.name}
+						</button>
+					)}
+				</div>
+				{members.length ? (
+					<People people={members} showTeam={false} {...actions} />
+				) : (
+					<div className="flex flex-col gap-1 border-t border-light-blue pt-4 leading-normal">
+						<p className="text-sm text-dark-blue">No one is in {team.name} yet.</p>
+						<p className="text-sm text-med-blue">Add an organiser to create its events, or a team member to check people in at them.</p>
+					</div>
+				)}
+			</div>
+			{members.length > 0 && (
+				<p className="text-sm leading-normal text-med-blue">
+					Organisers create and edit {team.name}’s events. Team members check people in at them.
+				</p>
+			)}
+		</div>
+	);
+}
+
+function PanelHeading({ title, about, action }: { title: string; about: string; action?: ReactNode }) {
+	return (
+		<div className="flex items-start gap-4">
+			<div className="flex min-w-0 flex-1 flex-col gap-1">
+				<h2 id="organisers-view" className="font-display text-2xl leading-tight break-words">
+					{title}
+				</h2>
+				<p className="text-sm leading-normal text-med-blue">{about}</p>
+			</div>
+			{action}
+		</div>
+	);
+}
+
+/** The event a team link opens: the one open for check-in, else the next upcoming one. */
+function teamLinkTarget(team: Team, events: DashboardEvent[]) {
+	const own = events.filter((e) => e.teamIds.includes(team.id));
+	const now = Date.now();
+	return (
+		own.find((e) => e.selfCheckInOpen) ??
+		own.filter((e) => new Date(e.endsAt).getTime() > now).sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0]
+	);
+}
+
+// The team's permanent link and where it leads today, on a tinted strip: the link and the event
+// side by side when the panel has room, stacked when it doesn't
+function TeamLink({ team }: { team: Team }) {
+	const target = teamLinkTarget(team, useEvents());
+	const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="flex flex-col gap-3 rounded-lg bg-off-white px-4 py-3 leading-normal @xl:flex-row @xl:items-center @xl:gap-6">
+				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+					<p className="text-xs text-med-blue">Team link for printed signs</p>
+					<a href={url} target="_blank" rel="noreferrer" className="truncate text-sm font-semibold text-med-blue underline underline-offset-2 hover:text-dark-blue">
+						{url.replace(/^https?:\/\//, '')}
+					</a>
+				</div>
+				<div className="flex min-w-0 flex-col gap-0.5 @xl:max-w-1/2">
+					<p className="text-xs text-med-blue">Opens</p>
+					{target ? (
+						<p className="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-dark-blue">
+							<span className="truncate font-bold">{target.name}</span>
+							<span className="whitespace-nowrap">{formatDate(new Date(target.startsAt), target.timeZone)}</span>
+							<StatusBadge open={target.selfCheckInOpen} />
+						</p>
+					) : (
+						<p className="text-sm text-dark-blue">No upcoming event</p>
+					)}
+				</div>
+				<button
+					type="button"
+					onClick={() => navigator.clipboard.writeText(url).then(() => showToast('Team link copied'))}
+					className={`${buttonClass('secondary', 'sm')} inline-flex items-center justify-center gap-2 self-start @xl:self-center`}
+				>
+					<img src={copyLink} alt="" width={15} height={15} />
+					Copy link
+				</button>
+			</div>
+			<p className="text-sm leading-normal text-med-blue">It opens whichever event is open for check-in, or else the next one, so a printed sign keeps working.</p>
+		</div>
+	);
+}
+
+// People in a list. Role and Team get columns of their own once the panel is wide enough; below
+// that they sit under the email, so names keep their room.
+function People({ people, teams, showTeam, admin, onEdit, onRemove }: { people: Organiser[]; teams?: Team[]; showTeam: boolean } & Actions) {
+	return (
+		<table className="w-full table-fixed leading-normal">
+			<colgroup>
+				<col />
+				<col className="hidden w-36 @2xl:table-column" />
+				{showTeam && <col className="hidden w-44 @2xl:table-column" />}
+				<col className="w-8" />
+			</colgroup>
+			<thead className="sr-only @2xl:not-sr-only @2xl:table-header-group">
+				<tr className="text-left font-display text-sm text-dark-blue">
+					<th className="pt-1 pr-4 pb-2">Person</th>
+					<th className="hidden pt-1 pr-4 pb-2 @2xl:table-cell">Role</th>
+					{showTeam && <th className="hidden pt-1 pr-4 pb-2 @2xl:table-cell">Team</th>}
+					<th className="pt-1 pb-2">
+						<span className="sr-only">Options</span>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{people.map((o) => (
+					<tr key={o.id} className="border-t border-light-blue">
+						<td className="py-3.5 pr-4">
+							<div className="flex items-start gap-3 @2xl:items-center">
+								<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-sm">
+									{initialsOf(o)}
+								</span>
+								<div className="flex min-w-0 flex-col">
+									<p className="truncate font-display text-base leading-tight text-dark-blue" title={o.name ?? o.email}>
+										{o.name ?? o.email}
+									</p>
+									{o.invited ? (
+										<p className="flex min-w-0 items-center gap-1.5 text-xs text-med-blue">
+											<span className="shrink-0 rounded-full border border-med-blue px-2 py-px font-bold">Invited</span>
+											<span className="truncate">hasn’t signed in yet</span>
+										</p>
+									) : (
+										<p className="truncate text-sm leading-snug text-med-blue" title={o.email}>
+											{o.email}
+										</p>
+									)}
+									<p className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 pt-2 text-sm text-dark-blue @2xl:hidden">
+										<RoleBadge organiser={o} />
+										{showTeam && <span>{organiserTeam(teams, o)}</span>}
+									</p>
+								</div>
+							</div>
+						</td>
+						<td className="hidden py-3.5 pr-4 @2xl:table-cell">
+							<RoleBadge organiser={o} />
+						</td>
+						{showTeam && <td className="hidden truncate py-3.5 pr-4 text-sm text-dark-blue @2xl:table-cell">{organiserTeam(teams, o)}</td>}
+						<td className="py-3.5 align-top @2xl:align-middle">{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}</td>
+					</tr>
+				))}
+			</tbody>
+		</table>
+	);
+}
+
+// What each role can do, under Everyone: the one list where all three roles sit together
+function RoleGuide() {
+	return (
+		<dl className="flex flex-col gap-3 border-t border-light-blue pt-4 leading-normal @2xl:flex-row @2xl:gap-6">
+			{roles.map((r) => (
+				<div key={r.id} className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
+					<dt>
+						<RoleBadge organiser={{ role: r.id }} />
+					</dt>
+					<dd className="text-sm text-med-blue">{r.description}</dd>
+				</div>
+			))}
+		</dl>
+	);
+}
+
+// Figma "Organisers" role pill
 function RoleBadge({ organiser }: { organiser: Pick<Organiser, 'role'> }) {
 	return (
 		<span
-			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-normal font-bold tracking-normal whitespace-nowrap md:px-2.5 md:py-1 md:text-xs ${
+			className={`inline-block shrink-0 rounded-full px-3 py-1 text-sm leading-normal font-bold tracking-normal whitespace-nowrap md:px-2.5 md:text-xs ${
 				organiser.role === 'super-admin' ? 'bg-dark-blue text-white' : 'bg-light-blue text-dark-blue'
 			}`}
 		>
@@ -218,76 +438,5 @@ function OrganiserMenu({ organiser, onEdit, onRemove }: { organiser: Organiser; 
 		>
 			<img src={more} alt="" width={18} height={18} />
 		</Menu>
-	);
-}
-
-/** The event a team link opens: the one open for check-in, else the next upcoming one. */
-function teamLinkTarget(team: Team, events: DashboardEvent[]) {
-	const own = events.filter((e) => e.teamIds.includes(team.id));
-	const now = Date.now();
-	return (
-		own.find((e) => e.selfCheckInOpen) ??
-		own.filter((e) => new Date(e.endsAt).getTime() > now).sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0]
-	);
-}
-
-function Teams({ admin, onManage }: { admin: boolean; onManage: (team: Team) => void }) {
-	const teams = useTeams() ?? [];
-	const events = useEvents();
-	const organisers = useOrganisers(useMe()) ?? [];
-	return (
-		<>
-			{teams.map((team) => {
-				const members = organisers.filter((o) => o.teamId === team.id).length;
-				const target = teamLinkTarget(team, events);
-				const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
-				return (
-					<section key={team.id} className="flex flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5">
-						<div className="flex items-center gap-3">
-							<div className="flex min-w-0 flex-1 flex-col gap-1">
-								<h2 className="truncate font-display text-2xl leading-tight">{team.name}</h2>
-								<p className="text-sm leading-normal text-med-blue">
-									{members} member{members === 1 ? '' : 's'}
-								</p>
-							</div>
-							{admin && (
-								<button type="button" onClick={() => onManage(team)} className={buttonClass('secondary')}>
-									Manage
-								</button>
-							)}
-						</div>
-						<div className="flex items-center gap-3 rounded-lg bg-off-white px-4 py-3">
-							<div className="flex min-w-0 flex-1 flex-col gap-1 leading-normal text-med-blue">
-								<p className="text-xs">Permanent link for printed signs</p>
-								<a href={url} target="_blank" rel="noreferrer" className="truncate text-sm font-semibold underline">
-									{url.replace(/^https?:\/\//, '')}
-								</a>
-							</div>
-							<button
-								type="button"
-								aria-label={`Copy ${team.name}’s team link`}
-								onClick={() => navigator.clipboard.writeText(url).then(() => showToast('Team link copied'))}
-								className="shrink-0 rounded p-0.5 hover:bg-light-blue/60"
-							>
-								<img src={copyLink} alt="" width={16.5} height={16.5} />
-							</button>
-						</div>
-						<div className="flex flex-wrap items-center gap-2.5 leading-normal">
-							<p className="text-sm text-dark-blue">Points to</p>
-							{target ? (
-								<>
-									<p className="font-display text-sm">{target.name}</p>
-									<p className="text-sm text-dark-blue">· {formatDate(new Date(target.startsAt), target.timeZone)}</p>
-									<StatusBadge open={target.selfCheckInOpen} />
-								</>
-							) : (
-								<p className="text-sm text-med-blue">No upcoming event</p>
-							)}
-						</div>
-					</section>
-				);
-			})}
-			<p className="text-sm leading-normal text-med-blue">A team link opens the team’s event that is open for check-in, or else its next upcoming event.</p>
-		</>
 	);
 }
