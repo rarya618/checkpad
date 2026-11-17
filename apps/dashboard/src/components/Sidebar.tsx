@@ -67,11 +67,12 @@ export default function Sidebar({ items, back, screens, event }: SidebarProps) {
 			</Link>
 			{/* Outside the scrolling part below, which would clip the switcher's list */}
 			{event && (
-				<div className="px-4 pt-8">
+				<div className="px-4 pt-6">
 					<EventSwitcher event={event} back={back} />
 				</div>
 			)}
-			<div className={`flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 pb-4 ${event ? 'pt-4' : 'pt-8'}`}>
+			{/* The menu, or inside an event the switcher above it, starts 24px under the logo */}
+			<div className={`flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 pb-4 ${event ? 'pt-4' : 'pt-6'}`}>
 				<nav aria-label={event ? `${event.name}’s pages` : 'Main'}>
 					<ul className="flex flex-col gap-0.5">
 						{items.map((item) => (
