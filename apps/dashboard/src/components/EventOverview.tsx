@@ -40,7 +40,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 		// Its own layer in a view transition, so it stays put between the event's pages (index.css)
 		<section
 			style={{ viewTransitionName: 'event-overview' }}
-			className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:flex-wrap md:items-center md:gap-x-3 md:pt-14"
+			className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:flex-wrap md:items-center md:gap-x-3 md:pt-8"
 		>
 			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px md:w-auto md:basis-64">
 				<nav aria-label="Breadcrumb">

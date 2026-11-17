@@ -58,8 +58,8 @@ export default function Sidebar({ items, back, screens, event }: SidebarProps) {
 	const transitionTo = useTransitionLinks();
 	const { pathname } = useLocation();
 	return (
-		<aside className="flex h-full w-[232px] shrink-0 flex-col border-r border-line pt-14 pb-4">
-			{/* Level with the page titles, which sit 58px down */}
+		<aside className="flex h-full w-[232px] shrink-0 flex-col border-r border-line pt-8 pb-4">
+			{/* Level with the page titles, 32px down (PageHeader) */}
 			<Link to="/events" className="mx-6 self-start py-0.5">
 				<img src={logo} alt="checkpad" width={146} height={32} />
 			</Link>

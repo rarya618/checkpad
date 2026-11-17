@@ -10,8 +10,8 @@ interface Props {
 	level?: 1 | 2;
 	/**
 	 * Desktop spacing and stick point. The space above the title lives inside the header so
-	 * it can scroll away; the header sticks once 24px remains (the sidebar's gap).
-	 * Defaults to a page header: 58px above, so the title lines up with the sidebar logo,
+	 * it can scroll away; the header sticks once 24px remains.
+	 * Defaults to a page header: 32px above, so the title lines up with the sidebar logo,
 	 * and 15px below, like the event pages' headers.
 	 */
 	className?: string;
@@ -27,7 +27,7 @@ export default function PageHeader({
 	actions,
 	titleAddon,
 	level = 1,
-	className = 'top-[-34px] pt-14 pb-4',
+	className = 'top-[-8px] pt-8 pb-4',
 	actionsRowOnPhones = false,
 }: Props) {
 	const Heading = level === 1 ? 'h1' : 'h2';
