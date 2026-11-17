@@ -143,12 +143,42 @@ export function inviteOrganiser(email: string, role: Role, teamId: string | null
 	return setDoc(doc(db, 'admins', email.trim().toLowerCase()), invite(role, teamId));
 }
 
-export function updateOrganiser(id: string, changes: Pick<Organiser, 'role' | 'teamId'>) {
-	return updateDoc(doc(db, 'admins', id), { role: changes.role, teamId: changes.role === 'super-admin' ? null : changes.teamId });
+/** What went wrong with a change to an organiser, for the dialog to say. */
+export type OrganiserChangeError = 'email-taken' | 'last-super-admin' | 'failed';
+
+/** Calls a super admin's organiser endpoint (functions/src/admins.ts); null when it worked. */
+async function organiserCall(id: string, method: 'PATCH' | 'DELETE', body?: object): Promise<OrganiserChangeError | null> {
+	try {
+		const res = await fetch(`/api/admin/organisers/${encodeURIComponent(id)}`, {
+			method,
+			headers: { 'content-type': 'application/json', authorization: `Bearer ${await auth.currentUser!.getIdToken()}` },
+			...(body && { body: JSON.stringify(body) }),
+		});
+		if (res.ok) return null;
+		const { error } = (await res.json().catch(() => ({}))) as { error?: string };
+		return error === 'email-taken' || error === 'last-super-admin' ? error : 'failed';
+	} catch {
+		return 'failed';
+	}
 }
 
+/**
+ * A super admin changes someone's role and team, name, and address (yourself included). Through
+ * the API, which checks what the rules can't: a new address isn't already on the list, and a super
+ * admin doesn't demote or move themselves while no other super admin can sign in.
+ */
+export function updateOrganiser(id: string, changes: Pick<Organiser, 'role' | 'teamId' | 'name' | 'email'>) {
+	return organiserCall(id, 'PATCH', {
+		role: changes.role,
+		teamId: changes.role === 'super-admin' ? null : changes.teamId,
+		name: changes.name,
+		email: changes.email,
+	});
+}
+
+/** Takes someone off the list, yourself included while another super admin can sign in (the API checks). */
 export function removeOrganiser(id: string) {
-	return deleteDoc(doc(db, 'admins', id));
+	return organiserCall(id, 'DELETE');
 }
 
 /**

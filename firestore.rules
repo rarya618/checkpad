@@ -109,8 +109,10 @@ service cloud.firestore {
           || me().role == 'super-admin'
           || (me().get('teamId', null) != null && resource.data.teamId == me().teamId));
 
-      // Super admins add, change and remove other people, never themselves, so the
-      // last super admin can't lock everyone out
+      // Super admins add, change and remove other people here, never themselves. Changes to
+      // themselves, names, and moves to another address go through the API
+      // (functions/src/admins.ts), which can check that another super admin can still sign in,
+      // so the last super admin can't lock everyone out
       allow create: if isSuperAdmin()
         && email != myEmail()
         && request.resource.data.keys().hasOnly(['role', 'teamId', 'invitedAt', 'invitedBy'])

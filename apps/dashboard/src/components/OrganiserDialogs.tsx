@@ -3,7 +3,8 @@ import { useState, type ReactNode } from 'react';
 import mail from '../assets/mail.svg';
 import x from '../assets/x.svg';
 import { looksLikeEmail } from '../lib/checkIn';
-import { inviteOrganiser, isOrganiser, needsTeam, removeOrganiser, roles, updateOrganiser, useMe, useOrganisers, type Organiser, type Role } from '../lib/organisers';
+import { signOut, useSession } from '../lib/auth';
+import { inviteOrganiser, isOrganiser, needsTeam, removeOrganiser, roles, updateOrganiser, useMe, useOrganisers, type Organiser, type OrganiserChangeError, type Role } from '../lib/organisers';
 import { teamName, useTeams } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
@@ -132,15 +133,27 @@ export function AddOrganiserDialog({ email: initialEmail = '', teamId, onClose }
 	);
 }
 
+const LAST_SUPER_ADMIN = 'Someone else needs to be a super admin, and to have signed in, before you change this. Otherwise nobody could manage organisers.';
+
+/** A super admin edits someone's name, address, role and team; their own included. */
 export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organiser; onClose: () => void }) {
 	const teams = useTeams() ?? [];
+	const session = useSession();
+	const self = session?.email === organiser.email;
+	const [name, setName] = useState(organiser.name ?? '');
+	const [email, setEmail] = useState(organiser.email);
 	const [role, setRole] = useState<Role>(organiser.role);
 	const [team, setTeam] = useState(organiser.teamId ?? (needsTeam(organiser) ? NEW_TEAM : (teams[0]?.id ?? '')));
-	const name = organiser.name ?? organiser.email;
+	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState<OrganiserChangeError | null>(null);
+	const shown = organiser.name ?? organiser.email;
+	const address = email.trim().toLowerCase();
+	const moving = address !== organiser.email;
+	const valid = looksLikeEmail(email) && (role === 'super-admin' || team !== '');
 
 	return (
 		<Dialog
-			title={`Edit ${name}`}
+			title={self ? 'Edit your details' : `Edit ${shown}`}
 			description="Changes apply straight away."
 			onClose={onClose}
 			className="w-[450px]"
@@ -148,47 +161,92 @@ export function EditOrganiserDialog({ organiser, onClose }: { organiser: Organis
 		>
 			<form
 				className="flex flex-col gap-5"
-				onSubmit={(e) => {
+				onSubmit={async (e) => {
 					e.preventDefault();
-					updateOrganiser(organiser.id, { role, teamId: teamIdFor(team) }).catch(() => showToast(`Couldn’t save ${name}’s changes. Try again.`));
+					if (!valid || saving) return;
+					setSaving(true);
+					setError(null);
+					const result = await updateOrganiser(organiser.id, { role, teamId: teamIdFor(team), name: name.trim() || null, email: address });
+					setSaving(false);
+					if (result) return setError(result);
+					if (moving) showToast(self ? `Sign in with ${address} from now on` : `Invite sent to ${address}`);
 					onClose();
+					// Your own record has moved: this address can't use the dashboard any more
+					if (self && moving) signOut();
 				}}
 			>
+				<TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} placeholder={organiser.invited ? 'Set when they first sign in' : ''} autoComplete="off" data-autofocus />
 				<TextField
 					label="Email"
-					value={organiser.email}
-					readOnly
-					hint="To change the email, remove them and add the new address."
-					className="opacity-60"
+					type="email"
+					value={email}
+					onChange={(e) => {
+						setEmail(e.target.value);
+						if (error === 'email-taken') setError(null);
+					}}
+					autoComplete="off"
+					error={error === 'email-taken' ? 'This address is already on the list.' : null}
+					hint={
+						moving
+							? self
+								? 'You’ll be signed out, then sign in with the new address. The old one stops working.'
+								: 'They get an invite at the new address, and the old one stops working.'
+							: undefined
+					}
 				/>
 				<RoleAndTeam role={role} team={team} setRole={setRole} setTeam={setTeam} />
-				<Actions onCancel={onClose} submit="Save changes" />
+				{(error === 'last-super-admin' || error === 'failed') && (
+					<p role="alert" className="text-sm leading-normal text-error">
+						{error === 'last-super-admin' ? LAST_SUPER_ADMIN : `Couldn’t save ${self ? 'your' : `${shown}’s`} changes. Try again.`}
+					</p>
+				)}
+				<Actions onCancel={onClose} submit={saving ? 'Saving…' : 'Save changes'} disabled={!valid || saving} />
 			</form>
 		</Dialog>
 	);
 }
 
+/** A super admin takes someone off the list; themselves included, while another super admin can sign in. */
 export function RemoveOrganiserDialog({ organiser, onClose }: { organiser: Organiser; onClose: () => void }) {
+	const session = useSession();
+	const self = session?.email === organiser.email;
 	const name = organiser.name ?? organiser.email;
 	const teams = useTeams();
+	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState<OrganiserChangeError | null>(null);
 	const scope =
 		organiser.role === 'super-admin' ? 'every event and team' : organiser.teamId ? `${teamName(teams, organiser.teamId)}’s events` : 'the dashboard';
 	return (
 		<Dialog
-			title={`Remove ${name}?`}
-			description={`They lose access to ${scope} straight away. Check-ins they made stay in the records.`}
+			title={self ? 'Remove yourself?' : `Remove ${name}?`}
+			description={
+				self
+					? `You lose access to ${scope} and are signed out straight away. Check-ins you made stay in the records.`
+					: `They lose access to ${scope} straight away. Check-ins they made stay in the records.`
+			}
 			onClose={onClose}
 			className="w-[450px]"
 			closeButton={<CloseButton onClose={onClose} />}
 		>
 			<form
-				onSubmit={(e) => {
+				className="flex flex-col gap-5"
+				onSubmit={async (e) => {
 					e.preventDefault();
-					removeOrganiser(organiser.id).catch(() => showToast(`Couldn’t remove ${name}. Try again.`));
+					if (saving) return;
+					setSaving(true);
+					const result = await removeOrganiser(organiser.id);
+					setSaving(false);
+					if (result) return setError(result);
 					onClose();
+					if (self) signOut();
 				}}
 			>
-				<Actions onCancel={onClose} submit="Remove organiser" />
+				{error && (
+					<p role="alert" className="text-sm leading-normal text-error">
+						{error === 'last-super-admin' ? LAST_SUPER_ADMIN : `Couldn’t remove ${self ? 'you' : name}. Try again.`}
+					</p>
+				)}
+				<Actions onCancel={onClose} submit={self ? 'Remove myself' : 'Remove organiser'} disabled={saving} />
 			</form>
 		</Dialog>
 	);

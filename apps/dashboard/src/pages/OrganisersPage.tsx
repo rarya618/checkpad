@@ -447,7 +447,8 @@ function RoleBadge({ organiser }: { organiser: Pick<Organiser, 'role'> }) {
 	);
 }
 
-// Figma "Organisers – row menu". You can't change or remove your own access.
+// Figma "Organisers – row menu". Your own row too: the API refuses a change that would leave
+// nobody able to manage organisers.
 function OrganiserMenu({ organiser, onEdit, onRemove }: { organiser: Organiser; onEdit: (o: Organiser) => void; onRemove: (o: Organiser) => void }) {
 	const session = useSession();
 	const self = session?.email === organiser.email.toLowerCase();
@@ -456,8 +457,8 @@ function OrganiserMenu({ organiser, onEdit, onRemove }: { organiser: Organiser; 
 			label={`Options for ${organiser.name ?? organiser.email}`}
 			buttonClassName="rounded-md p-1 hover:bg-light-blue/60"
 			items={[
-				{ label: 'Edit role and team', icon: shield, disabled: self, onSelect: () => onEdit(organiser) },
-				{ label: 'Remove organiser', icon: trash, separated: true, disabled: self, onSelect: () => onRemove(organiser) },
+				{ label: self ? 'Edit your details' : 'Edit details', icon: shield, onSelect: () => onEdit(organiser) },
+				{ label: self ? 'Remove yourself' : 'Remove organiser', icon: trash, separated: true, onSelect: () => onRemove(organiser) },
 			]}
 		>
 			<img src={more} alt="" width={18} height={18} />

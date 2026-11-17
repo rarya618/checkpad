@@ -18,7 +18,7 @@ async function signedInEmail(auth: Auth, authorization: string | undefined) {
 }
 
 /** The signed-in organiser's email, if they're a super admin. */
-async function superAdmin(db: Firestore, auth: Auth, authorization: string | undefined) {
+export async function superAdmin(db: Firestore, auth: Auth, authorization: string | undefined) {
 	const email = await signedInEmail(auth, authorization);
 	const admin = (await db.doc(`admins/${email}`).get()).data() as AdminDoc | undefined;
 	if (admin?.role !== 'super-admin') throw new ApiFailure('forbidden', 403);

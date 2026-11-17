@@ -433,3 +433,109 @@ describe('POST /onboarding/team', () => {
 		assert.deepEqual(await setUp(team, await tokenFor('boss@example.com')), { status: 403, body: { error: 'forbidden' } });
 	});
 });
+
+describe('PATCH and DELETE /admin/organisers/:email', () => {
+	async function call(method: 'PATCH' | 'DELETE', email: string, token?: string, body?: object) {
+		const res = await fetch(`${API}/admin/organisers/${encodeURIComponent(email)}`, {
+			method,
+			headers: { 'content-type': 'application/json', ...(token && { authorization: `Bearer ${token}` }) },
+			...(body && { body: JSON.stringify(body) }),
+		});
+		return { status: res.status, body: await res.json() };
+	}
+	const edit = (email: string, token: string | undefined, body: object) => call('PATCH', email, token, body);
+	const remove = (email: string, token?: string) => call('DELETE', email, token);
+	const admin = async (email: string) => (await db.doc(`admins/${email}`).get()).data();
+
+	beforeEach(async () => {
+		assert.ok(AUTH, 'Run with the Auth emulator so FIREBASE_AUTH_EMULATOR_HOST is set');
+		await fetch(`http://${AUTH}/emulator/v1/projects/${PROJECT}/accounts`, { method: 'DELETE' });
+		await db.doc('admins/boss@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0), name: 'Boss', lastSignInAt: at(0) });
+		await db.doc('admins/priya@example.com').set({ role: 'organiser', teamId: 'team-test', invitedAt: at(0), name: 'Priya', lastSignInAt: at(0) });
+	});
+
+	test('a super admin changes someone’s role, team and name', async () => {
+		const res = await edit('priya@example.com', await tokenFor('boss@example.com'), { role: 'team-member', teamId: 'team-empty', name: '  Priya N ' });
+		assert.deepEqual(res, { status: 200, body: { status: 'saved', email: 'priya@example.com' } });
+		const saved = await admin('priya@example.com');
+		assert.equal(saved?.role, 'team-member');
+		assert.equal(saved?.teamId, 'team-empty');
+		assert.equal(saved?.name, 'Priya N');
+	});
+
+	test('leaves the name alone unless it’s sent, and clears it when it’s blank', async () => {
+		const token = await tokenFor('boss@example.com');
+		await edit('priya@example.com', token, { role: 'organiser', teamId: 'team-test' });
+		assert.equal((await admin('priya@example.com'))?.name, 'Priya');
+		await edit('priya@example.com', token, { role: 'organiser', teamId: 'team-test', name: ' ' });
+		assert.equal((await admin('priya@example.com'))?.name, null);
+	});
+
+	test('moves someone to a new address as a fresh invite, keeping their role, team and name', async () => {
+		const res = await edit('priya@example.com', await tokenFor('boss@example.com'), { role: 'organiser', teamId: 'team-test', email: ' Priya.N@Example.com ' });
+		assert.deepEqual(res, { status: 200, body: { status: 'saved', email: 'priya.n@example.com' } });
+		assert.equal(await admin('priya@example.com'), undefined);
+		const moved = await admin('priya.n@example.com');
+		assert.equal(moved?.role, 'organiser');
+		assert.equal(moved?.teamId, 'team-test');
+		assert.equal(moved?.name, 'Priya');
+		assert.equal(moved?.invitedBy, 'boss@example.com');
+		assert.equal(moved?.lastSignInAt, undefined);
+	});
+
+	test('won’t move someone onto an address already on the list', async () => {
+		await db.doc('admins/tom@example.com').set({ role: 'team-member', teamId: 'team-test', invitedAt: at(0) });
+		const res = await edit('priya@example.com', await tokenFor('boss@example.com'), { role: 'organiser', teamId: 'team-test', email: 'tom@example.com' });
+		assert.deepEqual(res, { status: 409, body: { error: 'email-taken' } });
+		assert.equal((await admin('priya@example.com'))?.role, 'organiser');
+	});
+
+	test('a super admin removes someone', async () => {
+		assert.deepEqual(await remove('priya@example.com', await tokenFor('boss@example.com')), { status: 200, body: { status: 'removed' } });
+		assert.equal(await admin('priya@example.com'), undefined);
+	});
+
+	test('a super admin can’t demote, move or remove themselves while no other super admin can sign in', async () => {
+		// Only invited, never signed in: doesn't count
+		await db.doc('admins/second@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0) });
+		const token = await tokenFor('boss@example.com');
+		const refused = { status: 409, body: { error: 'last-super-admin' } };
+		assert.deepEqual(await edit('boss@example.com', token, { role: 'organiser', teamId: 'team-test' }), refused);
+		assert.deepEqual(await edit('boss@example.com', token, { role: 'super-admin', teamId: null, email: 'new-boss@example.com' }), refused);
+		assert.deepEqual(await remove('boss@example.com', token), refused);
+		assert.equal((await admin('boss@example.com'))?.role, 'super-admin');
+		// Their own name is fine
+		assert.equal((await edit('boss@example.com', token, { role: 'super-admin', teamId: null, name: 'The Boss' })).status, 200);
+		assert.equal((await admin('boss@example.com'))?.name, 'The Boss');
+	});
+
+	test('a super admin can demote, move or remove themselves once another super admin has signed in', async () => {
+		await db.doc('admins/second@example.com').set({ role: 'super-admin', teamId: null, invitedAt: at(0), lastSignInAt: at(0) });
+		const token = await tokenFor('boss@example.com');
+		assert.equal((await edit('boss@example.com', token, { role: 'super-admin', teamId: null, email: 'new-boss@example.com' })).status, 200);
+		assert.equal((await admin('new-boss@example.com'))?.role, 'super-admin');
+		assert.equal(await admin('boss@example.com'), undefined);
+	});
+
+	test('only for super admins', async () => {
+		const body = { role: 'super-admin', teamId: null };
+		assert.deepEqual(await edit('priya@example.com', undefined, body), { status: 401, body: { error: 'forbidden' } });
+		assert.deepEqual(await edit('priya@example.com', await tokenFor('priya@example.com'), body), { status: 403, body: { error: 'forbidden' } });
+		assert.deepEqual(await remove('boss@example.com'), { status: 401, body: { error: 'forbidden' } });
+		assert.equal((await admin('priya@example.com'))?.role, 'organiser');
+	});
+
+	test('refuses a bad role, a team that doesn’t exist, a team member with no team, a bad address or a long name, and says when they’re gone', async () => {
+		const token = await tokenFor('boss@example.com');
+		const bad = [
+			{ role: 'owner', teamId: null },
+			{ role: 'organiser', teamId: 'nope' },
+			{ role: 'team-member', teamId: null },
+			{ role: 'organiser', teamId: 'team-test', email: 'not-an-email' },
+			{ role: 'organiser', teamId: 'team-test', name: 'x'.repeat(201) },
+		];
+		for (const body of bad) assert.deepEqual(await edit('priya@example.com', token, body), { status: 400, body: { error: 'invalid' } }, JSON.stringify(body));
+		assert.deepEqual(await edit('nobody@example.com', token, { role: 'organiser', teamId: 'team-test' }), { status: 404, body: { error: 'not-found' } });
+		assert.deepEqual(await remove('nobody@example.com', token), { status: 404, body: { error: 'not-found' } });
+	});
+});

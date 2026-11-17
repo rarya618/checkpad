@@ -51,6 +51,8 @@ export type ApiErrorCode =
 	| 'in-use' // a team that events or organisers still use can't be deleted
 	| 'name-taken' // onboarding: another team has this name
 	| 'slug-taken' // onboarding: another team uses this link
+	| 'email-taken' // moving an organiser to an address that's already on the list
+	| 'last-super-admin' // a super admin can't demote, move or remove themselves while no other super admin can sign in
 	| 'server';
 
 export interface ApiError {
