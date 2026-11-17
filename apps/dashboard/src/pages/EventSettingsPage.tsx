@@ -115,7 +115,8 @@ function EventSettingsPage({ slug }: { slug: string }) {
 
 	return (
 		<>
-			<EventOverview event={event} />
+			{/* Its own check-in switch is in the form below, saved with the rest */}
+			<EventOverview event={event} checkInSwitch={false} />
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();

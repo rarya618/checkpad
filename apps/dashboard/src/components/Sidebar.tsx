@@ -2,7 +2,6 @@ import logo from '@checkpad/shared/checkpad-logo.svg';
 import { formatDate } from '@checkpad/shared/format';
 import { Link, NavLink, useLocation } from 'react-router';
 import arrow from '../assets/arrow-right.svg';
-import calendar from '../assets/calendar.svg';
 import chevron from '../assets/chevron-down.svg';
 import ellipsis from '../assets/ellipsis-vertical.svg';
 import logout from '../assets/logout.svg';
@@ -13,7 +12,7 @@ import { useEventSummaries, type DashboardEvent, type EventSummary } from '../li
 import { initialsOf, roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import Menu, { type MenuItem } from './Menu';
 import StatusBadge from './StatusBadge';
-import { eventNameBack, useTransitionLink, useTransitionLinks, useTransitionNavigate } from '../lib/pageTransition';
+import { eventNameBack, useTransitionLink, useTransitionLinks } from '../lib/pageTransition';
 
 export interface SidebarItem {
 	to: string;
@@ -60,15 +59,15 @@ export default function Sidebar({ items, back, screens, event }: SidebarProps) {
 	const { pathname } = useLocation();
 	return (
 		<aside className="flex h-full w-[232px] shrink-0 flex-col border-r border-line pt-8 pb-4">
-			{/* Level with the page titles, 32px down (PageHeader). Inside an event it's the quick way
-			    back to Events, so it carries the event's name back to its row */}
+			{/* Level with the page titles, 32px down (PageHeader). Inside an event it goes back to
+			    Events too, carrying the event's name back to its row */}
 			<Link to="/events" onClick={event ? goBack : undefined} className="mx-6 self-start py-0.5">
 				<img src={logo} alt="checkpad" width={146} height={32} />
 			</Link>
 			{/* Outside the scrolling part below, which would clip the switcher's list */}
 			{event && (
 				<div className="px-4 pt-6">
-					<EventSwitcher event={event} back={back} />
+					<EventSwitcher event={event} />
 				</div>
 			)}
 			{/* The menu, or inside an event the switcher above it, starts 24px under the logo */}
@@ -206,19 +205,9 @@ export function useEventSwitchItems(event: DashboardEvent | undefined): MenuItem
 	return groups.flatMap((g, i) => g.map((s, j) => ({ ...item(s), separated: i > 0 && j === 0 })));
 }
 
-// The event's name and date head its menu; pressing them offers the way back to all events
-// (as on phones), then the other events to switch to
-function EventSwitcher({ event, back }: { event: DashboardEvent; back?: BackLink }) {
-	const switchItems = useEventSwitchItems(event);
-	const go = useTransitionNavigate();
-	const status = nowStatus[eventPhase(event)];
-	const items: MenuItem[] = back
-		? [
-				// Its title returns to its row on Events, as the logo does
-				{ label: back.label, icon: calendar, onSelect: () => go(back.to, eventNameBack()) },
-				...switchItems.map((x, i) => (i === 0 ? { ...x, separated: true } : x)),
-			]
-		: switchItems;
+// The event's name and date head its menu; pressing them lists the other events to switch to
+function EventSwitcher({ event }: { event: DashboardEvent }) {
+	const items = useEventSwitchItems(event);
 	return (
 		<Menu
 			label={`${event.name}: switch to another event`}
@@ -227,11 +216,8 @@ function EventSwitcher({ event, back }: { event: DashboardEvent; back?: BackLink
 			buttonClassName="flex w-full items-start gap-2 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-light-blue/50 aria-expanded:bg-light-blue/50"
 			items={items}
 		>
-			<span className="flex min-w-0 flex-1 flex-col gap-1 leading-normal">
-				<span className="line-clamp-3 font-display text-lg leading-tight text-dark-blue">{event.name}</span>
-				<span className="text-sm text-med-blue">{formatDate(new Date(event.startsAt), event.timeZone)}</span>
-				{status && <StatusBadge open={status.open} label={status.label} />}
-			</span>
+			{/* Just the name: the page's header says when it is and whether check-in is open */}
+			<span className="line-clamp-3 min-w-0 flex-1 font-display text-lg leading-tight text-dark-blue">{event.name}</span>
 			<img src={chevron} alt="" width={18} height={18} className="mt-0.5 shrink-0" />
 		</Menu>
 	);

@@ -174,7 +174,7 @@ function RehearsalNote({ event, canEdit }: { event: DashboardEvent; canEdit: boo
 						? ' If you use an email that isn’t on the list, remove the walk-in it adds from its ⋮ menu.'
 						: ' If you use an email that isn’t on the list, an organiser will need to remove the walk-in it adds.'}
 					{!event.selfCheckInOpen &&
-						(canEdit ? ' Self check-in is off for this event, so turn it on in Edit first.' : ' Self check-in is off for this event, so ask an organiser to turn it on first.')}
+						(canEdit ? ' Self check-in is off for this event, so switch it on at the top of the page first.' : ' Self check-in is off for this event, so ask an organiser to turn it on first.')}
 				</p>
 			</div>
 			<button type="button" aria-label="Dismiss" onClick={dismiss} className="shrink-0 rounded p-0.5 hover:bg-white/60">
