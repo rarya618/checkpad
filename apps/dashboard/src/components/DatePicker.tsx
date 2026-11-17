@@ -140,7 +140,8 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 	const hi = start && rangeEnd ? (start < rangeEnd ? rangeEnd : start) : start;
 
 	const cells: (string | null)[] = [...Array(weekday(first)).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => addDays(first, i))];
-	while (cells.length % 7) cells.push(null);
+	// Always six weeks, so the calendar keeps its height from month to month
+	while (cells.length < 42) cells.push(null);
 	const weeks = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7));
 
 	return (
@@ -154,7 +155,7 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 				onClose();
 			}}
 			data-popover
-			className="flex w-[min(100%,20.5rem)] flex-col gap-3 rounded-xl border border-line bg-white p-3 shadow-[0_9px_30px_rgb(17_45_78/0.14)] md:p-4"
+			className="flex w-full flex-col gap-3 rounded-xl border border-line bg-white p-3 shadow-[0_9px_30px_rgb(17_45_78/0.14)] md:p-4"
 		>
 			<div className="flex items-center justify-between">
 				<button type="button" aria-label="Previous month" onClick={() => go(addMonths(focused, -1))} className="flex size-9 items-center justify-center rounded-md hover:bg-light-blue/60">
@@ -185,7 +186,7 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 					{weeks.map((week, w) => (
 						<tr key={w}>
 							{week.map((date, i) => {
-								if (!date) return <td key={i} />;
+								if (!date) return <td key={i} className="h-10 md:h-11" />;
 								const ends = date === lo || date === hi;
 								const between = Boolean(lo && hi) && date > lo && date < hi;
 								const span = lo !== hi;
@@ -207,7 +208,7 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 											// Unavailable days stay focusable, so arrow keys never stall on them
 											aria-disabled={disabled(date) || undefined}
 											aria-label={format(date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(',', '')}
-											aria-pressed={ends}
+											aria-pressed={date === start || date === end}
 											aria-current={date === now ? 'date' : undefined}
 											onClick={() => !disabled(date) && onPick(date)}
 											onFocus={() => setFocused(date)}

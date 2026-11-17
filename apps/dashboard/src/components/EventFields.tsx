@@ -9,6 +9,17 @@ import { SelectField, TextField } from './Field';
 
 type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
 
+/** Where the calendar sits in the date fields' box: under its field, or above it once measured. */
+type Place = { top?: number; bottom?: number; settled: boolean };
+
+/** The nearest ancestor that scrolls, or the page itself. */
+function scrollParent(el: HTMLElement) {
+	for (let node = el.parentElement; node; node = node.parentElement) {
+		if (/auto|scroll/.test(getComputedStyle(node).overflowY) && node !== document.body && node !== document.documentElement) return node;
+	}
+	return document.scrollingElement ?? document.documentElement;
+}
+
 // When it starts and ends, a date and a time each, then the time zone: shared by New event
 // ("When") and Event settings ("Details"). The dates open one calendar that picks the start
 // day, then the end day (DatePicker); one that ends on its start date before its start time
@@ -19,7 +30,8 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 	// The field that opened the calendar, which it stays under while it moves on from the start
 	// to the end, so it doesn't jump a row mid-pick
 	const [anchor, setAnchor] = useState<'start' | 'end'>('start');
-	const [top, setTop] = useState<number | null>(null);
+	const [place, setPlace] = useState<Place | null>(null);
+	const room = useRef({ below: 0, above: 0, bottom: 0 });
 	const area = useRef<HTMLDivElement>(null);
 	const popover = useRef<HTMLDivElement>(null);
 	const startButton = useRef<HTMLButtonElement>(null);
@@ -29,7 +41,7 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 	const open = (mode: 'start' | 'end', from: 'start' | 'end') => {
 		if (picking && anchor === from) return setPicking(null);
 		setAnchor(from);
-		setTop(null);
+		setPlace(null);
 		setPicking(mode);
 	};
 	const close = (focusField = true) => {
@@ -37,20 +49,34 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 		setPicking(null);
 	};
 
-	// Always right under the field that opened it, 8px clear, measured before paint so it never
-	// shows in the wrong place. When that runs past the bottom of the window, the page scrolls
-	// just enough to show it all.
+	// Right under the field that opened it, 8px clear, measured before paint so it never shows
+	// in the wrong place. Where that would hang off the end of the page, making it longer while
+	// the calendar is open and jumping back when it closes, it opens above the field instead,
+	// if the page has the room there. Then the page scrolls just enough to show it all. It's
+	// placed once each time it opens, not again as it moves on from the start to the end.
+	const isOpen = picking !== null;
 	useLayoutEffect(() => {
-		if (!picking || !area.current) return;
+		if (!isOpen || !area.current) return;
 		const field = (anchor === 'end' ? endButton : startButton).current!.getBoundingClientRect();
-		setTop(field.bottom - area.current.getBoundingClientRect().top + 8);
-	}, [picking, anchor]);
+		const box = area.current.getBoundingClientRect();
+		const page = scrollParent(area.current);
+		const pageTop = page.getBoundingClientRect().top - (page === document.scrollingElement ? 0 : page.scrollTop);
+		room.current = { below: pageTop + page.scrollHeight - field.bottom, above: field.top - pageTop, bottom: box.bottom - field.top + 8 };
+		setPlace({ top: field.bottom - box.top + 8, settled: false });
+	}, [isOpen, anchor]);
+	useLayoutEffect(() => {
+		if (!place || place.settled || !popover.current) return;
+		const needed = popover.current.offsetHeight + 8;
+		const above = needed > room.current.below && needed <= room.current.above;
+		setPlace(above ? { bottom: room.current.bottom, settled: true } : { ...place, settled: true });
+	}, [place]);
 	useEffect(() => {
-		if (top === null) return;
+		if (!place?.settled) return;
 		const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 		popover.current?.scrollIntoView({ block: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
-	}, [top]);
-	// A click anywhere else closes the calendar, leaving focus where the click put it
+	}, [place]);
+	// A click anywhere else closes the calendar, leaving focus where the click put it; so does
+	// moving focus out of it with Tab (the date fields toggle it themselves)
 	useEffect(() => {
 		if (!picking) return;
 		const onDown = (e: PointerEvent) => {
@@ -93,9 +119,22 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 					<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
 				</div>
 				{/* Mounted once its place is known, already visible, so focus can move into it */}
-				{picking && top !== null && (
-					// On phones the scroll that shows it clears the fixed bottom nav
-					<div ref={popover} style={{ top }} className="absolute left-0 z-30 w-full scroll-mb-28 md:scroll-mb-6">
+				{picking && place && (
+					// Only as wide as the calendar, so the fields beside it stay clickable. The scroll
+					// that shows it clears the page's sticky header and, on phones, the bottom nav;
+					// above its field, it keeps the field in view underneath too.
+					<div
+						ref={popover}
+						style={{ top: place.top, bottom: place.bottom }}
+						data-side={place.bottom === undefined ? 'below' : 'above'}
+						onBlur={(e) => {
+							const to = e.relatedTarget;
+							if (to && !e.currentTarget.contains(to) && to !== startButton.current && to !== endButton.current) setPicking(null);
+						}}
+						className={`absolute left-0 z-30 w-[min(100%,20.5rem)] scroll-mt-20 md:scroll-mt-32 ${
+							place.bottom === undefined ? 'scroll-mb-28 md:scroll-mb-6' : 'scroll-mb-44 md:scroll-mb-20'
+						}`}
+					>
 						<RangeCalendar mode={picking} start={form.date} end={endDate} onPick={pick} onClose={close} />
 					</div>
 				)}
