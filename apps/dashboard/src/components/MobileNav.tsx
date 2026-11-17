@@ -211,21 +211,40 @@ function Tab({ icon, label, active }: { icon?: string; label: string; active: bo
 // Taller than any browser toolbar that slides in and out, shorter than any on-screen keyboard
 const KEYBOARD_MIN_HEIGHT = 150;
 
+/** Somewhere typing brings up the on-screen keyboard. */
+const typesText = (el: Element | null) =>
+	el instanceof HTMLTextAreaElement ||
+	(el instanceof HTMLElement && el.isContentEditable) ||
+	(el instanceof HTMLInputElement && !['button', 'checkbox', 'radio', 'range', 'submit', 'reset', 'file', 'color', 'image'].includes(el.type));
+
 /**
  * Whether the on-screen keyboard is up: it shrinks the visible area (the visual viewport) while
  * the page keeps its height. Pinch zoom shrinks the visual viewport too, so its height is
  * measured at the page's scale. A narrow desktop window, or a phone with a hardware keyboard,
  * never shrinks, so typing there keeps the tab bar.
+ *
+ * It goes as soon as the field loses focus, not when the viewport says so: phones report the
+ * resize only once the keyboard has finished sliding away, which would hold the tab bar back for
+ * the whole of it. Moving straight to another field keeps the keyboard, so that doesn't count.
  */
 function useKeyboardOpen() {
 	const [open, setOpen] = useState(false);
 	useEffect(() => {
 		const viewport = window.visualViewport;
 		if (!viewport) return;
-		const update = () => setOpen(window.innerHeight - viewport.height * viewport.scale > KEYBOARD_MIN_HEIGHT);
+		// Only with a field focused: a resize from a keyboard still on its way down doesn't count
+		const update = () =>
+			setOpen(typesText(document.activeElement) && window.innerHeight - viewport.height * viewport.scale > KEYBOARD_MIN_HEIGHT);
+		const onFocusOut = (e: FocusEvent) => {
+			if (typesText(e.target as Element) && !typesText(e.relatedTarget as Element | null)) setOpen(false);
+		};
 		update();
 		viewport.addEventListener('resize', update);
-		return () => viewport.removeEventListener('resize', update);
+		document.addEventListener('focusout', onFocusOut);
+		return () => {
+			viewport.removeEventListener('resize', update);
+			document.removeEventListener('focusout', onFocusOut);
+		};
 	}, []);
 	return open;
 }

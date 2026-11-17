@@ -425,13 +425,13 @@ tr[data-arrived] > td:last-child {
 
 /* The phones' tab bar (MobileNav) gets out of the on-screen keyboard's way: it tucks down by its
    own height as the keyboard rises, quickly, so it's gone before the keyboard covers it, and rises
-   back once the keyboard has cleared, a beat later and on the quick ease-out. Hidden (visibility)
+   back straight away as the keyboard goes, on the quick ease-out. Hidden (visibility)
    only once it's out of sight, and shown again the moment it starts back. With reduced motion it
    only fades. */
 [data-tabbar] {
   transition:
-    translate 260ms cubic-bezier(0.16, 1, 0.3, 1) 60ms,
-    opacity 200ms ease-out 60ms,
+    translate 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms ease-out,
     visibility 0s linear 0s;
 }
 
