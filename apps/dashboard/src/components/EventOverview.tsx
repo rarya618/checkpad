@@ -81,7 +81,9 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 						<span aria-hidden="true" className="hidden md:inline">
 							·
 						</span>
-						<span className="flex min-w-0 items-center gap-1">
+						{/* Never wider than the line, so a long link is cut short with its copy icon still in view:
+						    in the phones' column each line is otherwise as wide as its text */}
+						<span className="flex max-w-full min-w-0 items-center gap-1">
 							<a href={url} target="_blank" rel="noreferrer" className="truncate underline underline-offset-2 hover:text-dark-blue">
 								{url.replace(/^https?:\/\//, '')}
 							</a>
