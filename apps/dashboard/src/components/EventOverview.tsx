@@ -89,7 +89,9 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 						</span>
 					</div>
 				</div>
-				<div className="flex shrink-0 items-center gap-3">
+				{/* On phones, where they wrap under the details, they start where the name does: the
+				    arrow's 24px and the 8px gap */}
+				<div className="flex shrink-0 items-center gap-3 pl-8 md:pl-0">
 					<button type="button" onClick={() => setSharing(true)} className={buttonClass('secondary')}>
 						Share
 					</button>
