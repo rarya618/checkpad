@@ -315,6 +315,19 @@ html {
 	}
 
 	/* Tapped buttons press in */
+	/* "Not open yet" on the day: the dot beside "Waiting for the organisers…" breathes, slowly,
+	   so the page reads as watching rather than stuck. Still with reduced motion. */
+	@keyframes waiting {
+		50% {
+			opacity: 0.35;
+			scale: 0.8;
+		}
+	}
+
+	[data-checkin] [data-waiting] {
+		animation: waiting 2.4s ease-in-out infinite;
+	}
+
 	[data-checkin] .button {
 		transition-property: color, background-color, scale;
 		transition-duration: 150ms;

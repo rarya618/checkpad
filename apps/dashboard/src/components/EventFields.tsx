@@ -254,7 +254,7 @@ export function TicketUrlField({ form, update }: { form: EventForm; update: Upda
 			onChange={(e) => update('ticketUrl', e.target.value)}
 			onBlur={() => setLeft(true)}
 			placeholder="lu.ma/october-meetup"
-			hint="Until check-in opens, the check-in link offers this for getting a ticket."
+			hint="The check-in link offers it until the day of the event. Import again before then, so late registrations are on the list."
 			error={left ? ticketUrlError(form) : null}
 		/>
 	);

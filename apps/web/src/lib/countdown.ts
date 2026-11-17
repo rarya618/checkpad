@@ -18,6 +18,11 @@ function daysUntil(start: Date, now: Date, timeZone: string) {
 	return Math.round((Date.parse(zonedDate(start, timeZone)) - Date.parse(zonedDate(now, timeZone))) / DAY);
 }
 
+/** Whether it's the event's day (or later) by the calendar in its time zone. */
+export function isEventDay(start: Date, timeZone: string, now = new Date()) {
+	return daysUntil(start, now, timeZone) <= 0;
+}
+
 export function startsIn(start: Date, timeZone: string, now = new Date()) {
 	const ms = start.getTime() - now.getTime();
 	if (ms < MINUTE) return 'Starting now';

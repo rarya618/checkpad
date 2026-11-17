@@ -5,6 +5,7 @@ import { buttonClass } from '@checkpad/shared/button';
 import { checkInStatus } from '@checkpad/shared/events';
 import { formatSchedule, formatTime } from '@checkpad/shared/format';
 import { ApiFailure, checkIn, checkInWalkIn } from '../lib/api';
+import { validateEmail } from '../lib/email';
 import LinkNotFound from './LinkNotFound';
 import NotOpenYet from './NotOpenYet';
 import StatusScreen from './StatusScreen';
@@ -23,8 +24,6 @@ interface Props {
 	/** Static footer ("powered by checkpad") rendered under the form and confirmation. */
 	children?: ReactNode;
 }
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** The page around the check-in card: centred, with the "powered by" footer under it. */
 const PAGE = 'mx-auto flex min-h-viewport max-w-[480px] flex-col items-center justify-center gap-7.5 px-4 py-12';
@@ -65,16 +64,15 @@ function nudge(element: HTMLElement | null) {
 	);
 }
 
-function validateEmail(email: string) {
-	if (!email.trim()) return 'Enter your email address';
-	if (!EMAIL_PATTERN.test(email.trim())) return 'Enter a full email address, like jane@example.com';
-	return null;
-}
-
 export default function CheckInFlow({ event, children }: Props) {
 	// The API refuses check-ins once an organiser closes self check-in, or deletes the event,
 	// even if it was open when this page loaded.
 	const [closed, setClosed] = useState(false);
+	// Opened while the page was open, waiting on "Not open yet" (NotOpenYet.tsx)
+	const [opened, setOpened] = useState(false);
+	// Whether it's "Not open yet" or "Check-in closed" is decided by the time the page loaded, as a
+	// reload would, so someone waiting past the start time isn't told it's closed mid-typing
+	const [loadedAt] = useState(() => new Date());
 	const [gone, setGone] = useState(false);
 	const [step, setStep] = useState<Step>({ name: 'email' });
 	const [email, setEmail] = useState('');
@@ -87,12 +85,21 @@ export default function CheckInFlow({ event, children }: Props) {
 
 	if (gone) return <LinkNotFound />;
 
-	const checkInState = checkInStatus({ open: event.open && !closed, startsAt: event.startsAt });
+	const checkInState = checkInStatus({ open: (event.open || opened) && !closed, startsAt: event.startsAt }, loadedAt);
 
 	if (checkInState === 'not-open') {
 		return (
 			<main data-checkin className={PAGE}>
-				<NotOpenYet event={event} />
+				<NotOpenYet
+					event={event}
+					onOpened={(typed) =>
+						transition(() => {
+							setEmail(typed);
+							setOpened(true);
+						})
+					}
+					onGone={() => setGone(true)}
+				/>
 				{children}
 			</main>
 		);
@@ -181,6 +188,12 @@ export default function CheckInFlow({ event, children }: Props) {
 
 					{step.name === 'email' ? (
 						<form key="email" data-checkin-step noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-10">
+							{/* Just opened, for someone who waited on "Not open yet" with their email typed in */}
+							{opened && (
+								<p role="status" className="-mb-4 text-lg font-semibold text-dark-blue">
+									Check-in’s open
+								</p>
+							)}
 							<TextField
 								ref={emailInput}
 								label="Email"

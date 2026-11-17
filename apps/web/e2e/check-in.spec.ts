@@ -138,6 +138,43 @@ test.describe('open and closed', () => {
 		await expect(page.getByRole('link', { name: 'Get a ticket' })).toHaveCount(0);
 	});
 
+	test('on the day, the ticket link goes and people can type their email while they wait', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T09:00:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Starts in 8 hours' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Get a ticket' })).toHaveCount(0);
+		await expect(page.getByRole('link', { name: 'Add to calendar' })).toHaveCount(0);
+		await expect(page.getByRole('status')).toHaveText('Waiting for check-in to open');
+		await page.getByLabel('Email').fill('jane@example');
+		await page.getByLabel('Email').press('Enter');
+		await expect(page.getByText('Enter a full email address, like jane@example.com')).toBeVisible();
+		await page.getByLabel('Email').fill('jane@example.com');
+		await page.getByLabel('Email').press('Enter');
+		await expect(page.getByRole('status')).toHaveText('You’re ready. Keep this page open.');
+	});
+
+	test('when check-in opens, someone waiting is one tap from checking in', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T16:50:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await page.getByLabel('Email').fill('jane@example.com');
+		await setDoc('events/gdg-future-meetup', { status: 'open' });
+		await page.clock.fastForward('00:31');
+		await expect(page.getByText('Check-in’s open')).toBeVisible();
+		await expect(page.getByLabel('Email')).toHaveValue('jane@example.com');
+		await page.getByRole('button', { name: 'Check in' }).click();
+		await expect(page.getByText('You’re checked in')).toBeVisible();
+	});
+
+	test('waiting past the start time doesn’t turn into Check-in closed', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T16:58:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Starts in 2 minutes' })).toBeVisible();
+		await page.clock.fastForward('05:00');
+		await page.getByLabel('Email').fill('jane@example.com');
+		await expect(page.getByRole('heading', { name: 'Starting now' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Check-in closed' })).toHaveCount(0);
+	});
+
 	test('the organiser’s switch opens an event before it starts', async ({ page }) => {
 		await setDoc('events/gdg-future-meetup', { status: 'open' });
 		await page.goto('/gdg-future-meetup');
