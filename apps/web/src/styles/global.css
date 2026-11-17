@@ -348,3 +348,11 @@ html {
 [data-checkin] [data-message] {
 	animation: message-in 180ms ease-out;
 }
+
+/* Keyboard focus on the check-in page, as DESIGN.md's Visible Focus Rule: a 2px med-blue ring 2px
+   clear of the element, in place of the browser's own. Buttons and links (Check in, Add to
+   calendar, Get a ticket); the email field draws its own (TextField.tsx). */
+[data-checkin] :is(a, button):focus-visible {
+	outline: 2px solid var(--color-med-blue);
+	outline-offset: 2px;
+}

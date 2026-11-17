@@ -22,9 +22,12 @@ test.beforeEach(() => {
 });
 
 /** Writes straight to the emulator, as the dashboard would: `owner` skips security rules. */
-async function setDoc(path: string, fields: Record<string, string>) {
+const firestoreValue = (v: string | boolean | Date) =>
+	v instanceof Date ? { timestampValue: v.toISOString() } : typeof v === 'boolean' ? { booleanValue: v } : { stringValue: v };
+
+async function setDoc(path: string, fields: Record<string, string | boolean | Date>) {
 	const mask = Object.keys(fields).map((f) => `updateMask.fieldPaths=${f}`).join('&');
-	const body = { fields: Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, { stringValue: v }])) };
+	const body = { fields: Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, firestoreValue(v)])) };
 	const res = await fetch(`${DOCUMENTS}/${path}?${mask}`, {
 		method: 'PATCH',
 		headers: { authorization: 'Bearer owner', 'content-type': 'application/json' },
@@ -159,8 +162,12 @@ test.describe('open and closed', () => {
 		await page.getByLabel('Email').fill('jane@example.com');
 		await setDoc('events/gdg-future-meetup', { status: 'open' });
 		await page.clock.fastForward('00:31');
-		await expect(page.getByText('Check-in’s open')).toBeVisible();
+		await expect(page.getByText('Check-in’s open', { exact: true })).toBeVisible();
 		await expect(page.getByLabel('Email')).toHaveValue('jane@example.com');
+		// Focus waits on Check in, and the tab and a screen reader both say it's open
+		await expect(page.getByRole('button', { name: 'Check in' })).toBeFocused();
+		await expect(page).toHaveTitle(/^Open · /);
+		await expect(page.getByText('Check-in’s open. Tap Check in.')).toBeAttached();
 		await page.getByRole('button', { name: 'Check in' }).click();
 		await expect(page.getByText('You’re checked in')).toBeVisible();
 	});
@@ -171,8 +178,67 @@ test.describe('open and closed', () => {
 		await expect(page.getByRole('heading', { name: 'Starts in 2 minutes' })).toBeVisible();
 		await page.clock.fastForward('05:00');
 		await page.getByLabel('Email').fill('jane@example.com');
-		await expect(page.getByRole('heading', { name: 'Starting now' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Opens any minute' })).toBeVisible();
+		await expect(page.getByText('Waiting a while? Find one of the organisers.')).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Check-in closed' })).toHaveCount(0);
+	});
+
+	test('arriving after the start time, with check-in not yet opened, still waits rather than saying closed', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T17:20:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Opens any minute' })).toBeVisible();
+		await expect(page.getByLabel('Email')).toBeVisible();
+	});
+
+	test('closed by an organiser once the event started says closed', async ({ page }) => {
+		await setDoc('events/gdg-future-meetup', { statusChangedAt: new Date('2030-03-14T19:30:00+11:00') });
+		await page.clock.install({ time: new Date('2030-03-14T19:40:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Check-in closed' })).toBeVisible();
+	});
+
+	test('a switch tried and turned off before the event doesn’t count as closing it', async ({ page }) => {
+		await setDoc('events/gdg-future-meetup', { statusChangedAt: new Date('2030-03-14T15:00:00+11:00') });
+		await page.clock.install({ time: new Date('2030-03-14T17:10:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Opens any minute' })).toBeVisible();
+	});
+
+	test('waiting until the event ends turns into Check-in closed', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T19:58:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Opens any minute' })).toBeVisible();
+		await page.clock.fastForward('03:00');
+		await expect(page.getByRole('heading', { name: 'Check-in closed' })).toBeVisible();
+	});
+
+	test('a whole email shows ready without pressing Enter', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T09:00:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await page.getByLabel('Email').fill('jane@example.com');
+		await expect(page.getByRole('status')).toHaveText('You’re ready. Keep this page open.');
+	});
+
+	test('the page owns up when it can’t reach Checkpad, and recovers', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-14T09:00:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByLabel('Email')).toBeVisible();
+		await page.route('**/api/events/**', (route) => route.abort());
+		// One failed check isn't trouble; two in a row are. A jump fires a timer once, so two jumps
+		await page.clock.fastForward('00:31');
+		await expect(page.getByRole('status')).toHaveText('Waiting for check-in to open');
+		await page.clock.fastForward('00:31');
+		await expect(page.getByRole('status')).toHaveText('Can’t reach Checkpad. Still trying');
+		await page.unroute('**/api/events/**');
+		await page.clock.fastForward('00:31');
+		await expect(page.getByRole('status')).toHaveText('Waiting for check-in to open');
+	});
+
+	test('on the day with walk-ins off, people without a ticket are told who to find', async ({ page }) => {
+		await setDoc('events/gdg-future-meetup', { selfWalkIns: false });
+		await page.clock.install({ time: new Date('2030-03-14T09:00:00+11:00') });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByText('Not registered? Find one of the organisers at the door.')).toBeVisible();
 	});
 
 	test('the organiser’s switch opens an event before it starts', async ({ page }) => {

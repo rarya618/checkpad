@@ -25,11 +25,26 @@ export interface Team {
 
 export type CheckInStatus = 'not-open' | 'open' | 'closed';
 
-/** Open while the switch is on, whatever the time. While it's off, the start time only
- *  decides whether attendees see "Not open yet" or "Check-in closed". */
-export function checkInStatus({ open, startsAt }: { open: boolean; startsAt: string }, now = new Date()): CheckInStatus {
+interface StatusInput {
+	open: boolean;
+	startsAt: string;
+	endsAt: string;
+	/** When the switch was last turned off, if it was ever turned on (ISO); null otherwise. */
+	closedAt: string | null;
+}
+
+/**
+ * Open while the switch is on, whatever the time. While it's off, it's "Not open yet" until the
+ * event ends, so a volunteer who's a few minutes late with the switch doesn't have people told
+ * it's closed, unless an organiser closed it once the event had started. Once it has ended, it's
+ * closed.
+ */
+export function checkInStatus({ open, startsAt, endsAt, closedAt }: StatusInput, now = new Date()): CheckInStatus {
 	if (open) return 'open';
-	return now < new Date(startsAt) ? 'not-open' : 'closed';
+	if (now >= new Date(endsAt)) return 'closed';
+	// A test switch-on and off earlier in the week doesn't count as closing it
+	if (closedAt && new Date(closedAt) >= new Date(startsAt)) return 'closed';
+	return 'not-open';
 }
 
 /** Event links that would clash with the attendee site's own pages, which Hosting serves

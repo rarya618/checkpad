@@ -7,14 +7,16 @@ interface Props {
 	variant?: ButtonVariant;
 	size?: ButtonSize;
 	className?: string;
+	/** Focus it as it appears: when check-in opens on someone waiting (CheckInFlow). */
+	autoFocus?: boolean;
 	children: string;
 }
 
 // Submit button that swaps its label for a spinner while loading. The label stays in
 // the layout (invisible) so the button doesn't change size.
-export default function SubmitButton({ loading, loadingLabel = 'Checking in', variant = 'primary', size = 'md', className = '', children }: Props) {
+export default function SubmitButton({ loading, loadingLabel = 'Checking in', variant = 'primary', size = 'md', className = '', autoFocus, children }: Props) {
 	return (
-		<button type="submit" disabled={loading} aria-busy={loading} className={`relative ${buttonClass(variant, size)} ${className}`}>
+		<button type="submit" autoFocus={autoFocus} disabled={loading} aria-busy={loading} className={`relative ${buttonClass(variant, size)} ${className}`}>
 			<span className={loading ? 'invisible' : undefined}>{children}</span>
 			{loading && (
 				<span className="absolute inset-0 flex items-center justify-center">

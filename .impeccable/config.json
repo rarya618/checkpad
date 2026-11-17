@@ -1,6 +1,26 @@
 {
   "detector": {
     "ignoreRules": [],
-    "ignoreFiles": []
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/src/components/CheckInFlow.tsx"
+        ],
+        "createdAt": "2026-11-17T16:10:57.901Z",
+        "reason": "DESIGN.md Check-in Card: 2px med-blue border thickened to 6px along the bottom, a border treatment specific to that card"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "apps/web/src/components/NotOpenYet.tsx"
+        ],
+        "createdAt": "2026-11-17T16:10:57.926Z",
+        "reason": "DESIGN.md Check-in Card: 2px med-blue border thickened to 6px along the bottom, a border treatment specific to that card"
+      }
+    ]
   }
 }

@@ -68,10 +68,13 @@ export default function CheckInFlow({ event, children }: Props) {
 	// The API refuses check-ins once an organiser closes self check-in, or deletes the event,
 	// even if it was open when this page loaded.
 	const [closed, setClosed] = useState(false);
-	// Opened while the page was open, waiting on "Not open yet" (NotOpenYet.tsx)
-	const [opened, setOpened] = useState(false);
+	// Opened while someone waited on "Not open yet" (NotOpenYet.tsx), and whether the email they'd
+	// typed was whole, which decides where focus lands
+	const [opened, setOpened] = useState<{ withEmail: boolean } | null>(null);
+	// What the page's one live region says (Announcer, below)
+	const [announcement, setAnnouncement] = useState('');
 	// Whether it's "Not open yet" or "Check-in closed" is decided by the time the page loaded, as a
-	// reload would, so someone waiting past the start time isn't told it's closed mid-typing
+	// reload would; "Not open yet" says itself when the event ends (onEnded)
 	const [loadedAt] = useState(() => new Date());
 	const [gone, setGone] = useState(false);
 	const [step, setStep] = useState<Step>({ name: 'email' });
@@ -85,19 +88,30 @@ export default function CheckInFlow({ event, children }: Props) {
 
 	if (gone) return <LinkNotFound />;
 
-	const checkInState = checkInStatus({ open: (event.open || opened) && !closed, startsAt: event.startsAt }, loadedAt);
+	const checkInState = closed
+		? 'closed'
+		: checkInStatus({ open: event.open || opened !== null, startsAt: event.startsAt, endsAt: event.endsAt, closedAt: event.closedAt }, loadedAt);
 
 	if (checkInState === 'not-open') {
 		return (
 			<main data-checkin className={PAGE}>
+				<Announcer text={announcement} />
 				<NotOpenYet
 					event={event}
-					onOpened={(typed) =>
+					onOpened={(typed) => {
+						// Confident but calm: the card moves on to the email step with Check in focused, a
+						// screen reader says so, the tab's title says so for anyone in another tab, and a
+						// phone that can gives one short buzz
+						const withEmail = validateEmail(typed) === null;
 						transition(() => {
 							setEmail(typed);
-							setOpened(true);
-						})
-					}
+							setOpened({ withEmail });
+						});
+						setAnnouncement(withEmail ? 'Check-in’s open. Tap Check in.' : 'Check-in’s open. Type your email to check in.');
+						document.title = `Open · ${document.title}`;
+						navigator.vibrate?.(200);
+					}}
+					onEnded={() => setClosed(true)}
 					onGone={() => setGone(true)}
 				/>
 				{children}
@@ -167,6 +181,7 @@ export default function CheckInFlow({ event, children }: Props) {
 
 	return (
 		<main data-checkin className={PAGE}>
+			<Announcer text={announcement} />
 			{step.name === 'done' ? (
 				<Confirmation event={event} result={step.result} />
 			) : (
@@ -176,21 +191,27 @@ export default function CheckInFlow({ event, children }: Props) {
 				// keep more room, since they open with a heading of their own
 				<div
 					data-checkin-card
-					className={`flex w-full flex-col ${step.name === 'email' ? 'gap-5' : 'gap-8'} rounded-xl border-2 border-b-6 border-med-blue bg-white px-8 py-10`}
+					className={`flex w-full flex-col ${step.name === 'email' ? 'gap-5' : 'gap-8'} rounded-xl border-2 border-b-6 border-med-blue bg-white px-6 py-10 sm:px-8`}
 				>
 					<header className="flex flex-col gap-1">
 						{/* So attendees can see it's tonight's event */}
 						<p className="text-base font-semibold text-med-blue">
 							{formatSchedule(new Date(event.startsAt), new Date(event.endsAt), event.timeZone, { year: false })}
 						</p>
-						<h1 className="font-display text-3xl leading-tight break-words">{event.name}</h1>
+						<h1 className="font-display text-3xl leading-tight break-words hyphens-auto">{event.name}</h1>
 					</header>
 
 					{step.name === 'email' ? (
 						<form key="email" data-checkin-step noValidate onSubmit={submitEmail} className="flex w-full flex-col gap-10">
-							{/* Just opened, for someone who waited on "Not open yet" with their email typed in */}
+							{/* Just opened on someone who waited on "Not open yet": said once, in the card's own
+							    voice, a navy tick and a heading. The live region above announces it. */}
 							{opened && (
-								<p role="status" className="-mb-4 text-lg font-semibold text-dark-blue">
+								<p className="-mb-4 flex items-center gap-3 font-display text-2xl leading-tight">
+									<span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-dark-blue text-off-white">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+											<path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+										</svg>
+									</span>
 									Check-in’s open
 								</p>
 							)}
@@ -208,8 +229,9 @@ export default function CheckInFlow({ event, children }: Props) {
 									setEmail(e.target.value);
 									setEmailError(null);
 								}}
+								autoFocus={opened !== null && !opened.withEmail}
 							/>
-							<SubmitButton loading={submitting} size="tall" className="w-full">
+							<SubmitButton loading={submitting} size="tall" className="w-full" autoFocus={opened?.withEmail}>
 								Check in
 							</SubmitButton>
 							{requestError && <RequestError message={requestError} />}
@@ -310,6 +332,15 @@ function Confirmation({ event, result }: { event: PublicEvent; result: CheckedIn
 				</p>
 			</div>
 		</section>
+	);
+}
+
+/** The page's one live region, there from the first render so a change to it is reliably read out. */
+function Announcer({ text }: { text: string }) {
+	return (
+		<p aria-live="polite" className="sr-only">
+			{text}
+		</p>
 	);
 }
 

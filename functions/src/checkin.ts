@@ -59,6 +59,7 @@ function toPublicEvent(event: EventDoc): PublicEvent {
 		open: event.status === 'open',
 		selfWalkIns: event.selfWalkIns,
 		ticketUrl: event.ticketUrl || null,
+		closedAt: event.status === 'closed' && event.statusChangedAt ? event.statusChangedAt.toDate().toISOString() : null,
 	};
 }
 

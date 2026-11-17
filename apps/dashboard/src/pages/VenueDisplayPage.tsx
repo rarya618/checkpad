@@ -23,7 +23,15 @@ export default function VenueDisplayPage() {
 	if (!event) return <Navigate to="/events" replace />;
 	const url = checkInUrl(event.slug);
 	const shortUrl = url.replace(/^https?:\/\//, '');
-	const prompt = prompts[checkInStatus({ open: event.selfCheckInOpen, startsAt: event.startsAt })];
+	const prompt =
+		prompts[
+			checkInStatus({
+				open: event.selfCheckInOpen,
+				startsAt: event.startsAt,
+				endsAt: event.endsAt,
+				closedAt: event.selfCheckInOpen ? null : event.selfCheckInChangedAt,
+			})
+		];
 	const start = new Date(event.startsAt);
 
 	return (

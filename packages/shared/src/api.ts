@@ -16,6 +16,8 @@ export interface PublicEvent {
 	selfWalkIns: boolean;
 	/** Where to get a ticket, offered while check-in isn't open yet; null for none. */
 	ticketUrl: string | null;
+	/** When an organiser last turned self check-in off, if it's off and was ever on (ISO); null otherwise. */
+	closedAt: string | null;
 }
 
 /** What the confirmation screen shows: never the attendee list, email or last name. */
