@@ -34,6 +34,8 @@ export interface DashboardEvent extends CheckpadEvent {
 	ownerTeamId: string | null;
 	walkInTicketTitle: string;
 	walkInVenue: string;
+	/** Where to get a ticket, offered on the check-in page before check-in opens; '' for none. */
+	ticketUrl: string;
 	/** Walk-in tickets count up from here: CPWALKIN0001, CPWALKIN0002, … (older events: GDGWALKIN) */
 	walkInTicketPrefix: string;
 	/** Walk-in tickets given out so far; the next is one more. */
@@ -49,7 +51,7 @@ export interface DashboardEvent extends CheckpadEvent {
 /** What New event and Event settings edit. */
 export type EventInput = Pick<
 	DashboardEvent,
-	'slug' | 'name' | 'description' | 'startsAt' | 'endsAt' | 'timeZone' | 'teamIds' | 'ownerTeamId' | 'walkInTicketTitle' | 'walkInVenue' | 'selfWalkIns' | 'selfCheckInOpen'
+	'slug' | 'name' | 'description' | 'startsAt' | 'endsAt' | 'timeZone' | 'teamIds' | 'ownerTeamId' | 'walkInTicketTitle' | 'walkInVenue' | 'ticketUrl' | 'selfWalkIns' | 'selfCheckInOpen'
 >;
 
 const iso = (value: Timestamp | null | undefined) => value?.toDate().toISOString() ?? null;
@@ -72,6 +74,7 @@ function toEvent(snap: DocumentSnapshot): DashboardEvent {
 		selfCheckInOpen: data.status === 'open',
 		walkInTicketTitle: data.walkInTicketTitle ?? '',
 		walkInVenue: data.walkInVenue ?? '',
+		ticketUrl: data.ticketUrl ?? '',
 		walkInTicketPrefix: data.walkInTicketPrefix,
 		walkInCounter: data.walkInCounter ?? 0,
 		counts: data.counts ?? { registered: 0, checkedIn: 0, walkIns: 0 },
@@ -159,6 +162,7 @@ function eventFields(input: EventInput) {
 		ownerTeamId: input.ownerTeamId,
 		walkInTicketTitle: input.walkInTicketTitle,
 		walkInVenue: input.walkInVenue,
+		ticketUrl: input.ticketUrl,
 		selfWalkIns: input.selfWalkIns,
 		status: input.selfCheckInOpen ? 'open' : 'closed',
 	};

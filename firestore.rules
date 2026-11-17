@@ -182,7 +182,7 @@ service cloud.firestore {
           'ownerTeamId', 'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns'])
         && data.keys().hasOnly(['slug', 'name', 'description', 'status', 'startsAt', 'endsAt', 'timeZone', 'teamIds',
           'ownerTeamId', 'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns', 'walkInTicketTitle', 'walkInVenue',
-          'statusChangedBy', 'statusChangedAt', 'legacyId'])
+          'ticketUrl', 'statusChangedBy', 'statusChangedAt', 'legacyId'])
         && isSlug(data.slug)
         && isName(data.name)
         && isText(data.description, 500)
@@ -202,7 +202,15 @@ service cloud.firestore {
         && data.walkInTicketPrefix.matches('^[A-Z0-9]{1,20}$')
         && data.selfWalkIns is bool
         && isText(data.get('walkInTicketTitle', ''), 100)
-        && isText(data.get('walkInVenue', ''), 200);
+        && isText(data.get('walkInVenue', ''), 200)
+        && isTicketUrl(data.get('ticketUrl', ''));
+    }
+
+    // Where to get a ticket, or '' for none: a web address, as cleanTicketUrl in
+    // packages/shared/src/events.ts makes them, since the check-in page links to it
+    function isTicketUrl(value) {
+      return value == ''
+        || (value is string && value.size() <= 500 && value.matches('^https?://[^\\s/?#]+[.][^\\s]*$'));
     }
 
     /** The event's link is claimed for it in the same write. */

@@ -1,11 +1,14 @@
 // Form values for New event and Event settings, and the conversions to and from an event.
 import { countries } from '@checkpad/shared/countries';
+import { cleanTicketUrl } from '@checkpad/shared/events';
 import { isSlugTaken, type DashboardEvent, type EventInput } from './events';
 
 export interface EventForm {
 	name: string;
 	slug: string;
 	description: string;
+	/** As typed: formToInput cleans it (cleanTicketUrl). */
+	ticketUrl: string;
 	/** Wall-clock dates and times in the event's time zone: "2026-09-10", "17:00". `date` is the
 	 *  start date; `endDate` is a later one for an event over several days, or the same. */
 	date: string;
@@ -99,6 +102,7 @@ export function eventToForm(event: DashboardEvent): EventForm {
 		name: event.name,
 		slug: event.slug,
 		description: event.description,
+		ticketUrl: event.ticketUrl,
 		date: start.date,
 		start: start.time,
 		endDate: end.date,
@@ -129,6 +133,8 @@ export function formToInput(form: EventForm, slug: string): EventInput {
 		...formTeams(form),
 		walkInTicketTitle: form.walkInTicketTitle.trim(),
 		walkInVenue: form.walkInVenue.trim(),
+		// formIsComplete has already turned away one that isn't a web address
+		ticketUrl: cleanTicketUrl(form.ticketUrl) ?? '',
 		selfWalkIns: form.selfWalkIns,
 		selfCheckInOpen: form.selfCheckInOpen,
 	};
@@ -211,13 +217,19 @@ export function nextDay(date: string) {
 
 export function formIsComplete(form: EventForm) {
 	const datesWhole = isFullDate(form.date) && isFullDate(form.endDate || form.date);
-	return Boolean(form.name.trim() && form.slug && datesWhole && form.start && form.end) && !formTimesError(form);
+	return Boolean(form.name.trim() && form.slug && datesWhole && form.start && form.end) && !formTimesError(form) && cleanTicketUrl(form.ticketUrl) !== null;
+}
+
+/** What's wrong with the typed ticket link, or null. */
+export function ticketUrlError(form: Pick<EventForm, 'ticketUrl'>) {
+	return cleanTicketUrl(form.ticketUrl) === null ? 'Enter a web address, like lu.ma/october-meetup' : null;
 }
 
 const labels: Record<keyof EventForm, string> = {
 	name: 'event name',
 	slug: 'link',
 	description: 'description',
+	ticketUrl: 'ticket link',
 	date: 'date and time',
 	start: 'date and time',
 	endDate: 'date and time',

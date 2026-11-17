@@ -1,6 +1,6 @@
 import { countries } from '@checkpad/shared/countries';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { endsNextDay, formTimesError, isMultiDay, nextDay, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
+import { endsNextDay, formTimesError, isMultiDay, nextDay, shiftedEndDate, ticketUrlError, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
@@ -233,6 +233,30 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 				))}
 			</SelectField>
 		</>
+	);
+}
+
+// Where to get a ticket, for New event and Event settings (not in Figma). The check-in page
+// offers it while check-in isn't open yet. A part-typed address ("lu") isn't wrong yet, so the
+// error waits until you leave the field; saving waits for a whole one either way (formIsComplete).
+export function TicketUrlField({ form, update }: { form: EventForm; update: Update }) {
+	const [left, setLeft] = useState(false);
+	return (
+		<TextField
+			label="Ticket link"
+			type="url"
+			inputMode="url"
+			autoComplete="off"
+			spellCheck={false}
+			// As firestore.rules allows
+			maxLength={500}
+			value={form.ticketUrl}
+			onChange={(e) => update('ticketUrl', e.target.value)}
+			onBlur={() => setLeft(true)}
+			placeholder="lu.ma/october-meetup"
+			hint="Until check-in opens, the check-in link offers this for getting a ticket."
+			error={left ? ticketUrlError(form) : null}
+		/>
 	);
 }
 

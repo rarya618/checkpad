@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useBlocker, useNavigate, useParams } from 'react-router';
 import Dialog from '../components/Dialog';
-import { DateTimeFields, TeamFields } from '../components/EventFields';
+import { DateTimeFields, TeamFields, TicketUrlField } from '../components/EventFields';
 import EventOverview from '../components/EventOverview';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
@@ -209,6 +209,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 						/>
 						{/* 500 characters, as firestore.rules allows */}
 						<TextAreaField label="Description" maxLength={500} value={form.description} onChange={(e) => update('description', e.target.value)} />
+						<TicketUrlField form={form} update={update} />
 						<DateTimeFields form={form} update={update} />
 					</FormCard>
 				</div>

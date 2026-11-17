@@ -48,5 +48,7 @@ export const demoEvents: CheckpadEvent[] = [
 		teamSlug: 'gdg-sydney',
 		selfWalkIns: true,
 		selfCheckInOpen: false,
+		// So "Not open yet" shows its Get a ticket button
+		ticketUrl: 'https://example.com/tickets/future-meetup',
 	},
 ];

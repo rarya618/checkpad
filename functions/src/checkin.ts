@@ -58,6 +58,7 @@ function toPublicEvent(event: EventDoc): PublicEvent {
 		timeZone: event.timeZone,
 		open: event.status === 'open',
 		selfWalkIns: event.selfWalkIns,
+		ticketUrl: event.ticketUrl || null,
 	};
 }
 

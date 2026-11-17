@@ -3,7 +3,7 @@ import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { today } from '../components/DatePicker';
-import { DateTimeFields, TeamFields } from '../components/EventFields';
+import { DateTimeFields, TeamFields, TicketUrlField } from '../components/EventFields';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import { Spinner } from '../components/Loading';
@@ -21,6 +21,7 @@ const blank: EventForm = {
 	name: '',
 	slug: '',
 	description: '',
+	ticketUrl: '',
 	date: '',
 	start: '17:00',
 	endDate: '',
@@ -154,6 +155,7 @@ export default function NewEventPage() {
 							onChange={(e) => update('description', e.target.value)}
 							placeholder="Join us for our monthly meetup"
 						/>
+						<TicketUrlField form={form} update={update} />
 					</FormCard>
 					<FormCard title="When" enter={1}>
 						<DateTimeFields form={form} update={update} />

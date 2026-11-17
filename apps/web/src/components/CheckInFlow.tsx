@@ -87,11 +87,18 @@ export default function CheckInFlow({ event, children }: Props) {
 
 	if (checkInState === 'not-open') {
 		const startsAt = new Date(event.startsAt);
+		// firestore.rules only take web addresses, but the page links to it, so never anything else
+		const ticketUrl = event.ticketUrl && /^https?:\/\//.test(event.ticketUrl) ? event.ticketUrl : null;
 		return (
 			<StatusScreen
 				title="Not open yet"
 				subtitle={`${event.name} starts at ${formatTime(startsAt, event.timeZone)}, ${formatDay(startsAt, event.timeZone)}.`}
-				body="The organisers open check-in at the event. Try this link again once you’re there."
+				body={
+					ticketUrl
+						? 'Not registered yet? Get your ticket now. The organisers open check-in at the event, so try this link again once you’re there.'
+						: 'The organisers open check-in at the event. Try this link again once you’re there.'
+				}
+				action={ticketUrl ? { href: ticketUrl, label: 'Get a ticket' } : undefined}
 			/>
 		);
 	}

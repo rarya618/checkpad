@@ -14,6 +14,8 @@ export interface PublicEvent {
 	open: boolean;
 	/** Whether people not on the list can add themselves as walk-ins. */
 	selfWalkIns: boolean;
+	/** Where to get a ticket, offered while check-in isn't open yet; null for none. */
+	ticketUrl: string | null;
 }
 
 /** What the confirmation screen shows: never the attendee list, email or last name. */

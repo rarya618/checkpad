@@ -100,9 +100,15 @@ describe('GET /events/:slug', () => {
 	test('returns only the public details', async () => {
 		const { status, body, cache } = await call('/events/test-meetup');
 		assert.equal(status, 200);
-		assert.deepEqual(Object.keys(body).sort(), ['description', 'endsAt', 'name', 'open', 'selfWalkIns', 'slug', 'startsAt', 'timeZone']);
+		assert.deepEqual(Object.keys(body).sort(), ['description', 'endsAt', 'name', 'open', 'selfWalkIns', 'slug', 'startsAt', 'ticketUrl', 'timeZone']);
 		assert.equal(body.open, true);
+		assert.equal(body.ticketUrl, null);
 		assert.match(cache ?? '', /s-maxage=15/);
+	});
+
+	test('includes the ticket link, when the event has one', async () => {
+		await db.doc('events/e2').update({ ticketUrl: 'https://lu.ma/closed-meetup' });
+		assert.equal((await call('/events/closed-meetup')).body.ticketUrl, 'https://lu.ma/closed-meetup');
 	});
 
 	test('works with the /api prefix the Hosting rewrite adds', async () => {

@@ -28,6 +28,8 @@ export interface EventDoc {
 	/** Shown on walk-ins' tickets in the Bevy export. */
 	walkInTicketTitle?: string;
 	walkInVenue?: string;
+	/** Where to get a ticket: the check-in page offers it before check-in opens. Empty or absent for none. */
+	ticketUrl?: string;
 	/** Who last opened or closed self check-in, and when: "Opened by Priya at 16:45". */
 	statusChangedBy?: string;
 	statusChangedAt?: Timestamp;

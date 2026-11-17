@@ -247,6 +247,19 @@ describe('changing events', () => {
 		await assertFails(updateDoc(doc(mel(), 'events/syd'), { status: 'open' }));
 	});
 
+	test('a ticket link is a web address, or empty for none', async () => {
+		const set = (ticketUrl: unknown) => updateDoc(doc(priya(), 'events/syd'), { ticketUrl });
+		await assertSucceeds(set('https://lu.ma/october-meetup'));
+		await assertSucceeds(set('http://gdg.community.dev/events/details/123/?ref=x'));
+		await assertSucceeds(set(''));
+		await assertFails(set('javascript:alert(1)'));
+		await assertFails(set('lu.ma/october-meetup'));
+		await assertFails(set('https://localhost/tickets'));
+		await assertFails(set('https://lu.ma/october meetup'));
+		await assertFails(set(`https://lu.ma/${'x'.repeat(490)}`));
+		await assertFails(set(null));
+	});
+
 	test('a new link is claimed in the same write, and the old one keeps pointing at the event', async () => {
 		const db = priya();
 		const batch = writeBatch(db);

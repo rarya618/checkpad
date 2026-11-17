@@ -176,7 +176,8 @@ events/{eventId}                     slug, name, description, status, startsAt?,
                                      teamIds[], ownerTeamId (one of teamIds: its organisers
                                      change the teams, hand it on and delete it),
                                      counts {registered, checkedIn, walkIns},
-                                     walkInCounter, walkInTicketPrefix, selfWalkIns, legacyId
+                                     walkInCounter, walkInTicketPrefix, selfWalkIns,
+                                     ticketUrl? (offered while check-in isn't open yet), legacyId
 events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source ('bevy' | 'luma' |
                                      'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,
                                      ticketTitle?, ticketVenue?, bevyOrderNumber?, answers? (question → answer),

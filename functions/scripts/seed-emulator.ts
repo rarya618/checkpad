@@ -76,6 +76,7 @@ for (const event of demoEvents) {
 		selfWalkIns: event.selfWalkIns,
 		walkInTicketTitle: 'General admission',
 		walkInVenue: 'Google Sydney, 1 Pirrama Rd, Pyrmont',
+		...(event.ticketUrl && { ticketUrl: event.ticketUrl }),
 	};
 	batch.set(ref, doc);
 	// Claims the link, as the dashboard does when it creates an event (firestore.rules)

@@ -100,6 +100,20 @@ test.describe('open and closed', () => {
 		await expect(page.getByText('Future Meetup starts at 5pm, Thu 14 March.')).toBeVisible();
 	});
 
+	test('before check-in opens, the event’s ticket link is offered', async ({ page }) => {
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('link', { name: 'Get a ticket' })).toHaveAttribute('href', 'https://example.com/tickets/future-meetup');
+		await expect(page.getByRole('link', { name: 'Back to homepage' })).toHaveCount(0);
+	});
+
+	test('with no ticket link, Not open yet goes back to the homepage', async ({ page }) => {
+		await setDoc('events/gdg-future-meetup', { ticketUrl: '' });
+		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Not open yet' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Back to homepage' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Get a ticket' })).toHaveCount(0);
+	});
+
 	test('the organiser’s switch opens an event before it starts', async ({ page }) => {
 		await setDoc('events/gdg-future-meetup', { status: 'open' });
 		await page.goto('/gdg-future-meetup');
