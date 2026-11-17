@@ -375,12 +375,12 @@ function People({ people, teams, showTeam, admin, onEdit, onRemove }: { people: 
 			<tbody>
 				{people.map((o) => (
 					<tr key={o.id} className="border-t border-light-blue">
-						<td className="py-3.5 pr-4">
-							<div className="flex items-start gap-3 @2xl:items-center">
+						<td className="py-5 pr-4">
+							<div className="flex items-start gap-4 @2xl:items-center">
 								<span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-base md:size-9 md:text-sm">
 									{initialsOf(o)}
 								</span>
-								<div className="flex min-w-0 flex-col">
+								<div className="flex min-w-0 flex-col gap-0.5">
 									<p className="truncate font-display text-base leading-tight text-dark-blue" title={o.name ?? o.email}>
 										{o.name ?? o.email}
 									</p>
@@ -394,18 +394,18 @@ function People({ people, teams, showTeam, admin, onEdit, onRemove }: { people: 
 											{o.email}
 										</p>
 									)}
-									<p className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 pt-2 text-sm text-dark-blue @2xl:hidden">
+									<p className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 pt-3 text-sm text-dark-blue @2xl:hidden">
 										<RoleBadge organiser={o} />
 										{showTeam && <span>{organiserTeam(teams, o)}</span>}
 									</p>
 								</div>
 							</div>
 						</td>
-						<td className="hidden py-3.5 pr-4 @2xl:table-cell">
+						<td className="hidden py-5 pr-4 @2xl:table-cell">
 							<RoleBadge organiser={o} />
 						</td>
-						{showTeam && <td className="hidden truncate py-3.5 pr-4 text-sm text-dark-blue @2xl:table-cell">{organiserTeam(teams, o)}</td>}
-						<td className="py-3.5 align-top @2xl:align-middle">{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}</td>
+						{showTeam && <td className="hidden truncate py-5 pr-4 text-sm text-dark-blue @2xl:table-cell">{organiserTeam(teams, o)}</td>}
+						<td className="py-5 align-top @2xl:align-middle">{admin && <OrganiserMenu organiser={o} onEdit={onEdit} onRemove={onRemove} />}</td>
 					</tr>
 				))}
 			</tbody>
