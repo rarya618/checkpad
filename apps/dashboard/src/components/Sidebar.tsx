@@ -7,6 +7,7 @@ import switchIcon from '../assets/switch.svg';
 import { signOut, useSession } from '../lib/auth';
 import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import Menu from './Menu';
+import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
 
 export interface SidebarItem {
 	to: string;
@@ -37,6 +38,8 @@ export interface SidebarProps {
 }
 
 export default function Sidebar({ items, back, screens }: SidebarProps) {
+	// Leaving an event for Events: its title returns to its row (pageTransition)
+	const goBack = useTransitionLink(back?.to ?? '/events', eventNameBack);
 	return (
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-line bg-light-blue px-4 pt-7.5 pb-4">
 			<div className="flex w-full flex-col gap-5">
@@ -47,6 +50,7 @@ export default function Sidebar({ items, back, screens }: SidebarProps) {
 					{back && (
 						<Link
 							to={back.to}
+							onClick={goBack}
 							className="flex items-center gap-2 border-b border-line px-3 pb-3 text-sm tracking-[-0.01em] text-med-blue hover:text-dark-blue"
 						>
 							<img src={arrow} alt="" width={18} height={18} className="rotate-180" />

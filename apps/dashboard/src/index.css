@@ -238,6 +238,21 @@ tr[data-arrived] > td:last-child {
     animation-duration: 180ms;
   }
 
+  /* Opening an event from Events, and going back: its name travels between its row or card
+     and the page's title, growing or shrinking as one line of text (each snapshot keeps its
+     proportions, held to the left) while the pages cross-fade around it. */
+  ::view-transition-group(event-title) {
+    animation-duration: 320ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  ::view-transition-old(event-title),
+  ::view-transition-new(event-title) {
+    width: auto;
+    height: 100%;
+    animation-duration: 180ms;
+  }
+
   [data-enter] {
     animation: rise-in 360ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
     animation-delay: calc(var(--enter, 0) * 50ms);

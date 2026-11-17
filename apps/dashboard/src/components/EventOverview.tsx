@@ -15,6 +15,7 @@ import { ownsEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
 import Menu from './Menu';
+import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
 
 // Opened rarely, and they bring the QR code and CSV libraries: loaded on first use
 const ImportDialog = lazy(() => import('./ImportDialog'));
@@ -28,6 +29,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const [deleting, setDeleting] = useState(false);
 	const [sharing, setSharing] = useState(false);
 	const canEdit = useCanEditEvents();
+	const toEvents = useTransitionLink('/events', eventNameBack);
 	const canDelete = ownsEvent(useMe(), event);
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
@@ -39,7 +41,7 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 				<nav aria-label="Breadcrumb">
 					<ol className="flex items-center gap-1.5 text-sm text-dark-blue">
 						<li>
-							<Link to="/events" className="tracking-tight hover:underline">
+							<Link to="/events" onClick={toEvents} className="tracking-tight hover:underline">
 								Events
 							</Link>
 						</li>
@@ -50,7 +52,10 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 					</ol>
 				</nav>
 				<div className="flex flex-col gap-1">
-					<h1 className="font-display text-2xl md:text-3xl">{event.name}</h1>
+					{/* The name arrives from the event's row on Events, and returns to it (pageTransition) */}
+					<h1 style={{ viewTransitionName: 'event-title' }} className="font-display text-2xl md:text-3xl">
+						{event.name}
+					</h1>
 					<p className="text-sm font-semibold text-dark-blue">
 						{formatSchedule(start, end, event.timeZone)}
 					</p>

@@ -7,6 +7,7 @@ import moreIcon from '../assets/more.svg';
 import { signOut, useSession } from '../lib/auth';
 import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import type { BackLink, SidebarItem } from './Sidebar';
+import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
 
 export interface MobileNavConfig {
 	/** Heading at the top of the More sheet, e.g. the event name. */
@@ -26,6 +27,7 @@ export interface MobileNavConfig {
 // bar along the bottom (not in Figma) with the section's pages. Its last tab, More, opens
 // the rest of Figma's menu ("– menu") as a sheet from the bottom.
 export default function MobileNav({ title, items, extras, back }: MobileNavConfig) {
+	const goBack = useTransitionLink(back?.to ?? '/events', eventNameBack);
 	const [open, setOpen] = useState(false);
 	const session = useSession();
 	const me = useCurrentOrganiser();
@@ -74,7 +76,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 					<img src={logo} alt="checkpad" width={146} height={32} />
 				</Link>
 				{back && (
-					<Link to={back.to} className="-my-2 flex items-center gap-1.5 py-2 text-sm tracking-[-0.01em] text-med-blue">
+					<Link to={back.to} onClick={goBack} className="-my-2 flex items-center gap-1.5 py-2 text-sm tracking-[-0.01em] text-med-blue">
 						<img src={arrow} alt="" width={18} height={18} className="rotate-180" />
 						{back.label}
 					</Link>
