@@ -94,23 +94,47 @@ test.describe('open and closed', () => {
 		await expect(page.getByText('Check-in for September Meetup isn’t open.')).toBeVisible();
 	});
 
-	test('an event that hasn’t started shows when it starts', async ({ page }) => {
+	test('an event that hasn’t started counts down to it, by the calendar in its time zone', async ({ page }) => {
+		await page.clock.install({ time: new Date('2030-03-11T10:00:00+11:00') });
 		await page.goto('/gdg-future-meetup');
-		await expect(page.getByRole('heading', { name: 'Not open yet' })).toBeVisible();
-		await expect(page.getByText('Future Meetup starts at 5pm, Thu 14 March.')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Future Meetup' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Starts in 3 days' })).toBeVisible();
+		await expect(page.getByText('Check-in opens at the event, so come back to this link once you’re there.')).toBeVisible();
+
+		await page.clock.setSystemTime(new Date('2030-03-13T23:00:00+11:00'));
+		await page.reload();
+		await expect(page.getByRole('heading', { name: 'Starts tomorrow' })).toBeVisible();
+
+		await page.clock.setSystemTime(new Date('2030-03-14T14:10:00+11:00'));
+		await page.reload();
+		await expect(page.getByRole('heading', { name: 'Starts in 3 hours' })).toBeVisible();
+		// The countdown keeps up while the page is open
+		await page.clock.fastForward('02:20:00');
+		await expect(page.getByRole('heading', { name: 'Starts in 30 minutes' })).toBeVisible();
+	});
+
+	test('Add to calendar saves the event with its check-in link', async ({ page }) => {
+		await page.goto('/gdg-future-meetup');
+		const link = page.getByRole('link', { name: 'Add to calendar' });
+		await expect(link).toHaveAttribute('download', 'gdg-future-meetup.ics');
+		const ics = decodeURIComponent((await link.getAttribute('href'))!.replace(/^data:text\/calendar;charset=utf-8,/, ''));
+		expect(ics).toContain('DTSTART:20300314T060000Z');
+		expect(ics).toContain('DTEND:20300314T090000Z');
+		expect(ics).toContain('SUMMARY:Future Meetup');
+		expect(ics.replace(/\r\n /g, '')).toContain(`URL:${new URL('/gdg-future-meetup', page.url()).href}`);
 	});
 
 	test('before check-in opens, the event’s ticket link is offered', async ({ page }) => {
 		await page.goto('/gdg-future-meetup');
+		await expect(page.getByRole('heading', { name: 'Not registered yet?' })).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Get a ticket' })).toHaveAttribute('href', 'https://example.com/tickets/future-meetup');
-		await expect(page.getByRole('link', { name: 'Back to homepage' })).toHaveCount(0);
 	});
 
-	test('with no ticket link, Not open yet goes back to the homepage', async ({ page }) => {
+	test('with no ticket link, only the countdown shows', async ({ page }) => {
 		await setDoc('events/gdg-future-meetup', { ticketUrl: '' });
 		await page.goto('/gdg-future-meetup');
-		await expect(page.getByRole('heading', { name: 'Not open yet' })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Back to homepage' })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Add to calendar' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Not registered yet?' })).toHaveCount(0);
 		await expect(page.getByRole('link', { name: 'Get a ticket' })).toHaveCount(0);
 	});
 
@@ -146,7 +170,7 @@ test.describe('links', () => {
 	test('with nothing open, a team link goes to the team’s next event', async ({ page }) => {
 		await page.goto('/team/gdg-sydney');
 		await expect(page).toHaveURL('/gdg-future-meetup');
-		await expect(page.getByRole('heading', { name: 'Not open yet' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: /^Starts/ })).toBeVisible();
 	});
 
 	test('a team with no events says there’s nothing on', async ({ page }) => {

@@ -3,9 +3,10 @@ import { flushSync } from 'react-dom';
 import type { CheckedIn, PublicEvent } from '@checkpad/shared/api';
 import { buttonClass } from '@checkpad/shared/button';
 import { checkInStatus } from '@checkpad/shared/events';
-import { formatDay, formatSchedule, formatTime } from '@checkpad/shared/format';
+import { formatSchedule, formatTime } from '@checkpad/shared/format';
 import { ApiFailure, checkIn, checkInWalkIn } from '../lib/api';
 import LinkNotFound from './LinkNotFound';
+import NotOpenYet from './NotOpenYet';
 import StatusScreen from './StatusScreen';
 import SubmitButton from './SubmitButton';
 import TextField from './TextField';
@@ -24,6 +25,9 @@ interface Props {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** The page around the check-in card: centred, with the "powered by" footer under it. */
+const PAGE = 'mx-auto flex min-h-viewport max-w-[480px] flex-col items-center justify-center gap-7.5 px-4 py-12';
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -86,20 +90,11 @@ export default function CheckInFlow({ event, children }: Props) {
 	const checkInState = checkInStatus({ open: event.open && !closed, startsAt: event.startsAt });
 
 	if (checkInState === 'not-open') {
-		const startsAt = new Date(event.startsAt);
-		// firestore.rules only take web addresses, but the page links to it, so never anything else
-		const ticketUrl = event.ticketUrl && /^https?:\/\//.test(event.ticketUrl) ? event.ticketUrl : null;
 		return (
-			<StatusScreen
-				title="Not open yet"
-				subtitle={`${event.name} starts at ${formatTime(startsAt, event.timeZone)}, ${formatDay(startsAt, event.timeZone)}.`}
-				body={
-					ticketUrl
-						? 'Not registered yet? Get your ticket now. The organisers open check-in at the event, so try this link again once you’re there.'
-						: 'The organisers open check-in at the event. Try this link again once you’re there.'
-				}
-				action={ticketUrl ? { href: ticketUrl, label: 'Get a ticket' } : undefined}
-			/>
+			<main data-checkin className={PAGE}>
+				<NotOpenYet event={event} />
+				{children}
+			</main>
 		);
 	}
 
@@ -164,7 +159,7 @@ export default function CheckInFlow({ event, children }: Props) {
 	};
 
 	return (
-		<main data-checkin className="mx-auto flex min-h-viewport max-w-[480px] flex-col items-center justify-center gap-7.5 px-4 py-12">
+		<main data-checkin className={PAGE}>
 			{step.name === 'done' ? (
 				<Confirmation event={event} result={step.result} />
 			) : (

@@ -7,13 +7,12 @@ interface Props {
 	body: string;
 	/** Figma's "Link not found" and "Team has no event" have no button, just the space for one. */
 	homeLink?: boolean;
-	/** A button in place of "Back to homepage": "Not open yet" offers the event's ticket link. */
-	action?: { href: string; label: string };
 }
 
 // Full-screen message layout from the Figma "Error handling" frame, also used for
-// the "not open yet", "closed", "link not found" and "team has no event" states.
-export default function StatusScreen({ title, subtitle, body, homeLink = true, action }: Props) {
+// the "closed", "link not found" and "team has no event" states. "Not open yet" has its own
+// screen in the check-in card (NotOpenYet.tsx), since it's the event's page before the night.
+export default function StatusScreen({ title, subtitle, body, homeLink = true }: Props) {
 	return (
 		<main className="mx-auto flex min-h-viewport max-w-[420px] flex-col items-center justify-between gap-9 px-9 py-12 text-center">
 			<img src={logo.src} alt="checkpad" width={191} height={42} />
@@ -24,11 +23,7 @@ export default function StatusScreen({ title, subtitle, body, homeLink = true, a
 				</div>
 				<p className="text-lg leading-7.5">{body}</p>
 			</div>
-			{action ? (
-				<a href={action.href} rel="noopener" className={`w-full ${buttonClass('primary')}`}>
-					{action.label}
-				</a>
-			) : homeLink ? (
+			{homeLink ? (
 				<a href="/" className={`w-full ${buttonClass('primary')}`}>
 					Back to homepage
 				</a>
