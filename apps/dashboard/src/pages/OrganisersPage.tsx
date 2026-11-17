@@ -88,7 +88,7 @@ export default function OrganisersPage() {
 					)
 				}
 			/>
-			<div className="flex flex-col gap-4 px-6 pt-3.5 pb-7 lg:flex-row lg:items-start lg:gap-6">
+			<div className="flex flex-col gap-4 px-6 pt-3.5 pb-7 xl:flex-row xl:items-start xl:gap-6">
 				{admin && view && <Rail view={view} organisers={organisers} teams={teams} onNewTeam={() => setDialog({ kind: 'team', team: null })} />}
 				{view && (
 					// Keyed by the view, so the panel fades in afresh when another is chosen
@@ -125,10 +125,10 @@ interface Actions {
 	onManage: (team: Team) => void;
 }
 
-// The rail: a column beside the panel from 1024px, a row of entries that scrolls sideways above
+// The rail: a column beside the panel from 1280px (narrower, beside the app's sidebar, the panel needs the room), a row of entries that scrolls sideways above
 // it below that. The chosen entry's light-blue fill slides to the next one chosen.
 function Rail({ view, organisers, teams, onNewTeam }: { view: View; organisers: Organiser[]; teams: Team[]; onNewTeam: () => void }) {
-	const column = useMediaQuery('(min-width: 1024px)');
+	const column = useMediaQuery('(min-width: 1280px)');
 	const invited = organisers.filter((o) => o.invited).length;
 	const noTeam = organisers.filter(needsTeam).length;
 	const entries: ({ view: View; label: string; count: number } | 'divider')[] = [
@@ -162,8 +162,8 @@ function Rail({ view, organisers, teams, onNewTeam }: { view: View; organisers: 
 	}, [fill, drawn]);
 
 	return (
-		<nav aria-label="Organisers by team" className="-mx-6 shrink-0 lg:mx-0 lg:w-60 lg:rounded-xl lg:border lg:border-line lg:bg-white lg:p-2">
-			<ul ref={list} className="relative flex gap-1 overflow-x-auto px-6 pb-1 [scrollbar-width:none] lg:flex-col lg:gap-0.5 lg:overflow-visible lg:p-0">
+		<nav aria-label="Organisers by team" className="-mx-6 shrink-0 xl:mx-0 xl:w-60 xl:rounded-xl xl:border xl:border-line xl:bg-white xl:p-2">
+			<ul ref={list} className="relative flex scroll-px-6 gap-1 overflow-x-auto px-6 py-1 [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)] [scrollbar-width:none] xl:flex-col xl:gap-0.5 xl:overflow-visible xl:p-0 xl:[mask-image:none]">
 				{fill && (
 					<li
 						aria-hidden="true"
@@ -173,22 +173,29 @@ function Rail({ view, organisers, teams, onNewTeam }: { view: View; organisers: 
 				)}
 				{entries.map((entry, i) =>
 					entry === 'divider' ? (
-						<li key={`divider-${i}`} aria-hidden="true" className="mx-1 w-px shrink-0 self-stretch bg-light-blue lg:mx-3 lg:my-1.5 lg:h-px lg:w-auto" />
+						<li key={`divider-${i}`} aria-hidden="true" className="mx-1 w-px shrink-0 self-stretch bg-light-blue xl:mx-3 xl:my-1.5 xl:h-px xl:w-auto" />
 					) : (
 						<li key={viewKey(entry.view)} className="relative shrink-0">
 							<Link
 								to={{ search: viewSearch(entry.view) }}
 								replace
 								aria-current={viewKey(entry.view) === current ? 'page' : undefined}
-								className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm leading-normal whitespace-nowrap text-dark-blue transition-colors hover:bg-light-blue/50 aria-[current=page]:font-bold aria-[current=page]:hover:bg-transparent lg:whitespace-normal"
+								className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm leading-normal whitespace-nowrap text-dark-blue transition-colors hover:bg-light-blue/50 aria-[current=page]:font-bold aria-[current=page]:hover:bg-transparent xl:whitespace-normal"
 							>
-								<span className="min-w-0 lg:truncate">{entry.label}</span>
-								<span className="text-xs text-med-blue tabular-nums">{entry.count}</span>
+								<span className="min-w-0 xl:truncate">{entry.label}</span>
+								{/* A team nobody is in stands out: nobody can run its events */}
+								<span
+									className={`text-xs tabular-nums group-aria-[current=page]:text-dark-blue ${
+										entry.view.kind === 'team' && entry.count === 0 ? 'font-bold text-dark-blue' : 'text-med-blue'
+									}`}
+								>
+									{entry.count}
+								</span>
 							</Link>
 						</li>
 					),
 				)}
-				<li className="shrink-0 lg:mt-1.5 lg:border-t lg:border-light-blue lg:pt-1.5">
+				<li className="shrink-0 xl:mt-1.5 xl:border-t xl:border-light-blue xl:pt-1.5">
 					<button type="button" onClick={onNewTeam} className="w-full rounded-lg px-3 py-2 text-left text-sm leading-normal font-bold whitespace-nowrap text-med-blue transition-colors hover:bg-light-blue/50">
 						New team
 					</button>
@@ -231,7 +238,16 @@ function TeamPanel({ team, organisers, ...actions }: { team: Team; organisers: O
 		<div className="flex flex-col gap-5">
 			<PanelHeading
 				title={team.name}
-				about={place ? `${place} · ${count}` : count}
+				about={
+					place ? (
+						// The separator stays with the count, so a wrapped line never ends on it
+						<>
+							{place} <span className="whitespace-nowrap">· {count}</span>
+						</>
+					) : (
+						<span className="whitespace-nowrap">{count}</span>
+					)
+				}
 				action={
 					actions.admin && (
 						<button type="button" onClick={() => actions.onManage(team)} className={buttonClass('secondary')}>
@@ -260,7 +276,7 @@ function TeamPanel({ team, organisers, ...actions }: { team: Team; organisers: O
 				)}
 			</div>
 			{members.length > 0 && (
-				<p className="text-sm leading-normal text-med-blue">
+				<p className="max-w-lg text-sm leading-normal text-med-blue">
 					Organisers create and edit {team.name}’s events. Team members check people in at them.
 				</p>
 			)}
@@ -268,7 +284,7 @@ function TeamPanel({ team, organisers, ...actions }: { team: Team; organisers: O
 	);
 }
 
-function PanelHeading({ title, about, action }: { title: string; about: string; action?: ReactNode }) {
+function PanelHeading({ title, about, action }: { title: string; about: ReactNode; action?: ReactNode }) {
 	return (
 		<div className="flex items-start gap-4">
 			<div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -299,18 +315,21 @@ function TeamLink({ team }: { team: Team }) {
 	const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="flex flex-col gap-3 rounded-lg bg-off-white px-4 py-3 leading-normal @xl:flex-row @xl:items-center @xl:gap-6">
+			<div className="flex flex-col gap-3 rounded-lg bg-off-white px-4 py-3 leading-normal @3xl:flex-row @3xl:items-center @3xl:gap-6">
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<p className="text-xs text-med-blue">Team link for printed signs</p>
 					<a href={url} target="_blank" rel="noreferrer" className="truncate text-sm font-semibold text-med-blue underline underline-offset-2 hover:text-dark-blue">
 						{url.replace(/^https?:\/\//, '')}
 					</a>
 				</div>
-				<div className="flex min-w-0 flex-col gap-0.5 @xl:max-w-1/2">
+				<div className="flex min-w-0 flex-col gap-0.5 @3xl:max-w-1/2">
 					<p className="text-xs text-med-blue">Opens</p>
 					{target ? (
 						<p className="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-dark-blue">
 							<span className="truncate font-bold">{target.name}</span>
+							<span aria-hidden="true" className="text-med-blue">
+								·
+							</span>
 							<span className="whitespace-nowrap">{formatDate(new Date(target.startsAt), target.timeZone)}</span>
 							<StatusBadge open={target.selfCheckInOpen} />
 						</p>
@@ -321,13 +340,13 @@ function TeamLink({ team }: { team: Team }) {
 				<button
 					type="button"
 					onClick={() => navigator.clipboard.writeText(url).then(() => showToast('Team link copied'))}
-					className={`${buttonClass('secondary', 'sm')} inline-flex items-center justify-center gap-2 self-start @xl:self-center`}
+					className={`${buttonClass('secondary', 'sm')} inline-flex items-center justify-center gap-2 self-start @3xl:self-center`}
 				>
 					<img src={copyLink} alt="" width={15} height={15} />
 					Copy link
 				</button>
 			</div>
-			<p className="text-sm leading-normal text-med-blue">It opens whichever event is open for check-in, or else the next one, so a printed sign keeps working.</p>
+			<p className="max-w-lg text-sm leading-normal text-med-blue">It opens whichever event is open for check-in, or else the next one, so a printed sign keeps working.</p>
 		</div>
 	);
 }
