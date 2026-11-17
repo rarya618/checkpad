@@ -150,6 +150,7 @@ function EventLayout() {
 			screens={screens}
 			// Phones get the same pages in the tab bar (Figma "Staff check in (mobile) – menu" left out Analytics)
 			mobile={{
+				event,
 				title: event.name,
 				items,
 				extras: screens.map((x) => ({ ...x, label: `Open ${x.label.toLowerCase()}` })),

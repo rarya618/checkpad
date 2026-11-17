@@ -352,6 +352,7 @@ From 768px the dashboard has a quiet column down the left, 232px wide, on the pa
 
 - **Main pages:** under the menu, **Now** lists the events on now (up to three), each with its status indicator, its name and "41 checked in, of 109", tinted light blue while check-in is open, and each opens that event's Check in page. With nothing on, **Next** shows the next upcoming event and its date. It isn't shown on Events, which leads with the same events.
 - **Inside an event:** All events in small med-blue over the event's name (card-title display type, up to three lines), its date and its status indicator. Pressing the name opens a menu of events (on now, the next six coming up, the last three) with each one's status or date beneath, the current one ticked in med-blue; choosing one opens the same page of that event. Then the event's pages, then Screens.
+- **Phones** have no sidebar: inside an event the top bar's way out is a med-blue "Switch event" menu opposite the logo, with All events first and the same list of events below it.
 
 ### Framed Product Shot (signature)
 The system's imagery: a real screenshot in a white frame with a light-blue hairline, 16px corners and the screenshot frame shadow. In the hero it sits on a light-blue band that starts halfway down, with the attendee's phone overlapping one edge and a navy arrival toast (med-blue check badge, semibold name, light-blue time) floating over it. Inside tiles, screenshots are cropped and zoomed on the relevant part and fade out where the app continues.

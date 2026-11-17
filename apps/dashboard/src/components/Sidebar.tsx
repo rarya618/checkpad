@@ -189,13 +189,16 @@ function OnNow() {
 	);
 }
 
-// The event's name and date head its menu; pressing them lists the other events (on now,
-// coming up, and the last few), each opening the same page of that event
-function EventSwitcher({ event }: { event: DashboardEvent }) {
+/**
+ * The events to switch to from `event`'s pages (on now, the next six coming up, the last three),
+ * each opening the same page of that event, with its status or date beneath. Also the phones'
+ * top bar (MobileNav).
+ */
+export function useEventSwitchItems(event: DashboardEvent | undefined): MenuItem[] {
 	const { pathname } = useLocation();
 	const { now, upcoming, past } = grouped(useEventSummaries());
+	if (!event) return [];
 	const page = pathname.slice(`/events/${event.slug}`.length);
-	const status = nowStatus[eventPhase(event)];
 	const item = ({ event: e }: EventSummary): MenuItem => ({
 		label: e.name,
 		detail: nowStatus[eventPhase(e)]?.label ?? formatDate(new Date(e.startsAt), e.timeZone),
@@ -203,7 +206,13 @@ function EventSwitcher({ event }: { event: DashboardEvent }) {
 		current: e.id === event.id,
 	});
 	const groups = [now, upcoming.slice(0, 6), past.slice(0, 3)].filter((g) => g.length > 0);
-	const items = groups.flatMap((g, i) => g.map((s, j) => ({ ...item(s), separated: i > 0 && j === 0 })));
+	return groups.flatMap((g, i) => g.map((s, j) => ({ ...item(s), separated: i > 0 && j === 0 })));
+}
+
+// The event's name and date head its menu; pressing them lists the other events to switch to
+function EventSwitcher({ event }: { event: DashboardEvent }) {
+	const items = useEventSwitchItems(event);
+	const status = nowStatus[eventPhase(event)];
 	return (
 		<Menu
 			label={`${event.name}: switch to another event`}

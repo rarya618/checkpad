@@ -6,8 +6,12 @@ import close from '../assets/close.svg';
 import moreIcon from '../assets/more.svg';
 import { signOut, useSession } from '../lib/auth';
 import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
-import type { BackLink, SidebarItem } from './Sidebar';
-import { eventNameBack, useTransitionLink, useTransitionLinks } from '../lib/pageTransition';
+import calendar from '../assets/calendar.svg';
+import chevron from '../assets/chevron-down.svg';
+import type { DashboardEvent } from '../lib/events';
+import Menu from './Menu';
+import { useEventSwitchItems, type BackLink, type SidebarItem } from './Sidebar';
+import { eventNameBack, useTransitionLink, useTransitionLinks, useTransitionNavigate } from '../lib/pageTransition';
 
 export interface MobileNavConfig {
 	/** Heading at the top of the More sheet, e.g. the event name. */
@@ -21,12 +25,14 @@ export interface MobileNavConfig {
 	extras: { label: string; to?: string; href?: string; disabled?: boolean; onSelect?: () => void }[];
 	/** In the top bar, opposite the logo: a way out of this section. */
 	back?: BackLink;
+	/** Inside an event, the way out becomes a menu that also switches to another event. */
+	event?: DashboardEvent;
 }
 
 // Phones get Figma "Staff check in (mobile)"'s top bar instead of the sidebar, and a tab
 // bar along the bottom (not in Figma) with the section's pages. Its last tab, More, opens
 // the rest of Figma's menu ("– menu") as a sheet from the bottom.
-export default function MobileNav({ title, items, extras, back }: MobileNavConfig) {
+export default function MobileNav({ title, items, extras, back, event }: MobileNavConfig) {
 	const goBack = useTransitionLink(back?.to ?? '/events', eventNameBack);
 	const transitionTo = useTransitionLinks();
 	const [open, setOpen] = useState(false);
@@ -36,6 +42,8 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 	const closing = useRef<Animation[]>([]);
 	const { pathname } = useLocation();
 	const keyboardOpen = useKeyboardOpen();
+	const switchItems = useEventSwitchItems(event);
+	const go = useTransitionNavigate();
 
 	useEffect(() => {
 		const d = dialog.current;
@@ -76,11 +84,28 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 				<Link to="/events">
 					<img src={logo} alt="checkpad" width={146} height={32} />
 				</Link>
-				{back && (
-					<Link to={back.to} onClick={goBack} className="-my-2 flex items-center gap-1.5 py-2 text-sm tracking-[-0.01em] text-med-blue">
-						<img src={arrow} alt="" width={18} height={18} className="rotate-180" />
-						{back.label}
-					</Link>
+				{back && event ? (
+					// All events, then the events to switch to (the sidebar's switcher)
+					<Menu
+						label="Switch event"
+						menuWidth="w-[280px]"
+						buttonClassName="-my-2 -mr-2 flex items-center gap-1 rounded-md py-2 pr-2 pl-2.5 text-sm tracking-[-0.01em] text-med-blue aria-expanded:bg-light-blue/60"
+						items={[
+							// Its title returns to its row on Events, as the link does
+							{ label: back.label, icon: calendar, onSelect: () => go(back.to, eventNameBack()) },
+							...switchItems.map((x, i) => (i === 0 ? { ...x, separated: true } : x)),
+						]}
+					>
+						Switch event
+						<img src={chevron} alt="" width={18} height={18} />
+					</Menu>
+				) : (
+					back && (
+						<Link to={back.to} onClick={goBack} className="-my-2 flex items-center gap-1.5 py-2 text-sm tracking-[-0.01em] text-med-blue">
+							<img src={arrow} alt="" width={18} height={18} className="rotate-180" />
+							{back.label}
+						</Link>
+					)
 				)}
 			</header>
 			{/* A bar across the bottom edge: 64px of tabs over 16px of padding, which keeps them up from
