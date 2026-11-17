@@ -340,6 +340,7 @@ Solid, compact and confident, with an ExtraBold label.
 ### Inputs / Fields
 - **Style:** 12px radius, 10px/20px padding, 1.125rem text, navy text with 70% navy placeholder. On light grounds: white with a 1px inset ring of 20% navy. On navy: off-white with no ring.
 - **Focus:** a 2px outline offset by 2px, med-blue on light grounds and light-blue on navy.
+- **Dashboard search boxes** in a page header (Events, Attendees) sit beside buttons, so they take the button's shape: 36px tall with 8px corners, like an `md` button.
 - **Error:** a 2px inset error-red ring and a message below (error red on light, off-white on navy) that fades in. The label is visually hidden but present.
 
 ### Navigation
