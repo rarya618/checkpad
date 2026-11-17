@@ -6,6 +6,7 @@ import type { DashboardEvent } from '../lib/events';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
 import QrCode, { downloadQrCode } from './QrCode';
+import MiddleTruncate from './MiddleTruncate';
 
 // Figma "Attendees – share" at 75% scale. On phones the QR code goes above the link and buttons.
 export default function ShareDialog({ event, onClose }: { event: DashboardEvent; onClose: () => void }) {
@@ -28,7 +29,9 @@ export default function ShareDialog({ event, onClose }: { event: DashboardEvent;
 				<QrCode value={url} size={215} label={`QR code for ${url}`} className="shrink-0 rounded-md border border-light-blue" />
 				<div className="flex w-full min-w-0 flex-col gap-3 md:flex-1">
 					<div className="flex items-center gap-2.5 rounded-lg bg-off-white px-4 py-3">
-						<p className="min-w-0 flex-1 truncate text-sm leading-normal text-dark-blue">{url.replace(/^https?:\/\//, '')}</p>
+						<p title={url} className="flex min-w-0 flex-1 text-sm leading-normal text-dark-blue">
+							<MiddleTruncate text={url.replace(/^https?:\/\//, '')} />
+						</p>
 						<button type="button" aria-label="Copy check-in link" onClick={copyLink} className="shrink-0 rounded p-0.5 hover:bg-light-blue/60">
 							<img src={copy} alt="" width={18} height={18} />
 						</button>

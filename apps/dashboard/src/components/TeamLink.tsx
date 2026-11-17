@@ -4,6 +4,7 @@ import { useEvents, type DashboardEvent } from '../lib/events';
 import type { Team } from '../lib/teams';
 import CopyLink from './CopyLink';
 import StatusBadge from './StatusBadge';
+import MiddleTruncate from './MiddleTruncate';
 
 // A team's permanent link (Organisers' team panel, the Profile page)
 /** The event a team link opens: the one open for check-in, else the next upcoming one. */
@@ -26,8 +27,8 @@ export default function TeamLink({ team }: { team: Team }) {
 		<div className="flex min-w-0 flex-col items-start gap-1 text-sm leading-normal text-med-blue @xl:flex-row @xl:flex-wrap @xl:items-center @xl:gap-x-2">
 			<span className="flex min-w-0 max-w-full items-center gap-2">
 				<span className="shrink-0">Team link</span>
-				<a href={url} target="_blank" rel="noreferrer" title={about} aria-describedby={`team-link-about-${team.id}`} className="truncate underline underline-offset-2 hover:text-dark-blue">
-					{url.replace(/^https?:\/\//, '')}
+				<a href={url} target="_blank" rel="noreferrer" title={about} aria-describedby={`team-link-about-${team.id}`} className="flex min-w-0 underline underline-offset-2 hover:text-dark-blue">
+					<MiddleTruncate text={url.replace(/^https?:\/\//, '')} className="underline underline-offset-2" />
 				</a>
 				<span id={`team-link-about-${team.id}`} className="sr-only">
 					{about}

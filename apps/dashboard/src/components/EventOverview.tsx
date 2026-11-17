@@ -21,6 +21,7 @@ import DeleteEventDialog from './DeleteEventDialog';
 import ExportDialog from './ExportDialog';
 import Menu from './Menu';
 import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
+import MiddleTruncate from './MiddleTruncate';
 
 // Opened rarely, and they bring the QR code and CSV libraries: loaded on first use
 const ImportDialog = lazy(() => import('./ImportDialog'));
@@ -84,8 +85,8 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 						{/* Never wider than the line, so a long link is cut short with its copy icon still in view:
 						    in the phones' column each line is otherwise as wide as its text */}
 						<span className="flex max-w-full min-w-0 items-center gap-1">
-							<a href={url} target="_blank" rel="noreferrer" className="truncate underline underline-offset-2 hover:text-dark-blue">
-								{url.replace(/^https?:\/\//, '')}
+							<a href={url} target="_blank" rel="noreferrer" title={url} className="flex min-w-0 underline underline-offset-2 hover:text-dark-blue">
+								<MiddleTruncate text={url.replace(/^https?:\/\//, '')} className="underline underline-offset-2" />
 							</a>
 							<CopyLink url={url} label="Copy check-in link" />
 						</span>
