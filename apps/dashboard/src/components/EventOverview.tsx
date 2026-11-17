@@ -3,6 +3,9 @@ import { formatSchedule } from '@checkpad/shared/format';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import arrow from '../assets/arrow-right.svg';
+import tick from '../assets/check-blue.svg';
+import chevron from '../assets/chevron-down.svg';
+import copyLink from '../assets/copy-link.svg';
 import download from '../assets/download.svg';
 import ellipsis from '../assets/ellipsis-vertical-dark.svg';
 import gift from '../assets/gift.svg';
@@ -16,7 +19,6 @@ import { useSession } from '../lib/auth';
 import { eventPhase, nowStatus } from '../lib/eventPhase';
 import { showToast } from '../lib/toast';
 import StatusBadge from './StatusBadge';
-import Switch from './Switch';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
 import Menu from './Menu';
@@ -26,9 +28,9 @@ import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
 const ImportDialog = lazy(() => import('./ImportDialog'));
 const ShareDialog = lazy(() => import('./ShareDialog'));
 
-// Top of an event's pages, one compact block: the event's name with whether self check-in is
-// open (and its switch, for those who run the event), Share, Edit and the ⋮ menu; under them one
-// quiet line with when it is and the attendees' link, with Copy. A hairline closes it off from the
+// Top of an event's pages, one compact block: the event's name with Share, Edit and the ⋮ menu;
+// under it one quiet line with when it is, whether self check-in is open (which opens and closes
+// it, for those who run the event), and the attendees' link with a copy icon. A hairline closes it off from the
 // page's own header below. The back arrow hangs in the margin (wider on an event's pages,
 // DashboardLayout) so the name lines up with everything under it; on phones it leads the name.
 export default function EventOverview({ event, checkInSwitch = true }: { event: DashboardEvent; /** Off on Settings, which has its own. */ checkInSwitch?: boolean }) {
@@ -50,41 +52,43 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 		// still scrolls over it).
 		<section style={{ viewTransitionName: 'event-overview' }} className="relative mx-6 flex flex-col gap-2 border-b border-line pt-3 pb-5 has-[[role=menu]]:z-20 md:pt-8">
 			<div className="flex flex-wrap items-start gap-x-6 gap-y-4">
-				{/* The name with its check-in state, and when it is with the link; the buttons follow
-				    on phones, after the details rather than between them */}
-				<div className="flex min-w-0 flex-1 basis-80 flex-col gap-2">
-					<div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
-						<div className="relative flex min-w-0 items-center gap-1">
-							{/* Back to all events, one click: in the margin beside the name from md, before it on phones */}
-							<Link
-								to="/events"
-								onClick={toEvents}
-								aria-label="All events"
-								title="All events"
-								className="-ml-2 flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-light-blue/60 md:absolute md:top-1/2 md:right-full md:mr-1 md:ml-0 md:-translate-y-1/2"
-							>
-								<img src={arrow} alt="" width={20} height={20} className="rotate-180" />
-							</Link>
-							{/* The name arrives from the event's row on Events, and returns to it (pageTransition) */}
-							<h1 style={{ viewTransitionName: 'event-title' }} className="min-w-0 font-display text-2xl md:text-3xl">
-								{event.name}
-							</h1>
-						</div>
-						<CheckInState event={event} canSwitch={checkInSwitch && canEdit} />
+				{/* Each row has one job: the name, then one quiet line of facts. The buttons follow on
+				    phones, after the details rather than between them */}
+				<div className="flex min-w-0 flex-1 basis-80 flex-col gap-1.5">
+					<div className="relative flex min-w-0 items-center gap-1">
+						{/* Back to all events, one click: in the margin beside the name from md, before it on phones */}
+						<Link
+							to="/events"
+							onClick={toEvents}
+							aria-label="All events"
+							title="All events"
+							className="-ml-2 flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-light-blue/60 md:absolute md:top-1/2 md:right-full md:mr-1 md:ml-0 md:-translate-y-1/2"
+						>
+							<img src={arrow} alt="" width={20} height={20} className="rotate-180" />
+						</Link>
+						{/* The name arrives from the event's row on Events, and returns to it (pageTransition) */}
+						<h1 style={{ viewTransitionName: 'event-title' }} className="min-w-0 font-display text-2xl md:text-3xl">
+							{event.name}
+						</h1>
 					</div>
-					<p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-normal text-med-blue">
+					{/* When it is · whether self check-in is open · the attendees' link, in one voice. Phones
+					    give each its own line, so the separators only show from md */}
+					<div className="flex min-w-0 flex-col items-start gap-1 text-sm leading-normal text-med-blue md:flex-row md:flex-wrap md:items-center md:gap-x-2">
 						<span>{formatSchedule(start, end, event.timeZone)}</span>
-						{/* Phones put the link on a line of its own, so the separator only shows from md */}
-						<span className="flex min-w-0 items-center gap-2">
-							<span aria-hidden="true" className="hidden md:inline">
-								·
-							</span>
-							<a href={url} target="_blank" rel="noreferrer" className="truncate font-semibold underline underline-offset-2 hover:text-dark-blue">
+						<span aria-hidden="true" className="hidden md:inline">
+							·
+						</span>
+						<CheckInState event={event} canSwitch={checkInSwitch && canEdit} />
+						<span aria-hidden="true" className="hidden md:inline">
+							·
+						</span>
+						<span className="flex min-w-0 items-center gap-1">
+							<a href={url} target="_blank" rel="noreferrer" className="truncate underline underline-offset-2 hover:text-dark-blue">
 								{url.replace(/^https?:\/\//, '')}
 							</a>
 							<CopyLink url={url} />
 						</span>
-					</p>
+					</div>
 				</div>
 				<div className="flex shrink-0 items-center gap-3">
 					<button type="button" onClick={() => setSharing(true)} className={buttonClass('secondary')}>
@@ -150,7 +154,7 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 	);
 }
 
-/** Copies the link, saying so in place for a moment: a quiet text button beside the link, keeping its width. */
+/** Copies the link: a small icon beside it that turns to a tick for a moment. */
 function CopyLink({ url }: { url: string }) {
 	const [copied, setCopied] = useState(false);
 	useEffect(() => {
@@ -162,40 +166,45 @@ function CopyLink({ url }: { url: string }) {
 		<button
 			type="button"
 			aria-label={copied ? 'Copied' : 'Copy check-in link'}
+			title={copied ? 'Copied' : 'Copy link'}
 			onClick={() => navigator.clipboard.writeText(url).then(() => setCopied(true))}
-			className="-mx-1.5 grid shrink-0 rounded-md px-1.5 font-bold text-dark-blue transition-colors hover:bg-light-blue/60"
+			className="flex size-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-light-blue/60"
 		>
-			{/* Both labels share one grid cell, so the button keeps the width of the longer */}
-			<span className={`col-start-1 row-start-1 ${copied ? 'invisible' : ''}`}>Copy</span>
-			<span aria-live="polite" className={`col-start-1 row-start-1 ${copied ? '' : 'invisible'}`}>
-				{copied ? 'Copied' : ''}
-			</span>
+			<img src={copied ? tick : copyLink} alt="" width={15} height={15} />
 		</button>
 	);
 }
 
-/** Whether attendees can check themselves in now, and the switch that opens and closes it. */
+/**
+ * Whether attendees can check themselves in now. For those who run the event the status is
+ * also the control: pressing it offers to open or close self check-in.
+ */
 function CheckInState({ event, canSwitch }: { event: DashboardEvent; canSwitch: boolean }) {
 	const me = useMe();
 	const session = useSession();
-	const [switching, setSwitching] = useState(false);
 	const phase = eventPhase(event);
 	const label = nowStatus[phase]?.label ?? (phase === 'upcoming' ? 'Not open yet' : 'Check-in closed');
-	const toggle = (open: boolean) => {
-		setSwitching(true);
-		setSelfCheckIn(event, open, me.name ?? session?.email ?? 'An organiser')
-			.then(() => showToast(open ? 'Self check-in is open' : 'Self check-in is closed'))
-			.catch(() => showToast(`Couldn’t ${open ? 'open' : 'close'} self check-in. Try again.`))
-			.finally(() => setSwitching(false));
-	};
+	const status = <StatusBadge open={event.selfCheckInOpen} label={label} />;
+	if (!canSwitch) return status;
+	const open = !event.selfCheckInOpen;
 	return (
-		<div className="flex shrink-0 items-center gap-3">
-			<StatusBadge open={event.selfCheckInOpen} label={label} />
-			{canSwitch && (
-				<span className={switching ? 'pointer-events-none opacity-60' : ''}>
-					<Switch label="Self check-in open" checked={event.selfCheckInOpen} onChange={toggle} />
-				</span>
-			)}
-		</div>
+		<Menu
+			label={`${label}: change self check-in`}
+			placement="below-left"
+			buttonClassName="-mx-1.5 flex items-center gap-1 rounded-md px-1.5 transition-colors hover:bg-light-blue/60 aria-expanded:bg-light-blue/60"
+			items={[
+				{
+					label: open ? 'Open self check-in' : 'Close self check-in',
+					detail: open ? 'Attendees can check themselves in' : 'Staff can still check people in',
+					onSelect: () =>
+						setSelfCheckIn(event, open, me.name ?? session?.email ?? 'An organiser')
+							.then(() => showToast(open ? 'Self check-in is open' : 'Self check-in is closed'))
+							.catch(() => showToast(`Couldn’t ${open ? 'open' : 'close'} self check-in. Try again.`)),
+				},
+			]}
+		>
+			{status}
+			<img src={chevron} alt="" width={14} height={14} />
+		</Menu>
 	);
 }

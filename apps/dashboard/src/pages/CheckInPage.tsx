@@ -6,7 +6,6 @@ import undo from '../assets/undo.svg';
 import EventOverview from '../components/EventOverview';
 import { TextField } from '../components/Field';
 import PageHeader from '../components/PageHeader';
-import StatusBadge from '../components/StatusBadge';
 import { WalkInCard, WalkInDialog } from '../components/WalkIn';
 import { checkIn, findAttendee, fullName, initials, looksLikeEmail, undoCheckIn } from '../lib/checkIn';
 import { useEvent, type DashboardEvent } from '../lib/events';
@@ -76,7 +75,6 @@ export default function CheckInPage() {
 			<PageHeader
 				level={2}
 				title="Check in"
-				titleAddon={<StatusBadge open={event.selfCheckInOpen} />}
 				// 24px above (the gap below the event details); sticks with 24px left, like the page headers
 				className="top-0 pt-6 pb-4"
 				actions={
