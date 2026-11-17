@@ -2,6 +2,7 @@ import logo from '@checkpad/shared/checkpad-logo.svg';
 import { formatDate } from '@checkpad/shared/format';
 import { Link, NavLink, useLocation } from 'react-router';
 import arrow from '../assets/arrow-right.svg';
+import calendar from '../assets/calendar.svg';
 import chevron from '../assets/chevron-down.svg';
 import ellipsis from '../assets/ellipsis-vertical.svg';
 import logout from '../assets/logout.svg';
@@ -12,7 +13,7 @@ import { useEventSummaries, type DashboardEvent, type EventSummary } from '../li
 import { initialsOf, roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import Menu, { type MenuItem } from './Menu';
 import StatusBadge from './StatusBadge';
-import { eventNameBack, useTransitionLink, useTransitionLinks } from '../lib/pageTransition';
+import { eventNameBack, useTransitionLink, useTransitionLinks, useTransitionNavigate } from '../lib/pageTransition';
 
 export interface SidebarItem {
 	to: string;
@@ -59,20 +60,15 @@ export default function Sidebar({ items, back, screens, event }: SidebarProps) {
 	const { pathname } = useLocation();
 	return (
 		<aside className="flex h-full w-[232px] shrink-0 flex-col border-r border-line pt-8 pb-4">
-			{/* Level with the page titles, 32px down (PageHeader) */}
-			<Link to="/events" className="mx-6 self-start py-0.5">
+			{/* Level with the page titles, 32px down (PageHeader). Inside an event it's the quick way
+			    back to Events, so it carries the event's name back to its row */}
+			<Link to="/events" onClick={event ? goBack : undefined} className="mx-6 self-start py-0.5">
 				<img src={logo} alt="checkpad" width={146} height={32} />
 			</Link>
 			{/* Outside the scrolling part below, which would clip the switcher's list */}
 			{event && (
-				<div className="flex flex-col gap-2 px-4 pt-8">
-					{back && (
-						<Link to={back.to} onClick={goBack} className="flex items-center gap-2 self-start rounded-md px-2 py-1 text-sm leading-normal text-med-blue hover:text-dark-blue">
-							<img src={arrow} alt="" width={16} height={16} className="rotate-180" />
-							{back.label}
-						</Link>
-					)}
-					<EventSwitcher event={event} />
+				<div className="px-4 pt-8">
+					<EventSwitcher event={event} back={back} />
 				</div>
 			)}
 			<div className={`flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-4 pb-4 ${event ? 'pt-4' : 'pt-8'}`}>
@@ -209,10 +205,19 @@ export function useEventSwitchItems(event: DashboardEvent | undefined): MenuItem
 	return groups.flatMap((g, i) => g.map((s, j) => ({ ...item(s), separated: i > 0 && j === 0 })));
 }
 
-// The event's name and date head its menu; pressing them lists the other events to switch to
-function EventSwitcher({ event }: { event: DashboardEvent }) {
-	const items = useEventSwitchItems(event);
+// The event's name and date head its menu; pressing them offers the way back to all events
+// (as on phones), then the other events to switch to
+function EventSwitcher({ event, back }: { event: DashboardEvent; back?: BackLink }) {
+	const switchItems = useEventSwitchItems(event);
+	const go = useTransitionNavigate();
 	const status = nowStatus[eventPhase(event)];
+	const items: MenuItem[] = back
+		? [
+				// Its title returns to its row on Events, as the logo does
+				{ label: back.label, icon: calendar, onSelect: () => go(back.to, eventNameBack()) },
+				...switchItems.map((x, i) => (i === 0 ? { ...x, separated: true } : x)),
+			]
+		: switchItems;
 	return (
 		<Menu
 			label={`${event.name}: switch to another event`}
