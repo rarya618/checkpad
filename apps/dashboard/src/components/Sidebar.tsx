@@ -122,10 +122,15 @@ export default function Sidebar({ items, back, screens, event }: SidebarProps) {
 				{/* Not on Events, which leads with the same events */}
 				{!event && pathname !== '/events' && <OnNow />}
 			</div>
-			{/* Lined up with the menu items' icons, with room above and below */}
-			<div className="mx-4 flex items-center gap-3 border-t border-line px-3 pt-5 pb-2">
-				<AccountSummary />
-				<AccountMenu />
+			{/* Lined up with the menu items' icons, with room above and below. One row to the eye:
+			    hovering it, or being on Profile, shades the name and the menu button together */}
+			<div className="mx-4 border-t border-line px-3 pt-5 pb-2">
+				<div
+					className={`-m-1.5 flex items-center gap-3 rounded-lg p-1.5 transition-colors ${pathname === '/profile' ? 'bg-light-blue' : 'hover:bg-light-blue/50'}`}
+				>
+					<AccountSummary />
+					<AccountMenu />
+				</div>
 			</div>
 		</aside>
 	);
@@ -236,7 +241,7 @@ function AccountSummary() {
 			to="/profile"
 			onClick={transitionTo('/profile')}
 			title="Your profile"
-			className="-m-1.5 flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-light-blue/50 aria-[current=page]:bg-light-blue"
+			className="flex min-w-0 flex-1 items-center gap-3 rounded-md"
 			aria-current={here ? 'page' : undefined}
 		>
 			{me && (
