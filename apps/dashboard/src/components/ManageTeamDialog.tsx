@@ -149,7 +149,8 @@ export default function ManageTeamDialog({ team, onClose, onDelete }: { team: Te
 						error={emailTaken ? 'Already an organiser.' : null}
 						className="min-w-0 flex-1"
 					/>
-					<button type="button" onClick={addMember} disabled={!looksLikeEmail(newEmail) || emailTaken} className={`${buttonClass('secondary')} disabled:opacity-50 ${emailTaken ? 'mb-6' : ''}`}>
+					{/* As tall as the text box beside it (48px) */}
+					<button type="button" onClick={addMember} disabled={!looksLikeEmail(newEmail) || emailTaken} className={`${buttonClass('secondary')} h-12 disabled:opacity-50 ${emailTaken ? 'mb-6' : ''}`}>
 						Add
 					</button>
 				</div>

@@ -59,7 +59,8 @@ function Details({ me, team }: { me: Organiser; team: string | null }) {
 			>
 				<div className="flex items-end gap-3">
 					<TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" className="min-w-0 flex-1" />
-					<button type="submit" disabled={!changed || saving} className={`${buttonClass('secondary')} shrink-0 disabled:opacity-50`}>
+					{/* As tall as the text box beside it (48px) */}
+					<button type="submit" disabled={!changed || saving} className={`${buttonClass('secondary')} h-12 shrink-0 disabled:opacity-50`}>
 						Save
 					</button>
 				</div>
