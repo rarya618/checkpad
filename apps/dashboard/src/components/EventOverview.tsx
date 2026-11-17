@@ -15,13 +15,13 @@ import { ownsEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents, useMe } from '../lib/organisers';
 import DeleteEventDialog from './DeleteEventDialog';
 import Menu from './Menu';
-import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
+import { useTransitionLink } from '../lib/pageTransition';
 
 // Opened rarely, and they bring the QR code and CSV libraries: loaded on first use
 const ImportDialog = lazy(() => import('./ImportDialog'));
 const ShareDialog = lazy(() => import('./ShareDialog'));
 
-// Top of an event's pages: breadcrumbs, event name, date, check-in link, actions. On phones
+// Top of an event's pages: event name, date, check-in link, actions. On phones
 // the actions go below, just under the top bar's logo instead of level with the sidebar's.
 export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const start = new Date(event.startsAt);
@@ -29,7 +29,6 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 	const [deleting, setDeleting] = useState(false);
 	const [sharing, setSharing] = useState(false);
 	const canEdit = useCanEditEvents();
-	const toEvents = useTransitionLink('/events', eventNameBack);
 	const toSettings = useTransitionLink(`/events/${event.slug}/settings`);
 	const canDelete = ownsEvent(useMe(), event);
 	// Importing a file, or showing a finished import again from the toast's Details
@@ -43,19 +42,6 @@ export default function EventOverview({ event }: { event: DashboardEvent }) {
 			className="flex flex-col items-start gap-4 px-6 pt-3 md:flex-row md:flex-wrap md:items-center md:gap-x-3 md:pt-8"
 		>
 			<div className="flex w-full min-w-0 flex-1 flex-col gap-3.5 py-px md:w-auto md:basis-64">
-				<nav aria-label="Breadcrumb">
-					<ol className="flex items-center gap-1.5 text-sm text-dark-blue">
-						<li>
-							<Link to="/events" onClick={toEvents} className="tracking-tight hover:underline">
-								Events
-							</Link>
-						</li>
-						<li aria-hidden="true">/</li>
-						<li aria-current="page" className="font-display">
-							{event.name}
-						</li>
-					</ol>
-				</nav>
 				<div className="flex flex-col gap-1">
 					{/* The name arrives from the event's row on Events, and returns to it (pageTransition) */}
 					<h1 style={{ viewTransitionName: 'event-title' }} className="font-display text-2xl md:text-3xl">
