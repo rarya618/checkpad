@@ -121,7 +121,8 @@ export default function Sidebar({ items, back, screens, event }: SidebarProps) {
 				{/* Not on Events, which leads with the same events */}
 				{!event && pathname !== '/events' && <OnNow />}
 			</div>
-			<div className="mx-4 flex items-center gap-3 border-t border-line px-2 pt-4">
+			{/* Lined up with the menu items' icons, with room above and below */}
+			<div className="mx-4 flex items-center gap-3 border-t border-line px-3 pt-5 pb-2">
 				<AccountSummary />
 				<AccountMenu />
 			</div>
@@ -233,7 +234,7 @@ function AccountSummary() {
 					{initialsOf(me)}
 				</span>
 			)}
-			<div className="flex min-w-0 flex-col">
+			<div className="flex min-w-0 flex-col gap-0.5">
 				<p className="truncate font-display text-base leading-tight">{me?.name ?? session?.email}</p>
 				<p className="text-xs leading-normal text-med-blue">{me ? roleLabel(me.role) : ''}</p>
 			</div>
