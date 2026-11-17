@@ -422,3 +422,41 @@ tr[data-arrived] > td:last-child {
     }
   }
 }
+
+/* The phones' tab bar (MobileNav) gets out of the on-screen keyboard's way: it tucks down by its
+   own height as the keyboard rises, quickly, so it's gone before the keyboard covers it, and rises
+   back once the keyboard has cleared, a beat later and on the quick ease-out. Hidden (visibility)
+   only once it's out of sight, and shown again the moment it starts back. With reduced motion it
+   only fades. */
+[data-tabbar] {
+  transition:
+    translate 260ms cubic-bezier(0.16, 1, 0.3, 1) 60ms,
+    opacity 200ms ease-out 60ms,
+    visibility 0s linear 0s;
+}
+
+[data-tabbar][data-away] {
+  translate: 0 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    translate 160ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 120ms ease-in,
+    visibility 0s linear 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tabbar],
+  [data-tabbar][data-away] {
+    translate: none;
+    transition:
+      opacity 150ms ease-out,
+      visibility 0s linear 0s;
+  }
+
+  [data-tabbar][data-away] {
+    transition:
+      opacity 120ms ease-in,
+      visibility 0s linear 120ms;
+  }
+}

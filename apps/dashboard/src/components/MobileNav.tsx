@@ -109,11 +109,14 @@ export default function MobileNav({ title, items, extras, back, event }: MobileN
 				)}
 			</header>
 			{/* A bar across the bottom edge: 64px of tabs over 16px of padding, which keeps them up from
-			    the edge of the screen. App.tsx keeps the page and toasts clear of its 80px. Hidden while
-			    the on-screen keyboard is up, so it doesn't ride up above it. */}
+			    the edge of the screen. App.tsx keeps the page and toasts clear of its 80px. Away while
+			    the on-screen keyboard is up, so it doesn't ride up above it: it tucks down out of the
+			    keyboard's way and rises back once it's gone (index.css), and can't be reached meanwhile. */}
 			<nav
 				aria-label="Main"
-				hidden={keyboardOpen}
+				data-tabbar
+				data-away={keyboardOpen || undefined}
+				inert={keyboardOpen}
 				className="fixed inset-x-0 bottom-0 z-20 flex h-20 bg-off-white px-1.5 pb-4"
 			>
 				{items.map((i) => (
