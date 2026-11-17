@@ -44,12 +44,12 @@ export default function ExportDialog({ event, onClose }: { event: DashboardEvent
 					onClose();
 				}}
 			>
-				<fieldset className="flex flex-col gap-2">
+				<fieldset className="flex flex-col gap-3">
 					<legend className="sr-only">Format</legend>
 					{formats.map((f) => (
 						<label
 							key={f.id}
-							className="flex cursor-pointer items-start gap-3 rounded-lg bg-off-white px-4 py-3 leading-normal outline-2 -outline-offset-2 outline-transparent transition-colors has-checked:bg-light-blue/40 has-checked:outline-med-blue has-focus-visible:outline-med-blue"
+							className="flex cursor-pointer items-start gap-4 rounded-lg bg-off-white px-5 py-4 leading-normal outline-2 -outline-offset-2 outline-transparent transition-colors has-checked:bg-light-blue/40 has-checked:outline-med-blue has-focus-visible:outline-med-blue"
 						>
 							<input
 								type="radio"
@@ -60,9 +60,9 @@ export default function ExportDialog({ event, onClose }: { event: DashboardEvent
 								data-autofocus={format === f.id || undefined}
 								className="mt-1 size-4 shrink-0 accent-dark-blue focus-visible:outline-none"
 							/>
-							<span className="flex min-w-0 flex-col gap-0.5">
-								<span className="text-sm font-bold">{f.label}</span>
-								<span className="text-xs text-med-blue">{f.note}</span>
+							<span className="flex min-w-0 flex-col gap-1">
+								<span className="text-base font-bold">{f.label}</span>
+								<span className="text-sm text-med-blue">{f.note}</span>
 							</span>
 						</label>
 					))}

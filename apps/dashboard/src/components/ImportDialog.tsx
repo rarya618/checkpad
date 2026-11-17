@@ -89,10 +89,10 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 			)}
 
 			{error && (
-				<div role="alert" className="flex items-start gap-3 rounded-lg bg-light-blue py-4 pr-5 pl-4 leading-normal">
+				<div role="alert" className="flex items-start gap-4 rounded-lg bg-light-blue px-5 py-4 leading-normal">
 					<img src={alert} alt="" width={21} height={21} />
 					<div className="flex min-w-0 flex-1 flex-col gap-1">
-						<p className="text-sm font-bold">We can’t read this file</p>
+						<p className="text-base font-bold">We can’t read this file</p>
 						<p className="text-sm">
 							{error.kind === 'not-csv'
 								? `Upload the attendee list as a CSV, not ${error.fileType === 'Excel file' ? 'an Excel file' : `a ${error.fileType.replace(' file', '')} file`}. `
@@ -161,22 +161,22 @@ function FileBox({ name, detail, onChoose, showReplace }: { name?: string; detai
 				type="button"
 				onClick={onChoose}
 				data-autofocus
-				className="flex items-center gap-3 rounded-lg border border-dashed border-med-blue bg-off-white py-3.5 pr-5 pl-4 text-left leading-normal hover:bg-light-blue/40"
+				className="flex items-center gap-4 rounded-lg border border-dashed border-med-blue bg-off-white px-5 py-4 text-left leading-normal hover:bg-light-blue/40"
 			>
 				<img src={fileIcon} alt="" width={21} height={21} />
-				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="text-sm font-bold">Choose the attendee CSV</span>
-					<span className="text-xs text-med-blue">From Bevy, Luma or another registration platform</span>
+				<span className="flex min-w-0 flex-1 flex-col gap-1">
+					<span className="text-base font-bold">Choose the attendee CSV</span>
+					<span className="text-sm text-med-blue">From Bevy, Luma or another registration platform</span>
 				</span>
 			</button>
 		);
 	}
 	return (
-		<div className="flex items-center gap-3 rounded-lg border border-dashed border-med-blue bg-off-white py-3.5 pr-5 pl-4 leading-normal">
+		<div className="flex items-center gap-4 rounded-lg border border-dashed border-med-blue bg-off-white px-5 py-4 leading-normal">
 			<img src={fileIcon} alt="" width={21} height={21} />
-			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				<p className="truncate text-sm font-bold">{name}</p>
-				{detail && <p className="text-xs text-med-blue">{detail}</p>}
+			<div className="flex min-w-0 flex-1 flex-col gap-1">
+				<p className="truncate text-base font-bold">{name}</p>
+				{detail && <p className="text-sm text-med-blue">{detail}</p>}
 			</div>
 			{showReplace && (
 				<button type="button" onClick={onChoose} className="shrink-0 text-sm font-semibold text-med-blue hover:underline">
@@ -189,11 +189,11 @@ function FileBox({ name, detail, onChoose, showReplace }: { name?: string; detai
 
 function SummaryRow({ count, label, detail }: { count: number; label: string; detail: string }) {
 	return (
-		<div className="flex items-center gap-3 border-light-blue py-2.5 not-first:border-t">
+		<div className="flex items-center gap-4 border-light-blue py-3 not-first:border-t">
 			<dt className="w-[54px] shrink-0 font-display text-2xl leading-tight">{count}</dt>
-			<dd className="flex min-w-0 flex-1 flex-col gap-0.5 leading-normal">
-				<span className="text-sm font-bold text-dark-blue">{label}</span>
-				<span className="text-xs text-med-blue">{detail}</span>
+			<dd className="flex min-w-0 flex-1 flex-col gap-1 leading-normal">
+				<span className="text-base font-bold text-dark-blue">{label}</span>
+				<span className="text-sm text-med-blue">{detail}</span>
 			</dd>
 		</div>
 	);
