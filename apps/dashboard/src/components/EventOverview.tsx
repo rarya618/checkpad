@@ -43,8 +43,11 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 	// Importing a file, or showing a finished import again from the toast's Details
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
 	return (
-		// Its own layer in a view transition, so it stays put between the event's pages (index.css)
-		<section style={{ viewTransitionName: 'event-overview' }} className="flex flex-col gap-4 px-6 pt-3 md:pt-8">
+		// Its own layer in a view transition, so it stays put between the event's pages (index.css).
+		// That puts it under the section header below, which sticks at z-10: while its ⋮ menu is
+		// open it rises above, so the menu isn't hidden behind the header (only then, so the header
+		// still scrolls over it).
+		<section style={{ viewTransitionName: 'event-overview' }} className="relative flex flex-col gap-4 px-6 pt-3 has-[[role=menu]]:z-20 md:pt-8">
 			<div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
 				<div className="flex min-w-0 flex-1 basis-64 items-start gap-1">
 					{/* Back to all events, one click, level with the name */}
