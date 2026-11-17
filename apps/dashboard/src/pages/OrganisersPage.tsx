@@ -3,7 +3,6 @@ import { findCountry } from '@checkpad/shared/countries';
 import { formatDate } from '@checkpad/shared/format';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import copyLink from '../assets/copy-link.svg';
 import more from '../assets/more.svg';
 import shield from '../assets/shield.svg';
 import trash from '../assets/trash.svg';
@@ -340,9 +339,9 @@ function TeamLink({ team }: { team: Team }) {
 				<button
 					type="button"
 					onClick={() => navigator.clipboard.writeText(url).then(() => showToast('Team link copied'))}
-					className={`${buttonClass('secondary', 'sm')} inline-flex items-center justify-center gap-2 self-start @3xl:self-center`}
+					// A standard button, like the rest of the dashboard's
+					className={`${buttonClass('secondary')} shrink-0 self-start @3xl:self-center`}
 				>
-					<img src={copyLink} alt="" width={15} height={15} />
 					Copy link
 				</button>
 			</div>
