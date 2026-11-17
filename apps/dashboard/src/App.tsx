@@ -84,6 +84,8 @@ const pageLayer = { viewTransitionName: 'page' };
 // column scrolls, edge to edge, without overscroll bounce. Phones get a top bar and a
 // tab bar along the bottom instead (MobileNav), and the page scrolls normally.
 function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: MobileNavConfig }) {
+	// An event's pages leave 16px more on the left, where the header's back arrow hangs (EventOverview)
+	const inset = sidebar.event ? 'pl-4' : '';
 	const { back } = sidebar;
 	const desktop = useIsDesktop();
 	if (!desktop) {
@@ -105,7 +107,7 @@ function DashboardLayout({ mobile, ...sidebar }: SidebarProps & { mobile: Mobile
 			<Sidebar {...sidebar} />
 			<div className="relative min-w-0 flex-1">
 				{/* No top padding here: page headers carry it so they can stick flush to the top */}
-				<main style={pageLayer} className="h-full overflow-y-auto overscroll-none pr-6 pb-6">
+				<main style={pageLayer} className={`h-full overflow-y-auto overscroll-none pr-6 pb-6 ${inset}`}>
 					<Outlet />
 				</main>
 				<Toaster />

@@ -49,8 +49,8 @@ export default function AttendeesPage() {
 				actionsRowOnPhones
 				level={2}
 				title="Attendees"
-				// 40.5px above (the gap below the event details); sticks with 24px left, like the page headers
-				className="top-[-16.5px] pt-10 pb-4"
+				// 24px below the event details' hairline; sticks with 24px left, like the page headers
+				className="top-0 pt-6 pb-4"
 				actions={
 					<div className="flex w-full items-center gap-4 md:w-auto">
 						<label className="flex h-[42px] min-w-0 flex-1 items-center md:w-[230px] md:flex-initial gap-4 rounded-xl border border-dark-blue/32 px-4 focus-within:outline-2 focus-within:outline-med-blue">
@@ -64,15 +64,7 @@ export default function AttendeesPage() {
 								className="min-w-0 flex-1 bg-transparent text-base tracking-tight outline-none placeholder:text-dark-blue/30"
 							/>
 						</label>
-						{/* Not in Figma: importing again picks up late registrations and registration dates.
-						    Laptops only: the row has no room on phones, where the ⋮ menu still has it. The empty state has its own. */}
-						{canEdit && roster.length > 0 && (
-							<div className="hidden shrink-0 md:block">
-								<button type="button" onClick={() => setImporting({})} className={buttonClass('secondary')}>
-									Import
-								</button>
-							</div>
-						)}
+						{/* Importing again (late registrations) is in the event's ⋮ menu; the empty state has its own button */}
 						{/* Figma "Attendees – add walk-in" */}
 						<button type="button" onClick={() => setWalkIn('')} className={`${buttonClass('primary')} shrink-0`}>
 							Add attendee
