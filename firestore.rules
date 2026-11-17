@@ -125,6 +125,13 @@ service cloud.firestore {
         && isAdminEntry(email, request.resource.data);
       allow delete: if isSuperAdmin() && email != myEmail();
 
+      // Your own name, from your Profile page: never empty, and nothing else with it
+      allow update: if isOrganiser()
+        && email == myEmail()
+        && changes().hasOnly(['name'])
+        && isText(request.resource.data.name, 200)
+        && request.resource.data.name.trim() != '';
+
       // Signing in records your name and when, which ends "Invited"
       allow update: if isOrganiser()
         && email == myEmail()

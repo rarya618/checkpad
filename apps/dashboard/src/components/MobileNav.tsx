@@ -178,10 +178,14 @@ export default function MobileNav({ title, items, extras, back, event }: MobileN
 						))}
 					</ul>
 					<div className="my-2 h-px bg-med-blue/40" />
-					<div className="flex flex-col gap-0.5 pl-3 leading-normal">
-						<p className="truncate font-display text-lg">{me?.name ?? session?.email}</p>
-						<p className="text-sm text-dark-blue/75">{me ? roleLabel(me.role) : ''}</p>
-					</div>
+					{/* Who's signed in, leading to their Profile page */}
+					<Link to="/profile" className="flex items-center justify-between gap-3 rounded-lg py-2 pr-2 pl-3 leading-normal hover:bg-light-blue/60">
+						<span className="flex min-w-0 flex-col gap-0.5">
+							<span className="truncate font-display text-lg">{me?.name ?? session?.email}</span>
+							<span className="text-sm text-dark-blue/75">{me ? `${roleLabel(me.role)} · Your profile` : 'Your profile'}</span>
+						</span>
+						<img src={arrow} alt="" width={18} height={18} className="shrink-0" />
+					</Link>
 				</div>
 			</dialog>
 		</>

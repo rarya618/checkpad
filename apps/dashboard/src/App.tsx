@@ -63,6 +63,7 @@ const OrganisersPage = lazyPage(() => import('./pages/OrganisersPage'));
 const PrizeDrawPage = lazyPage(() => import('./pages/PrizeDrawPage'));
 const VenueDisplayPage = lazyPage(() => import('./pages/VenueDisplayPage'));
 const WaitlistPage = lazyPage(() => import('./pages/WaitlistPage'));
+const ProfilePage = lazyPage(() => import('./pages/ProfilePage'));
 
 // Moving between the main pages is a view transition too: the page fades out and the next in
 // while the sidebar stays put (index.css)
@@ -226,6 +227,7 @@ export default function App() {
 					/>
 					<Route path="organisers" element={<OrganisersPage />} />
 					<Route path="analytics" element={<AnalyticsPage />} />
+					<Route path="profile" element={<ProfilePage />} />
 					<Route
 						path="waitlist"
 						element={

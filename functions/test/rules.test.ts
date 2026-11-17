@@ -498,6 +498,15 @@ describe('organisers and teams', () => {
 		await assertFails(updateDoc(doc(tom(), 'admins/priya@example.com'), { name: 'Not Priya', lastSignInAt: serverTimestamp() }));
 	});
 
+	test('anyone changes their own name, and nothing else of theirs or anyone else’s', async () => {
+		await assertSucceeds(updateDoc(doc(tom(), 'admins/tom@example.com'), { name: 'Tom B' }));
+		await assertFails(updateDoc(doc(tom(), 'admins/tom@example.com'), { name: ' ' }));
+		await assertFails(updateDoc(doc(tom(), 'admins/tom@example.com'), { name: 'x'.repeat(201) }));
+		await assertFails(updateDoc(doc(tom(), 'admins/tom@example.com'), { name: 'Tom B', role: 'super-admin' }));
+		await assertFails(updateDoc(doc(tom(), 'admins/tom@example.com'), { name: 'Tom B', teamId: 'melbourne' }));
+		await assertFails(updateDoc(doc(tom(), 'admins/priya@example.com'), { name: 'Not Priya' }));
+	});
+
 	test('super admins create and rename teams; nobody else does', async () => {
 		const team = { name: 'GDG Perth', slug: 'gdg-perth', walkInTicketPrefix: 'PERWALKIN' };
 		await assertFails(setDoc(doc(priya(), 'teams/perth'), team));

@@ -143,6 +143,11 @@ export function inviteOrganiser(email: string, role: Role, teamId: string | null
 	return setDoc(doc(db, 'admins', email.trim().toLowerCase()), invite(role, teamId));
 }
 
+/** Your own name, from the Profile page (firestore.rules lets you change only that). */
+export function saveMyName(me: Organiser, name: string) {
+	return updateDoc(doc(db, 'admins', me.id), { name: name.trim() });
+}
+
 /** What went wrong with a change to an organiser, for the dialog to say. */
 export type OrganiserChangeError = 'email-taken' | 'last-super-admin' | 'failed';
 

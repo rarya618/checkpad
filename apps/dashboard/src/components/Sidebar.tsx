@@ -5,6 +5,7 @@ import arrow from '../assets/arrow-right.svg';
 import chevron from '../assets/chevron-down.svg';
 import ellipsis from '../assets/ellipsis-vertical.svg';
 import logout from '../assets/logout.svg';
+import users from '../assets/users.svg';
 import switchIcon from '../assets/switch.svg';
 import { signOut, useSession } from '../lib/auth';
 import { eventPhase, groupOf, nowStatus } from '../lib/eventPhase';
@@ -224,11 +225,20 @@ function EventSwitcher({ event }: { event: DashboardEvent }) {
 	);
 }
 
+// Who's signed in, leading to their Profile page
 function AccountSummary() {
 	const session = useSession();
 	const me = useCurrentOrganiser();
+	const transitionTo = useTransitionLinks();
+	const here = useLocation().pathname === '/profile';
 	return (
-		<div className="flex min-w-0 flex-1 items-center gap-3">
+		<Link
+			to="/profile"
+			onClick={transitionTo('/profile')}
+			title="Your profile"
+			className="-m-1.5 flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-light-blue/50 aria-[current=page]:bg-light-blue"
+			aria-current={here ? 'page' : undefined}
+		>
 			{me && (
 				<span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-sm">
 					{initialsOf(me)}
@@ -238,11 +248,11 @@ function AccountSummary() {
 				<p className="truncate font-display text-base leading-tight">{me?.name ?? session?.email}</p>
 				<p className="text-xs leading-normal text-med-blue">{me ? roleLabel(me.role) : ''}</p>
 			</div>
-		</div>
+		</Link>
 	);
 }
 
-// Figma "Events – account menu": who is signed in, then Switch account and Sign out.
+// Figma "Events – account menu": who is signed in, then Profile, Switch account and Sign out.
 function AccountMenu() {
 	const session = useSession();
 	const me = useCurrentOrganiser();
@@ -262,7 +272,8 @@ function AccountMenu() {
 				</div>
 			}
 			items={[
-				{ label: 'Switch account', icon: switchIcon, onSelect: signOut },
+				{ label: 'Profile', icon: users, to: '/profile' },
+				{ label: 'Switch account', icon: switchIcon, onSelect: signOut, separated: true },
 				{ label: 'Sign out', icon: logout, onSelect: signOut },
 			]}
 		>
