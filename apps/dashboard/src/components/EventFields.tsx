@@ -1,11 +1,12 @@
 import { countries } from '@checkpad/shared/countries';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { endsNextDay, formTimesError, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
+import { endsNextDay, formTimesError, isMultiDay, nextDay, shiftedEndDate, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
 import { DateTrigger, RangeCalendar } from './DatePicker';
 import { SelectField, TextField } from './Field';
+import { SwitchRow } from './Switch';
 
 type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
 
@@ -20,13 +21,16 @@ function scrollParent(el: HTMLElement) {
 	return document.scrollingElement ?? document.documentElement;
 }
 
-// When it starts and ends, a date and a time each, then the time zone: shared by New event
-// ("When") and Event settings ("Details"). The dates open one calendar that picks the start
-// day, then the end day (DatePicker); one that ends on its start date before its start time
-// runs past midnight, and the end date says so.
+// When it starts and ends, then the time zone: shared by New event ("When") and Event settings
+// ("Details"). An event is a single day, one date and two times, unless "Multi-day event" is
+// on, which gives the start and the end a date each; those open one calendar that picks the
+// start day, then the end day (DatePicker). One that ends at or before its start time on the
+// same date runs past midnight, and the end says so.
 export function DateTimeFields({ form, update }: { form: EventForm; update: Update }) {
-	const nextDay = endsNextDay(form);
-	const [picking, setPicking] = useState<'start' | 'end' | null>(null);
+	const [multiDay, setMultiDay] = useState(() => isMultiDay(form));
+	// A single day keeps no end date of its own: the times alone say whether it runs past midnight
+	const pastMidnight = multiDay ? endsNextDay(form) : Boolean(form.start && form.end) && form.end <= form.start;
+	const [picking, setPicking] = useState<'single' | 'start' | 'end' | null>(null);
 	// The field that opened the calendar, which it stays under while it moves on from the start
 	// to the end, so it doesn't jump a row mid-pick
 	const [anchor, setAnchor] = useState<'start' | 'end'>('start');
@@ -38,7 +42,7 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 	const endButton = useRef<HTMLButtonElement>(null);
 	const endDate = form.endDate || form.date;
 
-	const open = (mode: 'start' | 'end', from: 'start' | 'end') => {
+	const open = (mode: 'single' | 'start' | 'end', from: 'start' | 'end') => {
 		if (picking && anchor === from) return setPicking(null);
 		setAnchor(from);
 		setPlace(null);
@@ -86,8 +90,26 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 		return () => document.removeEventListener('pointerdown', onDown);
 	}, [picking]);
 
+	// A single day's end date follows its start, whichever of its fields changes
+	const updateSingle = (key: 'date' | 'start' | 'end', value: string) => {
+		update(key, value);
+		const date = key === 'date' ? value : form.date;
+		if (form.endDate !== date) update('endDate', date);
+	};
+	const toggleMultiDay = (on: boolean) => {
+		setPicking(null);
+		setMultiDay(on);
+		// Two days to start with; back to one, the end falls on the start date again
+		if (!form.date) return;
+		if (!on) update('endDate', form.date);
+		else if (!isMultiDay(form)) update('endDate', nextDay(form.date));
+	};
+
 	const pick = (date: string) => {
-		if (picking === 'start') {
+		if (picking === 'single') {
+			updateSingle('date', date);
+			close();
+		} else if (picking === 'start') {
 			update('date', date);
 			// The end date moves with it, keeping an event over several days the same length;
 			// then the calendar asks for the end
@@ -101,23 +123,40 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 
 	return (
 		<>
-			{/* Start on one row and end on the next, each a date and a short time box. The
-			    calendar opens under the date field that was clicked. */}
+			{/* A single day: the date, then its two times side by side. Over several days: start
+			    on one row and end on the next, each a date and a short time box. The calendar
+			    opens against the date field that was clicked. */}
 			<div ref={area} className="relative">
-				<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
-					<DateTrigger ref={startButton} label="Start date" value={form.date} open={picking !== null && anchor === 'start'} onOpen={() => open('start', 'start')} />
-					<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
-					<DateTrigger
-						ref={endButton}
-						label="End date"
-						value={endDate}
-						open={picking !== null && anchor === 'end'}
-						onOpen={() => open(form.date ? 'end' : 'start', 'end')}
-						hint={nextDay ? 'Ends the next day, after midnight' : undefined}
-						error={formTimesError(form)}
-					/>
-					<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
-				</div>
+				{multiDay ? (
+					<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
+						<DateTrigger ref={startButton} label="Start date" value={form.date} open={picking !== null && anchor === 'start'} onOpen={() => open('start', 'start')} />
+						<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
+						<DateTrigger
+							ref={endButton}
+							label="End date"
+							value={endDate}
+							open={picking !== null && anchor === 'end'}
+							onOpen={() => open(form.date ? 'end' : 'start', 'end')}
+							hint={pastMidnight ? 'Ends the next day, after midnight' : undefined}
+							error={formTimesError(form)}
+						/>
+						<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
+					</div>
+				) : (
+					<div className="grid grid-cols-2 gap-3">
+						<DateTrigger ref={startButton} label="Date" value={form.date} open={picking !== null} onOpen={() => open('single', 'start')} className="col-span-2" />
+						<TextField label="Starts" type="time" required value={form.start} onChange={(e) => updateSingle('start', e.target.value)} className="min-w-0" />
+						<TextField
+							label="Ends"
+							type="time"
+							required
+							value={form.end}
+							onChange={(e) => updateSingle('end', e.target.value)}
+							hint={pastMidnight ? 'The next day, after midnight' : undefined}
+							className="min-w-0"
+						/>
+					</div>
+				)}
 				{/* Mounted once its place is known, already visible, so focus can move into it */}
 				{picking && place && (
 					// Only as wide as the calendar, so the fields beside it stay clickable. The scroll
@@ -135,10 +174,11 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 							place.bottom === undefined ? 'scroll-mb-28 md:scroll-mb-6' : 'scroll-mb-44 md:scroll-mb-20'
 						}`}
 					>
-						<RangeCalendar mode={picking} start={form.date} end={endDate} onPick={pick} onClose={close} />
+						<RangeCalendar mode={picking} start={form.date} end={multiDay ? endDate : form.date} onPick={pick} onClose={close} />
 					</div>
 				)}
 			</div>
+			<SwitchRow label="Multi-day event" note="It starts and ends on different dates" checked={multiDay} onChange={toggleMultiDay} />
 			<SelectField label="Time zone" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)}>
 				{countries.map((c) => (
 					<optgroup key={c.code} label={c.name}>

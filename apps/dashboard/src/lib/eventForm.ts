@@ -197,6 +197,18 @@ export function shiftedEndDate(endDate: string, from: string, to: string) {
 	return new Date(Date.parse(endDate) + days * 86_400_000).toISOString().slice(0, 10);
 }
 
+/** Whether the event runs over several days. One that only runs past midnight (it ends the
+ *  next day, at or before its start time) is still a single day. */
+export function isMultiDay(form: Pick<EventForm, 'date' | 'endDate' | 'start' | 'end'>) {
+	if (!isFullDate(form.date) || !isFullDate(form.endDate) || form.endDate <= form.date) return false;
+	return !(form.endDate === nextDay(form.date) && form.end <= form.start);
+}
+
+/** The day after `date`. */
+export function nextDay(date: string) {
+	return new Date(Date.parse(date) + 86_400_000).toISOString().slice(0, 10);
+}
+
 export function formIsComplete(form: EventForm) {
 	const datesWhole = isFullDate(form.date) && isFullDate(form.endDate || form.date);
 	return Boolean(form.name.trim() && form.slug && datesWhole && form.start && form.end) && !formTimesError(form);

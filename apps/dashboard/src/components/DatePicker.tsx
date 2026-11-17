@@ -3,8 +3,9 @@ import calendar from '../assets/calendar.svg';
 import chevron from '../assets/chevron-small.svg';
 import { Field } from './Field';
 
-// The event form's dates: two fields that read as words ("Sat 11 May 2030") and one calendar
-// that picks a range, start day then end day. Nothing is typed, so there's no half-typed date.
+// The event form's dates: fields that read as words ("Sat 11 May 2030") and one calendar that
+// picks a single day, or a range, start day then end day, for an event over several days.
+// Nothing is typed, so there's no half-typed date.
 // Dates are wall-clock "YYYY-MM-DD" strings, done in UTC so no time zone shifts a day.
 
 const DAY = 86_400_000;
@@ -41,6 +42,7 @@ export function DateTrigger({
 	onOpen,
 	hint,
 	error,
+	className = '',
 	ref,
 }: {
 	label: string;
@@ -49,10 +51,11 @@ export function DateTrigger({
 	onOpen: () => void;
 	hint?: string;
 	error?: string | null;
+	className?: string;
 	ref?: Ref<HTMLButtonElement>;
 }) {
 	return (
-		<Field label={label} hint={hint} error={error} className="min-w-0">
+		<Field label={label} hint={hint} error={error} className={`min-w-0 ${className}`}>
 			{(control) => (
 				<button
 					ref={ref}
@@ -73,9 +76,11 @@ export function DateTrigger({
 	);
 }
 
+const prompts = { single: 'date', start: 'start date', end: 'end date' };
+
 interface CalendarProps {
-	/** Which end is being picked: the start, then the end. */
-	mode: 'start' | 'end';
+	/** What's being picked: the event's one day, or a range's start and then its end. */
+	mode: 'single' | 'start' | 'end';
 	start: string;
 	end: string;
 	onPick: (date: string) => void;
@@ -148,7 +153,7 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 	return (
 		<div
 			role="dialog"
-			aria-label={mode === 'start' ? 'Choose the start date' : 'Choose the end date'}
+			aria-label={`Choose the ${prompts[mode]}`}
 			// Escape closes from anywhere in it, the month buttons included
 			onKeyDown={(e) => {
 				if (e.key !== 'Escape') return;
@@ -238,7 +243,7 @@ export function RangeCalendar({ mode, start, end, onPick, onClose }: CalendarPro
 			</table>
 
 			<div className="flex items-center justify-between gap-3 border-t border-light-blue pt-3">
-				<p className="text-sm leading-normal text-med-blue">{mode === 'start' ? 'Pick the start date' : 'Pick the end date'}</p>
+				<p className="text-sm leading-normal text-med-blue">Pick the {prompts[mode]}</p>
 				<button type="button" onClick={() => go(now)} className="shrink-0 rounded-md px-2 py-1 text-sm leading-normal font-bold text-dark-blue hover:bg-light-blue/60">
 					Today
 				</button>
