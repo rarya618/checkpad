@@ -82,7 +82,7 @@ export default function NewEventPage() {
 				type="submit"
 				disabled={!canCreate}
 				aria-busy={saving}
-				data-create
+				data-dims
 				style={{ viewTransitionName: 'primary-action' }}
 				className={`relative ${buttonClass('primary')} disabled:opacity-50 ${saving ? 'pointer-events-none' : ''}`}
 			>

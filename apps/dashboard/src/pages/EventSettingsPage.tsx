@@ -49,6 +49,14 @@ function EventSettingsPage({ slug }: { slug: string }) {
 
 	const changed = changedSettings(saved, form);
 	const dirty = changed.length > 0;
+	// "Save changes" says "Saved" for a moment after a save, unless something changes again first
+	const [justSaved, setJustSaved] = useState(false);
+	useEffect(() => {
+		if (!justSaved) return;
+		const timer = setTimeout(() => setJustSaved(false), 1400);
+		return () => clearTimeout(timer);
+	}, [justSaved]);
+	const confirming = justSaved && !dirty;
 	const newSlug = form.slug.replace(/-+$/, '');
 	const slugTaken = newSlug !== '' && isSlugTaken(newSlug, slug);
 	const valid = formIsComplete(form) && !slugTaken;
@@ -81,6 +89,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 		// Saving trims text, so take the saved values back or the form would still look changed
 		setForm(eventToForm({ ...event, ...input }));
 		showToast('Settings saved');
+		setJustSaved(true);
 	}
 
 	function saveAndLeave() {
@@ -119,7 +128,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 					titleAddon={
 						dirty && (
 							// Figma "Event settings – unsaved changes": the small pill size on phones, 75% from md up
-							<span className="flex shrink-0 items-center gap-1.5 rounded-full bg-light-blue py-1 pr-3 pl-2.5 text-sm leading-normal font-bold tracking-normal md:py-1 md:pr-2.5 md:pl-2.5 md:text-xs">
+							<span className="flex shrink-0 animate-[fade-in_150ms_ease-out] items-center gap-1.5 rounded-full bg-light-blue py-1 pr-3 pl-2.5 text-sm leading-normal font-bold tracking-normal md:py-1 md:pr-2.5 md:pl-2.5 md:text-xs">
 								<span aria-hidden="true" className="size-1.5 rounded-full bg-med-blue" />
 								Unsaved changes
 							</span>
@@ -127,11 +136,22 @@ function EventSettingsPage({ slug }: { slug: string }) {
 					}
 					actions={
 						<div className="flex shrink-0 items-center gap-4">
-							<button type="button" disabled={!dirty} onClick={() => setForm(saved)} className={`${buttonClass('secondary')} disabled:opacity-50`}>
+							{/* Both brighten and dim as there are changes to save or not (index.css) */}
+							<button type="button" data-dims disabled={!dirty} onClick={() => setForm(saved)} className={`${buttonClass('secondary')} disabled:opacity-50`}>
 								Discard
 							</button>
-							<button type="submit" disabled={!dirty || !valid} className={`${buttonClass('primary')} disabled:opacity-50`}>
-								Save changes
+							{/* After a save it stays solid for a moment while a tick and "Saved" cover the
+							    label, in place so it keeps its size; then it dims with nothing left to save */}
+							<button type="submit" data-dims disabled={!dirty || !valid} className={`relative ${buttonClass('primary')} ${confirming ? '' : 'disabled:opacity-50'}`}>
+								<span className={`transition-opacity duration-150 ${confirming ? 'opacity-0' : ''}`}>Save changes</span>
+								{confirming && (
+									<span aria-hidden="true" className="absolute inset-0 flex animate-[fade-in_150ms_ease-out] items-center justify-center gap-1.5">
+										<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+											<path data-tick d="M3 8.5l3.2 3.2L13 5" pathLength={1} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+										</svg>
+										Saved
+									</span>
+								)}
 							</button>
 						</div>
 					}

@@ -244,10 +244,24 @@ tr[data-arrived] > td:last-child {
   }
 }
 
-/* New event's Create event button brightens, over 150ms, as the form becomes complete */
-[data-create] {
+/* The event forms' buttons (Create event; Save changes and Discard) brighten and dim over
+   150ms as they become available or not, and the tick in "Saved" draws itself. */
+[data-dims] {
   transition-property: background-color, opacity;
   transition-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-tick] {
+    stroke-dasharray: 1;
+    animation: tick-draw 260ms cubic-bezier(0.16, 1, 0.3, 1) 80ms backwards;
+  }
+}
+
+@keyframes tick-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
