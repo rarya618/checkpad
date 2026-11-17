@@ -2,7 +2,6 @@ import { buttonClass } from '@checkpad/shared/button';
 import { formatSchedule } from '@checkpad/shared/format';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import arrow from '../assets/arrow-right.svg';
 import tick from '../assets/check-blue.svg';
 import chevron from '../assets/chevron-down.svg';
 import copyLink from '../assets/copy-link.svg';
@@ -31,8 +30,7 @@ const ShareDialog = lazy(() => import('./ShareDialog'));
 // Top of an event's pages, one compact block: the event's name with Share, Edit and the ⋮ menu;
 // under it one quiet line with when it is, whether self check-in is open (which opens and closes
 // it, for those who run the event), and the attendees' link with a copy icon. A hairline closes it off from the
-// page's own header below. The back arrow hangs in the margin (wider on an event's pages,
-// DashboardLayout) so the name lines up with everything under it; on phones it leads the name.
+// page's own header below. A back arrow at the heading's weight leads the name.
 export default function EventOverview({ event, checkInSwitch = true }: { event: DashboardEvent; /** Off on Settings, which has its own. */ checkInSwitch?: boolean }) {
 	const start = new Date(event.startsAt);
 	const end = new Date(event.endsAt);
@@ -54,26 +52,27 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 			<div className="flex flex-wrap items-start gap-x-6 gap-y-4">
 				{/* Each row has one job: the name, then one quiet line of facts. The buttons follow on
 				    phones, after the details rather than between them */}
-				<div className="flex min-w-0 flex-1 basis-80 flex-col gap-1.5">
-					<div className="relative flex min-w-0 items-center gap-1">
-						{/* Back to all events, one click: in the margin beside the name from md, before it on phones */}
-						<Link
-							to="/events"
-							onClick={toEvents}
-							aria-label="All events"
-							title="All events"
-							className="-ml-2 flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-light-blue/60 md:absolute md:top-1/2 md:right-full md:mr-1 md:ml-0 md:-translate-y-1/2"
-						>
-							<img src={arrow} alt="" width={20} height={20} className="rotate-180" />
-						</Link>
-						{/* The name arrives from the event's row on Events, and returns to it (pageTransition) */}
-						<h1 style={{ viewTransitionName: 'event-title' }} className="min-w-0 font-display text-2xl md:text-3xl">
-							{event.name}
-						</h1>
-					</div>
+				{/* The back arrow leads the name like part of the heading, at its weight, and the line
+				    under the name starts where the name does */}
+				<div className="grid min-w-0 flex-1 basis-80 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5">
+					<Link
+						to="/events"
+						onClick={toEvents}
+						aria-label="All events"
+						title="All events"
+						className="-m-1 flex items-center justify-center rounded-md p-1 text-dark-blue transition-colors hover:bg-light-blue/60"
+					>
+						<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.75} strokeLinecap="round" strokeLinejoin="round" className="size-6 md:size-7">
+							<path d="M19 12H5M11 18l-6-6 6-6" />
+						</svg>
+					</Link>
+					{/* The name arrives from the event's row on Events, and returns to it (pageTransition) */}
+					<h1 style={{ viewTransitionName: 'event-title' }} className="min-w-0 font-display text-2xl md:text-3xl">
+						{event.name}
+					</h1>
 					{/* When it is · whether self check-in is open · the attendees' link, in one voice. Phones
 					    give each its own line, so the separators only show from md */}
-					<div className="flex min-w-0 flex-col items-start gap-1 text-sm leading-normal text-med-blue md:flex-row md:flex-wrap md:items-center md:gap-x-2">
+					<div className="col-start-2 flex min-w-0 flex-col items-start gap-1 text-sm leading-normal text-med-blue md:flex-row md:flex-wrap md:items-center md:gap-x-2">
 						<span>{formatSchedule(start, end, event.timeZone)}</span>
 						<span aria-hidden="true" className="hidden md:inline">
 							·
