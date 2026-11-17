@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router';
 
 // Moving between two pages as one view transition (index.css says what moves), for links
 // where the pages share something worth following: Events and New event share their primary
-// button, and an event's name travels between its row on Events and its page's title. Also
-// for the move to an event once it's created. The router's own `viewTransition` option
+// button, an event's name travels between its row on Events and its page's title, and an
+// event's own pages (Attendees, Check in, Analytics, Settings) keep its details in place while
+// the page under them changes. Also for the move to an event once it's created. The router's own `viewTransition` option
 // doesn't reach it from routes declared with <Routes>, so the link starts the transition
 // itself and the page it goes to says when it has rendered. The old page waits a moment for
 // that; a page that takes longer fades in by itself when it arrives.
@@ -75,15 +76,20 @@ function inView(el: HTMLElement) {
 	return box.height > 0 && box.bottom > 0 && box.top < innerHeight && el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
 }
 
-/** A link's onClick: goes to `to` inside a view transition. `shared` is worked out at the click. */
-export function useTransitionLink(to: string, shared?: (link: HTMLAnchorElement) => Shared | undefined) {
+/** For a list of links: makes each one's onClick, which goes to `to` inside a view transition. `shared` is worked out at the click. */
+export function useTransitionLinks() {
 	const go = useTransitionNavigate();
-	return (e: MouseEvent<HTMLAnchorElement>) => {
+	return (to: string, shared?: (link: HTMLAnchorElement) => Shared | undefined) => (e: MouseEvent<HTMLAnchorElement>) => {
 		// A new tab or window, or a browser without view transitions: the link works as usual
 		if (!document.startViewTransition || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 		e.preventDefault();
 		go(to, shared?.(e.currentTarget));
 	};
+}
+
+/** A link's onClick: goes to `to` inside a view transition. */
+export function useTransitionLink(to: string, shared?: (link: HTMLAnchorElement) => Shared | undefined) {
+	return useTransitionLinks()(to, shared);
 }
 
 /** Opening an event from its row or card: the name, in the heading around the link, becomes the page's title. */

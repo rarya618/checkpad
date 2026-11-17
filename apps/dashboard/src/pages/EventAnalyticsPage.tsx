@@ -37,6 +37,7 @@ import { useEvent, useEvents } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
 import { rosterStats, useRoster, useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
+import { usePageArrival } from '../lib/pageTransition';
 
 const series: Series[] = [
 	{ name: 'Pre-registered', className: 'bg-dark-blue' },
@@ -59,6 +60,8 @@ const registeredSeries: Series[] = [{ name: 'Registered', className: 'bg-dark-bl
 
 // Figma "Event analytics" at 75% scale.
 export default function EventAnalyticsPage() {
+	// The event's other pages arrive here in a view transition
+	usePageArrival();
 	const { slug = '' } = useParams();
 	// EventLayout has already redirected unknown slugs.
 	const event = useEvent(slug)!;

@@ -12,6 +12,7 @@ import { checkIn, findAttendee, fullName, initials, looksLikeEmail, undoCheckIn 
 import { useEvent, type DashboardEvent } from '../lib/events';
 import { nextWalkInTicket, rosterStats, useRoster, type RosterAttendee } from '../lib/roster';
 import { useIsDesktop } from '../lib/useMediaQuery';
+import { usePageArrival } from '../lib/pageTransition';
 
 type Result = { kind: 'found'; attendee: RosterAttendee } | { kind: 'not-found'; query: string } | null;
 
@@ -19,6 +20,8 @@ type Result = { kind: 'found'; attendee: RosterAttendee } | { kind: 'not-found';
 // "Staff check in (mobile)", at the dashboard's usual sizes rather than Figma's full size, under
 // the same header as the other event pages. Staff look someone up by email or ticket number.
 export default function CheckInPage() {
+	// The event's other pages arrive here in a view transition
+	usePageArrival();
 	const { slug = '' } = useParams();
 	// EventLayout has already redirected unknown slugs.
 	const event = useEvent(slug)!;

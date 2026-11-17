@@ -7,7 +7,7 @@ import moreIcon from '../assets/more.svg';
 import { signOut, useSession } from '../lib/auth';
 import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import type { BackLink, SidebarItem } from './Sidebar';
-import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
+import { eventNameBack, useTransitionLink, useTransitionLinks } from '../lib/pageTransition';
 
 export interface MobileNavConfig {
 	/** Heading at the top of the More sheet, e.g. the event name. */
@@ -28,6 +28,7 @@ export interface MobileNavConfig {
 // the rest of Figma's menu ("– menu") as a sheet from the bottom.
 export default function MobileNav({ title, items, extras, back }: MobileNavConfig) {
 	const goBack = useTransitionLink(back?.to ?? '/events', eventNameBack);
+	const transitionTo = useTransitionLinks();
 	const [open, setOpen] = useState(false);
 	const session = useSession();
 	const me = useCurrentOrganiser();
@@ -91,7 +92,7 @@ export default function MobileNav({ title, items, extras, back }: MobileNavConfi
 				className="fixed inset-x-0 bottom-0 z-20 flex h-20 bg-off-white px-1.5 pb-4"
 			>
 				{items.map((i) => (
-					<NavLink key={i.to} to={i.to} end={i.end} className={tab}>
+					<NavLink key={i.to} to={i.to} end={i.end} onClick={i.transition ? transitionTo(i.to) : undefined} className={tab}>
 						{({ isActive }) => <Tab icon={i.icon} label={i.label} active={isActive} />}
 					</NavLink>
 				))}

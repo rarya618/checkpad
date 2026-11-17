@@ -7,7 +7,7 @@ import switchIcon from '../assets/switch.svg';
 import { signOut, useSession } from '../lib/auth';
 import { roleLabel, useCurrentOrganiser } from '../lib/organisers';
 import Menu from './Menu';
-import { eventNameBack, useTransitionLink } from '../lib/pageTransition';
+import { eventNameBack, useTransitionLink, useTransitionLinks } from '../lib/pageTransition';
 
 export interface SidebarItem {
 	to: string;
@@ -16,6 +16,8 @@ export interface SidebarItem {
 	end?: boolean;
 	/** Shown in the phones' tab bar; the sidebar is text only. */
 	icon?: string;
+	/** Opens inside a view transition (pageTransition): only for a page that calls usePageArrival. */
+	transition?: boolean;
 }
 
 /** A way out of a section, e.g. from an event back to all events. */
@@ -40,6 +42,7 @@ export interface SidebarProps {
 export default function Sidebar({ items, back, screens }: SidebarProps) {
 	// Leaving an event for Events: its title returns to its row (pageTransition)
 	const goBack = useTransitionLink(back?.to ?? '/events', eventNameBack);
+	const transitionTo = useTransitionLinks();
 	return (
 		<aside className="flex h-full w-[270px] shrink-0 flex-col justify-between rounded-xl border border-line bg-light-blue px-4 pt-7.5 pb-4">
 			<div className="flex w-full flex-col gap-5">
@@ -63,6 +66,7 @@ export default function Sidebar({ items, back, screens }: SidebarProps) {
 								<NavLink
 									to={item.to}
 									end={item.end}
+									onClick={item.transition ? transitionTo(item.to) : undefined}
 									className={({ isActive }) =>
 										`block rounded-md px-5 py-1.5 text-base ${
 											isActive ? 'bg-dark-blue font-display tracking-[0.01em] text-off-white' : 'tracking-[-0.01em] hover:bg-white/50'

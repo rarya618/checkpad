@@ -27,7 +27,7 @@ import { useSession } from '../lib/auth';
 import { useMe } from '../lib/organisers';
 import { nextWalkInTicket } from '../lib/roster';
 import { useTeams } from '../lib/teams';
-import { useLeaveGuard } from '../lib/pageTransition';
+import { useLeaveGuard, usePageArrival } from '../lib/pageTransition';
 import { showToast } from '../lib/toast';
 
 // Keyed by slug so moving between events (or saving a new link) starts a fresh form.
@@ -69,6 +69,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 		({ currentLocation, nextLocation }) => dirtyRef.current && currentLocation.pathname !== nextLocation.pathname,
 	);
 	useLeaveGuard(dirty);
+	usePageArrival();
 	useEffect(() => {
 		if (!dirty) return;
 		const warn = (e: BeforeUnloadEvent) => e.preventDefault();
@@ -161,6 +162,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 				<div className="grid grid-cols-1 gap-5 px-6 pb-7 lg:grid-cols-2">
 					<div className="flex flex-col gap-4">
 						<FormCard
+							enter={0}
 							level={3}
 							title="Check-in"
 							badge={<StatusBadge open={event.selfCheckInOpen} />}
@@ -173,10 +175,10 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								onChange={(on) => update('selfCheckInOpen', on)}
 							/>
 						</FormCard>
-						<FormCard level={3} title="Teams" description="Members of its teams see and run this event. Super admins see every event.">
+						<FormCard level={3} enter={1} title="Teams" description="Members of its teams see and run this event. Super admins see every event.">
 							<TeamFields form={form} onChange={(teams) => setForm((f) => ({ ...f, ...teams }))} teams={teams} me={me} event={event} />
 						</FormCard>
-						<FormCard level={3} title="Walk-ins" description="Staff can always add walk-ins from the dashboard.">
+						<FormCard level={3} enter={2} title="Walk-ins" description="Staff can always add walk-ins from the dashboard.">
 							<TextField
 								label="Walk-in ticket title"
 								value={form.walkInTicketTitle}
@@ -192,7 +194,7 @@ function EventSettingsPage({ slug }: { slug: string }) {
 							/>
 						</FormCard>
 					</div>
-					<FormCard level={3} title="Details">
+					<FormCard level={3} enter={1} title="Details">
 						<TextField label="Name" required value={form.name} onChange={(e) => update('name', e.target.value)} />
 						<LinkField
 							label="Link"

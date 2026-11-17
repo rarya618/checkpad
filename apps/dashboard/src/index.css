@@ -237,6 +237,21 @@ tr[data-arrived] > td:last-child {
     animation: fade-in 160ms ease-out 90ms both;
   }
 
+  /* An event's details (EventOverview) stay put between its pages; arriving from or leaving
+     for Events, they keep time with the page. */
+  ::view-transition-old(event-overview),
+  ::view-transition-new(event-overview) {
+    animation-duration: 180ms;
+  }
+
+  ::view-transition-old(event-overview):only-child {
+    animation: fade-out 90ms ease-out both;
+  }
+
+  ::view-transition-new(event-overview):only-child {
+    animation: fade-in 160ms ease-out 90ms both;
+  }
+
   ::view-transition-group(primary-action) {
     animation-duration: 280ms;
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
