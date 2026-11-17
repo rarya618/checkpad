@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
+import { lazy, Suspense, useState, type ComponentType, type ReactNode } from 'react';
 import calendar from './assets/calendar.svg';
 import chart from './assets/chart.svg';
 import checkCircle from './assets/check-circle.svg';
@@ -26,14 +26,32 @@ import { CheckEmailPage, NoAccessPage, SignInLinkPage, SignInPage } from './page
  * check in, signing in) don't wait for the rest. Shows the spinner while its file loads.
  */
 function lazyPage(load: () => Promise<{ default: ComponentType }>) {
-	const Page = lazy(load);
-	return function LazyPage() {
+	// One fetch, shared by preload and lazy. Once it's in, the page renders straight away:
+	// lazy() would still wait a tick for it, long enough for a page transition to show the spinner.
+	let fetching: Promise<{ default: ComponentType }> | null = null;
+	let loaded: ComponentType | null = null;
+	const fetchPage = () =>
+		(fetching ??= load().then(
+			(m) => ((loaded = m.default), m),
+			(e) => {
+				fetching = null;
+				throw e;
+			},
+		));
+	const Page = lazy(fetchPage);
+	function LazyPage() {
+		// Settled when the page mounts, so it never swaps from one to the other (and remounts)
+		const [Loaded] = useState(() => loaded);
+		if (Loaded) return <Loaded />;
 		return (
 			<Suspense fallback={<Loading />}>
 				<Page />
 			</Suspense>
 		);
-	};
+	}
+	/** Fetches the page's file ahead of a click: a menu item pointed at, focused or pressed. */
+	LazyPage.preload = () => void fetchPage().catch(() => {});
+	return LazyPage;
 }
 
 const AnalyticsPage = lazyPage(() => import('./pages/AnalyticsPage'));
@@ -46,12 +64,17 @@ const PrizeDrawPage = lazyPage(() => import('./pages/PrizeDrawPage'));
 const VenueDisplayPage = lazyPage(() => import('./pages/VenueDisplayPage'));
 const WaitlistPage = lazyPage(() => import('./pages/WaitlistPage'));
 
+// Moving between the main pages is a view transition too: the page fades out and the next in
+// while the sidebar stays put (index.css)
 const mainItems: SidebarItem[] = [
-	{ to: '/events', label: 'Events', icon: calendar },
-	{ to: '/organisers', label: 'Organisers', icon: users },
-	{ to: '/analytics', label: 'Analytics', icon: chart },
+	{ to: '/events', label: 'Events', icon: calendar, transition: true },
+	{ to: '/organisers', label: 'Organisers', icon: users, transition: true, preload: OrganisersPage.preload },
+	{ to: '/analytics', label: 'Analytics', icon: chart, transition: true, preload: AnalyticsPage.preload },
 ];
-const adminItems: SidebarItem[] = [...mainItems, { to: '/waitlist', label: 'Waitlist', icon: list }];
+const adminItems: SidebarItem[] = [
+	...mainItems,
+	{ to: '/waitlist', label: 'Waitlist', icon: list, transition: true, preload: WaitlistPage.preload },
+];
 
 // The page inside the layout is its own layer in a view transition, so one page can fade out
 // and the next in while the sidebar and tab bar stay put (index.css)
@@ -113,8 +136,8 @@ function EventLayout() {
 	// under them changes (index.css)
 	const attendees = { to: base, label: 'Attendees', end: true, icon: users, transition: true };
 	const checkIn = { to: `${base}/check-in`, label: 'Check in', icon: checkCircle, transition: true };
-	const analytics = { to: `${base}/analytics`, label: 'Analytics', icon: chart, transition: true };
-	const settings = { to: `${base}/settings`, label: 'Settings', icon: sliders, transition: true };
+	const analytics = { to: `${base}/analytics`, label: 'Analytics', icon: chart, transition: true, preload: EventAnalyticsPage.preload };
+	const settings = { to: `${base}/settings`, label: 'Settings', icon: sliders, transition: true, preload: EventSettingsRoute.preload };
 	const items = [attendees, checkIn, analytics, ...(canEdit ? [settings] : [])];
 	// The projector screens, which open in a new tab
 	const screens = [

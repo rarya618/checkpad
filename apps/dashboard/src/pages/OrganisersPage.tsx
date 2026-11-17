@@ -19,12 +19,14 @@ import { initialsOf, organiserTeam, roleLabel, roles, useMe, useOrganisers, type
 import { useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
 import { useMediaQuery } from '../lib/useMediaQuery';
+import { usePageArrival } from '../lib/pageTransition';
 
 // Figma "Organisers" (People) and "Organisers – teams", at 75% scale. The tab lives in
 // the URL (?tab=teams) so it survives a reload. On phones each person's role and team go
 // under their name instead of in columns.
 export default function OrganisersPage() {
 	const [params, setParams] = useSearchParams();
+	usePageArrival();
 	const tab = params.get('tab') === 'teams' ? 'teams' : 'people';
 	const [dialog, setDialog] = useState<
 		| { kind: 'add' }

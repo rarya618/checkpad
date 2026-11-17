@@ -18,6 +18,8 @@ export interface SidebarItem {
 	icon?: string;
 	/** Opens inside a view transition (pageTransition): only for a page that calls usePageArrival. */
 	transition?: boolean;
+	/** Fetches a lazily loaded page's file when the item is pointed at, focused or pressed. */
+	preload?: () => void;
 }
 
 /** A way out of a section, e.g. from an event back to all events. */
@@ -67,6 +69,8 @@ export default function Sidebar({ items, back, screens }: SidebarProps) {
 									to={item.to}
 									end={item.end}
 									onClick={item.transition ? transitionTo(item.to) : undefined}
+									onPointerEnter={item.preload}
+									onFocus={item.preload}
 									className={({ isActive }) =>
 										`block rounded-md px-5 py-1.5 text-base ${
 											isActive ? 'bg-dark-blue font-display tracking-[0.01em] text-off-white' : 'tracking-[-0.01em] hover:bg-white/50'

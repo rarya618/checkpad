@@ -39,6 +39,7 @@ import { useMe } from '../lib/organisers';
 import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { useMediaQuery } from '../lib/useMediaQuery';
+import { usePageArrival } from '../lib/pageTransition';
 
 const turnoutSeries: Series[] = [{ name: 'Turnout', className: 'bg-dark-blue' }];
 // Med-blue means walk-ins and nothing else. Every other second series is hollow, like Didn't
@@ -68,6 +69,7 @@ const LIST_LENGTH = 8;
 // Figma "Analytics" (across events) at 75% scale. Phones get the tiles two by two, and a
 // table of just the event (with its date) and turnout.
 export default function AnalyticsPage() {
+	usePageArrival();
 	const events = useEvents();
 	const teams = useTeams() ?? [];
 	const me = useMe();

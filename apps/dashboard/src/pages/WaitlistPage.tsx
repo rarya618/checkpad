@@ -12,10 +12,12 @@ import { useMe, useOrganisers } from '../lib/organisers';
 import { showToast } from '../lib/toast';
 import { useIsDesktop } from '../lib/useMediaQuery';
 import { removeFromWaitlist, useWaitlist, type WaitlistSignup } from '../lib/waitlist';
+import { usePageArrival } from '../lib/pageTransition';
 
 // The marketing site's waitlist (not in Figma), one row per email, newest first. Super admins
 // only: App.tsx sends anyone else to Events, and the rules refuse them (firestore.rules).
 export default function WaitlistPage() {
+	usePageArrival();
 	const [inviting, setInviting] = useState<string | null>(null);
 	return (
 		<>

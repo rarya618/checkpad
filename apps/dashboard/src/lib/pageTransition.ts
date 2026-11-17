@@ -82,6 +82,8 @@ export function useTransitionLinks() {
 	return (to: string, shared?: (link: HTMLAnchorElement) => Shared | undefined) => (e: MouseEvent<HTMLAnchorElement>) => {
 		// A new tab or window, or a browser without view transitions: the link works as usual
 		if (!document.startViewTransition || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+		// The page already open (its menu item clicked again): it doesn't mount again to say it's arrived
+		if (location.pathname === to) return;
 		e.preventDefault();
 		go(to, shared?.(e.currentTarget));
 	};
