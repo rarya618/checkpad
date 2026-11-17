@@ -34,7 +34,20 @@ export function longDate(date: string) {
 	return [format(date, { weekday: 'short' }), format(date, { day: 'numeric' }), format(date, { month: 'long' }), format(date, { year: 'numeric' })].join(' ');
 }
 
-/** A date field that opens the calendar: a filled box like the text fields, with the date in words. */
+/** "Wed 18 Nov", or "Wed 18 Nov 2027" when it isn't this year: for a field too narrow for longDate. */
+export function shortDate(date: string, { weekday = true } = {}) {
+	const parts = [format(date, { day: 'numeric' }), format(date, { month: 'short' })];
+	if (weekday) parts.unshift(format(date, { weekday: 'short' }));
+	if (date.slice(0, 4) !== today().slice(0, 4)) parts.push(format(date, { year: 'numeric' }));
+	return parts.join(' ');
+}
+
+/**
+ * A date field that opens the calendar: a filled box like the text fields, with the date in words.
+ * Over several days it shares a row with a time (6rem), so it shortens to fit: the month to three
+ * letters and this year's date without the year, then without the calendar icon, and on the
+ * smallest phones without the weekday.
+ */
 export function DateTrigger({
 	label,
 	value,
@@ -55,7 +68,7 @@ export function DateTrigger({
 	ref?: Ref<HTMLButtonElement>;
 }) {
 	return (
-		<Field label={label} hint={hint} error={error} className={`min-w-0 ${className}`}>
+		<Field label={label} hint={hint} error={error} className={`@container min-w-0 ${className}`}>
 			{(control) => (
 				<button
 					ref={ref}
@@ -64,12 +77,22 @@ export function DateTrigger({
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					onClick={onOpen}
-					className={`flex w-full items-center justify-between gap-3 rounded-lg bg-off-white px-5 py-3 text-left text-base leading-normal outline-none hover:bg-light-blue/50 focus-visible:outline-[1.5px] focus-visible:-outline-offset-[1.5px] focus-visible:outline-med-blue ${
+					className={`flex w-full items-center justify-between gap-3 rounded-lg bg-off-white px-3 py-3 text-left @[11rem]:px-5 text-base leading-normal outline-none hover:bg-light-blue/50 focus-visible:outline-[1.5px] focus-visible:-outline-offset-[1.5px] focus-visible:outline-med-blue ${
 						open ? 'outline-[1.5px] -outline-offset-[1.5px] outline-med-blue' : ''
 					}`}
 				>
-					<span className={`truncate ${value ? 'text-dark-blue' : 'text-dark-blue/30'}`}>{value ? longDate(value) : 'Choose a date'}</span>
-					<img src={calendar} alt="" width={18} height={18} className="shrink-0" />
+					<span className={`truncate ${value ? 'text-dark-blue' : 'text-dark-blue/30'}`}>
+						{value ? (
+							<>
+								<span className="hidden @[16rem]:inline">{longDate(value)}</span>
+								<span className="hidden @[8rem]:inline @[16rem]:hidden">{shortDate(value)}</span>
+								<span className="@[8rem]:hidden">{shortDate(value, { weekday: false })}</span>
+							</>
+						) : (
+							'Choose a date'
+						)}
+					</span>
+					<img src={calendar} alt="" width={18} height={18} className="hidden shrink-0 @[11rem]:block" />
 				</button>
 			)}
 		</Field>
