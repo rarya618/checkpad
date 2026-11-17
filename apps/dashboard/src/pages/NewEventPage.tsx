@@ -2,6 +2,7 @@ import { buttonClass } from '@checkpad/shared/button';
 import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { today } from '../components/DatePicker';
 import { DateTimeFields, TeamFields } from '../components/EventFields';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
@@ -39,7 +40,8 @@ export default function NewEventPage() {
 	// Your own team; super admins start with the first
 	const [form, setForm] = useState(() => {
 		const team = teams.find((t) => t.id === me.teamId) ?? teams[0];
-		return { ...blank, ownerTeam: team?.id ?? '', timeZone: teamTimeZone(team) };
+		// Dated today to start with, so the date fields are never empty
+		return { ...blank, date: today(), ownerTeam: team?.id ?? '', timeZone: teamTimeZone(team) };
 	});
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.

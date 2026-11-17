@@ -22,7 +22,8 @@ function addMonths(date: string, months: number) {
 /** Monday first, as Australian calendars have it: 0 is Monday, 6 Sunday. */
 const weekday = (date: string) => (new Date(parse(date)).getUTCDay() + 6) % 7;
 const format = (date: string, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-AU', { timeZone: 'UTC', ...options }).format(parse(date));
-const today = () => {
+/** Today on this device's clock. */
+export const today = () => {
 	const now = new Date();
 	return iso(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 };
