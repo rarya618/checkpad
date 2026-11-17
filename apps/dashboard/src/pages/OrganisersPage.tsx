@@ -11,13 +11,13 @@ import ManageTeamDialog from '../components/ManageTeamDialog';
 import Menu from '../components/Menu';
 import { AddOrganiserDialog, EditOrganiserDialog, RemoveOrganiserDialog } from '../components/OrganiserDialogs';
 import PageHeader from '../components/PageHeader';
+import CopyLink from '../components/CopyLink';
 import StatusBadge from '../components/StatusBadge';
 import { WEB_URL } from '../lib/config';
 import { useSession } from '../lib/auth';
 import { useEvents, type DashboardEvent } from '../lib/events';
 import { initialsOf, needsTeam, organiserTeam, roleLabel, roles, useMe, useOrganisers, type Organiser } from '../lib/organisers';
 import { useTeams, type Team } from '../lib/teams';
-import { showToast } from '../lib/toast';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { usePageArrival } from '../lib/pageTransition';
 
@@ -235,32 +235,40 @@ function TeamPanel({ team, organisers, ...actions }: { team: Team; organisers: O
 	const count = `${members.length} member${members.length === 1 ? '' : 's'}`;
 	return (
 		<div className="flex flex-col gap-5">
-			<PanelHeading
-				title={team.name}
-				about={
-					place ? (
-						// The separator stays with the count, so a wrapped line never ends on it
-						<>
-							{place} <span className="whitespace-nowrap">· {count}</span>
-						</>
-					) : (
-						<span className="whitespace-nowrap">{count}</span>
-					)
-				}
-				action={
-					actions.admin && (
-						<button type="button" onClick={() => actions.onManage(team)} className={buttonClass('secondary')}>
-							Manage
-						</button>
-					)
-				}
-			/>
-			<TeamLink team={team} />
+			{/* Like an event's header: the name with Manage, then quiet lines of facts, closed off by a
+			    hairline from the members below */}
+			<div className="flex flex-col gap-1.5 border-b border-line pb-5">
+				<PanelHeading
+					title={team.name}
+					about={
+						place ? (
+							// A narrow panel puts the count on a line of its own, without the separator
+							<>
+								{place}
+								<span aria-hidden="true" className="hidden @sm:inline">
+									{' '}·{' '}
+								</span>
+								<span className="block whitespace-nowrap @sm:inline">{count}</span>
+							</>
+						) : (
+							<span className="whitespace-nowrap">{count}</span>
+						)
+					}
+					action={
+						actions.admin && (
+							<button type="button" onClick={() => actions.onManage(team)} className={buttonClass('secondary')}>
+								Manage
+							</button>
+						)
+					}
+				/>
+				<TeamLink team={team} />
+			</div>
 			<div className="flex flex-col gap-1">
 				<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
 					<h3 className="font-display text-lg">Members</h3>
 					{actions.admin && (
-						<button type="button" onClick={() => actions.onAdd(team.id)} className={buttonClass('secondary', 'sm')}>
+						<button type="button" onClick={() => actions.onAdd(team.id)} className={buttonClass('secondary')}>
 							Add to {team.name}
 						</button>
 					)}
@@ -307,45 +315,42 @@ function teamLinkTarget(team: Team, events: DashboardEvent[]) {
 	);
 }
 
-// The team's permanent link and where it leads today, on a tinted strip: the link and the event
-// side by side when the panel has room, stacked when it doesn't
+// The team's permanent link with a copy icon, and the event it opens today, in one quiet line
+// (two when the panel is narrow). What the link is for rides in its tooltip and description.
 function TeamLink({ team }: { team: Team }) {
 	const target = teamLinkTarget(team, useEvents());
 	const url = `${WEB_URL.replace(/\/$/, '')}/team/${team.slug}`;
+	const about = 'For printed signs: it opens whichever event is open for check-in, or else the next one, so a sign printed once keeps working.';
 	return (
-		<div className="flex flex-col gap-2">
-			<div className="flex flex-col gap-3 rounded-lg bg-off-white px-4 py-3 leading-normal @3xl:flex-row @3xl:items-center @3xl:gap-6">
-				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<p className="text-xs text-med-blue">Team link for printed signs</p>
-					<a href={url} target="_blank" rel="noreferrer" className="truncate text-sm font-semibold text-med-blue underline underline-offset-2 hover:text-dark-blue">
-						{url.replace(/^https?:\/\//, '')}
-					</a>
-				</div>
-				<div className="flex min-w-0 flex-col gap-0.5 @3xl:max-w-1/2">
-					<p className="text-xs text-med-blue">Opens</p>
-					{target ? (
-						<p className="flex min-w-0 flex-wrap items-center gap-x-2 text-sm text-dark-blue">
-							<span className="truncate font-bold">{target.name}</span>
-							<span aria-hidden="true" className="text-med-blue">
-								·
-							</span>
-							<span className="whitespace-nowrap">{formatDate(new Date(target.startsAt), target.timeZone)}</span>
-							<StatusBadge open={target.selfCheckInOpen} />
-						</p>
-					) : (
-						<p className="text-sm text-dark-blue">No upcoming event</p>
-					)}
-				</div>
-				<button
-					type="button"
-					onClick={() => navigator.clipboard.writeText(url).then(() => showToast('Team link copied'))}
-					// A standard button, like the rest of the dashboard's
-					className={`${buttonClass('secondary')} shrink-0 self-start @3xl:self-center`}
-				>
-					Copy link
-				</button>
-			</div>
-			<p className="max-w-lg text-sm leading-normal text-med-blue">It opens whichever event is open for check-in, or else the next one, so a printed sign keeps working.</p>
+		<div className="flex min-w-0 flex-col items-start gap-1 text-sm leading-normal text-med-blue @xl:flex-row @xl:flex-wrap @xl:items-center @xl:gap-x-2">
+			<span className="flex min-w-0 max-w-full items-center gap-2">
+				<span className="shrink-0">Team link</span>
+				<a href={url} target="_blank" rel="noreferrer" title={about} aria-describedby={`team-link-about-${team.id}`} className="truncate underline underline-offset-2 hover:text-dark-blue">
+					{url.replace(/^https?:\/\//, '')}
+				</a>
+				<span id={`team-link-about-${team.id}`} className="sr-only">
+					{about}
+				</span>
+				<CopyLink url={url} label="Copy team link" />
+			</span>
+			{target ? (
+				<span className="flex min-w-0 flex-wrap items-center gap-x-2">
+					<span>opens</span>
+					<span className="font-semibold text-dark-blue">{target.name}</span>
+					<span aria-hidden="true">·</span>
+					<span className="whitespace-nowrap">{formatDate(new Date(target.startsAt), target.timeZone)}</span>
+					{/* The separator stays with the status, and a narrow panel, where the status wraps
+					    to a line of its own, drops it */}
+					<span className="flex items-center gap-2 whitespace-nowrap">
+						<span aria-hidden="true" className="hidden @sm:inline">
+							·
+						</span>
+						<StatusBadge open={target.selfCheckInOpen} />
+					</span>
+				</span>
+			) : (
+				<span>No upcoming event to open</span>
+			)}
 		</div>
 	);
 }

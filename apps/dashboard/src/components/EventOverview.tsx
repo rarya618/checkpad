@@ -1,10 +1,8 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { formatSchedule } from '@checkpad/shared/format';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link } from 'react-router';
-import tick from '../assets/check-blue.svg';
 import chevron from '../assets/chevron-down.svg';
-import copyLink from '../assets/copy-link.svg';
 import download from '../assets/download.svg';
 import ellipsis from '../assets/ellipsis-vertical-dark.svg';
 import gift from '../assets/gift.svg';
@@ -18,6 +16,7 @@ import { eventPhase, nowStatus } from '../lib/eventPhase';
 import { showToast } from '../lib/toast';
 import StatusBadge from './StatusBadge';
 import { useCanEditEvents, useMe } from '../lib/organisers';
+import CopyLink from './CopyLink';
 import DeleteEventDialog from './DeleteEventDialog';
 import ExportDialog from './ExportDialog';
 import Menu from './Menu';
@@ -86,7 +85,7 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 							<a href={url} target="_blank" rel="noreferrer" className="truncate underline underline-offset-2 hover:text-dark-blue">
 								{url.replace(/^https?:\/\//, '')}
 							</a>
-							<CopyLink url={url} />
+							<CopyLink url={url} label="Copy check-in link" />
 						</span>
 					</div>
 				</div>
@@ -149,27 +148,6 @@ export default function EventOverview({ event, checkInSwitch = true }: { event: 
 				{importing && <ImportDialog event={event} done={importing.done} onClose={() => setImporting(null)} onImported={(plan) => setImporting({ done: plan })} />}
 			</Suspense>
 		</section>
-	);
-}
-
-/** Copies the link: a small icon beside it that turns to a tick for a moment. */
-function CopyLink({ url }: { url: string }) {
-	const [copied, setCopied] = useState(false);
-	useEffect(() => {
-		if (!copied) return;
-		const timer = setTimeout(() => setCopied(false), 2000);
-		return () => clearTimeout(timer);
-	}, [copied]);
-	return (
-		<button
-			type="button"
-			aria-label={copied ? 'Copied' : 'Copy check-in link'}
-			title={copied ? 'Copied' : 'Copy link'}
-			onClick={() => navigator.clipboard.writeText(url).then(() => setCopied(true))}
-			className="flex size-7 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-light-blue/60"
-		>
-			<img src={copied ? tick : copyLink} alt="" width={15} height={15} />
-		</button>
 	);
 }
 
