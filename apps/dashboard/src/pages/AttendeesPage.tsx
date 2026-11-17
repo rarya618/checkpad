@@ -14,12 +14,15 @@ import { WalkInDialog } from '../components/WalkIn';
 import type { ImportPlan } from '../lib/attendeeImport';
 import { useEvent, type DashboardEvent } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
+import { usePageArrival } from '../lib/pageTransition';
 import { rosterStats, useRoster } from '../lib/roster';
 
 // Loaded on first use, with the CSV library it brings
 const ImportDialog = lazy(() => import('../components/ImportDialog'));
 
 export default function AttendeesPage() {
+	// New event arrives here in a view transition once the event is created
+	usePageArrival();
 	const { slug = '' } = useParams();
 	// EventLayout has already redirected unknown slugs.
 	const event = useEvent(slug)!;

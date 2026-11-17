@@ -1,11 +1,12 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { today } from '../components/DatePicker';
 import { DateTimeFields, TeamFields } from '../components/EventFields';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
+import { Spinner } from '../components/Loading';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
@@ -13,7 +14,7 @@ import { createEvent, isSlugTaken } from '../lib/events';
 import { useMe } from '../lib/organisers';
 import { useTeams, WALK_IN_PREFIX, type Team } from '../lib/teams';
 import { useIsDesktop } from '../lib/useMediaQuery';
-import { usePageArrival, useTransitionLink } from '../lib/pageTransition';
+import { usePageArrival, useTransitionLink, useTransitionNavigate } from '../lib/pageTransition';
 import { showToast } from '../lib/toast';
 
 const blank: EventForm = {
@@ -35,8 +36,8 @@ const blank: EventForm = {
 
 // Figma "New event". Placeholders show the example values from the design.
 export default function NewEventPage() {
-	const navigate = useNavigate();
 	const toEvents = useTransitionLink('/events');
+	const toEvent = useTransitionNavigate();
 	usePageArrival();
 	const teams = useTeams() ?? [];
 	const me = useMe();
@@ -67,7 +68,7 @@ export default function NewEventPage() {
 	const slug = form.slug.replace(/-+$/, '');
 	const slugTaken = slug !== '' && isSlugTaken(slug);
 	const [saving, setSaving] = useState(false);
-	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined && !saving;
+	const canCreate = formIsComplete(form) && !slugTaken && team !== undefined;
 	const desktop = useIsDesktop();
 	const buttons = (
 		<div className="flex shrink-0 items-center gap-4">
@@ -75,8 +76,23 @@ export default function NewEventPage() {
 				Cancel
 			</Link>
 			{/* The Events page's "New event" button, which becomes this one as the page opens (index.css) */}
-			<button type="submit" disabled={!canCreate} style={{ viewTransitionName: 'primary-action' }} className={`${buttonClass('primary')} disabled:opacity-50`}>
-				Create event
+			{/* It brightens as the form becomes complete (index.css). While the event saves it stays
+			    solid and its label gives way to a spinner, in place, so it never changes size. */}
+			<button
+				type="submit"
+				disabled={!canCreate}
+				aria-busy={saving}
+				data-create
+				style={{ viewTransitionName: 'primary-action' }}
+				className={`relative ${buttonClass('primary')} disabled:opacity-50 ${saving ? 'pointer-events-none' : ''}`}
+			>
+				<span className={`transition-opacity duration-150 ${saving ? 'opacity-0' : ''}`}>Create event</span>
+				{saving && (
+					<span className="absolute inset-0 flex animate-[fade-in_150ms_ease-out] items-center justify-center">
+						<Spinner className="text-off-white" />
+						<span className="sr-only">Creating the event</span>
+					</span>
+				)}
 			</button>
 		</div>
 	);
@@ -85,13 +101,13 @@ export default function NewEventPage() {
 		<form
 			onSubmit={async (e) => {
 				e.preventDefault();
-				if (!canCreate) return;
+				if (!canCreate || saving) return;
 				// Waits for the server: the event's pages can't read its attendees until it has the
 				// event. The rules refuse a link another team's event has, which we can't see.
 				setSaving(true);
 				try {
 					await createEvent(formToInput(form, slug));
-					navigate(`/events/${slug}`);
+					toEvent(`/events/${slug}`);
 				} catch {
 					showToast(`Couldn’t create ${form.name.trim()}. Its link may be taken: try another, or check the connection.`);
 					setSaving(false);

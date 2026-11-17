@@ -244,6 +244,12 @@ tr[data-arrived] > td:last-child {
   }
 }
 
+/* New event's Create event button brightens, over 150ms, as the form becomes complete */
+[data-create] {
+  transition-property: background-color, opacity;
+  transition-duration: 150ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
