@@ -38,6 +38,8 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 	const room = useRef({ below: 0, above: 0, bottom: 0 });
 	const area = useRef<HTMLDivElement>(null);
 	const popover = useRef<HTMLDivElement>(null);
+	const grid = useRef<HTMLDivElement>(null);
+	const before = useRef<DOMRect[] | null>(null);
 	const startButton = useRef<HTMLButtonElement>(null);
 	const endButton = useRef<HTMLButtonElement>(null);
 	const endDate = form.endDate || form.date;
@@ -96,7 +98,10 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 		const date = key === 'date' ? value : form.date;
 		if (form.endDate !== date) update('endDate', date);
 	};
+	const setTime = (key: 'start' | 'end', value: string) => (multiDay ? update(key, value) : updateSingle(key, value));
 	const toggleMultiDay = (on: boolean) => {
+		// Where each field is now, mid-move included, for the rearranging below to start from
+		if (grid.current) before.current = [...grid.current.children].map((el) => el.getBoundingClientRect());
 		setPicking(null);
 		setMultiDay(on);
 		// Two days to start with; back to one, the end falls on the start date again
@@ -104,6 +109,40 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 		if (!on) update('endDate', form.date);
 		else if (!isMultiDay(form)) update('endDate', nextDay(form.date));
 	};
+
+	// Switching between one day and several rearranges the same fields, so they travel to their
+	// new places and sizes over 320ms on the quick ease-out: the date narrows as "Starts" moves up
+	// beside it, "Ends" narrows towards the right, and the end date fades in where they made room
+	// (and out, quicker, on the way back). With reduced motion nothing travels and the end date
+	// only fades in.
+	useLayoutEffect(() => {
+		const was = before.current;
+		before.current = null;
+		if (!was || !grid.current || !area.current) return;
+		const fields = [...grid.current.children] as HTMLElement[];
+		for (const el of fields) for (const running of el.getAnimations()) running.cancel();
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const origin = area.current.getBoundingClientRect();
+		fields.forEach((el, i) => {
+			const from = was[i];
+			if (el.contains(endButton.current)) {
+				if (multiDay) el.animate({ opacity: [0, 1] }, { duration: 200, delay: reduced ? 0 : 120, easing: 'ease-out', fill: 'backwards' });
+				else if (!reduced) {
+					// Out of the layout already: held where it was while it fades
+					const held = { visibility: 'visible', translate: `${from.left - origin.left}px ${from.top - origin.top}px`, width: `${from.width}px` };
+					el.animate([{ ...held, opacity: 1 }, { ...held, opacity: 0 }], { duration: 120, easing: 'ease-out' });
+				}
+				return;
+			}
+			if (reduced) return;
+			const to = el.getBoundingClientRect();
+			if (from.left === to.left && from.top === to.top && from.width === to.width) return;
+			el.animate(
+				{ translate: [`${from.left - to.left}px ${from.top - to.top}px`, '0 0'], width: [`${from.width}px`, `${to.width}px`] },
+				{ duration: 320, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+			);
+		});
+	}, [multiDay]);
 
 	const pick = (date: string) => {
 		if (picking === 'single') {
@@ -124,39 +163,42 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 	return (
 		<>
 			{/* A single day: the date, then its two times side by side. Over several days: start
-			    on one row and end on the next, each a date and a short time box. The calendar
-			    opens against the date field that was clicked. */}
+			    on one row and end on the next, each a date and a short time box. They're the same
+			    fields either way, so they can move between the two (above); the end date sits out
+			    of the layout, hidden, while the event is a single day. The calendar opens against
+			    the date field that was clicked. */}
 			<div ref={area} className="relative">
-				{multiDay ? (
-					<div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
-						<DateTrigger ref={startButton} label="Start date" value={form.date} open={picking !== null && anchor === 'start'} onOpen={() => open('start', 'start')} />
-						<TextField label="Starts" type="time" required value={form.start} onChange={(e) => update('start', e.target.value)} className="min-w-0" />
-						<DateTrigger
-							ref={endButton}
-							label="End date"
-							value={endDate}
-							open={picking !== null && anchor === 'end'}
-							onOpen={() => open(form.date ? 'end' : 'start', 'end')}
-							hint={pastMidnight ? 'Ends the next day, after midnight' : undefined}
-							error={formTimesError(form)}
-						/>
-						<TextField label="Ends" type="time" required value={form.end} onChange={(e) => update('end', e.target.value)} className="min-w-0 self-start" />
-					</div>
-				) : (
-					<div className="grid grid-cols-2 gap-3">
-						<DateTrigger ref={startButton} label="Date" value={form.date} open={picking !== null} onOpen={() => open('single', 'start')} className="col-span-2" />
-						<TextField label="Starts" type="time" required value={form.start} onChange={(e) => updateSingle('start', e.target.value)} className="min-w-0" />
-						<TextField
-							label="Ends"
-							type="time"
-							required
-							value={form.end}
-							onChange={(e) => updateSingle('end', e.target.value)}
-							hint={pastMidnight ? 'The next day, after midnight' : undefined}
-							className="min-w-0"
-						/>
-					</div>
-				)}
+				<div ref={grid} className={`grid gap-3 ${multiDay ? 'grid-cols-[minmax(0,1fr)_6rem]' : 'grid-cols-2'}`}>
+					<DateTrigger
+						ref={startButton}
+						label={multiDay ? 'Start date' : 'Date'}
+						value={form.date}
+						open={picking !== null && anchor === 'start'}
+						onOpen={() => open(multiDay ? 'start' : 'single', 'start')}
+						className={multiDay ? '' : 'col-span-2'}
+					/>
+					{/* Above the other fields, which it crosses on its way */}
+					<TextField label="Starts" type="time" required value={form.start} onChange={(e) => setTime('start', e.target.value)} className="relative z-10 min-w-0" />
+					<DateTrigger
+						ref={endButton}
+						label="End date"
+						value={endDate}
+						open={picking !== null && anchor === 'end'}
+						onOpen={() => open(form.date ? 'end' : 'start', 'end')}
+						hint={multiDay && pastMidnight ? 'Ends the next day, after midnight' : undefined}
+						error={multiDay ? formTimesError(form) : null}
+						className={multiDay ? '' : 'invisible absolute top-0 left-0'}
+					/>
+					<TextField
+						label="Ends"
+						type="time"
+						required
+						value={form.end}
+						onChange={(e) => setTime('end', e.target.value)}
+						hint={!multiDay && pastMidnight ? 'The next day, after midnight' : undefined}
+						className="min-w-0 self-start"
+					/>
+				</div>
 				{/* Mounted once its place is known, already visible, so focus can move into it */}
 				{picking && place && (
 					// Only as wide as the calendar, so the fields beside it stay clickable. The scroll
