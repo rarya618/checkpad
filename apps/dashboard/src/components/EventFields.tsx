@@ -6,6 +6,7 @@ import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
 import { DateTrigger, RangeCalendar } from './DatePicker';
 import { SelectField, TextField } from './Field';
+import { TimeField } from './TimePicker';
 import { SwitchRow } from './Switch';
 
 type Update = <K extends keyof EventForm>(key: K, value: EventForm[K]) => void;
@@ -178,7 +179,16 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 						className={multiDay ? '' : 'col-span-2'}
 					/>
 					{/* Above the other fields, which it crosses on its way */}
-					<TextField label="Starts" type="time" required value={form.start} onChange={(e) => setTime('start', e.target.value)} className="relative z-10 min-w-0" />
+					<TimeField
+						label="Starts"
+						prompt="start time"
+						value={form.start}
+						onChange={(time) => setTime('start', time)}
+						onOpen={() => setPicking(null)}
+						// Beside the start date in the right-hand column over several days
+						align={multiDay ? 'end' : 'start'}
+						className="relative z-10"
+					/>
 					<DateTrigger
 						ref={endButton}
 						label="End date"
@@ -189,14 +199,18 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 						error={multiDay ? formTimesError(form) : null}
 						className={multiDay ? '' : 'invisible absolute top-0 left-0'}
 					/>
-					<TextField
+					<TimeField
 						label="Ends"
-						type="time"
-						required
+						prompt="end time"
 						value={form.end}
-						onChange={(e) => setTime('end', e.target.value)}
+						onChange={(time) => setTime('end', time)}
+						onOpen={() => setPicking(null)}
+						// A single day's end runs on from its start, with how long each time would make it;
+						// over several days the end is on another date, so it's a plain day of times
+						from={multiDay ? undefined : form.start || undefined}
+						align="end"
 						hint={!multiDay && pastMidnight ? 'The next day, after midnight' : undefined}
-						className="min-w-0 self-start"
+						className="self-start"
 					/>
 				</div>
 				{/* Mounted once its place is known, already visible, so focus can move into it */}

@@ -192,6 +192,15 @@ tr[data-arrived] > td:last-child {
     transform-origin: bottom left;
   }
 
+  /* A time list lined up with its field's right edge (TimePicker) grows out of that corner */
+  [data-align="end"] > [data-popover] {
+    transform-origin: top right;
+  }
+
+  [data-align="end"][data-side="above"] > [data-popover] {
+    transform-origin: bottom right;
+  }
+
   @starting-style {
     [data-popover] {
       opacity: 0;
