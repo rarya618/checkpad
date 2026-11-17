@@ -268,8 +268,9 @@ function TeamPanel({ team, organisers, ...actions }: { team: Team; organisers: O
 				<div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
 					<h3 className="font-display text-lg">Members</h3>
 					{actions.admin && (
-						<button type="button" onClick={() => actions.onAdd(team.id)} className={buttonClass('secondary')}>
-							Add to {team.name}
+						// Short, under its Members heading; the team rides in its accessible name
+						<button type="button" onClick={() => actions.onAdd(team.id)} aria-label={`Add a member to ${team.name}`} className={buttonClass('secondary')}>
+							Add member
 						</button>
 					)}
 				</div>
