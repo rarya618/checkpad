@@ -13,6 +13,7 @@ import { createEvent, isSlugTaken } from '../lib/events';
 import { useMe } from '../lib/organisers';
 import { useTeams, WALK_IN_PREFIX, type Team } from '../lib/teams';
 import { useIsDesktop } from '../lib/useMediaQuery';
+import { usePageArrival, useTransitionLink } from '../lib/pageTransition';
 import { showToast } from '../lib/toast';
 
 const blank: EventForm = {
@@ -35,6 +36,8 @@ const blank: EventForm = {
 // Figma "New event". Placeholders show the example values from the design.
 export default function NewEventPage() {
 	const navigate = useNavigate();
+	const toEvents = useTransitionLink('/events');
+	usePageArrival();
 	const teams = useTeams() ?? [];
 	const me = useMe();
 	// Your own team; super admins start with the first
@@ -68,10 +71,11 @@ export default function NewEventPage() {
 	const desktop = useIsDesktop();
 	const buttons = (
 		<div className="flex shrink-0 items-center gap-4">
-			<Link to="/events" className={buttonClass('secondary')}>
+			<Link to="/events" onClick={toEvents} className={buttonClass('secondary')}>
 				Cancel
 			</Link>
-			<button type="submit" disabled={!canCreate} className={`${buttonClass('primary')} disabled:opacity-50`}>
+			{/* The Events page's "New event" button, which becomes this one as the page opens (index.css) */}
+			<button type="submit" disabled={!canCreate} style={{ viewTransitionName: 'primary-action' }} className={`${buttonClass('primary')} disabled:opacity-50`}>
 				Create event
 			</button>
 		</div>
@@ -100,7 +104,7 @@ export default function NewEventPage() {
 					<nav aria-label="Breadcrumb">
 						<ol className="flex items-center gap-1.5 text-sm text-dark-blue">
 							<li>
-								<Link to="/events" className="tracking-tight hover:underline">
+								<Link to="/events" onClick={toEvents} className="tracking-tight hover:underline">
 									Events
 								</Link>
 							</li>
@@ -119,7 +123,7 @@ export default function NewEventPage() {
 
 			<div className="grid grid-cols-1 gap-5 px-6 pt-4 pb-7 lg:grid-cols-2">
 				<div className="flex flex-col gap-5">
-					<FormCard title="Details">
+					<FormCard title="Details" enter={0}>
 						<TextField
 							label="Name"
 							required
@@ -150,12 +154,12 @@ export default function NewEventPage() {
 							placeholder="Join us for our monthly meetup"
 						/>
 					</FormCard>
-					<FormCard title="When">
+					<FormCard title="When" enter={1}>
 						<DateTimeFields form={form} update={update} />
 					</FormCard>
 				</div>
 				<div className="flex flex-col gap-5">
-					<FormCard title="Teams" description="Members of its teams see and run this event. Super admins see every event.">
+					<FormCard title="Teams" enter={1} description="Members of its teams see and run this event. Super admins see every event.">
 						{team ? (
 							<TeamFields
 								form={form}
@@ -171,6 +175,7 @@ export default function NewEventPage() {
 						)}
 					</FormCard>
 					<FormCard
+						enter={2}
 						title="Walk-ins"
 						description={`Walk-ins get the next ticket number: ${WALK_IN_PREFIX}0001, ${WALK_IN_PREFIX}0002, and so on. Staff can always add them.`}
 						className="flex-1"

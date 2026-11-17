@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 // The white bordered cards on New event and Event settings, at 75% scale.
 interface Props {
@@ -9,13 +9,19 @@ interface Props {
 	/** h2 directly under the page title (New event), h3 under a section heading (Event settings). */
 	level?: 2 | 3;
 	className?: string;
+	/** Rises into place when the page opens (index.css), this many beats after the first card. */
+	enter?: number;
 	children: ReactNode;
 }
 
-export default function FormCard({ title, description, badge, level = 2, className = '', children }: Props) {
+export default function FormCard({ title, description, badge, level = 2, className = '', enter, children }: Props) {
 	const Heading = level === 2 ? 'h2' : 'h3';
 	return (
-		<section className={`flex flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5 ${className}`}>
+		<section
+			data-enter={enter === undefined ? undefined : ''}
+			style={enter === undefined ? undefined : ({ '--enter': enter } as CSSProperties)}
+			className={`flex flex-col gap-4 rounded-xl border border-line bg-white px-6 py-5 ${className}`}
+		>
 			<div className="flex flex-col gap-1.5">
 				<div className="flex items-center gap-2.5">
 					<Heading className="min-w-0 flex-1 font-display text-xl leading-tight">{title}</Heading>

@@ -1,6 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
+import { usePageArrival, useTransitionLink } from '../lib/pageTransition';
 import calendar from '../assets/calendar.svg';
 import magnifyingGlass from '../assets/magnifying-glass.svg';
 import searchEmpty from '../assets/search-empty.svg';
@@ -28,6 +29,8 @@ const byStart = (a: EventSummary, b: EventSummary) => a.event.startsAt.localeCom
 
 export default function EventsPage() {
 	const summaries = useEventSummaries();
+	const toNewEvent = useTransitionLink('/events/new');
+	usePageArrival();
 	const canEdit = useCanEditEvents();
 	// Super admins see every team's events, so each card says whose it is. Team members can't read teams.
 	const superAdmin = useMe().role === 'super-admin';
@@ -89,7 +92,8 @@ export default function EventsPage() {
 								</label>
 							)}
 							{canEdit && (
-								<Link to="/events/new" className={`${buttonClass('primary')} shrink-0`}>
+								// Becomes New event's "Create event" button as that page opens (index.css)
+								<Link to="/events/new" onClick={toNewEvent} style={{ viewTransitionName: 'primary-action' }} className={`${buttonClass('primary')} shrink-0`}>
 									New event
 								</Link>
 							)}
@@ -110,7 +114,7 @@ export default function EventsPage() {
 						}
 						actions={
 							canEdit && (
-								<Link to="/events/new" className={buttonClass('primary')}>
+								<Link to="/events/new" onClick={toNewEvent} className={buttonClass('primary')}>
 									New event
 								</Link>
 							)

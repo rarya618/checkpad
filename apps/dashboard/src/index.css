@@ -217,6 +217,48 @@ tr[data-arrived] > td:last-child {
   }
 }
 
+/* Opening New event from the Events page, and going back: the page header holds while the
+   body turns over. The two pages cross-fade quickly, the primary button keeps its corner and
+   becomes the other page's ("New event" to "Create event"), and the form's cards rise 12px
+   into place a beat apart. With reduced motion the page just changes. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 180ms;
+  }
+
+  ::view-transition-group(primary-action) {
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  ::view-transition-old(primary-action),
+  ::view-transition-new(primary-action) {
+    animation-duration: 180ms;
+  }
+
+  [data-enter] {
+    animation: rise-in 360ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--enter, 0) * 50ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
 /* Past events folding open (EventsPage): the extra rows' grid track grows from nothing to
    their height on a gentle ease-out, and they fade in as it opens. Closing eases in and out,
    a little quicker than opening. */
