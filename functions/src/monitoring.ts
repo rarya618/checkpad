@@ -4,13 +4,20 @@
 // its stack trace and which function failed, and nothing about attendees: no request bodies,
 // headers, cookies, query strings or user details.
 import * as Sentry from '@sentry/node';
+import { readFileSync } from 'node:fs';
 
 const dsn = process.env.SENTRY_DSN;
+
+// Checkpad's version: functions/package.json, which scripts/release.mjs keeps with the root's.
+// Read from the deployed folder, since only functions/ is uploaded (lib/ sits beside it).
+const version = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 
 if (dsn) {
 	Sentry.init({
 		dsn,
 		environment: 'production',
+		// So an error says which version it happened in (CHANGELOG.md)
+		release: `checkpad@${version}`,
 		dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
 	});
 }

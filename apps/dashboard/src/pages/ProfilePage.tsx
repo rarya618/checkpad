@@ -34,6 +34,8 @@ export default function ProfilePage() {
 				<Details me={me} team={team ? team.name : me.teamId ? teamName(teams, me.teamId) : null} />
 				{team && <TeamCard team={team} />}
 				<SigningIn />
+				{/* Which version is live, for telling apart what you see from what was just deployed */}
+				<p className="text-sm leading-normal text-med-blue tabular-nums">Checkpad {import.meta.env.VITE_CHECKPAD_VERSION}</p>
 			</div>
 		</>
 	);

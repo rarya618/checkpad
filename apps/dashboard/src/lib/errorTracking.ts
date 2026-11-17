@@ -9,6 +9,8 @@ if (dsn) {
 	Sentry.init({
 		dsn,
 		environment: 'production',
+		// So an error says which version it happened in (CHANGELOG.md)
+		release: `checkpad@${import.meta.env.VITE_CHECKPAD_VERSION}`,
 		dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
 	});
 }

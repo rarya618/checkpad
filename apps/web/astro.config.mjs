@@ -5,6 +5,10 @@ import tailwindcss from '@tailwindcss/vite';
 
 import react from '@astrojs/react';
 import { RESERVED_SLUGS } from '@checkpad/shared/events';
+import { readFileSync } from 'node:fs';
+
+// Checkpad's one version, from the root package.json (scripts/release.mjs moves it), for Sentry
+const VERSION = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
 
 // The check-in API in the Functions emulator (see CLAUDE.md for starting it). demo-checkpad
 // is emulator-only, so local check-ins never reach production.
@@ -37,6 +41,7 @@ function checkInRewrites() {
 export default defineConfig({
   vite: {
     plugins: [tailwindcss(), checkInRewrites()],
+    define: { 'import.meta.env.PUBLIC_CHECKPAD_VERSION': JSON.stringify(VERSION) },
     server: {
       proxy: {
         '/api': { target: API_EMULATOR, changeOrigin: true, rewrite: (path) => path.replace(/^\/api/, '') }

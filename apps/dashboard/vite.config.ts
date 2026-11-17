@@ -1,6 +1,11 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
+
+// Checkpad's one version, from the root package.json (scripts/release.mjs moves it): shown on
+// Profile and sent to Sentry with every error
+const VERSION = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
 
 // /api is the check-in API (functions/), which sends sign-in links. Deployed, a Hosting rewrite
 // serves it (firebase.json). Locally it's the Functions emulator with VITE_USE_EMULATORS, else
@@ -11,6 +16,7 @@ const API = process.env.VITE_USE_EMULATORS
 
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
+	define: { 'import.meta.env.VITE_CHECKPAD_VERSION': JSON.stringify(VERSION) },
 	build: {
 		// Firestore alone is about 650KB (190KB compressed), and almost every page needs it
 		chunkSizeWarningLimit: 700,
