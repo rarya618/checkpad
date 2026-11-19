@@ -4,6 +4,10 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.1.1 (2026-11-20)
+
+- [organisers, attendees] The terms of use planned for 1.1.0 are held back until they've been reviewed
+
 ## 1.1.0 (2026-11-20)
 
 - [organisers, attendees] What's changed in each version is at checkpad.app/changelog, filtered by who a change is for
