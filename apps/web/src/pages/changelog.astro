@@ -1,0 +1,71 @@
+---
+import changelog from '../../../../CHANGELOG.md?raw';
+import Footer from '../components/marketing/Footer.astro';
+import Nav from '../components/marketing/Nav.astro';
+import Layout from '../layouts/Layout.astro';
+
+// Not in Figma. Built from the root CHANGELOG.md, which `npm run release` drafts, so this page
+// updates with every release. Only the "## x.y.z (yyyy-mm-dd)" entries are shown: the file's
+// introduction is for whoever releases. "changelog" is a reserved event link (RESERVED_SLUGS).
+
+/** An entry's body: paragraphs, and bulleted lists for runs of "- " lines. */
+type Block = string | { list: string[] };
+
+const releases = changelog
+	.split(/\n(?=## )/)
+	.slice(1)
+	.map((entry) => {
+		const [heading, ...lines] = entry.trim().split('\n');
+		const match = heading.match(/^## (\S+) \((\d{4}-\d{2}-\d{2})\)$/);
+		if (!match) throw new Error(`CHANGELOG.md: expected "## x.y.z (yyyy-mm-dd)", got "${heading}"`);
+		const body: Block[] = [];
+		for (const line of lines.map((l) => l.trim()).filter(Boolean)) {
+			const item = line.match(/^- (.*)$/)?.[1];
+			const last = body.at(-1);
+			if (item === undefined) body.push(line);
+			else if (typeof last === 'object') last.list.push(item);
+			else body.push({ list: [item] });
+		}
+		const date = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${match[2]}T00:00:00Z`));
+		return { version: match[1], date, body };
+	});
+
+/** `code` spans, the only inline Markdown the changelog uses. */
+const inline = (text: string) => text.split(/`([^`]+)`/);
+
+const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
+---
+
+<Layout title="Changelog · Checkpad" description="What’s changed in Checkpad, version by version.">
+	<Nav />
+	<main>
+		<article class="mx-auto flex w-full max-w-[760px] flex-col gap-10 px-6 pt-10 pb-18 md:px-12 xl:pt-16 xl:pb-30">
+			<header class="flex flex-col gap-3">
+				<h1 class="font-display text-5xl xl:text-6xl">Changelog</h1>
+				<p class="text-lg text-dark-blue/85 xl:text-xl">
+					What’s changed in Checkpad, newest first. One version number covers the dashboard, the check-in pages and everything behind them.
+				</p>
+			</header>
+			{releases.map((r) => (
+				<section id={`v${r.version}`} class="flex scroll-mt-24 flex-col gap-3">
+					<h2 class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+						<a href={`#v${r.version}`} class="font-display text-2xl">{r.version}</a>
+						<span class="text-base text-med-blue">{r.date}</span>
+					</h2>
+					{r.body.map((block) =>
+						typeof block === 'string' ? (
+							<p class={text}>{inline(block).map((part, i) => (i % 2 ? <code>{part}</code> : part))}</p>
+						) : (
+							<ul class={`${text} flex list-disc flex-col gap-1.5 pl-6`}>
+								{block.list.map((item) => (
+									<li>{inline(item).map((part, i) => (i % 2 ? <code>{part}</code> : part))}</li>
+								))}
+							</ul>
+						),
+					)}
+				</section>
+			))}
+		</article>
+	</main>
+	<Footer />
+</Layout>
