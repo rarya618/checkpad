@@ -87,14 +87,14 @@ const filters = [
 						type="button"
 						data-value={f.value}
 						aria-pressed={f.value === 'all' ? 'true' : 'false'}
-						class="relative rounded-md px-3 py-1.5 text-sm font-semibold tracking-tight text-dark-blue/70 transition-colors aria-pressed:text-dark-blue hover:text-dark-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue sm:px-4 sm:text-base"
+						class="relative rounded-md px-3 py-2.5 text-sm sm:py-1.5 font-semibold tracking-tight text-dark-blue/70 transition-colors aria-pressed:text-dark-blue hover:text-dark-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue sm:px-4 sm:text-base"
 					>
 						{f.label}
 					</button>
 				))}
 			</div>
 
-			<ol class="mt-10 flex flex-col xl:mt-12">
+			<ol data-releases class="mt-10 flex flex-col xl:mt-12">
 				{releases.map((r, i) => (
 					<li
 						id={`v${r.version}`}
@@ -116,11 +116,11 @@ const filters = [
 							]}
 						></span>
 						<h2 class="flex flex-wrap items-baseline gap-x-3 md:flex-col md:items-end md:gap-y-0.5 md:text-right">
-							<a href={`#v${r.version}`} class="font-display text-2xl leading-normal hover:text-med-blue">
+							<a href={`#v${r.version}`} class="font-display text-2xl leading-normal tabular-nums group-target:text-med-blue hover:text-med-blue">
 								{r.version}
 								{i === 0 && <span class="sr-only"> (latest)</span>}
 							</a>
-							<time datetime={r.day} class="text-sm font-medium text-med-blue">{r.date}</time>
+							<time datetime={r.day} class="text-sm font-semibold tracking-tight text-med-blue">{r.date}</time>
 						</h2>
 						<div class="flex flex-col gap-4 md:pt-1.5">
 							{r.body.map((block) =>
@@ -130,9 +130,12 @@ const filters = [
 									</p>
 								) : (
 									<ul class="flex flex-col gap-5">
-										{block.list.map((change) => (
+										{block.list.map((change, n) => (
 											<li data-change data-for={change.for.join(' ')} class="flex flex-col gap-0.5">
-												<span class="text-sm font-semibold tracking-tight text-med-blue">{label(change.for)}</span>
+												{/* One label for a run of lines for the same people, and none once filtered to them */}
+												{label(change.for) !== (n > 0 && label(block.list[n - 1].for)) && (
+													<span class="text-sm font-semibold tracking-tight text-med-blue in-data-filtered:hidden">{label(change.for)}</span>
+												)}
 												<span class="text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8">
 													{inline(change.text).map((part, n) => (n % 2 ? <code>{part}</code> : part))}
 												</span>
@@ -160,15 +163,20 @@ const filters = [
 </style>
 
 <script>
-	// Filters the changes by who they're for, keeping the choice in the URL (?for=organisers)
+	// Filters the changes by who they're for, keeping the choice in the URL (?for=organisers).
+	// What drops out fades away before the rail closes up; what comes back fades in.
 	const group = document.querySelector<HTMLElement>('[data-filter]')!;
 	const thumb = group.querySelector<HTMLElement>('[data-thumb]')!;
 	const buttons = [...group.querySelectorAll<HTMLButtonElement>('button')];
-	const releases = [...document.querySelectorAll<HTMLElement>('[data-release]')];
+	const list = document.querySelector<HTMLElement>('[data-releases]')!;
+	const releases = [...list.querySelectorAll<HTMLElement>('[data-release]')];
 	const empty = document.querySelector<HTMLElement>('[data-empty]')!;
 	const fade = matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 200;
+	let current = 0;
 
 	const shows = (el: HTMLElement, value: string) => value === 'all' || el.dataset.for!.split(' ').includes(value);
+	const fadeTo = (el: HTMLElement, opacity: number) =>
+		el.animate([{ opacity: 1 - opacity }, { opacity }], { duration: fade, easing: 'ease-out' }).finished.catch(() => {});
 
 	function moveThumb() {
 		const on = buttons.find((b) => b.getAttribute('aria-pressed') === 'true')!;
@@ -176,30 +184,46 @@ const filters = [
 		thumb.style.translate = `${on.offsetLeft}px 0`;
 	}
 
-	function apply(value: string, animate: boolean) {
+	async function apply(value: string, animate: boolean) {
+		const run = ++current;
 		for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.value === value));
 		moveThumb();
-		let last: HTMLElement | undefined;
+		list.toggleAttribute('data-filtered', value !== 'all');
+
+		// What changes, fading a whole release rather than each of its lines when it goes or comes back
+		const leaving: HTMLElement[] = [];
+		const arriving: HTMLElement[] = [];
 		for (const release of releases) {
-			const wasHidden = release.hidden;
-			release.hidden = !shows(release, value);
-			for (const change of release.querySelectorAll<HTMLElement>('[data-change]')) {
-				const was = change.hidden;
-				change.hidden = !shows(change, value);
-				if (animate && was && !change.hidden && !wasHidden) change.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fade, easing: 'ease-out' });
-			}
-			if (animate && wasHidden && !release.hidden) release.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fade, easing: 'ease-out' });
-			release.removeAttribute('data-last');
-			if (!release.hidden) last = release;
+			const show = shows(release, value);
+			if (release.hidden === !show) {
+				for (const change of release.querySelectorAll<HTMLElement>('[data-change]')) {
+					if (change.hidden === shows(change, value)) (change.hidden ? arriving : leaving).push(change);
+				}
+			} else (show ? arriving : leaving).push(release);
 		}
-		last?.setAttribute('data-last', '');
+		if (animate) await Promise.all(leaving.filter((el) => !el.hidden).map((el) => fadeTo(el, 0)));
+		if (run !== current) return;
+
+		for (const el of releases.flatMap((r) => [r, ...r.querySelectorAll<HTMLElement>('[data-change]')])) el.hidden = !shows(el, value);
+		const visible = releases.filter((r) => !r.hidden);
+		for (const r of releases) r.toggleAttribute('data-last', r === visible.at(-1));
 		empty.textContent = `No changes for ${value} yet.`;
-		empty.hidden = Boolean(last);
+		empty.hidden = visible.length > 0;
+		if (animate) for (const el of arriving) fadeTo(el, 1);
 	}
 
-	const initial = new URLSearchParams(location.search).get('for');
+	const params = new URLSearchParams(location.search);
+	let initial = buttons.some((b) => b.dataset.value === params.get('for')) ? params.get('for')! : 'all';
+	// A link to a version the filter would hide (say, an organiser following the dashboard to a
+	// release with nothing for organisers) opens on All changes, so the version is there
+	const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+	if (target?.matches('[data-release]') && !shows(target, initial)) {
+		initial = 'all';
+		params.delete('for');
+		history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}${location.hash}`);
+	}
 	group.hidden = false;
-	apply(buttons.some((b) => b.dataset.value === initial) ? initial! : 'all', false);
+	apply(initial, false);
 
 	for (const b of buttons) {
 		b.addEventListener('click', () => {
