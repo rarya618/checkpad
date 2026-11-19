@@ -2,18 +2,14 @@
 import Footer from '../components/marketing/Footer.astro';
 import Nav from '../components/marketing/Nav.astro';
 import Layout from '../layouts/Layout.astro';
+import { CONTACT_EMAIL, OPERATOR } from '../lib/config';
 
 // Not in Figma. Keep it true to the code: what each part of Checkpad stores is in
 // firestore.rules, and analytics is in components/marketing/Analytics.astro. Update the date
 // whenever the substance changes. "privacy" is a reserved event link (RESERVED_SLUGS).
-const updated = '25 October 2026';
-/** Where people send privacy requests. Production builds fail until it's set. */
-const contact = 'hello@russal.dev';
-/** Who runs Checkpad, as it should appear in "Checkpad is run by …". */
-const operator = '';
-if (import.meta.env.PROD && !contact) throw new Error('Set the contact email in src/pages/privacy.astro before building for production.');
-
-const email = contact || '[contact email]';
+const updated = '20 November 2026';
+const email = CONTACT_EMAIL;
+const operator = OPERATOR;
 
 /** A section's body: paragraphs, and bulleted lists where it's a run of things we store. */
 type Block = string | { list: string[] };
