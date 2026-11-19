@@ -82,6 +82,36 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		],
 	},
 	{
+		id: 'import-reference',
+		title: 'What an import reads',
+		body: [
+			'Checkpad reads these columns from a Bevy or Luma export, by their headers:',
+			{
+				list: [
+					'First name and last name. If the file has a single name column instead, the last word becomes the last name.',
+					'Email.',
+					'Ticket number (Bevy) or guest ID (Luma). This is how people are matched when you import again.',
+					'Ticket type (Bevy’s ticket title, Luma’s ticket name), shown in the attendee list and in Analytics.',
+					'When they registered, for the first-timers and registration charts in Analytics.',
+					'Status (Luma’s approval status). Only people who are going are imported.',
+				],
+			},
+			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. Columns the platforms add themselves, like phone numbers, payments and ad tracking, are left out.',
+			'Rows are skipped, with the reason and the row numbers shown before you import, when they:',
+			{
+				list: [
+					'are on the waitlist, waiting for approval, declined, invited but not registered, not going, cancelled or refunded',
+					'have no email address, or one that isn’t valid',
+					'have no first name or no ticket number',
+					'repeat a ticket number or email from an earlier row',
+					'have an email that’s already on the list with another ticket',
+				],
+			},
+			'Importing again adds new people and updates the names, ticket types, answers and registration dates of people already on the list. It doesn’t change anyone’s email, check anyone in or out, or remove anyone: people who cancel after an import stay on the list.',
+			{ tip: 'Walk-ins added by mistake can be removed from the attendee list: choose Remove walk-in from their row’s menu.' },
+		],
+	},
+	{
 		id: 'open-check-in',
 		title: 'Open check-in',
 		body: [
