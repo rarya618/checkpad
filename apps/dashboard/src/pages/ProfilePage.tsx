@@ -6,10 +6,13 @@ import FormCard from '../components/FormCard';
 import PageHeader from '../components/PageHeader';
 import TeamLink from '../components/TeamLink';
 import { signOut, useSession } from '../lib/auth';
+import { WEB_URL } from '../lib/config';
 import { roleLabel, saveMyName, useMe, type Organiser } from '../lib/organisers';
 import { usePageArrival } from '../lib/pageTransition';
 import { teamName, useTeams, type Team } from '../lib/teams';
 import { showToast } from '../lib/toast';
+
+const VERSION = import.meta.env.VITE_CHECKPAD_VERSION;
 
 // The signed-in organiser's own page: their name (the one thing they change here; firestore.rules),
 // their address and role, their team and its link, and how they're signed in. Email, role and
@@ -34,8 +37,14 @@ export default function ProfilePage() {
 				<Details me={me} team={team ? team.name : me.teamId ? teamName(teams, me.teamId) : null} />
 				{team && <TeamCard team={team} />}
 				<SigningIn />
-				{/* Which version is live, for telling apart what you see from what was just deployed */}
-				<p className="text-sm leading-normal text-med-blue tabular-nums">Checkpad {import.meta.env.VITE_CHECKPAD_VERSION}</p>
+				{/* Which version is live, for telling apart what you see from what was just deployed,
+				    and what changed in it for organisers (apps/web/src/pages/changelog.astro) */}
+				<p className="text-sm leading-normal text-med-blue tabular-nums">
+					Checkpad {VERSION} ·{' '}
+					<a href={`${WEB_URL}/changelog?for=organisers#v${VERSION}`} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-dark-blue">
+						What’s changed
+					</a>
+				</p>
 			</div>
 		</>
 	);
