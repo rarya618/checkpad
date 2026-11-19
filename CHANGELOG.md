@@ -4,6 +4,14 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.1.0 (2026-11-20)
+
+- [organisers, attendees] What's changed in each version is at checkpad.app/changelog, filtered by who a change is for
+- [organisers] The version on the dashboard's Profile page links to what changed in it
+- [organisers] The docs are a page per topic, grouped by when you need them, with new pages on signing in, what an import reads and what to do when something goes wrong
+- [attendees] A help page for checking in, linked from every check-in page
+- [organisers, attendees] Terms of use, and the privacy policy now says who runs Checkpad
+
 ## 1.0.2 (2026-11-20)
 
 - [organisers] Dashboard sign-in emails link to manage.checkpad.app instead of checkpad-app.firebaseapp.com (1.0.1 meant to, but didn't)
