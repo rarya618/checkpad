@@ -6,10 +6,25 @@ import Layout from '../layouts/Layout.astro';
 
 // Not in Figma. Built from the root CHANGELOG.md, which `npm run release` drafts, so this page
 // updates with every release. Only the "## x.y.z (yyyy-mm-dd)" entries are shown: the file's
-// introduction is for whoever releases. "changelog" is a reserved event link (RESERVED_SLUGS).
+// introduction is for whoever releases. Each line is tagged with who it's for, and the filter
+// keeps its choice in the URL (?for=organisers), which the dashboard's Profile page links to.
+// "changelog" is a reserved event link (RESERVED_SLUGS).
 
-/** An entry's body: paragraphs, and bulleted lists for runs of "- " lines. */
-type Block = string | { list: string[] };
+const AUDIENCES = ['organisers', 'attendees'] as const;
+type Audience = (typeof AUDIENCES)[number];
+
+/** An entry's body: paragraphs, and bulleted lists of tagged changes. */
+type Change = { for: Audience[]; text: string };
+type Block = string | { list: Change[] };
+
+function parseChange(line: string, version: string): Change {
+	const match = line.match(/^\[([^\]]*)\]\s+(.*)$/);
+	const tags = match?.[1].split(',').map((t) => t.trim());
+	if (!match || !tags?.length || !tags.every((t): t is Audience => (AUDIENCES as readonly string[]).includes(t))) {
+		throw new Error(`CHANGELOG.md ${version}: start each line with [organisers], [attendees] or [organisers, attendees]: "- ${line}"`);
+	}
+	return { for: tags, text: match[2] };
+}
 
 const releases = changelog
 	.split(/\n(?=## )/)
@@ -18,54 +33,184 @@ const releases = changelog
 		const [heading, ...lines] = entry.trim().split('\n');
 		const match = heading.match(/^## (\S+) \((\d{4}-\d{2}-\d{2})\)$/);
 		if (!match) throw new Error(`CHANGELOG.md: expected "## x.y.z (yyyy-mm-dd)", got "${heading}"`);
+		const [, version, day] = match;
 		const body: Block[] = [];
 		for (const line of lines.map((l) => l.trim()).filter(Boolean)) {
 			const item = line.match(/^- (.*)$/)?.[1];
 			const last = body.at(-1);
 			if (item === undefined) body.push(line);
-			else if (typeof last === 'object') last.list.push(item);
-			else body.push({ list: [item] });
+			else if (typeof last === 'object') last.list.push(parseChange(item, version));
+			else body.push({ list: [parseChange(item, version)] });
 		}
-		const date = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${match[2]}T00:00:00Z`));
-		return { version: match[1], date, body };
+		const date = new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${day}T00:00:00Z`));
+		const audiences = [...new Set(body.flatMap((b) => (typeof b === 'string' ? [] : b.list.flatMap((c) => c.for))))];
+		return { version, day, date, body, audiences };
 	});
+
+const label = (audiences: Audience[]) =>
+	audiences.length === AUDIENCES.length ? 'Organisers and attendees' : audiences[0] === 'organisers' ? 'Organisers' : 'Attendees';
 
 /** `code` spans, the only inline Markdown the changelog uses. */
 const inline = (text: string) => text.split(/`([^`]+)`/);
 
-const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
+const filters = [
+	{ value: 'all', label: 'All changes' },
+	{ value: 'organisers', label: 'For organisers' },
+	{ value: 'attendees', label: 'For attendees' },
+];
 ---
 
-<Layout title="Changelog · Checkpad" description="What’s changed in Checkpad, version by version.">
+<Layout title="Changelog · Checkpad" description="What’s changed in Checkpad, version by version, for organisers and attendees.">
 	<Nav />
 	<main>
-		<article class="mx-auto flex w-full max-w-[760px] flex-col gap-10 px-6 pt-10 pb-18 md:px-12 xl:pt-16 xl:pb-30">
+		<article class="mx-auto w-full max-w-[880px] px-6 pt-10 pb-18 md:px-12 xl:pt-16 xl:pb-30">
 			<header class="flex flex-col gap-3">
 				<h1 class="font-display text-5xl xl:text-6xl">Changelog</h1>
-				<p class="text-lg text-dark-blue/85 xl:text-xl">
-					What’s changed in Checkpad, newest first. One version number covers the dashboard, the check-in pages and everything behind them.
-				</p>
+				<p class="text-lg text-dark-blue/85 xl:text-xl">What’s changed in Checkpad, newest first, and who each change is for.</p>
 			</header>
-			{releases.map((r) => (
-				<section id={`v${r.version}`} class="flex scroll-mt-24 flex-col gap-3">
-					<h2 class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-						<a href={`#v${r.version}`} class="font-display text-2xl">{r.version}</a>
-						<span class="text-base text-med-blue">{r.date}</span>
-					</h2>
-					{r.body.map((block) =>
-						typeof block === 'string' ? (
-							<p class={text}>{inline(block).map((part, i) => (i % 2 ? <code>{part}</code> : part))}</p>
-						) : (
-							<ul class={`${text} flex list-disc flex-col gap-1.5 pl-6`}>
-								{block.list.map((item) => (
-									<li>{inline(item).map((part, i) => (i % 2 ? <code>{part}</code> : part))}</li>
-								))}
-							</ul>
-						),
-					)}
-				</section>
-			))}
+
+			<!-- Shown once the script below runs; without it every change is listed -->
+			<div
+				data-filter
+				hidden
+				role="group"
+				aria-label="Show changes for"
+				class="relative mt-8 inline-flex rounded-lg bg-light-blue p-1"
+			>
+				<span
+					data-thumb
+					aria-hidden="true"
+					class="absolute top-1 bottom-1 left-0 rounded-md bg-white shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] motion-safe:transition-[translate,width] motion-safe:duration-220 motion-safe:ease-(--ease-out-quick)"
+				></span>
+				{filters.map((f) => (
+					<button
+						type="button"
+						data-value={f.value}
+						aria-pressed={f.value === 'all' ? 'true' : 'false'}
+						class="relative rounded-md px-3 py-1.5 text-sm font-semibold tracking-tight text-dark-blue/70 transition-colors aria-pressed:text-dark-blue hover:text-dark-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue sm:px-4 sm:text-base"
+					>
+						{f.label}
+					</button>
+				))}
+			</div>
+
+			<ol class="mt-10 flex flex-col xl:mt-12">
+				{releases.map((r, i) => (
+					<li
+						id={`v${r.version}`}
+						data-release
+						data-for={r.audiences.join(' ')}
+						data-last={i === releases.length - 1 ? '' : undefined}
+						class="group relative grid scroll-mt-(--header-height) gap-y-3 pb-12 pl-10 data-last:pb-0 md:grid-cols-[148px_1fr] md:gap-x-12 md:pl-0"
+					>
+						{/* The rail: from this version's node down to the next one */}
+						<span
+							aria-hidden="true"
+							class="absolute top-2 bottom-0 left-[7px] w-0.5 bg-light-blue group-data-last:hidden md:left-[171px]"
+						></span>
+						<span
+							aria-hidden="true"
+							class:list={[
+								'absolute top-2 left-0 size-4 rounded-full md:left-[164px]',
+								i === 0 ? 'bg-dark-blue' : 'border-2 border-med-blue bg-off-white',
+							]}
+						></span>
+						<h2 class="flex flex-wrap items-baseline gap-x-3 md:flex-col md:items-end md:gap-y-0.5 md:text-right">
+							<a href={`#v${r.version}`} class="font-display text-2xl leading-normal hover:text-med-blue">
+								{r.version}
+								{i === 0 && <span class="sr-only"> (latest)</span>}
+							</a>
+							<time datetime={r.day} class="text-sm font-medium text-med-blue">{r.date}</time>
+						</h2>
+						<div class="flex flex-col gap-4 md:pt-1.5">
+							{r.body.map((block) =>
+								typeof block === 'string' ? (
+									<p class="text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8">
+										{inline(block).map((part, n) => (n % 2 ? <code>{part}</code> : part))}
+									</p>
+								) : (
+									<ul class="flex flex-col gap-5">
+										{block.list.map((change) => (
+											<li data-change data-for={change.for.join(' ')} class="flex flex-col gap-0.5">
+												<span class="text-sm font-semibold tracking-tight text-med-blue">{label(change.for)}</span>
+												<span class="text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8">
+													{inline(change.text).map((part, n) => (n % 2 ? <code>{part}</code> : part))}
+												</span>
+											</li>
+										))}
+									</ul>
+								),
+							)}
+						</div>
+					</li>
+				))}
+			</ol>
+			<p data-empty hidden class="mt-10 text-base leading-7 text-dark-blue/85 xl:text-lg">No changes for attendees yet.</p>
 		</article>
 	</main>
 	<Footer />
 </Layout>
+
+<style>
+	code {
+		border-radius: var(--radius-md);
+		background: rgb(219 226 239 / 0.6);
+		padding-inline: calc(var(--spacing) * 1);
+	}
+</style>
+
+<script>
+	// Filters the changes by who they're for, keeping the choice in the URL (?for=organisers)
+	const group = document.querySelector<HTMLElement>('[data-filter]')!;
+	const thumb = group.querySelector<HTMLElement>('[data-thumb]')!;
+	const buttons = [...group.querySelectorAll<HTMLButtonElement>('button')];
+	const releases = [...document.querySelectorAll<HTMLElement>('[data-release]')];
+	const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+	const fade = matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 200;
+
+	const shows = (el: HTMLElement, value: string) => value === 'all' || el.dataset.for!.split(' ').includes(value);
+
+	function moveThumb() {
+		const on = buttons.find((b) => b.getAttribute('aria-pressed') === 'true')!;
+		thumb.style.width = `${on.offsetWidth}px`;
+		thumb.style.translate = `${on.offsetLeft}px 0`;
+	}
+
+	function apply(value: string, animate: boolean) {
+		for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.value === value));
+		moveThumb();
+		let last: HTMLElement | undefined;
+		for (const release of releases) {
+			const wasHidden = release.hidden;
+			release.hidden = !shows(release, value);
+			for (const change of release.querySelectorAll<HTMLElement>('[data-change]')) {
+				const was = change.hidden;
+				change.hidden = !shows(change, value);
+				if (animate && was && !change.hidden && !wasHidden) change.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fade, easing: 'ease-out' });
+			}
+			if (animate && wasHidden && !release.hidden) release.animate([{ opacity: 0 }, { opacity: 1 }], { duration: fade, easing: 'ease-out' });
+			release.removeAttribute('data-last');
+			if (!release.hidden) last = release;
+		}
+		last?.setAttribute('data-last', '');
+		empty.textContent = `No changes for ${value} yet.`;
+		empty.hidden = Boolean(last);
+	}
+
+	const initial = new URLSearchParams(location.search).get('for');
+	group.hidden = false;
+	apply(buttons.some((b) => b.dataset.value === initial) ? initial! : 'all', false);
+
+	for (const b of buttons) {
+		b.addEventListener('click', () => {
+			const value = b.dataset.value!;
+			apply(value, true);
+			const url = new URL(location.href);
+			if (value === 'all') url.searchParams.delete('for');
+			else url.searchParams.set('for', value);
+			history.replaceState(null, '', url);
+		});
+	}
+	// Fonts loading or the window resizing change the buttons' widths
+	new ResizeObserver(moveThumb).observe(group);
+</script>
