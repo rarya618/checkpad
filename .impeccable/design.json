@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-16T18:19:05.401Z",
+  "generatedAt": "2026-11-19T19:25:02.619Z",
   "title": "Design System: Checkpad",
   "extensions": {
     "colorMeta": {
@@ -297,6 +297,56 @@
         "name": "past-fold",
         "value": "450ms cubic-bezier(0.33, 1, 0.68, 1) open, 320ms cubic-bezier(0.65, 0, 0.35, 1) close, grid-template-rows 0fr to 1fr",
         "purpose": "Events page \"Show all past events\" folding the extra rows open as they fade in, and closed again; the Past heading scrolls back into view when it is above the screen."
+      },
+      {
+        "name": "form-fields-move",
+        "value": "320ms cubic-bezier(0.16, 1, 0.3, 1); end date fades in (out in 120ms)",
+        "purpose": "Event form: switching Multi-day event moves the date and time fields to their new places and sizes."
+      },
+      {
+        "name": "page-fade",
+        "value": "90ms out, then 160ms in, never overlapping",
+        "purpose": "Dashboard page changes: New event and back, opening an event, moving between an event's pages and between the main pages; the sidebar or tab bar stays put."
+      },
+      {
+        "name": "shared-element-travel",
+        "value": "280ms (New event button to Create event), 320ms (event name from its row or card to the page title)",
+        "purpose": "View transitions that carry one element between pages, and back."
+      },
+      {
+        "name": "cards-rise",
+        "value": "12px rise, 50ms apart",
+        "purpose": "The New event form's and Event settings' cards settling into place."
+      },
+      {
+        "name": "button-brighten",
+        "value": "150ms",
+        "purpose": "Create event and Save changes brightening as the form becomes complete or has changes; Discard dims the same way."
+      },
+      {
+        "name": "saved-tick",
+        "value": "button held solid 1.4s while a tick draws beside Saved, then dims",
+        "purpose": "Event settings after a save."
+      },
+      {
+        "name": "rail-slide",
+        "value": "220ms cubic-bezier(0.16, 1, 0.3, 1); panel fades in over 160ms",
+        "purpose": "Organisers rail: the light-blue fill slides to the chosen entry."
+      },
+      {
+        "name": "dialog-in",
+        "value": "180ms fade and scale; phone menus slide up as a sheet",
+        "purpose": "Dashboard dialogs opening."
+      },
+      {
+        "name": "toast-in",
+        "value": "8px rise over 200ms",
+        "purpose": "Dashboard toasts."
+      },
+      {
+        "name": "changelog-filter",
+        "value": "thumb slides 220ms cubic-bezier(0.16, 1, 0.3, 1); leaving items fade out 200ms before hiding, returning ones fade in; 120ms fades and no slide with reduced motion",
+        "purpose": "The changelog's segmented filter."
       }
     ],
     "breakpoints": [
@@ -424,6 +474,30 @@
       "description": "Upcoming and past events as one white list with a navy hairline and light-blue dividers, scanned by a date column; past rows show turnout over a thin check-in bar.",
       "html": "<ul class=\"ds-rows\"><li class=\"ds-row\"><p class=\"ds-date\"><span>Sep</span><b>10</b></p><div><p class=\"ds-row-name\">September Meetup</p><p class=\"ds-row-meta\">Thu · 17:00–20:00 <span>· GDG Sydney</span></p></div><div class=\"ds-row-count\"><p><b>38</b> of 90 attended <span>· 42%</span></p><div class=\"ds-row-bar\"><i style=\"width:38%;background:#112d4e\"></i><i style=\"width:4%;background:#3f72af\"></i><i style=\"flex:1;background:#dbe2ef\"></i></div></div></li><li class=\"ds-row\"><p class=\"ds-date\"><span>Aug</span><b>13</b></p><div><p class=\"ds-row-name\">August Meetup</p><p class=\"ds-row-meta\">Thu · 17:00–20:00 <span>· GDG Sydney</span></p></div><div class=\"ds-row-count\"><p><b>64</b> of 120 attended <span>· 53%</span></p><div class=\"ds-row-bar\"><i style=\"width:47%;background:#112d4e\"></i><i style=\"width:6%;background:#3f72af\"></i><i style=\"flex:1;background:#dbe2ef\"></i></div></div></li></ul>",
       "css": ".ds-rows { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; color: var(--color-dark-blue, #112d4e); list-style: none; margin: 0; padding: 0; max-width: 620px; background: #fff; border: 1px solid rgb(17 45 78 / 0.12); border-radius: 12px; } .ds-row { display: grid; grid-template-columns: 3.5rem minmax(0,1fr) 11rem; align-items: center; gap: 24px; padding: 16px 16px 16px 20px; } .ds-row + .ds-row { border-top: 1px solid var(--color-light-blue, #dbe2ef); } .ds-row:hover { background: rgb(249 247 247 / 0.7); } .ds-date { margin: 0; display: flex; flex-direction: column; align-items: center; } .ds-date span { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--color-med-blue, #3f72af); } .ds-date b { font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; } .ds-row-name { margin: 0; font-size: 1.125rem; font-weight: 800; letter-spacing: -0.025em; } .ds-row-meta { margin: 0; font-size: 0.875rem; color: rgb(17 45 78 / 0.8); } .ds-row-meta span { color: var(--color-med-blue, #3f72af); } .ds-row-count p { margin: 0 0 6px; font-size: 0.875rem; text-align: right; font-variant-numeric: tabular-nums; } .ds-row-count span { color: var(--color-med-blue, #3f72af); } .ds-row-bar { display: flex; gap: 1px; height: 6px; border-radius: 9999px; overflow: hidden; } .ds-row-bar i { display: block; }"
+    },
+    {
+      "name": "Event Header",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "The top of every event page: the event's name in page-title type with secondary Share and Edit and a ⋮ menu, over one quiet med-blue line of when it is, the status indicator and the attendees' link, closed off by a navy hairline.",
+      "html": "<header class=\"ds-eh\"><div class=\"ds-eh-row\"><h1>September Meetup</h1><span class=\"ds-eh-btns\"><button class=\"ds-eh-btn\">Share</button><button class=\"ds-eh-btn\">Edit</button></span></div><p class=\"ds-eh-meta\">Thu 10 September · 17:00–20:00 · <b><i></i>Check-in open</b> · <a href=\"#\">checkpad.app/september-meetup</a></p></header>",
+      "css": ".ds-eh { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; color: var(--color-dark-blue, #112d4e); max-width: 720px; padding-bottom: 16px; border-bottom: 1px solid rgb(17 45 78 / 0.12); } .ds-eh-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; } .ds-eh h1 { margin: 0; font-size: 1.875rem; line-height: 1.2; font-weight: 800; letter-spacing: -0.025em; } .ds-eh-btns { display: flex; gap: 8px; } .ds-eh-btn { font: inherit; font-weight: 800; letter-spacing: -0.025em; color: var(--color-dark-blue, #112d4e); background: var(--color-light-blue, #dbe2ef); border: 0; border-radius: 8px; padding: 6px 24px; cursor: pointer; transition: background 150ms; } .ds-eh-btn:hover { background: #bbcbe3; } .ds-eh-btn:focus-visible { outline: 2px solid var(--color-med-blue, #3f72af); outline-offset: 2px; } .ds-eh-meta { margin: 8px 0 0; font-size: 0.875rem; line-height: 1.5; color: var(--color-med-blue, #3f72af); } .ds-eh-meta b { display: inline-flex; align-items: center; gap: 6px; color: var(--color-dark-blue, #112d4e); font-weight: 700; letter-spacing: -0.025em; } .ds-eh-meta i { width: 6px; height: 6px; border-radius: 9999px; background: var(--color-dark-blue, #112d4e); } .ds-eh-meta a { color: inherit; text-underline-offset: 2px; } .ds-eh-meta a:hover { color: var(--color-dark-blue, #112d4e); }"
+    },
+    {
+      "name": "Segmented Filter",
+      "kind": "chip",
+      "refersTo": "",
+      "description": "The changelog's audience filter: a light-blue track whose white thumb slides to the chosen option; the choice lives in the URL.",
+      "html": "<div class=\"ds-seg\" role=\"group\" aria-label=\"Show changes for\"><button aria-pressed=\"true\">All changes</button><button aria-pressed=\"false\">For organisers</button><button aria-pressed=\"false\">For attendees</button></div>",
+      "css": ".ds-seg { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; display: inline-flex; gap: 0; padding: 4px; border-radius: 8px; background: var(--color-light-blue, #dbe2ef); } .ds-seg button { font: inherit; font-size: 1rem; line-height: 1.5; font-weight: 600; letter-spacing: -0.025em; color: rgb(17 45 78 / 0.7); background: transparent; border: 0; border-radius: 6px; padding: 6px 16px; cursor: pointer; transition: color 150ms, background 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-seg button:hover { color: var(--color-dark-blue, #112d4e); } .ds-seg button[aria-pressed=\"true\"] { color: var(--color-dark-blue, #112d4e); background: #fff; box-shadow: 0 4.5px 12px rgb(17 45 78 / 0.14); } .ds-seg button:focus-visible { outline: 2px solid var(--color-med-blue, #3f72af); outline-offset: 2px; }"
+    },
+    {
+      "name": "Changelog Timeline",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Versions down a 2px light-blue line: the latest a solid navy node, older ones hollow med-blue rings; version and date right-aligned left of the line, changes with their who-it's-for label in a reading column to the right. A linked version's number turns med-blue.",
+      "html": "<ol class=\"ds-tl\"><li><h3><a href=\"#\">1.0.2</a><time>20 November 2026</time></h3><span class=\"ds-tl-node ds-tl-latest\"></span><div><span class=\"ds-tl-for\">Organisers</span><p>Dashboard sign-in emails link to manage.checkpad.app instead of checkpad-app.firebaseapp.com</p></div></li><li><h3><a href=\"#\">1.0.1</a><time>20 November 2026</time></h3><span class=\"ds-tl-node\"></span><div><span class=\"ds-tl-for\">Organisers</span><p>Google sign-in goes through manage.checkpad.app instead of checkpad-app.firebaseapp.com</p></div></li></ol>",
+      "css": ".ds-tl { font-family: var(--font-jakarta, 'Plus Jakarta Sans'), sans-serif; color: var(--color-dark-blue, #112d4e); list-style: none; margin: 0; padding: 0; max-width: 680px; } .ds-tl li { position: relative; display: grid; grid-template-columns: 148px 1fr; column-gap: 48px; padding-bottom: 48px; } .ds-tl li:last-child { padding-bottom: 0; } .ds-tl li:not(:last-child)::before { content: ''; position: absolute; top: 8px; bottom: 0; left: 171px; width: 2px; background: var(--color-light-blue, #dbe2ef); } .ds-tl h3 { margin: 0; display: flex; flex-direction: column; align-items: flex-end; text-align: right; } .ds-tl h3 a { color: inherit; text-decoration: none; font-size: 1.5rem; line-height: 1.5; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; } .ds-tl h3 a:hover { color: var(--color-med-blue, #3f72af); } .ds-tl time { font-size: 0.875rem; font-weight: 600; letter-spacing: -0.025em; color: var(--color-med-blue, #3f72af); } .ds-tl-node { position: absolute; top: 8px; left: 164px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 9999px; border: 2px solid var(--color-med-blue, #3f72af); background: var(--color-off-white, #f9f7f7); } .ds-tl-latest { border: 0; background: var(--color-dark-blue, #112d4e); } .ds-tl-for { font-size: 0.875rem; line-height: 1.5; font-weight: 600; letter-spacing: -0.025em; color: var(--color-med-blue, #3f72af); } .ds-tl p { margin: 2px 0 0; font-size: 1rem; line-height: 1.75; color: rgb(17 45 78 / 0.85); }"
     }
   ],
   "narrative": {
