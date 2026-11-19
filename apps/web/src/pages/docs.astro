@@ -144,6 +144,18 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		],
 	},
 	{
+		id: 'when-something-goes-wrong',
+		title: 'When something goes wrong',
+		body: [
+			'Someone says they registered but isn’t found. They may have registered with another email. Search for their name on the event’s Attendees page, which matches names, emails and ticket numbers, and choose Check in on their row. If they aren’t there, add them as a walk-in.',
+			'The venue Wi-Fi drops. Check-ins on the dashboard still show straight away and save when the connection comes back, so keep checking people in. Adding a walk-in needs a connection, because it takes the next ticket number, so add walk-ins once you’re back online. Attendees checking in on their own phones need their mobile data or the Wi-Fi.',
+			'Attendees see “Check-in closed”. Self check-in is off, or was turned off. Turn on Self check-in open in the event’s Settings, or check them in from the dashboard, which works either way.',
+			'Attendees see “Too many check-ins from this network”. Everyone on the venue Wi-Fi shares one limit, which only very large events reach. Check people in from the dashboard, or ask them to use mobile data; the limit clears within ten minutes.',
+			'An attendee shows “You’re already checked in”. They, or someone using their email, checked in earlier; the screen shows when. If that wasn’t them, check the Attendees page and undo the earlier check-in if it was a mistake.',
+			{ tip: 'Before a big event, export the attendee list (Export attendance from the event’s options menu) so you have a copy if the venue has no connection at all.' },
+		],
+	},
+	{
 		id: 'prize-draw',
 		title: 'Prize draw',
 		body: [
