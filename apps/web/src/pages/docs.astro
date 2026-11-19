@@ -32,6 +32,29 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		],
 	},
 	{
+		id: 'signing-in',
+		title: 'Signing in',
+		body: [
+			'The dashboard is at manage.checkpad.app. Sign in with the email address you were invited with, in one of two ways:',
+			{
+				list: [
+					'Continue with Google, if that address is a Google account.',
+					'An email link: enter the address and we’ll email you a link that signs you in. It works once, expires after an hour, and has to be opened on the device and browser you asked from.',
+				],
+			},
+			'If something stops you:',
+			{
+				list: [
+					'“You don’t have access yet”: the address you signed in with isn’t on the organiser list. Choose Use another account, or ask a super admin to add that address.',
+					'“This sign-in link has expired”: it was used already, is more than an hour old, or was opened on another device. Send yourself a new one from that page.',
+					'No email after a few minutes: check your spam folder, then send the link again. If it still doesn’t come, the address probably isn’t the one you were invited with.',
+					'“This email signs in with an email link”: you’ve used email links with this address before, so Google sign-in won’t take it. Use an email link.',
+				],
+			},
+			{ tip: 'Sign-in emails come from noreply@checkpad.app and their link starts with https://manage.checkpad.app/. Don’t use a link that goes anywhere else.' },
+		],
+	},
+	{
 		id: 'teams-and-roles',
 		title: 'Teams and roles',
 		body: [
