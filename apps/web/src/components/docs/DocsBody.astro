@@ -1,0 +1,50 @@
+---
+// A docs page's body (lib/docs.ts): paragraphs, numbered steps, lists and tips, with the
+// page's screenshot after its first paragraph.
+import { Image } from 'astro:assets';
+import type { DocsPage } from '../../lib/docs';
+
+interface Props {
+	page: DocsPage;
+}
+
+const { page } = Astro.props;
+const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
+---
+
+<div class="flex flex-col gap-4">
+	{page.body.map((block, b) => [
+		typeof block === 'string' ? (
+			<p class={text}>{block}</p>
+		) : 'steps' in block ? (
+			<ol class="flex flex-col gap-3">
+				{block.steps.map((step, n) => (
+					<li class="flex gap-4">
+						<span class="grid size-7 shrink-0 place-items-center rounded-full bg-dark-blue text-sm font-bold text-off-white xl:mt-0.5">{n + 1}</span>
+						<span class={text}>{step}</span>
+					</li>
+				))}
+			</ol>
+		) : 'list' in block ? (
+			<ul class={`${text} flex list-disc flex-col gap-1.5 pl-6`}>
+				{block.list.map((item) => (
+					<li>{item}</li>
+				))}
+			</ul>
+		) : (
+			<p class="rounded-2xl bg-light-blue px-5 py-4 text-base leading-7 text-dark-blue">
+				<span class="font-bold">Tip: </span>
+				{block.tip}
+			</p>
+		),
+		b === 0 && page.image && (
+			<Image
+				src={page.image.src}
+				alt={page.image.alt}
+				widths={[720, 1440]}
+				sizes="(min-width: 1024px) 720px, 100vw"
+				class="my-2 w-full rounded-xl border border-light-blue shadow-[0_12px_32px_rgb(17_45_78/0.10)]"
+			/>
+		),
+	])}
+</div>

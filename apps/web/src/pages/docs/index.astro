@@ -1,0 +1,42 @@
+---
+// The docs home: every topic, grouped by when an organiser needs it (lib/docs.ts).
+// "docs" is a reserved event link (RESERVED_SLUGS).
+import DocsLayout from '../../components/docs/DocsLayout.astro';
+import { DASHBOARD_URL } from '../../lib/config';
+import { GROUPS, OLD_ANCHORS, PAGES } from '../../lib/docs';
+
+const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.group === group) }));
+---
+
+<DocsLayout title="Docs · Checkpad" description="How to run check-in with Checkpad: set up a team, import attendees from Bevy or Luma, open check-in, add walk-ins and run the prize draw.">
+	<header class="flex flex-col gap-3">
+		<h1 class="font-display text-5xl xl:text-6xl">Running check-in with Checkpad</h1>
+		<p class="text-lg text-dark-blue/85 xl:text-xl">
+			Everything an organiser needs, from importing your attendee list to the last prize of the night. New here? Start with{' '}
+			<a href={`/docs/${PAGES[0].slug}`} class="font-semibold text-med-blue underline">{PAGES[0].title}</a>. Already set up?{' '}
+			<a href={DASHBOARD_URL} class="font-semibold text-med-blue underline">Sign in to the dashboard</a>.
+		</p>
+	</header>
+
+	{groups.map(({ group, pages }) => (
+		<section class="mt-12 flex flex-col gap-3 xl:mt-14">
+			<h2 class="font-display text-2xl">{group}</h2>
+			<ul class="flex flex-col">
+				{pages.map((p) => (
+					<li class="border-t border-light-blue first:border-t-0">
+						<a href={`/docs/${p.slug}`} class="group flex flex-col gap-0.5 py-3.5">
+							<span class="text-lg font-bold tracking-tight group-hover:text-med-blue">{p.title}</span>
+							<span class="text-base leading-6 text-dark-blue/80">{p.description}</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</section>
+	))}
+</DocsLayout>
+
+<script is:inline define:vars={{ anchors: OLD_ANCHORS }}>
+	// The guide used to be one page, so old links like /docs#import-attendees open that topic's page
+	const slug = decodeURIComponent(location.hash.slice(1));
+	if (Object.hasOwn(anchors, slug)) location.replace(`/docs/${anchors[slug]}`);
+</script>

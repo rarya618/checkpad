@@ -1,5 +1,7 @@
----
-import { Image } from 'astro:assets';
+// The organiser guide, one page per topic (pages/docs/index.astro and pages/docs/[slug].astro).
+// Keep each step true to the dashboard's own wording (labels, buttons and menu items in
+// apps/dashboard), and update it when a flow changes. The code is ahead of the Figma frames
+// "Docs – desktop" and "Docs – mobile" until they're redrawn as a sidebar and topic pages.
 import type { ImageMetadata } from 'astro';
 import analytics from '../assets/docs/analytics.png';
 import importAttendees from '../assets/docs/import.png';
@@ -9,17 +11,10 @@ import prizeDraw from '../assets/docs/prize-draw.png';
 import share from '../assets/docs/share.png';
 import signIn from '../assets/docs/sign-in.png';
 import staffCheckIn from '../assets/screens/staff-check-in.png';
-import Footer from '../components/marketing/Footer.astro';
-import Nav from '../components/marketing/Nav.astro';
-import Layout from '../layouts/Layout.astro';
-import { CONTACT_EMAIL, DASHBOARD_URL } from '../lib/config';
+import { CONTACT_EMAIL } from './config';
 
-// Figma "Docs – desktop" and "Docs – mobile". The organiser guide: keep each step true to the dashboard's own wording (labels,
-// buttons and menu items in apps/dashboard), and update it when a flow changes. "docs" is a
-// reserved event link (RESERVED_SLUGS).
-
-/** A section's body: paragraphs, numbered steps, bulleted lists and tips. */
-type Block = string | { steps: string[] } | { list: string[] } | { tip: string };
+/** A page's body: paragraphs, numbered steps, bulleted lists and tips. */
+export type Block = string | { steps: string[] } | { list: string[] } | { tip: string };
 
 const sections: { id: string; title: string; body: Block[] }[] = [
 	{
@@ -219,9 +214,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 	},
 ];
 
-const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
-
-// A screenshot for each section, shown after its first paragraph. They're exported from the
+// A screenshot for each page, shown after its first paragraph. They're exported from the
 // "Website screenshots" section of the Checkpad Figma file (Screens page), named docs-*.png there.
 const images: Record<string, { src: ImageMetadata; alt: string }> = {
 	'getting-started': { src: signIn, alt: 'The dashboard’s sign-in page, with Continue with Google and an email sign-in link' },
@@ -233,96 +226,41 @@ const images: Record<string, { src: ImageMetadata; alt: string }> = {
 	'prize-draw': { src: prizeDraw, alt: 'The prize draw on the projector showing the third winner' },
 	'after-the-event': { src: analytics, alt: 'Event analytics with arrivals, turnout by ticket type, arrival timing and first-timers' },
 };
----
 
-<Layout title="Docs · Checkpad" description="How to run check-in with Checkpad: set up a team, import attendees from Bevy or Luma, open check-in, add walk-ins and run the prize draw.">
-	<Nav />
-	<main class="mx-auto flex w-full max-w-[1440px] gap-16 px-6 pt-10 pb-18 md:px-12 xl:px-30 xl:pt-16 xl:pb-30">
-		<aside class="hidden w-56 shrink-0 lg:block">
-			<nav aria-label="On this page" class="sticky top-32 flex flex-col gap-3">
-				<p class="text-sm leading-5 font-semibold text-med-blue">On this page</p>
-				<ol class="flex flex-col border-l border-light-blue">
-					{sections.map((s) => (
-						<li>
-							<a
-								href={`#${s.id}`}
-								data-toc-link
-								class="-ml-px block border-l-2 border-transparent py-1.5 pl-4 text-base leading-6 font-medium text-dark-blue/70 transition-colors hover:text-dark-blue data-current:border-med-blue data-current:text-dark-blue"
-							>
-								{s.title}
-							</a>
-						</li>
-					))}
-				</ol>
-			</nav>
-		</aside>
-		<article class="flex max-w-[760px] min-w-0 flex-1 flex-col gap-12">
-			<header class="flex flex-col gap-3">
-				<p class="text-base leading-6 font-semibold text-med-blue">Docs</p>
-				<h1 class="font-display text-5xl xl:text-6xl">Running check-in with Checkpad</h1>
-				<p class="text-lg text-dark-blue/85 xl:text-xl">
-					Everything an organiser needs, from importing your attendee list to the last prize of the night. Already set up?{' '}
-					<a href={DASHBOARD_URL} class="font-semibold text-med-blue underline">Sign in to the dashboard</a>.
-				</p>
-			</header>
-			{sections.map((s, i) => (
-				<section id={s.id} data-docs-section class="flex scroll-mt-32 flex-col gap-4 border-t border-light-blue pt-10 first-of-type:border-t-0 first-of-type:pt-0">
-					<h2 class="flex items-baseline gap-3 font-display text-3xl">
-						<span class="text-xl text-med-blue" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-						{s.title}
-					</h2>
-					{s.body.map((block, b) => [
-						typeof block === 'string' ? (
-							<p class={text}>{block}</p>
-						) : 'steps' in block ? (
-							<ol class="flex flex-col gap-3">
-								{block.steps.map((step, n) => (
-									<li class="flex gap-4">
-										<span class="grid size-7 shrink-0 place-items-center rounded-full bg-dark-blue text-sm font-bold text-off-white xl:mt-0.5">{n + 1}</span>
-										<span class={text}>{step}</span>
-									</li>
-								))}
-							</ol>
-						) : 'list' in block ? (
-							<ul class={`${text} flex list-disc flex-col gap-1.5 pl-6`}>
-								{block.list.map((item) => (
-									<li>{item}</li>
-								))}
-							</ul>
-						) : (
-							<p class="rounded-2xl bg-light-blue px-5 py-4 text-base leading-7 text-dark-blue">
-								<span class="font-bold">Tip: </span>{block.tip}
-							</p>
-						),
-						b === 0 && images[s.id] && (
-							<Image
-								src={images[s.id].src}
-								alt={images[s.id].alt}
-								widths={[760, 1520]}
-								sizes="(min-width: 1024px) 760px, 100vw"
-								class="my-2 w-full rounded-xl border border-light-blue shadow-[0_12px_32px_rgb(17_45_78/0.10)]"
-							/>
-						),
-					])}
-				</section>
-			))}
-		</article>
-	</main>
-	<Footer />
-</Layout>
+/** The sidebar's groups, in reading order: when an organiser needs each page. */
+export const GROUPS = ['Set up', 'On the night', 'Afterwards', 'Help'] as const;
 
-<script>
-	// Marks the contents link for the section being read.
-	const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('[data-toc-link]')].map((a) => [a.hash.slice(1), a]));
-	links.get(location.hash.slice(1))?.toggleAttribute('data-current', true) ?? links.values().next().value?.toggleAttribute('data-current', true);
-	const observer = new IntersectionObserver(
-		(entries) => {
-			for (const entry of entries) {
-				if (!entry.isIntersecting) continue;
-				for (const [id, link] of links) link.toggleAttribute('data-current', id === entry.target.id);
-			}
-		},
-		{ rootMargin: '-20% 0px -70% 0px' },
-	);
-	document.querySelectorAll('[data-docs-section]').forEach((section) => observer.observe(section));
-</script>
+/** Each page's group, its title where the old section's doesn't fit a page of its own, and a line for the index. */
+const meta: Record<string, { group: (typeof GROUPS)[number]; title?: string; slug?: string; description: string }> = {
+	'getting-started': { group: 'Set up', description: 'How to get onto Checkpad, and what happens the first time you sign in.' },
+	'signing-in': { group: 'Set up', description: 'Google or an email link, and what to do when sign-in stops you.' },
+	'teams-and-roles': { group: 'Set up', description: 'Organisers, team members and super admins, and your team’s permanent link.' },
+	'create-an-event': { group: 'Set up', description: 'Name, link, date, teams and walk-in settings.' },
+	'import-attendees': { group: 'Set up', description: 'Bring in your attendee list from Bevy or Luma, and import again as people register.' },
+	'import-reference': { group: 'Set up', description: 'Which columns are read, which rows are skipped, and what importing again changes.' },
+	'open-check-in': { group: 'On the night', description: 'Open self check-in and put the QR code at the door.' },
+	'on-the-night': { group: 'On the night', title: 'Checking people in', slug: 'checking-people-in', description: 'What attendees see, walk-ins, and checking people in from the dashboard.' },
+	'when-something-goes-wrong': { group: 'On the night', description: 'People not on the list, the Wi-Fi dropping, and the messages attendees might see.' },
+	'prize-draw': { group: 'On the night', description: 'Draw winners on the projector from everyone who checked in.' },
+	'after-the-event': { group: 'Afterwards', title: 'Analytics and exports', slug: 'analytics-and-exports', description: 'See who came and report attendance back to Bevy or anywhere else.' },
+	'getting-help': { group: 'Help', description: 'How to reach us, and what to include.' },
+};
+
+export interface DocsPage {
+	slug: string;
+	group: (typeof GROUPS)[number];
+	title: string;
+	description: string;
+	body: Block[];
+	image?: { src: ImageMetadata; alt: string };
+}
+
+/** Every page in reading order: by group, then as listed above. */
+export const PAGES: DocsPage[] = GROUPS.flatMap((group) =>
+	sections
+		.filter((s) => meta[s.id].group === group)
+		.map((s) => ({ slug: meta[s.id].slug ?? s.id, group, title: meta[s.id].title ?? s.title, description: meta[s.id].description, body: s.body, image: images[s.id] })),
+);
+
+/** The one-page guide's section anchors (/docs#on-the-night) → the page each became. */
+export const OLD_ANCHORS: Record<string, string> = Object.fromEntries(Object.keys(meta).map((id) => [id, meta[id].slug ?? id]));
