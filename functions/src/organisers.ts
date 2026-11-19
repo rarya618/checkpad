@@ -19,6 +19,19 @@ function dashboardOrigin(origin: string | undefined) {
 }
 
 /**
+ * Moves a sign-in link from Firebase's default action page on checkpad-app.firebaseapp.com to the
+ * same page on manage.checkpad.app (Hosting serves /__/auth/action on every domain), so the email
+ * doesn't look like phishing. The project's action URL setting would do this, but Firebase won't
+ * let this project change it (EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED), and linkDomain only applies to
+ * mobile apps. Emulator links are left alone.
+ */
+export function onDashboardDomain(link: string) {
+	const url = new URL(link);
+	if (url.hostname.endsWith('.firebaseapp.com') && url.pathname === '/__/auth/action') url.host = new URL(DASHBOARD_URL).host;
+	return url.toString();
+}
+
+/**
  * POST /api/auth/sign-in-link with { email, next }: emails a one-time link that signs in to the
  * dashboard and returns to `next`. Only organisers get one, but the answer is the same either
  * way, so the endpoint can't be used to find out who's on the list or to email strangers.
@@ -34,10 +47,8 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 	const link = await auth.generateSignInWithEmailLink(email, {
 		url: `${base}/sign-in/link?${new URLSearchParams({ next })}`,
 		handleCodeInApp: true,
-		// The link starts on our domain, not checkpad-app.firebaseapp.com. The Auth emulator ignores it.
-		linkDomain: new URL(DASHBOARD_URL).host,
 	});
-	await mail({ to: email, template: 'sign-in', variables: { ADDRESS: email, LINK: link }, idempotencyKey: `sign-in/${randomUUID()}` });
+	await mail({ to: email, template: 'sign-in', variables: { ADDRESS: email, LINK: onDashboardDomain(link) }, idempotencyKey: `sign-in/${randomUUID()}` });
 	return { status: 'sent' as const };
 }
 

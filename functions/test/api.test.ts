@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { onDashboardDomain } from '../lib/organisers.js';
 import { clearFirestore } from '../scripts/emulator.ts';
 
 const PROJECT = 'demo-checkpad';
@@ -241,6 +242,13 @@ describe('GET /teams/:slug', () => {
 	test('404s for an unknown team', async () => {
 		assert.equal((await call('/teams/nope')).status, 404);
 	});
+});
+
+test('sign-in links move from firebaseapp.com to manage.checkpad.app, and emulator links stay', () => {
+	const query = '?apiKey=k&mode=signIn&oobCode=c&continueUrl=https%3A%2F%2Fmanage.checkpad.app%2Fsign-in%2Flink&lang=en';
+	assert.equal(onDashboardDomain(`https://checkpad-app.firebaseapp.com/__/auth/action${query}`), `https://manage.checkpad.app/__/auth/action${query}`);
+	const emulator = `http://127.0.0.1:9099/emulator/action${query}`;
+	assert.equal(onDashboardDomain(emulator), emulator);
 });
 
 describe('POST /auth/sign-in-link', () => {
