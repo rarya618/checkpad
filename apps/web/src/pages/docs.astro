@@ -12,7 +12,7 @@ import staffCheckIn from '../assets/screens/staff-check-in.png';
 import Footer from '../components/marketing/Footer.astro';
 import Nav from '../components/marketing/Nav.astro';
 import Layout from '../layouts/Layout.astro';
-import { DASHBOARD_URL } from '../lib/config';
+import { CONTACT_EMAIL, DASHBOARD_URL } from '../lib/config';
 
 // Figma "Docs – desktop" and "Docs – mobile". The organiser guide: keep each step true to the dashboard's own wording (labels,
 // buttons and menu items in apps/dashboard), and update it when a flow changes. "docs" is a
@@ -134,6 +134,22 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 				],
 			},
 			'Deleting an event deletes its attendee list.',
+		],
+	},
+	{
+		id: 'getting-help',
+		title: 'Getting help',
+		body: [
+			`Email ${CONTACT_EMAIL}. So we can help quickly, include:`,
+			{
+				list: [
+					'the event’s link, like checkpad.app/september-meetup',
+					'what you were doing and what you saw, with the exact wording of any message',
+					'the device and browser you were using',
+				],
+			},
+			'What’s changed in each version of Checkpad is in the changelog at checkpad.app/changelog.',
+			{ tip: 'Attendees with questions about their details for your event should ask you, as its organiser. Questions about what Checkpad itself stores can come to us.' },
 		],
 	},
 ];
