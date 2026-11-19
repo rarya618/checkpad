@@ -10,7 +10,7 @@ Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[
 - [organisers] The version on the dashboard's Profile page links to what changed in it
 - [organisers] The docs are a page per topic, grouped by when you need them, with new pages on signing in, what an import reads and what to do when something goes wrong
 - [attendees] A help page for checking in, linked from every check-in page
-- [organisers, attendees] Terms of use, and the privacy policy now says who runs Checkpad
+- [organisers, attendees] The privacy policy now says who runs Checkpad
 
 ## 1.0.2 (2026-11-20)
 
