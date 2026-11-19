@@ -34,6 +34,8 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 	const link = await auth.generateSignInWithEmailLink(email, {
 		url: `${base}/sign-in/link?${new URLSearchParams({ next })}`,
 		handleCodeInApp: true,
+		// The link starts on our domain, not checkpad-app.firebaseapp.com. The Auth emulator ignores it.
+		linkDomain: new URL(DASHBOARD_URL).host,
 	});
 	await mail({ to: email, template: 'sign-in', variables: { ADDRESS: email, LINK: link }, idempotencyKey: `sign-in/${randomUUID()}` });
 	return { status: 'sent' as const };
