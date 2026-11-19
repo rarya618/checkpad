@@ -1,5 +1,5 @@
 ---
-// A docs page's body (lib/docs.ts): paragraphs, numbered steps, lists and tips, with the
+// A docs page's body (lib/docs.ts): paragraphs, subheadings, numbered steps, lists and tips, with the
 // page's screenshot after its first paragraph.
 import { Image } from 'astro:assets';
 import type { DocsPage } from '../../lib/docs';
@@ -16,6 +16,8 @@ const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
 	{page.body.map((block, b) => [
 		typeof block === 'string' ? (
 			<p class={text}>{block}</p>
+		) : 'heading' in block ? (
+			<h2 class="mt-6 font-display text-xl first:mt-0 xl:text-2xl">{block.heading}</h2>
 		) : 'steps' in block ? (
 			<ol class="flex flex-col gap-3">
 				{block.steps.map((step, n) => (

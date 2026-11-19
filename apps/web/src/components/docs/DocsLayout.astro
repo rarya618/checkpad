@@ -51,7 +51,7 @@ const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.grou
 			<details class="group mb-8 rounded-xl border border-dark-blue/12 bg-white lg:hidden">
 				<summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3.5 text-base font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
 					All docs pages
-					<svg aria-hidden="true" viewBox="0 0 24 24" class="size-5 text-med-blue transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+					<svg aria-hidden="true" viewBox="0 0 24 24" class="size-5 text-med-blue group-open:rotate-180 motion-safe:transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
 				</summary>
 				<nav aria-label="Docs" class="flex flex-col gap-5 border-t border-light-blue px-2 pt-4 pb-3">
 					{groups.map(({ group, pages }) => (
