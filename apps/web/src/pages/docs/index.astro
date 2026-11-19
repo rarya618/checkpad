@@ -25,7 +25,7 @@ const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.grou
 				{pages.map((p) => (
 					<li class="border-t border-light-blue first:border-t-0">
 						<a href={`/docs/${p.slug}`} class="group flex flex-col gap-0.5 py-3.5">
-							<span class="text-lg font-bold tracking-tight group-hover:text-med-blue">{p.title}</span>
+							<span data-docs-title class="self-start text-lg font-bold tracking-tight group-hover:text-med-blue">{p.title}</span>
 							<span class="text-base leading-6 text-dark-blue/80">{p.description}</span>
 						</a>
 					</li>
