@@ -6,7 +6,7 @@ Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[
 
 ## 1.1.1 (2026-11-20)
 
-- [organisers, attendees] The terms of use planned for 1.1.0 are held back until they've been reviewed
+Small fixes behind the scenes.
 
 ## 1.1.0 (2026-11-20)
 
