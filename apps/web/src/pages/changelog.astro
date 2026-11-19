@@ -188,7 +188,6 @@ const filters = [
 		const run = ++current;
 		for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.value === value));
 		moveThumb();
-		list.toggleAttribute('data-filtered', value !== 'all');
 
 		// What changes, fading a whole release rather than each of its lines when it goes or comes back
 		const leaving: HTMLElement[] = [];
@@ -203,6 +202,9 @@ const filters = [
 		}
 		if (animate) await Promise.all(leaving.filter((el) => !el.hidden).map((el) => fadeTo(el, 0)));
 		if (run !== current) return;
+
+		// Labels go and come back in the same step as the lines, not while they fade
+		list.toggleAttribute('data-filtered', value !== 'all');
 
 		for (const el of releases.flatMap((r) => [r, ...r.querySelectorAll<HTMLElement>('[data-change]')])) el.hidden = !shows(el, value);
 		const visible = releases.filter((r) => !r.hidden);
