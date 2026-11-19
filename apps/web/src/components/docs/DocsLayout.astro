@@ -22,12 +22,13 @@ const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.grou
 	<Nav />
 	<div class="mx-auto flex w-full max-w-[1440px] gap-16 px-6 pt-8 pb-18 md:px-12 xl:px-30 xl:pt-12 xl:pb-30">
 		<aside class="hidden w-72 shrink-0 lg:block">
-			<nav aria-label="Docs" class="sticky top-[calc(var(--header-height)+--spacing(6))] flex flex-col gap-6 border-r border-dark-blue/12 pr-6">
+			<nav aria-label="Docs" data-docs-sidebar class="sticky top-[calc(var(--header-height)+--spacing(8))] flex xl:top-[calc(var(--header-height)+--spacing(12))] flex-col gap-6 border-r border-dark-blue/12 pr-6">
 				<a
 					href="/docs"
 					aria-current={current ? undefined : 'page'}
-					class="block rounded-lg px-3 py-1.5 text-base font-semibold tracking-tight transition-colors hover:bg-light-blue/50 aria-[current=page]:bg-light-blue aria-[current=page]:font-bold"
+					class="relative isolate block rounded-lg px-3 py-1.5 text-base font-semibold tracking-tight transition-colors hover:bg-light-blue/50 aria-[current=page]:font-bold"
 				>
+					{!current && <span data-current-fill aria-hidden="true" class="absolute inset-0 -z-10 rounded-lg bg-light-blue"></span>}
 					Docs home
 				</a>
 				{groups.map(({ group, pages }) => (
@@ -39,8 +40,9 @@ const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.grou
 									<a
 										href={`/docs/${p.slug}`}
 										aria-current={p.slug === current ? 'page' : undefined}
-										class="block rounded-lg px-3 py-1.5 text-base font-medium text-dark-blue/80 transition-colors hover:bg-light-blue/50 hover:text-dark-blue aria-[current=page]:bg-light-blue aria-[current=page]:font-bold aria-[current=page]:tracking-tight aria-[current=page]:text-dark-blue"
+										class="relative isolate block rounded-lg px-3 py-1.5 text-base font-medium text-dark-blue/80 transition-colors hover:bg-light-blue/50 hover:text-dark-blue aria-[current=page]:font-bold aria-[current=page]:tracking-tight aria-[current=page]:text-dark-blue"
 									>
+										{p.slug === current && <span data-current-fill aria-hidden="true" class="absolute inset-0 -z-10 rounded-lg bg-light-blue"></span>}
 										{p.title}
 									</a>
 								</li>
@@ -51,8 +53,8 @@ const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.grou
 			</nav>
 		</aside>
 
-		<main class="flex max-w-[720px] min-w-0 flex-1 flex-col">
-			<details class="group mb-8 rounded-xl border border-dark-blue/12 bg-white lg:hidden">
+		<main data-docs-main class="flex max-w-[720px] min-w-0 flex-1 flex-col">
+			<details data-docs-menu class="group mb-8 rounded-xl border border-dark-blue/12 bg-white lg:hidden">
 				<summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3.5 text-base font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
 					All docs pages
 					<svg aria-hidden="true" viewBox="0 0 24 24" class="size-5 text-med-blue group-open:rotate-180 motion-safe:transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -90,3 +92,115 @@ const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.grou
 	</div>
 	<Footer />
 </Layout>
+
+<style is:global>
+	/* Moving between docs pages keeps the header and sidebar in place while the reading column
+	   gives way, as the dashboard does: out in 90ms, then in over 160ms. The sidebar's light-blue
+	   fill slides to the page you chose, and a title you followed from Previous, Next or the index
+	   travels to become the new page's heading. Only docs pages opt in, so leaving them is an
+	   ordinary page load. With reduced motion, the page just changes. */
+	@view-transition {
+		navigation: auto;
+	}
+	[data-header] {
+		view-transition-name: site-header;
+	}
+	[data-docs-sidebar] {
+		view-transition-name: docs-sidebar;
+	}
+	[data-docs-sidebar] [data-current-fill] {
+		view-transition-name: docs-current;
+	}
+	::view-transition-old(root) {
+		animation: 90ms ease-in both docs-fade-out;
+	}
+	::view-transition-new(root) {
+		animation: 160ms ease-out 90ms both docs-fade-in;
+	}
+	/* The sidebar sticks exactly where it starts (its top matches the page's top padding), so it
+	   never moves between pages and the fill slides along it. Its snapshot is transparent, so it
+	   sits above the fill and the labels stay readable as the fill passes under them. */
+	::view-transition-group(docs-sidebar) {
+		z-index: 1;
+	}
+	::view-transition-group(docs-current) {
+		animation-duration: 220ms;
+		animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	::view-transition-group(docs-title) {
+		animation-duration: 320ms;
+		animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	::view-transition-old(docs-sidebar),
+	::view-transition-new(docs-sidebar),
+	::view-transition-old(docs-title),
+	::view-transition-new(docs-title) {
+		animation-duration: 220ms;
+	}
+	@keyframes docs-fade-out {
+		to {
+			opacity: 0;
+		}
+	}
+	@keyframes docs-fade-in {
+		from {
+			opacity: 0;
+		}
+	}
+
+	/* The phone menu unrolls to its height, and rolls back up faster */
+	@media (prefers-reduced-motion: no-preference) {
+		[data-docs-menu] {
+			interpolate-size: allow-keywords;
+		}
+		[data-docs-menu]::details-content {
+			height: 0;
+			overflow: clip;
+			transition:
+				height 200ms cubic-bezier(0.4, 0, 1, 1),
+				content-visibility 200ms allow-discrete;
+		}
+		[data-docs-menu][open]::details-content {
+			height: auto;
+			transition-duration: 320ms;
+			transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		@view-transition {
+			navigation: none;
+		}
+	}
+</style>
+
+<script>
+	// A title followed from Previous, Next or the index becomes the new page's heading: the link's
+	// title is named on the way out (pageswap) and the heading on the way in (pagereveal).
+	const MORPH = 'checkpad:docs-title';
+	let followed: HTMLElement | null = null;
+	document.addEventListener('click', (e) => {
+		followed = (e.target as Element).closest<HTMLAnchorElement>('a')?.querySelector<HTMLElement>('[data-docs-title]') ?? null;
+	});
+	addEventListener('pageswap', (e) => {
+		const to = e.activation?.entry.url;
+		const link = followed?.closest('a');
+		if (!e.viewTransition || !followed || !link || !to || new URL(to).pathname !== link.pathname) return;
+		followed.style.viewTransitionName = 'docs-title';
+		try {
+			sessionStorage.setItem(MORPH, link.pathname);
+		} catch {}
+	});
+	addEventListener('pagereveal', (e) => {
+		let from: string | null = null;
+		try {
+			from = sessionStorage.getItem(MORPH);
+			sessionStorage.removeItem(MORPH);
+		} catch {}
+		const heading = document.querySelector<HTMLElement>('[data-docs-main] h1');
+		if (!e.viewTransition || !heading || from !== location.pathname) return;
+		heading.style.viewTransitionName = 'docs-title';
+		e.viewTransition.finished.finally(() => (heading.style.viewTransitionName = ''));
+	});
+</script>
+
