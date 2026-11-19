@@ -17,7 +17,7 @@ OWN-WORLD: Off-white ground, navy ink; the sidebar is the dashboard's quiet colu
 
 STORY: A first-timer reads Set up top to bottom using Next at the foot of each page; someone mid-event jumps straight to On the night or When something goes wrong from the sidebar or the index.
 
-FIRST VIEWPORT: Header nav; below, the sidebar at left (260px) with the four groups and the current page filled; the reading column with the topic title, its first paragraph and its screenshot. On phones the sidebar folds into an "All docs pages" disclosure above the title. The /docs index uses the same frame: title, one-line intro, then each group with its topics and a one-line description.
+FIRST VIEWPORT: Header nav; below, the sidebar at left (288px, so no topic title wraps) with the four groups and the current page filled; the reading column with the topic title, its first paragraph and its screenshot. On phones the sidebar folds into an "All docs pages" disclosure above the title. The /docs index uses the same frame: title, one-line intro, then each group with its topics and a one-line description.
 
 FORM: sidebar by stage, position 1 on the ordered list; seed:9ae4c02cd97c2646. Signature interaction: previous and next at the foot of every page carry you through the guide in order; old /docs#section links land on their new page.
 
