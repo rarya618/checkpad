@@ -2,6 +2,10 @@
 
 Checkpad has one version for the whole product: the dashboard, the check-in site and the check-in API. It follows SemVer: a patch for fixes and polish, a minor version for something new for organisers or attendees, and a major version for a change people have to relearn or redo. `npm run release -- patch | minor | major` moves to the next one and drafts its entry here (scripts/release.mjs).
 
+## 1.0.1 (2026-11-20)
+
+- Dashboard sign-in links and Google sign-in go through manage.checkpad.app instead of checkpad-app.firebaseapp.com
+
 ## 1.0.0 (2026-11-18)
 
 The first numbered version, of everything live at this point:
