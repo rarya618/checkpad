@@ -39,8 +39,10 @@ export const app = initializeApp(
 );
 
 // getAuth() without its popup helper: given one, Safari waits for its iframe (from the
-// authDomain, a third party to Safari) before saying who's signed in, which held the dashboard
-// on "Signing you in". The Google button brings it instead (auth.ts).
+// authDomain) before saying who's signed in, which held the dashboard on "Signing you in" while
+// the authDomain was checkpad-app.firebaseapp.com, a third party to Safari. It's now
+// manage.checkpad.app (.env.example), but checkpad-app.web.app still serves the dashboard,
+// so the Google button still brings the helper instead (auth.ts).
 export const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence] });
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
