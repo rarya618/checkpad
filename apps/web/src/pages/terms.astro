@@ -1,0 +1,137 @@
+---
+import Footer from '../components/marketing/Footer.astro';
+import Nav from '../components/marketing/Nav.astro';
+import Layout from '../layouts/Layout.astro';
+import { CONTACT_EMAIL, OPERATOR } from '../lib/config';
+
+// Not in Figma. Plain-language terms for organisers and attendees; the privacy page says what's
+// stored. Keep both true to the product (who can see what is in firestore.rules), have changes
+// checked before they go live, and update the date whenever the substance changes. "terms" is a
+// reserved event link (RESERVED_SLUGS).
+const updated = '20 November 2026';
+
+/** A section's body: paragraphs, and bulleted lists. */
+type Block = string | { list: string[] };
+
+const sections: { title: string; body: Block[] }[] = [
+	{
+		title: 'Who these terms are for',
+		body: [
+			`Checkpad is provided by ${OPERATOR} (“we”). These terms apply to organisers and team members who use the dashboard at manage.checkpad.app, and to attendees who check in at an event link on checkpad.app. By using Checkpad you agree to them.`,
+		],
+	},
+	{
+		title: 'Organiser accounts',
+		body: [
+			'Checkpad is invite-only for now. You can sign in only if someone on Checkpad has added you, and only with the email address they added.',
+			'You’re responsible for what happens under your account, so keep access to that email address to yourself. Tell us straight away if you think someone else has used it.',
+		],
+	},
+	{
+		title: 'The attendee lists you bring',
+		body: [
+			'When you import an attendee list, you’re telling us you’re allowed to use it to check people in at your event. In practice that means:',
+			{
+				list: [
+					'the people on it registered for your event, through Bevy, Luma or similar, under terms that let you use their details to run it',
+					'you use Checkpad’s copy only for that event: checking people in, counting who came, the prize draw and reporting attendance',
+					'you don’t import anyone’s details that you weren’t given for the event',
+				],
+			},
+			'You decide how long an event stays in Checkpad. Deleting the event deletes its attendee list. We use the list only to run Checkpad for you, as the privacy policy describes, and we don’t sell it or use it for anything else.',
+		],
+	},
+	{
+		title: 'Using Checkpad fairly',
+		body: [
+			'Don’t use Checkpad to:',
+			{
+				list: [
+					'send people messages they didn’t ask for, or collect details for anything other than your event',
+					'get into events, teams or data you haven’t been given access to, or work around the limits of your role',
+					'disrupt the service, for example by sending it automated traffic',
+					'run an event that breaks the law',
+				],
+			},
+			'We can suspend or remove an account that does any of these, and delete what it imported.',
+		],
+	},
+	{
+		title: 'If you’re checking in',
+		body: [
+			'Checking in records that you arrived, and when. The event’s organisers and their volunteers can see it, along with the details they imported for you or that you gave as a walk-in. For anything about a particular event, contact its organiser.',
+		],
+	},
+	{
+		title: 'Keeping it running',
+		body: [
+			'Checkpad is new and still changing. We work to keep it available and your data safe, but we can’t promise it will never be down, including on the night of your event. Check-ins on the dashboard wait and save when the connection comes back, but it’s worth exporting your attendee list before the night in case you need a paper backup.',
+			'We may change, add or remove features. If we change something that affects how you run your events, we’ll tell organisers by email first where we can.',
+		],
+	},
+	{
+		title: 'Payment',
+		body: [
+			'These terms don’t cover payment. If Checkpad ever charges organisers, we’ll set out what it costs and the terms that apply before you’re charged anything.',
+		],
+	},
+	{
+		title: 'Our responsibility',
+		body: [
+			'Nothing in these terms takes away rights you have under the Australian Consumer Law that can’t be excluded. Apart from those, and as far as the law allows, we aren’t responsible for losses caused by Checkpad being unavailable, or by how organisers use the data they import.',
+		],
+	},
+	{
+		title: 'Leaving Checkpad',
+		body: [
+			`You can stop using Checkpad at any time. To have your account and your team’s events deleted, email ${CONTACT_EMAIL}.`,
+		],
+	},
+	{
+		title: 'Changes to these terms',
+		body: [
+			'If we change these terms, we’ll update this page and its date, and email organisers about anything that matters. Using Checkpad after a change means you accept it.',
+			'These terms are governed by the law of New South Wales, Australia.',
+		],
+	},
+];
+
+const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
+---
+
+<Layout title="Terms · Checkpad" description="The terms for using Checkpad, for organisers running events and attendees checking in.">
+	<Nav />
+	<main>
+		<article class="mx-auto flex w-full max-w-[760px] flex-col gap-10 px-6 pt-10 pb-18 md:px-12 xl:pt-16 xl:pb-30">
+			<header class="flex flex-col gap-3">
+				<h1 class="font-display text-5xl xl:text-6xl">Terms of use</h1>
+				<p class="text-lg text-dark-blue/85 xl:text-xl">What you agree to when you run an event or check in with Checkpad.</p>
+				<p class="text-base text-med-blue">Last updated {updated}</p>
+			</header>
+			{sections.map((s) => (
+				<section class="flex flex-col gap-3">
+					<h2 class="font-display text-2xl">{s.title}</h2>
+					{s.body.map((block) =>
+						typeof block === 'string' ? (
+							<p class={text}>{block}</p>
+						) : (
+							<ul class={`${text} flex list-disc flex-col gap-1.5 pl-6`}>
+								{block.list.map((item) => (
+									<li>{item}</li>
+								))}
+							</ul>
+						),
+					)}
+				</section>
+			))}
+			<section class="flex flex-col gap-3">
+				<h2 class="font-display text-2xl">Questions</h2>
+				<p class={text}>
+					Email <a href={`mailto:${CONTACT_EMAIL}`} class="font-semibold text-med-blue underline">{CONTACT_EMAIL}</a>. What we store about you is in
+					the <a href="/privacy" class="font-semibold text-med-blue underline">privacy policy</a>.
+				</p>
+			</section>
+		</article>
+	</main>
+	<Footer />
+</Layout>
