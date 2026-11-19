@@ -48,7 +48,7 @@ const changes = run('git', ['log', '--reverse', '--format=%s', lastTag ? `${last
 	.filter((line) => line && !/^Release \d+\.\d+\.\d+$/.test(line));
 
 const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Sydney' });
-const entry = `## ${next} (${today})\n\n${changes.map((line) => `- ${line}`).join('\n') || '- (nothing since the last version)'}\n`;
+const entry = `## ${next} (${today})\n\n${changes.map((line) => `- [?] ${line}`).join('\n') || '- (nothing since the last version)'}\n`;
 const changelog = readFileSync(new URL('CHANGELOG.md', root), 'utf8');
 const [head, ...rest] = changelog.split(/\n(?=## )/);
 writeFileSync(new URL('CHANGELOG.md', root), [head.trimEnd(), entry, ...rest].join('\n\n').replace(/\n{3,}/g, '\n\n'));
@@ -56,7 +56,8 @@ writeFileSync(new URL('CHANGELOG.md', root), [head.trimEnd(), entry, ...rest].jo
 console.log(`
 ${current} → ${next}${lastTag ? `, ${changes.length} commits since ${lastTag}` : ''}.
 
-1. Tidy the new entry at the top of CHANGELOG.md: merge, reword or drop lines as you like.
+1. Tidy the new entry at the top of CHANGELOG.md: merge, reword or drop lines as you like,
+   and replace each [?] with [organisers], [attendees] or [organisers, attendees].
 2. Commit and tag it:
      git commit -am "Release ${next}"
      git tag -a v${next} -m "Release ${next}"
