@@ -218,7 +218,7 @@ describe('creating events', () => {
 	});
 
 	test('the link can’t be one of the attendee site’s pages, or have capitals or spaces', async () => {
-		for (const slug of ['api', 'changelog', 'check-in', 'docs', 'privacy', 'team', 'October', 'october meetup', '-october', 'october--meetup']) {
+		for (const slug of ['api', 'changelog', 'check-in', 'docs', 'privacy', 'team', 'terms', 'October', 'october meetup', '-october', 'october--meetup']) {
 			await assertFails(createEvent(priya(), 'new', event(slug, ['sydney'])));
 		}
 	});
