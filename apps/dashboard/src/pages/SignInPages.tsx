@@ -355,7 +355,7 @@ export function CheckEmailPage() {
 					inputMode: 'numeric',
 					autoComplete: 'one-time-code',
 					autoFocus: true,
-					placeholder: '123 456',
+					placeholder: '123456',
 					maxLength: 7,
 					spellCheck: false,
 					className: 'tabular-nums tracking-widest',
