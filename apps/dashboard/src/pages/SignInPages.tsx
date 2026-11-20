@@ -22,14 +22,16 @@ export function AuthLayout({ title, description, children, foot }: { title: stri
 		<div className="flex min-h-dvh flex-col px-6 py-6 md:px-12 md:py-8 lg:px-20">
 			<img src={logo} alt="checkpad" width={146} height={32} className="self-start" />
 			{/* Centred by the space above and below rather than justify-center, so an error that
-			    appears under the field grows downwards instead of moving the question up the screen */}
-			<main className="flex w-full max-w-3xl flex-1 flex-col gap-8 py-14 md:gap-10">
-				<div className="flex-1" />
+			    appears under the field grows downwards instead of moving the question up the screen.
+			    The space below gets twice the share, so there is room for that message on phones. A 0px
+			    basis, not flex-1's 0%, which counts as the content's height here */}
+			<main className="flex w-full max-w-3xl grow basis-0 flex-col gap-8 py-14 md:gap-10">
+				<div className="grow basis-0" />
 				<div className="flex flex-col gap-3" data-enter>
 					<h1 className="font-display text-4xl leading-tight text-balance md:text-5xl lg:text-6xl">{title}</h1>
 					<p className="max-w-2xl text-lg leading-normal text-pretty text-dark-blue/80 md:text-xl">{description}</p>
 				</div>
-				<div className="flex w-full max-w-2xl flex-1 flex-col gap-5" data-enter style={{ '--enter': 1 } as CSSProperties}>
+				<div className="flex w-full max-w-2xl grow-2 basis-0 flex-col gap-5" data-enter style={{ '--enter': 1 } as CSSProperties}>
 					{children}
 				</div>
 			</main>
@@ -111,7 +113,7 @@ function EmailForm({
 					placeholder="you@example.com"
 					aria-invalid={error ? true : undefined}
 					aria-describedby={error ? `${id}-error` : undefined}
-					className="min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue md:text-xl shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)]"
+					className="min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)]"
 				/>
 				{error && (
 					<p id={`${id}-error`} role="alert" className={alert}>
