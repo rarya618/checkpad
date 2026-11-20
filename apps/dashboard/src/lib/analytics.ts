@@ -216,7 +216,10 @@ const SIGN_UP_GROUPS = [
 	{ name: 'On the day', upTo: 0 },
 	{ name: '1 to 6 days before', upTo: 6 },
 	{ name: '1 to 2 weeks before', upTo: 13 },
-	{ name: 'Over 2 weeks before', upTo: Infinity },
+	// Ticketed events sell for months, so the weeks before split further; empty groups don't show
+	{ name: '2 to 4 weeks before', upTo: 27 },
+	{ name: '1 to 2 months before', upTo: 59 },
+	{ name: 'Over 2 months before', upTo: Infinity },
 ];
 
 /**
