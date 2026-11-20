@@ -1,10 +1,21 @@
 import { buttonClass } from '@checkpad/shared/button';
 import logo from '@checkpad/shared/checkpad-logo.svg';
-import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useId, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import google from '../assets/google.svg';
 import Loading, { Spinner } from '../components/Loading';
-import { completeSignInLink, emulatorSignInLink, lastLinkEmail, prepareGoogleSignIn, sendSignInLink, signInWithGoogle, signOut, useSession } from '../lib/auth';
+import {
+	completeSignInLink,
+	emulatorSignInCode,
+	emulatorSignInLink,
+	lastLinkEmail,
+	prepareGoogleSignIn,
+	sendSignInLink,
+	signInWithCode,
+	signInWithGoogle,
+	signOut,
+	useSession,
+} from '../lib/auth';
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_URL } from '../lib/config';
 import { usingEmulators } from '../lib/firebase';
@@ -66,54 +77,71 @@ const help = 'text-base leading-normal text-med-blue';
 const textLink = 'font-semibold text-dark-blue underline underline-offset-4 decoration-light-blue-hover hover:decoration-dark-blue';
 const alert = 'text-base leading-normal text-error';
 
-/** One large email field with its button beside it (under it on phones). */
-function EmailForm({
-	initial = '',
+/** One large field with its button beside it (under it on phones), and what went wrong under the field. */
+function OneFieldForm({
+	label,
 	action,
-	onSend,
+	busyLabel,
+	initial = '',
+	check,
+	onSubmit,
+	submitWhen,
+	input,
 }: {
-	initial?: string;
+	label: string;
 	action: string;
-	/** Sends the link; resolves to an error message, or null once it's sent. */
-	onSend: (email: string) => Promise<string | null>;
+	/** Said to screen readers while it works */
+	busyLabel: string;
+	initial?: string;
+	/** What's wrong with the value before it's sent, or null. */
+	check: (value: string) => string | null;
+	/** Sends it; resolves to an error message, or null when it worked. */
+	onSubmit: (value: string) => Promise<string | null>;
+	/** Sends without the button once the value looks complete (a pasted or autofilled code). */
+	submitWhen?: (value: string) => boolean;
+	input: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'id'>;
 }) {
 	const id = useId();
-	const [email, setEmail] = useState(initial);
+	const [value, setValue] = useState(initial);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	async function submit(text: string) {
+		if (busy) return;
+		const problem = check(text);
+		if (problem) return setError(problem);
+		setBusy(true);
+		const failed = await onSubmit(text.trim());
+		setBusy(false);
+		setError(failed);
+	}
+
 	return (
 		<form
 			noValidate
 			className="flex flex-col gap-3 sm:flex-row sm:items-start"
-			onSubmit={async (e) => {
+			onSubmit={(e) => {
 				e.preventDefault();
-				if (busy) return;
-				if (!looksLikeEmail(email)) return setError('Enter your email address, like you@example.com.');
-				setBusy(true);
-				const failed = await onSend(email.trim());
-				setBusy(false);
-				setError(failed);
+				submit(value);
 			}}
 		>
 			<label htmlFor={id} className="sr-only">
-				Email
+				{label}
 			</label>
 			{/* The error sits under the field, so it stays beside it when the button stacks on phones */}
 			<div className="flex min-w-0 flex-1 flex-col gap-2">
 				<input
+					{...input}
 					id={id}
-					type="email"
-					autoComplete="email"
-					autoFocus={!initial}
-					value={email}
+					value={value}
 					onChange={(e) => {
-						setEmail(e.target.value);
+						setValue(e.target.value);
 						setError(null);
+						if (submitWhen?.(e.target.value) && !submitWhen(value)) submit(e.target.value);
 					}}
-					placeholder="you@example.com"
 					aria-invalid={error ? true : undefined}
 					aria-describedby={error ? `${id}-error` : undefined}
-					className="min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)]"
+					className={`min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)] ${input.className ?? ''}`}
 				/>
 				{error && (
 					<p id={`${id}-error`} role="alert" className={alert}>
@@ -127,7 +155,7 @@ function EmailForm({
 					<span className="absolute inset-0 flex items-center justify-center">
 						<Spinner className="text-off-white" />
 						<span role="status" className="sr-only">
-							Sending
+							{busyLabel}
 						</span>
 					</span>
 				)}
@@ -135,6 +163,25 @@ function EmailForm({
 		</form>
 	);
 }
+
+/** The email field: the first screen's question, and again when a link has expired. */
+function EmailForm({ initial = '', action, onSend }: { initial?: string; action: string; onSend: (email: string) => Promise<string | null> }) {
+	return (
+		<OneFieldForm
+			label="Email"
+			action={action}
+			busyLabel="Sending"
+			initial={initial}
+			check={(email) => (looksLikeEmail(email) ? null : 'Enter your email address, like you@example.com.')}
+			onSubmit={onSend}
+			input={{ type: 'email', autoComplete: 'email', autoFocus: !initial, placeholder: 'you@example.com' }}
+		/>
+	);
+}
+
+/** Six digits, with or without the space the email shows them with. */
+const digits = (code: string) => code.replace(/\s/g, '');
+const looksLikeCode = (code: string) => /^\d{6}$/.test(digits(code));
 
 /** Where to go after signing in: back to the page that asked, else Events. */
 function useNext() {
@@ -157,11 +204,11 @@ export function SignInPage() {
 	return (
 		<AuthLayout
 			title="What’s your email?"
-			description="Use the one you were invited to Checkpad with, and we’ll email you a link to sign in."
+			description="Use the one you were invited to Checkpad with, and we’ll email you a code to sign in."
 			foot={<DoorNotes />}
 		>
 			<EmailForm
-				action="Email me a link"
+				action="Email me a code"
 				onSend={async (email) => {
 					const error = await sendSignInLink(email, next);
 					if (!error) go(checkEmailPath(email, next));
@@ -191,14 +238,18 @@ export function SignInPage() {
 	);
 }
 
+/** After the email's sent: the code goes here, or the link in it opens on this device. */
 export function CheckEmailPage() {
 	const [params] = useSearchParams();
 	const email = params.get('email') ?? '';
 	const next = useNext();
+	const session = useSession();
 	const [wait, setWait] = useState(60);
 	const [error, setError] = useState<string | null>(null);
 	// Said once at the moments that matter, not every second of the countdown
 	const [announce, setAnnounce] = useState('');
+	// Bumped to put the emulator's code in the field (development only)
+	const [filled, setFilled] = useState<{ code: string; n: number } | null>(null);
 	const navigate = useNavigate();
 	const differentEmail = `/sign-in?${new URLSearchParams({ next })}`;
 	const toDifferentEmail = useTransitionLink(differentEmail);
@@ -208,21 +259,39 @@ export function CheckEmailPage() {
 		return () => clearTimeout(t);
 	}, [wait]);
 	if (!looksLikeEmail(email)) return <Navigate to="/sign-in" replace />;
+	// Signed in, by the code here or the link in another tab
+	if (session) return <Navigate to={next} replace />;
 
 	return (
 		<AuthLayout
 			title="Check your email"
 			description={
 				<>
-					If <strong className="font-semibold wrap-anywhere text-dark-blue">{email}</strong> is on the organiser list, a sign-in link is on its way. Open it on this device
-					within an hour.
+					If <strong className="font-semibold wrap-anywhere text-dark-blue">{email}</strong> is on the organiser list, we’ve sent it a 6-digit code.
+					Enter it here, or open the link in the email on this device.
 				</>
 			}
 			foot={<DoorNotes />}
 		>
-			<Link to={differentEmail} onClick={toDifferentEmail} className={`self-start ${buttonClass('secondary', 'tall')}`}>
-				Use a different email
-			</Link>
+			<OneFieldForm
+				key={filled?.n}
+				label="Sign-in code"
+				action="Sign in"
+				busyLabel="Signing in"
+				initial={filled?.code}
+				check={(code) => (looksLikeCode(code) ? null : 'Enter the 6 digits from the email.')}
+				onSubmit={(code) => signInWithCode(email, digits(code))}
+				submitWhen={looksLikeCode}
+				input={{
+					inputMode: 'numeric',
+					autoComplete: 'one-time-code',
+					autoFocus: true,
+					placeholder: '123 456',
+					maxLength: 7,
+					spellCheck: false,
+					className: 'tabular-nums tracking-widest sm:max-w-56',
+				}}
+			/>
 			<p className={help}>
 				Not there? Check your spam folder, or{' '}
 				{/* One button throughout, so focus stays on it while it counts down */}
@@ -235,7 +304,7 @@ export function CheckEmailPage() {
 						setAnnounce('');
 						const failed = await sendSignInLink(email, next);
 						setError(failed);
-						if (!failed) setAnnounce('Sent it again.');
+						if (!failed) setAnnounce('Sent it again. Use the code in the newest email.');
 					}}
 					className={wait > 0 ? 'cursor-not-allowed' : textLink}
 				>
@@ -247,7 +316,11 @@ export function CheckEmailPage() {
 						'send it again'
 					)}
 				</button>
-				. Still nothing? Ask a super admin to check which address they invited.
+				. Wrong address?{' '}
+				<Link to={differentEmail} onClick={toDifferentEmail} className={textLink}>
+					Use a different email
+				</Link>
+				.
 			</p>
 			<p role="status" className="sr-only">
 				{announce}
@@ -257,10 +330,21 @@ export function CheckEmailPage() {
 					{error}
 				</p>
 			)}
-			{/* The Auth emulator sends no email: open the link it keeps instead */}
+			{/* The emulators send no email: fill in its code, or open its link, instead */}
 			{usingEmulators && (
 				<p className="border-t border-dashed border-light-blue pt-3 text-sm text-med-blue">
 					Emulator:{' '}
+					<button
+						type="button"
+						onClick={async () => {
+							const code = await emulatorSignInCode(email);
+							if (code) setFilled((f) => ({ code, n: (f?.n ?? 0) + 1 }));
+						}}
+						className="font-semibold underline"
+					>
+						fill in the code
+					</button>{' '}
+					·{' '}
 					<button
 						type="button"
 						onClick={async () => {
@@ -294,17 +378,20 @@ export function SignInLinkPage() {
 	if (result === undefined) return <Loading />;
 	if (result === 'signed-in') return <Navigate to={next} replace />;
 	return (
-		<AuthLayout title="This link has expired" description="Sign-in links work once, for an hour. Send yourself a new one." foot={<DoorNotes />}>
+		<AuthLayout
+			title="This link has expired"
+			description="Sign-in links work once, for an hour, on the device you asked from. Get a new email, and use its code on any device."
+			foot={<DoorNotes />}
+		>
 			<EmailForm
 				initial={lastLinkEmail()}
-				action="Send a new link"
+				action="Email me a new code"
 				onSend={async (email) => {
 					const error = await sendSignInLink(email, next);
 					if (!error) go(checkEmailPath(email, next));
 					return error;
 				}}
 			/>
-			<p className={help}>Opened it on another device? Open it on the one you asked from, or send a new link here.</p>
 		</AuthLayout>
 	);
 }
