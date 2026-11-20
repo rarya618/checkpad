@@ -149,6 +149,14 @@ describe('POST /events/:slug/check-in', () => {
 		assert.equal((await call('/events/test-meetup/check-in', { email: 'lu@example.com' })).body.ticket, null);
 	});
 
+	test('checking in after an imported check-in was undone makes it this one', async () => {
+		await db.doc(`events/${e1}/attendees/GOOGA001`).update({ checkInImported: true });
+		await call('/events/test-meetup/check-in', { email: 'jane@example.com' });
+		const saved = (await db.doc(`events/${e1}/attendees/GOOGA001`).get()).data()!;
+		assert.ok(saved.checkedInAt);
+		assert.equal(saved.checkInImported, undefined);
+	});
+
 	test('a second check-in reports the first one and counts once', async () => {
 		const first = (await call('/events/test-meetup/check-in', { email: 'jane@example.com' })).body;
 		const second = (await call('/events/test-meetup/check-in', { email: 'jane@example.com' })).body;

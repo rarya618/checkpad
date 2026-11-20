@@ -10,6 +10,7 @@ import {
 	collection,
 	collectionGroup,
 	deleteDoc,
+	deleteField,
 	doc,
 	getDoc,
 	getDocs,
@@ -434,6 +435,34 @@ describe('imports', () => {
 		await assertSucceeds(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), { registeredAt }));
 		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA004'), { ...person, email: 'other@example.com', registeredAt: '2026-08-21' }));
 		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { registeredAt: Timestamp.fromDate(new Date('2026-08-22T00:00:00Z')) }));
+	});
+
+	test('imports bring in check-ins from the platform, for people not checked in here', async () => {
+		const arrived = { checkedInAt: Timestamp.fromDate(new Date('2026-10-10T00:25:00Z')), checkInImported: true };
+		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, ...arrived }));
+		await assertSucceeds(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), arrived));
+		await assertFails(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA002'), arrived));
+		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), arrived));
+	});
+
+	test('an imported check-in has passed, is by nobody here, and is marked imported', async () => {
+		const past = Timestamp.fromDate(new Date('2026-10-10T00:25:00Z'));
+		const ticket = (n: number) => doc(priya(), `events/syd/attendees/GOOGA10${n}`);
+		const email = (n: number) => `new${n}@example.com`;
+		await assertFails(setDoc(ticket(1), { ...person, email: email(1), checkedInAt: Timestamp.fromMillis(Date.now() + 3_600_000), checkInImported: true }));
+		await assertFails(setDoc(ticket(2), { ...person, email: email(2), checkedInAt: past, checkInImported: true, checkedInBy: 'priya@example.com' }));
+		await assertFails(setDoc(ticket(3), { ...person, email: email(3), checkedInAt: past }));
+		await assertFails(setDoc(ticket(4), { ...person, email: email(4), checkInImported: true }));
+		await assertFails(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), { checkedInAt: past }));
+	});
+
+	test('checking in or undoing an imported check-in makes it the organiser’s own', async () => {
+		const arrived = { checkedInAt: Timestamp.fromDate(new Date('2026-10-10T00:25:00Z')), checkInImported: true };
+		await assertSucceeds(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), arrived));
+		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { checkedInAt: null, checkedInBy: null }));
+		await assertSucceeds(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { checkedInAt: null, checkedInBy: null, checkInImported: deleteField() }));
+		await assertFails(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { checkedInAt: serverTimestamp(), checkedInBy: 'tom@example.com', checkInImported: true }));
+		await assertSucceeds(updateDoc(doc(tom(), 'events/syd/attendees/GOOGA001'), { checkedInAt: serverTimestamp(), checkedInBy: 'tom@example.com', checkInImported: deleteField() }));
 	});
 
 	test('an import can’t change someone’s check-in or email', async () => {

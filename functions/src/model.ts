@@ -46,6 +46,8 @@ export interface AttendeeDoc {
 	checkedInAt: Timestamp | null;
 	/** The organiser who checked them in from the dashboard; absent for self check-in. */
 	checkedInBy?: string | null;
+	/** True when an import brought in a check-in from the registration platform (checkedInAt is when it was). */
+	checkInImported?: boolean;
 	jobTitle?: string;
 	company?: string;
 	ticketType?: string;

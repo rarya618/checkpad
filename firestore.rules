@@ -254,7 +254,7 @@ service cloud.firestore {
       function isAttendee(ticket, data) {
         return data.keys().hasAll(['firstName', 'lastName', 'email', 'source', 'checkedInAt'])
           && data.keys().hasOnly(['firstName', 'lastName', 'email', 'source', 'checkedInAt', 'checkedInBy', 'jobTitle',
-            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers', 'registeredAt', 'importedAt', 'importedBy'])
+            'company', 'ticketType', 'ticketTitle', 'ticketVenue', 'bevyOrderNumber', 'answers', 'registeredAt', 'importedAt', 'importedBy', 'checkInImported'])
           && ticket.size() <= 100
           && isName(data.firstName)
           && isText(data.lastName, 100)
@@ -264,7 +264,16 @@ service cloud.firestore {
           // Registration questions → answers, from imports (attendeeImport.ts caps them)
           && (!('answers' in data) || (data.answers is map && data.answers.size() <= 50))
           // When they registered on the platform, from imports
-          && (!('registeredAt' in data) || data.registeredAt is timestamp);
+          && (!('registeredAt' in data) || data.registeredAt is timestamp)
+          // Checked in on the platform, from imports that bring check-ins in: a time that's passed, by nobody here
+          && (!('checkInImported' in data) || isImportedCheckIn(data));
+      }
+
+      function isImportedCheckIn(data) {
+        return data.checkInImported == true
+          && data.checkedInAt is timestamp
+          && data.checkedInAt <= request.time
+          && data.get('checkedInBy', null) == null;
       }
 
       /** Checked in now by whoever is signed in, or not checked in. */
@@ -276,9 +285,10 @@ service cloud.firestore {
       match /attendees/{ticket} {
         allow read: if onTeam(eventTeams(eventId));
 
-        // Staff check people in and undo it
+        // Staff check people in and undo it, which makes an imported check-in their own
         allow update: if onTeam(eventTeams(eventId))
-          && changes().hasOnly(['checkedInAt', 'checkedInBy'])
+          && changes().hasOnly(['checkedInAt', 'checkedInBy', 'checkInImported'])
+          && !('checkInImported' in request.resource.data)
           && isCheckInChange(request.resource.data);
 
         // A walk-in, checked in as they're added, with the event's next walk-in number:
@@ -291,18 +301,24 @@ service cloud.firestore {
           && ticket.matches('^' + get(doc('events', eventId)).data.walkInTicketPrefix + '[0-9]{4,}$')
           && getAfter(doc('events', eventId)).data.walkInCounter == get(doc('events', eventId)).data.walkInCounter + 1;
 
-        // Imports add people who haven't arrived, stamped with who imported them and when,
-        // and update names, ticket types, answers and registration dates
+        // Imports add people who haven't arrived, or who checked in on the platform, stamped
+        // with who imported them and when, and update names, ticket types, answers and
+        // registration dates. They check in people who aren't checked in here, never anyone who is.
         allow create: if runsTeam(eventTeams(eventId))
           && isAttendee(ticket, request.resource.data)
           && request.resource.data.source in ['bevy', 'luma', 'humanitix', 'csv']
-          && request.resource.data.checkedInAt == null
+          && (request.resource.data.checkedInAt == null || request.resource.data.get('checkInImported', false) == true)
           && !('checkedInBy' in request.resource.data)
           && request.resource.data.importedAt == request.time
           && request.resource.data.importedBy == myEmail();
         allow update: if runsTeam(eventTeams(eventId))
           && changes().hasOnly(['firstName', 'lastName', 'ticketType', 'answers', 'registeredAt'])
           && isAttendee(ticket, request.resource.data);
+        allow update: if runsTeam(eventTeams(eventId))
+          && changes().hasOnly(['checkedInAt', 'checkInImported'])
+          && resource.data.checkedInAt == null
+          && isAttendee(ticket, request.resource.data)
+          && isImportedCheckIn(request.resource.data);
 
         // Organisers remove anyone; staff can undo a walk-in they added
         allow delete: if runsTeam(eventTeams(eventId))

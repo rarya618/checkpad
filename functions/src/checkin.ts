@@ -2,6 +2,7 @@
 // show: never the attendee list, and never anyone's email or last name.
 import type { ApiErrorCode, CheckedIn, CheckInResponse, PublicEvent, TeamTarget, WalkInResponse } from '@checkpad/shared/api';
 import {
+	FieldValue,
 	Timestamp,
 	type DocumentReference,
 	type Firestore,
@@ -89,7 +90,8 @@ function checkInFrom(tx: Transaction, matches: QuerySnapshot): CheckedIn | null 
 	const doc = docs[0];
 	const a = doc.data() as AttendeeDoc;
 	const now = Timestamp.now();
-	tx.update(doc.ref, { checkedInAt: now });
+	// Someone whose imported check-in was undone is checked in here now
+	tx.update(doc.ref, { checkedInAt: now, checkInImported: FieldValue.delete() });
 	return { status: 'checked-in', firstName: a.firstName, ticket: shownTicket(doc.id, a), checkedInAt: now.toDate().toISOString(), alreadyCheckedIn: false };
 }
 
