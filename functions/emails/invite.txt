@@ -1,11 +1,13 @@
+Invitation for {{{ADDRESS}}} · from {{{INVITER}}}
+
 You’ve been added to Checkpad
 
 {{{INVITER}}} added you as {{{ROLE}}}. {{{ACCESS}}}
 
-Sign in with Google or a code we email you, using {{{ADDRESS}}}:
+Open the dashboard and sign in with Google or a code we email you, using {{{ADDRESS}}}:
 
 {{{LINK}}}
 
 {{{NEXT}}}
 
-Checkpad is how your team checks people in at its events. Not expecting this? You can ignore it.
+Checkpad is how your team checks people in at its events. Real Checkpad emails come from noreply@checkpad.app and only link to manage.checkpad.app. Not expecting this? You can ignore it.
