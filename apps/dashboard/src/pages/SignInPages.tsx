@@ -1,54 +1,131 @@
 import { buttonClass } from '@checkpad/shared/button';
 import logo from '@checkpad/shared/checkpad-logo.svg';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import google from '../assets/google.svg';
-import { TextField } from '../components/Field';
-import Loading from '../components/Loading';
-import {
-	completeSignInLink,
-	emulatorSignInLink,
-	lastLinkEmail,
-	prepareGoogleSignIn,
-	sendSignInLink,
-	signInWithGoogle,
-	signOut,
-	useSession,
-} from '../lib/auth';
+import Loading, { Spinner } from '../components/Loading';
+import { completeSignInLink, emulatorSignInLink, lastLinkEmail, prepareGoogleSignIn, sendSignInLink, signInWithGoogle, signOut, useSession } from '../lib/auth';
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_URL } from '../lib/config';
 import { usingEmulators } from '../lib/firebase';
 import { useCurrentOrganiser } from '../lib/organisers';
 
-// Figma "Sign in", "Sign in – check your email", "Sign in – link expired" and "No access",
-// at the dashboard's 75% scale: the logo above one card.
+// Not the Figma cards any more: each screen asks or answers one thing in display type on the
+// page's own ground, with the logo where the site's header puts it and, on the sign-in screens,
+// a foot saying where everyone who isn't an organiser should go instead. Onboarding and the
+// error page share the layout.
 
-export function AuthLayout({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
+export function AuthLayout({ title, description, children, foot }: { title: string; description: ReactNode; children: ReactNode; foot?: ReactNode }) {
 	return (
-		<main className="flex min-h-dvh items-center justify-center p-6">
-			<div className="flex w-full max-w-[390px] flex-col items-center gap-8">
-				<img src={logo} alt="checkpad" width={191} height={42} />
-				<section className="flex w-full flex-col gap-5 rounded-xl border border-line bg-white p-9">
-					<div className="flex flex-col gap-2">
-						<h1 className="font-display text-2xl leading-tight">{title}</h1>
-						<p className="text-sm leading-normal text-med-blue">{description}</p>
-					</div>
+		<div className="flex min-h-dvh flex-col px-6 py-6 md:px-12 md:py-8 lg:px-20">
+			<img src={logo} alt="checkpad" width={146} height={32} className="self-start" />
+			<main className="flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 py-14 md:gap-10">
+				<div className="flex flex-col gap-3" data-enter>
+					<h1 className="font-display text-4xl leading-tight text-balance md:text-5xl lg:text-6xl">{title}</h1>
+					<p className="max-w-2xl text-lg leading-normal text-pretty text-dark-blue/80 md:text-xl">{description}</p>
+				</div>
+				<div className="flex w-full max-w-xl flex-col gap-5" data-enter style={{ '--enter': 1 } as CSSProperties}>
 					{children}
-				</section>
-			</div>
-		</main>
+				</div>
+			</main>
+			{foot}
+		</div>
 	);
 }
 
-const footnote = 'text-xs leading-normal text-med-blue';
-
 // The marketing site's waitlist, for people who aren't organisers yet. Offered to everyone, never
 // based on whether an email is on the list, so these pages can't be used to look up organisers.
-const waitlist = (
-	<a href={`${WEB_URL.replace(/\/$/, '')}/#waitlist`} className="font-semibold underline">
-		Join the waitlist
-	</a>
-);
+const waitlist = `${WEB_URL.replace(/\/$/, '')}/#waitlist`;
+
+/** Where everyone who isn't an organiser should go instead. */
+function DoorNotes() {
+	return (
+		<footer className="flex flex-col gap-3 border-t-2 border-light-blue pt-4 text-sm leading-normal text-med-blue md:flex-row md:gap-12">
+			<p>
+				<strong className="font-semibold text-dark-blue">Checking in to an event?</strong> You don’t need to sign in. Use the link or QR code from the
+				organisers.
+			</p>
+			<p>
+				<strong className="font-semibold text-dark-blue">New to Checkpad?</strong>{' '}
+				<a href={waitlist} className="underline underline-offset-2 hover:text-dark-blue">
+					Join the waitlist
+				</a>
+			</p>
+		</footer>
+	);
+}
+
+const help = 'text-base leading-normal text-med-blue';
+const textLink = 'font-semibold text-dark-blue underline underline-offset-4 decoration-light-blue-hover hover:decoration-dark-blue';
+const alert = 'text-base leading-normal text-error';
+
+/** One large email field with its button beside it (under it on phones). */
+function EmailForm({
+	initial = '',
+	action,
+	onSend,
+}: {
+	initial?: string;
+	action: string;
+	/** Sends the link; resolves to an error message, or null once it's sent. */
+	onSend: (email: string) => Promise<string | null>;
+}) {
+	const id = useId();
+	const [email, setEmail] = useState(initial);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	return (
+		<form
+			noValidate
+			className="flex flex-col gap-3 sm:flex-row sm:items-start"
+			onSubmit={async (e) => {
+				e.preventDefault();
+				if (busy) return;
+				if (!looksLikeEmail(email)) return setError('Enter your email address, like you@example.com.');
+				setBusy(true);
+				const failed = await onSend(email.trim());
+				setBusy(false);
+				setError(failed);
+			}}
+		>
+			<label htmlFor={id} className="sr-only">
+				Email
+			</label>
+			{/* The error sits under the field, so it stays beside it when the button stacks on phones */}
+			<div className="flex min-w-0 flex-1 flex-col gap-2">
+				<input
+					id={id}
+					type="email"
+					autoComplete="email"
+					autoFocus={!initial}
+					value={email}
+					onChange={(e) => {
+						setEmail(e.target.value);
+						setError(null);
+					}}
+					placeholder="you@example.com"
+					aria-invalid={error ? true : undefined}
+					aria-describedby={error ? `${id}-error` : undefined}
+					className="min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/50 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)]"
+				/>
+				{error && (
+					<p id={`${id}-error`} role="alert" className={alert}>
+						{error}
+					</p>
+				)}
+			</div>
+			<button type="submit" aria-busy={busy} className={`relative ${buttonClass('primary', 'tall')}`}>
+				<span className={busy ? 'invisible' : undefined}>{action}</span>
+				{busy && (
+					<span className="absolute inset-0 flex items-center justify-center">
+						<Spinner className="text-off-white" />
+						<span className="sr-only">Sending</span>
+					</span>
+				)}
+			</button>
+		</form>
+	);
+}
 
 /** Where to go after signing in: back to the page that asked, else Events. */
 function useNext() {
@@ -57,69 +134,50 @@ function useNext() {
 	return next?.startsWith('/') && !next.startsWith('//') ? next : '/events';
 }
 
+const checkEmailPath = (email: string, next: string) => `/sign-in/check-email?${new URLSearchParams({ email, next })}`;
+
 export function SignInPage() {
 	const session = useSession();
 	const navigate = useNavigate();
 	const next = useNext();
-	const [email, setEmail] = useState('');
-	const [busy, setBusy] = useState(false);
 	const [googleError, setGoogleError] = useState<string | null>(null);
-	const [emailError, setEmailError] = useState<string | null>(null);
 	useEffect(prepareGoogleSignIn, []);
 	if (session === undefined) return <Loading />;
 	if (session) return <Navigate to={next} replace />;
 
 	return (
-		<AuthLayout title="Sign in" description="The dashboard is for event organisers. Use the email address your organiser added.">
-			<button
-				type="button"
-				onClick={async () => {
-					setGoogleError(null);
-					setGoogleError(await signInWithGoogle());
+		<AuthLayout
+			title="What’s your email?"
+			description="Use the one you were invited to Checkpad with, and we’ll email you a link to sign in."
+			foot={<DoorNotes />}
+		>
+			<EmailForm
+				action="Email me a link"
+				onSend={async (email) => {
+					const error = await sendSignInLink(email, next);
+					if (!error) navigate(checkEmailPath(email, next));
+					return error;
 				}}
-				className="flex items-center justify-center gap-2.5 rounded-lg border border-dark-blue bg-white px-5 py-2.5 font-display text-base leading-normal transition-colors hover:bg-off-white"
-			>
-				<img src={google} alt="" width={18} height={18} />
-				Continue with Google
-			</button>
+			/>
+			<p className={help}>
+				or{' '}
+				<button
+					type="button"
+					onClick={async () => {
+						setGoogleError(null);
+						setGoogleError(await signInWithGoogle());
+					}}
+					className={`inline-flex items-center gap-2 align-bottom ${textLink}`}
+				>
+					<img src={google} alt="" width={16} height={16} />
+					continue with Google
+				</button>
+			</p>
 			{googleError && (
-				<p role="alert" className="text-sm leading-normal text-error">
+				<p role="alert" className={alert}>
 					{googleError}
 				</p>
 			)}
-			<div className="flex items-center gap-3" aria-hidden="true">
-				<span className="h-px flex-1 bg-light-blue" />
-				<span className="text-sm leading-normal text-med-blue">or</span>
-				<span className="h-px flex-1 bg-light-blue" />
-			</div>
-			<form
-				className="flex flex-col gap-3"
-				onSubmit={async (e) => {
-					e.preventDefault();
-					if (!looksLikeEmail(email) || busy) return;
-					setBusy(true);
-					const error = await sendSignInLink(email, next);
-					setBusy(false);
-					setEmailError(error);
-					if (!error) navigate(`/sign-in/check-email?${new URLSearchParams({ email: email.trim(), next })}`);
-				}}
-			>
-				<TextField
-					label="Email"
-					type="email"
-					autoComplete="email"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					placeholder="you@example.com"
-					error={emailError}
-				/>
-				<button type="submit" disabled={!looksLikeEmail(email) || busy} className={`w-full ${buttonClass('primary')} disabled:opacity-50`}>
-					Email me a sign-in link
-				</button>
-			</form>
-			<p className={footnote}>
-				Checking in to an event? You don’t need to sign in. Use the link from your organiser. New to Checkpad? {waitlist}.
-			</p>
 		</AuthLayout>
 	);
 }
@@ -141,40 +199,49 @@ export function CheckEmailPage() {
 	return (
 		<AuthLayout
 			title="Check your email"
-			description={`If ${email} is on the organiser list, we’ve sent it a sign-in link. Open it on this device to finish signing in. It expires in 1 hour.`}
+			description={
+				<>
+					If <strong className="font-semibold text-dark-blue">{email}</strong> is on the organiser list, a sign-in link is on its way. Open it on this device
+					within an hour.
+				</>
+			}
+			foot={<DoorNotes />}
 		>
-			<Link to={`/sign-in?${new URLSearchParams({ next })}`} className={`w-full ${buttonClass('secondary')}`}>
+			<Link to={`/sign-in?${new URLSearchParams({ next })}`} className={`self-start ${buttonClass('secondary', 'tall')}`}>
 				Use a different email
 			</Link>
-			<p className={footnote} aria-live="polite">
-				Didn’t get it? Check your spam folder, or{' '}
+			<p className={help} aria-live="polite">
+				Not there? Check your spam folder, or{' '}
 				{wait > 0 ? (
-					`send the link again in ${wait} second${wait === 1 ? '' : 's'}.`
+					<>
+						send it again in <span className="tabular-nums">{wait}</span> second
+						{wait === 1 ? '' : 's'}.
+					</>
 				) : (
-					<button
-						type="button"
-						onClick={async () => {
-							setWait(60);
-							setError(await sendSignInLink(email, next));
-						}}
-						className="font-semibold underline"
-					>
-						send the link again
-					</button>
-				)}
-				{wait > 0 ? '' : '.'}
-			</p>
-			<p className={footnote}>
-				Nothing after a few minutes? Use the address your organiser added, or ask a super admin to add you. New to Checkpad? {waitlist}.
+					<>
+						<button
+							type="button"
+							onClick={async () => {
+								setWait(60);
+								setError(await sendSignInLink(email, next));
+							}}
+							className={textLink}
+						>
+							send it again
+						</button>
+						.
+					</>
+				)}{' '}
+				Still nothing? Ask a super admin to check which address they invited.
 			</p>
 			{error && (
-				<p role="alert" className="text-sm leading-normal text-error">
+				<p role="alert" className={alert}>
 					{error}
 				</p>
 			)}
 			{/* The Auth emulator sends no email: open the link it keeps instead */}
 			{usingEmulators && (
-				<p className="border-t border-dashed border-light-blue pt-3 text-xs text-med-blue">
+				<p className="border-t border-dashed border-light-blue pt-3 text-sm text-med-blue">
 					Emulator:{' '}
 					<button
 						type="button"
@@ -186,7 +253,10 @@ export function CheckEmailPage() {
 					>
 						open the link
 					</button>{' '}
-					· <Link to="/sign-in/link" className="font-semibold underline">open an expired link</Link>
+					·{' '}
+					<Link to="/sign-in/link" className="font-semibold underline">
+						open an expired link
+					</Link>
 				</p>
 			)}
 		</AuthLayout>
@@ -197,9 +267,6 @@ export function CheckEmailPage() {
 export function SignInLinkPage() {
 	const next = useNext();
 	const [result, setResult] = useState<'signed-in' | 'expired'>();
-	const [resend, setResend] = useState(lastLinkEmail);
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -209,25 +276,17 @@ export function SignInLinkPage() {
 	if (result === undefined) return <Loading />;
 	if (result === 'signed-in') return <Navigate to={next} replace />;
 	return (
-		<AuthLayout title="This sign-in link has expired" description="Sign-in links work once and expire after an hour. Send yourself a new one.">
-			<form
-				className="flex flex-col gap-5"
-				onSubmit={async (e) => {
-					e.preventDefault();
-					if (!looksLikeEmail(resend) || busy) return;
-					setBusy(true);
-					const failed = await sendSignInLink(resend, next);
-					setBusy(false);
-					setError(failed);
-					if (!failed) navigate(`/sign-in/check-email?${new URLSearchParams({ email: resend.trim(), next })}`);
+		<AuthLayout title="This link has expired" description="Sign-in links work once, for an hour. Send yourself a new one." foot={<DoorNotes />}>
+			<EmailForm
+				initial={lastLinkEmail()}
+				action="Send a new link"
+				onSend={async (email) => {
+					const error = await sendSignInLink(email, next);
+					if (!error) navigate(checkEmailPath(email, next));
+					return error;
 				}}
-			>
-				<TextField label="Email" type="email" autoComplete="email" value={resend} onChange={(e) => setResend(e.target.value)} error={error} />
-				<button type="submit" disabled={!looksLikeEmail(resend) || busy} className={`w-full ${buttonClass('primary')} disabled:opacity-50`}>
-					Send a new link
-				</button>
-			</form>
-			<p className={footnote}>Opened the link on a different device? Open it on the one you requested it from, or send a new link here.</p>
+			/>
+			<p className={help}>Opened it on another device? Open it on the one you asked from, or send a new link here.</p>
 		</AuthLayout>
 	);
 }
@@ -238,7 +297,6 @@ export function NoAccessPage() {
 	if (session === null) return <Navigate to="/sign-in" replace />;
 	if (me) return <Navigate to="/events" replace />;
 	if (!session || me === undefined) return <Loading />;
-	const name = session.name ?? session.email;
 	const initials = (session.name ?? session.email)
 		.split(/[\s.@]+/)
 		.map((p) => p[0])
@@ -249,23 +307,21 @@ export function NoAccessPage() {
 	return (
 		<AuthLayout
 			title="You don’t have access yet"
-			description={`${session.email} isn’t on the organiser list. Ask a super admin to add it, then sign in again.`}
+			description="This account isn’t on the organiser list. Ask a super admin to add it, then sign in again."
+			foot={<DoorNotes />}
 		>
-			<div className="flex items-center gap-2.5 rounded-lg bg-off-white px-3 py-2.5">
-				<span aria-hidden="true" className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-xs">
+			<div className="flex min-w-0 items-center gap-3">
+				<span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-light-blue font-display text-sm">
 					{initials}
 				</span>
-				<div className="flex min-w-0 flex-col gap-0.5 leading-normal text-dark-blue">
-					<p className="truncate font-display text-sm">{name}</p>
-					<p className="truncate text-sm">{session.email}</p>
+				<div className="flex min-w-0 flex-col leading-normal">
+					{session.name && <p className="truncate font-display text-base">{session.name}</p>}
+					<p className="truncate text-base text-dark-blue/80">{session.email}</p>
 				</div>
 			</div>
-			<button type="button" onClick={signOut} className={`w-full ${buttonClass('primary')}`}>
+			<button type="button" onClick={signOut} className={`self-start ${buttonClass('primary', 'tall')}`}>
 				Use another account
 			</button>
-			<p className={footnote}>
-				Signed in with the wrong account? Sign out and try again. Not part of an organising team? {waitlist}.
-			</p>
 		</AuthLayout>
 	);
 }
