@@ -2,7 +2,7 @@ import { buttonClass } from '@checkpad/shared/button';
 import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router';
 import { Section, SectionRail } from '../components/AnalyticsSections';
-import { AnswerRow, BarChart, ChartCard, CheckedInRow, LineChart, SplitBar, StatTile, type Series } from '../components/Charts';
+import { AnswerRow, BarChart, ChartCard, CheckedInRow, LineChart, SplitBar, StatTile, TicketTypeRows, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
 import PageHeader from '../components/PageHeader';
 import {
@@ -129,7 +129,8 @@ export default function EventAnalyticsPage() {
 						busiest={busiest?.range ?? null}
 					/>
 					<Section level={3} title="Turnout">
-						<div className="flex flex-col gap-4 md:flex-row">
+						{/* Each keeps its own height: a long list of ticket types doesn't stretch the tile into an empty box */}
+						<div className="flex flex-col gap-4 md:flex-row md:items-start">
 							{/* Checked in is pre-registered plus walk-ins, so they share a tile */}
 							<StatTile
 								label="Checked in"
@@ -155,9 +156,7 @@ export default function EventAnalyticsPage() {
 								/>
 							</StatTile>
 							<ChartCard level={4} title="By ticket type" caption="Checked in of registered" className={SIDE}>
-								{types.map((t) => (
-									<CheckedInRow key={t.name} {...t} />
-								))}
+								<TicketTypeRows types={types} />
 								<div className="flex items-start gap-1.5 leading-normal">
 									<p className="min-w-0 flex-1 text-sm font-bold">Walk-in</p>
 									<p className="shrink-0 text-xs text-med-blue">
