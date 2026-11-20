@@ -65,6 +65,8 @@ export default function Select({ value, onChange, children, id, disabled, requir
 	const search = useRef<HTMLInputElement>(null);
 	const scroller = useRef<HTMLDivElement>(null);
 	const [open, setOpen] = useState(false);
+	// After closing, the list stays drawn while it rolls back up into the field (index.css)
+	const [closing, setClosing] = useState(false);
 	const [query, setQuery] = useState('');
 	const [active, setActive] = useState(-1);
 	const [above, setAbove] = useState(false);
@@ -86,14 +88,30 @@ export default function Select({ value, onChange, children, id, disabled, requir
 		setQuery(startQuery);
 		const at = (startQuery ? options.filter((o) => matches(o, startQuery.toLowerCase())) : options).findIndex((o) => o.value === value);
 		setActive(startQuery ? 0 : Math.max(0, at));
+		setClosing(false);
 		setOpen(true);
 	}
 
 	function close(refocus = true) {
+		if (!open) return;
 		setOpen(false);
-		setQuery('');
+		// Rolls up, then goes; with reduced motion it just goes
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) finishClosing();
+		else setClosing(true);
 		if (refocus) button.current?.focus();
 	}
+
+	function finishClosing() {
+		setClosing(false);
+		setQuery('');
+	}
+
+	// In case the roll-up's end is never reported (the tab hidden mid-way), it still goes
+	useEffect(() => {
+		if (!closing) return;
+		const t = setTimeout(finishClosing, 400);
+		return () => clearTimeout(t);
+	}, [closing]);
 
 	function choose(i: number) {
 		const o = shown[i];
@@ -200,10 +218,7 @@ export default function Select({ value, onChange, children, id, disabled, requir
 				onClick={() => (open ? close() : openList())}
 				onKeyDown={onButtonKeys}
 				onBlur={(e) => {
-					if (!inPanel(e.relatedTarget as Node)) {
-						setOpen(false);
-						setQuery('');
-					}
+					if (!inPanel(e.relatedTarget as Node)) close(false);
 				}}
 				{...aria}
 				className={`relative block text-left ${buttonClassName}`}
@@ -219,12 +234,17 @@ export default function Select({ value, onChange, children, id, disabled, requir
 					<path d="M4.5 6.75L9 11.25L13.5 6.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>
 			</button>
-			{open && (
+			{(open || closing) && (
 				<div
 					ref={panel}
-					data-popover
-					// Grows out of the corner it hangs from
-					style={{ transformOrigin: `${above ? 'bottom' : 'top'} ${align === 'end' ? 'right' : 'left'}` }}
+					// Unrolls from the field's edge, down or up, and rolls back into it on closing (index.css)
+					data-select-panel
+					data-above={above || undefined}
+					data-closing={closing || undefined}
+					inert={closing || undefined}
+					onTransitionEnd={(e) => {
+						if (closing && e.target === e.currentTarget && e.propertyName === 'clip-path') finishClosing();
+					}}
 					className={`absolute right-0 z-30 flex max-h-[min(360px,50dvh)] flex-col overflow-hidden rounded-xl border border-line bg-white shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
 						align === 'end' ? 'w-max max-w-[min(320px,calc(100vw-32px))] min-w-full' : 'left-0'
 					} ${above ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}

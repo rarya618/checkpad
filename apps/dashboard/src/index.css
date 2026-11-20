@@ -496,3 +496,33 @@ tr[data-arrived] > td:last-child {
     transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), height 220ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+/* The dropdown (Select) unrolls from its field's edge, down or up, the way the docs menu does on
+   phones, and rolls back into it on closing, a little quicker. The clip reaches past the edges so
+   the shadow shows. With reduced motion it just appears and goes. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-select-panel] {
+    clip-path: inset(-24px -40px -56px -40px round 12px);
+    transition: clip-path 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-select-panel][data-closing] {
+    clip-path: inset(-24px -40px 100% -40px round 12px);
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  [data-select-panel][data-above][data-closing] {
+    clip-path: inset(100% -40px -56px -40px round 12px);
+  }
+
+  @starting-style {
+    [data-select-panel] {
+      clip-path: inset(-24px -40px 100% -40px round 12px);
+    }
+
+    [data-select-panel][data-above] {
+      clip-path: inset(100% -40px -56px -40px round 12px);
+    }
+  }
+}
