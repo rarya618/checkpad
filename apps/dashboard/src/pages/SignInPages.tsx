@@ -2,6 +2,7 @@ import { buttonClass } from '@checkpad/shared/button';
 import logo from '@checkpad/shared/checkpad-logo.svg';
 import { useEffect, useId, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
+import arrow from '../assets/arrow-right.svg';
 import google from '../assets/google.svg';
 import Loading, { Spinner } from '../components/Loading';
 import {
@@ -51,24 +52,34 @@ export function AuthLayout({ title, description, children, foot }: { title: stri
 	);
 }
 
-// The marketing site's waitlist, for people who aren't organisers yet. Offered to everyone, never
-// based on whether an email is on the list, so these pages can't be used to look up organisers.
-const waitlist = `${WEB_URL.replace(/\/$/, '')}/#waitlist`;
+const site = WEB_URL.replace(/\/$/, '');
 
-/** Where everyone who isn't an organiser should go instead. */
+/**
+ * Where everyone who isn't an organiser should go instead: two light-blue panels, each one link.
+ * The waitlist is offered to everyone, never based on whether an email is on the list, so these
+ * pages can't be used to look up organisers.
+ */
 function DoorNotes() {
+	const doors = [
+		{ title: 'Here to check in?', body: 'Attendees don’t sign in. Use the event’s link or QR code from the organisers.', action: 'Help checking in', href: `${site}/help` },
+		{ title: 'New to Checkpad?', body: 'It isn’t open to new organisers yet. Join the waitlist and we’ll email you.', action: 'Join the waitlist', href: `${site}/#waitlist` },
+	];
 	return (
-		<footer className="flex flex-col gap-3 border-t-2 border-light-blue pt-4 text-sm leading-normal text-med-blue md:flex-row md:gap-12">
-			<p>
-				<strong className="font-semibold text-dark-blue">Checking in to an event?</strong> You don’t need to sign in. Use the link or QR code from the
-				organisers.
-			</p>
-			<p>
-				<strong className="font-semibold text-dark-blue">New to Checkpad?</strong>{' '}
-				<a href={waitlist} className="underline underline-offset-2 hover:text-dark-blue">
-					Join the waitlist
+		<footer className="grid w-full max-w-3xl gap-3 md:grid-cols-2">
+			{doors.map((door) => (
+				<a
+					key={door.href}
+					href={door.href}
+					className="group flex flex-col gap-1 rounded-2xl bg-light-blue/50 p-5 leading-normal transition-colors hover:bg-light-blue"
+				>
+					<span className="font-semibold text-dark-blue">{door.title}</span>
+					<span className="text-sm text-dark-blue/80">{door.body}</span>
+					<span className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-dark-blue">
+						{door.action}
+						<img src={arrow} alt="" width={16} height={16} className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+					</span>
 				</a>
-			</p>
+			))}
 		</footer>
 	);
 }
