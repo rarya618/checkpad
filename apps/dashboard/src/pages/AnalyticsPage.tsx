@@ -35,7 +35,8 @@ import {
 	type Person,
 } from '../lib/analytics';
 import { useEvents } from '../lib/events';
-import { useMe } from '../lib/organisers';
+import { useCanEditEvents, useMe } from '../lib/organisers';
+import { formatMoney, ticketSales, usePaymentsFor } from '../lib/payments';
 import { useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { useMediaQuery } from '../lib/useMediaQuery';
@@ -131,6 +132,16 @@ export default function AnalyticsPage() {
 	// Label the best turnout and the latest event, not every bar
 	const best = results.reduce<(typeof results)[number] | null>((b, r) => (!b || r.turnout > b.turnout ? r : b), null);
 	const latest = results[results.length - 1];
+
+	// Ticket sales, for organisers, from the events whose imports saved what tickets cost
+	const canEdit = useCanEditEvents();
+	const allPayments = usePaymentsFor(included, canEdit);
+	const sales = useMemo(() => included.map((e) => ticketSales(allPayments[e.id] ?? [], rosters[e.id] ?? [])), [included, allPayments, rosters]);
+	const sold = sales.filter((s) => s !== null);
+	const currency = sold.find((s) => s.currency)?.currency ?? null;
+	const earnedOf = (s: (typeof sales)[number]) => (s ? (s.totals[s.earnedKey] ?? 0) : 0);
+	const totalEarned = sold.reduce((n, s) => n + earnedOf(s), 0);
+	const sections = sold.length ? [...SECTIONS, 'Ticket sales'] : SECTIONS;
 	const top = Math.max(75, Math.ceil(maxOf(results.map((r) => r.turnout)) / 25) * 25);
 	const ticks = Array.from({ length: top / 25 + 1 }, (_, i) => i * 25);
 	// The table's full columns take about 500px, so they wait for a wide window: from 1152px the
@@ -351,8 +362,38 @@ export default function AnalyticsPage() {
 									)}
 								</ChartCard>
 							</Section>
+							{sold.length > 0 && (
+								<Section level={2} title="Ticket sales">
+									<div className="grid gap-4 xl:grid-cols-2">
+										<StatTile
+											label="Earned across these events"
+											value={formatMoney(totalEarned, currency)}
+											note={`From ${sold.length} of the ${results.length} events: the ones whose list was imported with what tickets cost`}
+										/>
+										<ChartCard level={3} title="Earnings by event" caption="What each event's tickets earned you, as its platform reported">
+											<BarChart
+												label="Earnings by event"
+												heading="Event"
+												series={[{ name: 'Earned', className: 'bg-dark-blue' }]}
+												ticks={niceTicks(maxOf(sales.map((s) => Math.round(earnedOf(s) / 100)), 1))}
+												formatTick={(n) => (n >= 1000 ? `$${n / 1000}k` : `$${n}`)}
+												bars={results.map((r, i) => {
+													const s = sales[i];
+													return {
+														label: axisLabel(r, i),
+														values: [Math.round(earnedOf(s) / 100)],
+														cells: [s ? formatMoney(earnedOf(s), currency) : '–'],
+														title: r.event.name,
+														lines: s ? [`${formatMoney(earnedOf(s), currency)} from ${s.paidTickets} paid tickets`] : ['No ticket prices imported'],
+													};
+												})}
+											/>
+										</ChartCard>
+									</div>
+								</Section>
+							)}
 						</div>
-						<SectionRail sections={SECTIONS} />
+						<SectionRail sections={sections} />
 					</div>
 				) : (
 					<NothingToCompare
