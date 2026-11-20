@@ -42,10 +42,14 @@ export interface ImportPayment {
 }
 
 // Money columns → the names their amounts are saved under. Humanitix's report has them per
-// ticket, so they add up across an order.
+// ticket, so they add up across an order. Bevy writes "hidden" for some, which is left out.
 const moneyColumns: Record<string, string> = {
 	price: 'price',
 	paid: 'paid',
+	ticketpricepaid: 'paid', // Bevy
+	amount: 'paid', // Luma
+	amounttax: 'tax',
+	amountdiscount: 'discount',
 	humanitixpassedonfees: 'passedOnFees',
 	humanitixabsorbedfees: 'absorbedFees',
 	amexsurcharge: 'amexSurcharge',
@@ -364,7 +368,8 @@ export function planFromText(
 				const code = cell(col).slice(0, 100);
 				if (code) payment[name] = code;
 			}
-			if (Object.keys(payment.amounts).length || Object.keys(payment).length > 1) row.payment = payment;
+			// Free tickets with no code aren't worth a record: no payment means nothing was paid
+			if (Object.values(payment.amounts).some((cents) => cents !== 0) || payment.discountCode || payment.accessCode) row.payment = payment;
 		}
 
 		if (!row.email) return skip('No email address', rowNumber);
