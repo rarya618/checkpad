@@ -4,6 +4,17 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.3.0 (2026-11-21)
+
+- [organisers] Import attendees from Humanitix as well as Bevy and Luma
+- [organisers] Choose to bring in check-ins from the platform's file, at the times it recorded, for events checked in there
+- [organisers] Choose to keep every ticket booked under one email, as when one person books for a group
+- [organisers] Imports save what each ticket cost, its fees and the codes used, visible to organisers only
+- [organisers] Choose which registration questions' answers to import; the event remembers, and points out new questions
+- [organisers] A clearer import dialog: options first, then a tally of what the import will do, and you can drop the file on it
+- [organisers] The docs show what each platform's import brings in, side by side
+- [organisers, attendees] The privacy policy says organisers can see what attendees paid for a ticket
+
 ## 1.2.2 (2026-11-21)
 
 - [organisers] Signing in with Google is a clear "Sign in with Google" button again, in Google's own style
