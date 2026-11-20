@@ -1,6 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { useState } from 'react';
 import { TextField } from '../components/Field';
+import { Spinner } from '../components/Loading';
 import TeamPlaceFields from '../components/TeamPlaceFields';
 import { signOut, useSession } from '../lib/auth';
 import { WEB_HOST } from '../lib/config';
@@ -24,6 +25,8 @@ export default function OnboardingPage() {
 	const [busy, setBusy] = useState(false);
 	// What the server refused, for the value it refused
 	const [refused, setRefused] = useState<{ name?: string; slug?: string; failed?: boolean }>({});
+	// Pressed with something still to fill in: the button says what, rather than being disabled
+	const [incomplete, setIncomplete] = useState(false);
 
 	const cleanName = name.trim();
 	const cleanSlugValue = slug.replace(/-+$/, '');
@@ -37,7 +40,9 @@ export default function OnboardingPage() {
 				className="flex flex-col gap-5"
 				onSubmit={async (e) => {
 					e.preventDefault();
-					if (!valid || busy) return;
+					if (busy) return;
+					if (!valid) return setIncomplete(!nameTaken && !slugTaken);
+					setIncomplete(false);
 					setBusy(true);
 					const error = await setUpTeam(yourName.trim(), { name: cleanName, slug: cleanSlugValue, ...place, city: place.city.trim() });
 					// Saved: your entry updates with the team and the dashboard takes over from here
@@ -82,13 +87,26 @@ export default function OnboardingPage() {
 					error={slugTaken ? 'Another team uses this link.' : null}
 				/>
 				<TeamPlaceFields value={place} onChange={setPlace} required />
+				{incomplete && !valid && (
+					<p role="alert" className="text-base leading-normal text-error">
+						Fill in your name, the team’s name, its link name and its country.
+					</p>
+				)}
 				{refused.failed && (
-					<p role="alert" className="text-sm leading-normal text-error">
+					<p role="alert" className="text-base leading-normal text-error">
 						Couldn’t create your team. Check your connection and try again.
 					</p>
 				)}
-				<button type="submit" disabled={!valid || busy} className={`w-full ${buttonClass('primary')} disabled:opacity-50`}>
-					Create team
+				<button type="submit" aria-busy={busy} className={`relative self-start ${buttonClass('primary', 'tall')}`}>
+					<span className={busy ? 'invisible' : undefined}>Create team</span>
+					{busy && (
+						<span className="absolute inset-0 flex items-center justify-center">
+							<Spinner className="text-off-white" />
+							<span role="status" className="sr-only">
+								Creating your team
+							</span>
+						</span>
+					)}
 				</button>
 			</form>
 			<p className="text-xs leading-normal text-med-blue">
