@@ -1,5 +1,5 @@
 // Attendee CSVs from registration platforms, read into an import plan. Columns are matched
-// by name, never by platform, so Bevy, Luma and lookalike exports go through the same steps.
+// by name, never by platform, so Bevy, Luma, Humanitix and lookalike exports go through the same steps.
 // Anything with a meaning beyond its name hangs off a column too: a status column filters
 // out the waitlist, a lone name column is split. The platform is recognised only to name it
 // in the dialog and to record where each attendee came from (`source`).
@@ -7,15 +7,18 @@ import { parseCsv } from './csv';
 import { looksLikeEmail } from './checkIn';
 import type { RosterAttendee } from './roster';
 
-export type ImportSource = 'bevy' | 'luma' | 'csv';
+export type ImportSource = 'bevy' | 'luma' | 'humanitix' | 'csv';
 
-export const sourceName: Record<ImportSource, string> = { bevy: 'Bevy', luma: 'Luma', csv: 'CSV' };
+export const sourceName: Record<ImportSource, string> = { bevy: 'Bevy', luma: 'Luma', humanitix: 'Humanitix', csv: 'CSV' };
 
 export interface ImportRow {
 	firstName: string;
 	lastName: string;
 	email: string;
-	/** Ticket number, or the platform's ID for the person when it has no tickets (Luma's guest_id). */
+	/**
+	 * Ticket number, or the platform's ID for the person when it has no tickets (Luma's guest_id).
+	 * Humanitix numbers tickets within an order ("2nd"), so theirs is the order ID and that number.
+	 */
 	ticket: string;
 	ticketType: string;
 	/** Question → answer, for the file's registration questions; blank answers left out. */
@@ -52,8 +55,12 @@ const columns = {
 	ticket: ['ticketnumber', 'ticketno', 'ticketid', 'barcode', 'ticket', 'guestid', 'attendeeid', 'registrationid', 'ordernumber'],
 	ticketType: ['tickettitle', 'tickettype', 'ticketname'],
 	status: ['approvalstatus', 'attendeestatus', 'registrationstatus', 'status'],
-	// Luma's created_at, Bevy's "Paid date (UTC)"
-	registeredAt: ['registeredat', 'registrationdate', 'registrationtime', 'createdat', 'orderdate', 'paiddateutc', 'paiddate'],
+	// Luma's created_at, Bevy's "Paid date (UTC)", Humanitix's "Order date & time"
+	registeredAt: ['registeredat', 'registrationdate', 'registrationtime', 'createdat', 'orderdate', 'orderdatetime', 'paiddateutc', 'paiddate'],
+	// The time zone of a registration date that doesn't carry one (Humanitix's "AEDT")
+	timeZone: ['timezone'],
+	// What a ticket number counts within, when it's "1st", "2nd"… (Humanitix's "Order id")
+	order: ['orderid'],
 } as const;
 type Column = keyof typeof columns;
 
@@ -70,13 +77,20 @@ const platformColumns = new Set([
 	'redditclickid', 'yandexclickid', 'referrer', 'referredby', 'qrcodeurl', 'amount', 'amounttax', 'amountdiscount',
 	'couponcode', 'ethaddress', 'solanaaddress', 'surveyresponserating', 'surveyresponsefeedback', 'tickettypeid',
 	'ticketname',
+	// Humanitix
+	'event', 'seatinglocation', 'tablenumber', 'seatnumber', 'seatnote', 'reportinggroup', 'package', 'orderid', 'ticketno',
+	'orderdatetime', 'timezone', 'buyerfirstname', 'buyerlastname', 'buyermobile', 'buyeremail', 'paid',
+	'humanitixpassedonfees', 'humanitixabsorbedfees', 'amexsurcharge', 'customtax', 'zipfeeabsorbed',
+	'afterpayfeeabsorbed', 'refunds', 'feerebate', 'yourearnings', 'refundedfees', 'discountcodeused', 'discountredeemed',
+	'taxonsales', 'taxonbookingfees', 'gateway', 'accesscodeused', 'checkedin', 'checkedindate', 'eventdate', 'eventtime',
+	'qrcodedata', 'saleschannel', 'ordernotes',
 ]);
 // The same kinds of columns from platforms not listed above. Only checked against short
 // headers, so a question like "What do you hope to learn?" never matches by accident.
 const platformLike = /phone|mobile|address|postcode|zip|card|price|amount|paid|payment|tax|discount|coupon|currency|order|utm|click|referr|wallet|qrcode|date|time|createdat|^id$|guestid|attendeeid|userid|uuid/;
 
 // Statuses that mean the person is coming. A blank status counts as coming.
-const coming = new Set(['', 'approved', 'going', 'attending', 'confirmed', 'registered', 'checkedin', 'active', 'valid']);
+const coming = new Set(['', 'approved', 'going', 'attending', 'confirmed', 'registered', 'checkedin', 'active', 'valid', 'complete', 'completed']);
 const notComing: Record<string, string> = {
 	waitlist: 'On the waitlist',
 	waitlisted: 'On the waitlist',
@@ -100,6 +114,7 @@ function detectSource(keys: string[]): ImportSource {
 	const has = (k: string) => keys.includes(k);
 	if (has('guestid') && (has('approvalstatus') || has('qrcodeurl'))) return 'luma';
 	if (has('ticketnumber') && (has('ordernumber') || has('tickettitle'))) return 'bevy';
+	if (has('qrcodedata') || (has('orderid') && has('ticketno') && has('buyeremail'))) return 'humanitix';
 	return 'csv';
 }
 
@@ -118,16 +133,31 @@ function splitName(name: string): [string, string] {
 	return [words.slice(0, -1).join(' '), words[words.length - 1]];
 }
 
+// The time zones Humanitix's events are in, as it abbreviates them, and their UTC offsets
+const zoneOffsets: Record<string, string> = {
+	UTC: 'Z', GMT: 'Z', BST: '+01:00', AWST: '+08:00', ACST: '+09:30', ACDT: '+10:30', AEST: '+10:00', AEDT: '+11:00',
+	NZST: '+12:00', NZDT: '+13:00', HST: '-10:00', AKST: '-09:00', AKDT: '-08:00', PST: '-08:00', PDT: '-07:00',
+	MST: '-07:00', MDT: '-06:00', CST: '-06:00', CDT: '-05:00', EST: '-05:00', EDT: '-04:00',
+};
+
 /**
- * "2026-08-21T03:12:45.123Z" (Luma) or "2026-08-21 03:12:45" (Bevy), UTC unless it says
- * otherwise. Anything else is left out rather than guessed: "08/09/2026" could be either month.
+ * "2026-08-21T03:12:45.123Z" (Luma), "2026-08-21 03:12:45" (Bevy) or "2026-08-21 1:12 pm"
+ * (Humanitix), UTC unless it or `zone` says otherwise. Anything else is left out rather than
+ * guessed: "08/09/2026" could be either month, and so could a time zone we don't know.
  */
-export function parseRegisteredAt(text: string): Date | undefined {
-	const m = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?)?\s*(Z|UTC|GMT|[+-]\d{2}:?\d{2})?$/i);
+export function parseRegisteredAt(text: string, zone = ''): Date | undefined {
+	const m = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2})(\.\d+)?)?\s*([ap]m)?)?\s*(Z|[A-Z]{3,4}|[+-]\d{2}:?\d{2})?$/i);
 	if (!m) return undefined;
-	const [, y, mo, d, h = '00', mi = '00', s = '00', frac = '', zone = 'Z'] = m;
-	const offset = /^[+-]/.test(zone) ? zone.replace(/^([+-]\d{2})(\d{2})$/, '$1:$2') : 'Z';
-	const date = new Date(`${y}-${mo}-${d}T${h}:${mi}:${s}${frac}${offset}`);
+	const [, y, mo, d, hour = '0', mi = '00', s = '00', frac = '', meridiem, ownZone] = m;
+	let h = Number(hour);
+	if (meridiem) {
+		if (h < 1 || h > 12) return undefined;
+		h = (h % 12) + (meridiem.toLowerCase() === 'pm' ? 12 : 0);
+	}
+	const z = (ownZone ?? zone.trim()) || 'Z';
+	const offset = /^[+-]/.test(z) ? z.replace(/^([+-]\d{2})(\d{2})$/, '$1:$2') : z.toUpperCase() === 'Z' ? 'Z' : zoneOffsets[z.toUpperCase()];
+	if (!offset) return undefined;
+	const date = new Date(`${y}-${mo}-${d}T${String(h).padStart(2, '0')}:${mi}:${s}${frac}${offset}`);
 	return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
@@ -208,8 +238,12 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 			const answer = cell(col).slice(0, MAX_ANSWER);
 			if (answer) answers[question] = answer;
 		}
-		const row: ImportRow = { firstName, lastName, email: cell(index.email), ticket: cell(index.ticket), ticketType: cell(index.ticketType), answers };
-		const registeredAt = parseRegisteredAt(cell(index.registeredAt));
+		// "2nd" in an order is a ticket number only with the order's ID: "S6TFX6HG-2"
+		let ticket = cell(index.ticket);
+		const nth = ticket.match(/^(\d+)(?:st|nd|rd|th)$/i);
+		if (nth && cell(index.order)) ticket = `${cell(index.order)}-${Number(nth[1])}`;
+		const row: ImportRow = { firstName, lastName, email: cell(index.email), ticket, ticketType: cell(index.ticketType), answers };
+		const registeredAt = parseRegisteredAt(cell(index.registeredAt), cell(index.timeZone));
 		if (registeredAt) row.registeredAt = registeredAt;
 
 		if (!row.email) return skip('No email address', rowNumber);
