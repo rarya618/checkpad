@@ -6,8 +6,8 @@ import { signOut } from '../lib/auth';
 import { reportError } from '../lib/errorTracking';
 import { AuthLayout } from './SignInPages';
 
-// Not in Figma: shown when a page can't load, usually a Firestore listener that failed. Like
-// the sign-in pages, the logo above one card. Refused by the rules usually means someone changed
+// Not in Figma: shown when a page can't load, usually a Firestore listener that failed. Laid out
+// like the sign-in pages. Refused by the rules usually means someone changed
 // your role or team while the page was open; anything else is most likely the connection.
 export default function ErrorPage() {
 	const error = useRouteError();
@@ -27,12 +27,14 @@ export default function ErrorPage() {
 					: 'Something went wrong loading the dashboard. Check the connection and reload.'
 			}
 		>
-			<button type="button" onClick={() => location.reload()} className={`w-full ${buttonClass('primary')}`}>
-				Reload
-			</button>
-			<button type="button" onClick={signOut} className={`w-full ${buttonClass('secondary')}`}>
-				Sign out
-			</button>
+			<div className="flex flex-wrap gap-3">
+				<button type="button" onClick={() => location.reload()} className={buttonClass('primary', 'tall')}>
+					Reload
+				</button>
+				<button type="button" onClick={signOut} className={buttonClass('secondary', 'tall')}>
+					Sign out
+				</button>
+			</div>
 		</AuthLayout>
 	);
 }

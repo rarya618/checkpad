@@ -11,7 +11,7 @@ import { AuthLayout } from './SignInPages';
 
 // Not in Figma. The first time an organiser invited to start a new team signs in, they give
 // their name, then name the team and say where it meets, before anything else (RequireOrganiser,
-// App.tsx). Laid out like the sign-in pages: the logo above one card.
+// App.tsx). Laid out like the sign-in pages.
 export default function OnboardingPage() {
 	const session = useSession();
 	const teams = useTeams() ?? [];
