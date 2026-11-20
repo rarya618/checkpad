@@ -4,6 +4,10 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.2.2 (2026-11-21)
+
+- [organisers] Signing in with Google is a clear "Sign in with Google" button again, in Google's own style
+
 ## 1.2.1 (2026-11-21)
 
 - [organisers] The sign-in code is in the email's subject, and phones and mail apps offer to fill it in or copy it; one tap selects it in the email
