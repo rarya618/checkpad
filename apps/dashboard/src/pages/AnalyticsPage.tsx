@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import chevron from '../assets/chevron-small.svg';
 import { Section, SectionRail } from '../components/AnalyticsSections';
-import { AnswerRow, BarChart, ChartCard, CheckedInRow, StatTile, type Series } from '../components/Charts';
+import { AnswerRow, BarChart, ChartCard, CheckedInRow, StatTile, TicketTypeRows, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
 import {
 	byTicketType,
@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
 								{/* A single ticket type ("Other" when the import had none) has nothing to break down */}
 								{(!loaded || ticketTypes.length > 1) && (
 									<ChartCard level={3} title="By ticket type" caption="Checked in of registered, across these events">
-										{!loaded ? <Loading /> : ticketTypes.map((t) => <CheckedInRow key={t.name} {...t} />)}
+										{!loaded ? <Loading /> : <TicketTypeRows types={ticketTypes} />}
 									</ChartCard>
 								)}
 								{loaded &&
