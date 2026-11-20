@@ -268,14 +268,14 @@ export function SignInPage() {
 				}}
 			/>
 			<p className={help}>
-				or{' '}
+				or
 				<button
 					type="button"
 					onClick={async () => {
 						setGoogleError(null);
 						setGoogleError(await signInWithGoogle());
 					}}
-					className={`inline-flex items-center gap-2 align-bottom ${textLink}`}
+					className={`ml-2 inline-flex items-center gap-2 align-bottom ${textLink}`}
 				>
 					<img src={google} alt="" width={16} height={16} />
 					continue with Google
