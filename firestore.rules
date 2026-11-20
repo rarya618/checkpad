@@ -182,7 +182,7 @@ service cloud.firestore {
           'ownerTeamId', 'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns'])
         && data.keys().hasOnly(['slug', 'name', 'description', 'status', 'startsAt', 'endsAt', 'timeZone', 'teamIds',
           'ownerTeamId', 'counts', 'walkInCounter', 'walkInTicketPrefix', 'selfWalkIns', 'walkInTicketTitle', 'walkInVenue',
-          'ticketUrl', 'statusChangedBy', 'statusChangedAt', 'legacyId'])
+          'ticketUrl', 'statusChangedBy', 'statusChangedAt', 'legacyId', 'importedQuestions'])
         && isSlug(data.slug)
         && isName(data.name)
         && isText(data.description, 500)
@@ -203,7 +203,9 @@ service cloud.firestore {
         && data.selfWalkIns is bool
         && isText(data.get('walkInTicketTitle', ''), 100)
         && isText(data.get('walkInVenue', ''), 200)
-        && isTicketUrl(data.get('ticketUrl', ''));
+        && isTicketUrl(data.get('ticketUrl', ''))
+        // Registration questions its imports have seen → whether their answers are kept (at most 50 per file)
+        && (!('importedQuestions' in data) || (data.importedQuestions is map && data.importedQuestions.size() <= 200));
     }
 
     // Where to get a ticket, or '' for none: a web address, as cleanTicketUrl in

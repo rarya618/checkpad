@@ -33,6 +33,8 @@ export interface EventDoc {
 	/** Who last opened or closed self check-in, and when: "Opened by Priya at 16:45". */
 	statusChangedBy?: string;
 	statusChangedAt?: Timestamp;
+	/** Registration questions its imports have seen → whether their answers are kept; later imports follow the choice. */
+	importedQuestions?: Record<string, boolean>;
 }
 
 /** events/{eventId}/attendees/{ticket} */

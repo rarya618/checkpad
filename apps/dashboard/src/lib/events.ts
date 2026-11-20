@@ -46,6 +46,8 @@ export interface DashboardEvent extends CheckpadEvent {
 	selfCheckInChangedAt: string | null;
 	/** Moved from the old check-in app, which didn't record who checked people in. */
 	migrated: boolean;
+	/** Registration questions its imports have seen → whether their answers are kept, so later imports follow the choice. */
+	importedQuestions: Record<string, boolean>;
 }
 
 /** What New event and Event settings edit. */
@@ -81,6 +83,7 @@ function toEvent(snap: DocumentSnapshot): DashboardEvent {
 		selfCheckInChangedBy: data.statusChangedBy ?? null,
 		selfCheckInChangedAt: iso(data.statusChangedAt),
 		migrated: Boolean(data.legacyId),
+		importedQuestions: data.importedQuestions ?? {},
 	};
 }
 
@@ -239,4 +242,9 @@ export function useEventSummaries(): EventSummary[] {
  */
 export function ownsEvent(me: Pick<Organiser, 'role' | 'teamId'>, event: Pick<DashboardEvent, 'ownerTeamId'>) {
 	return me.role === 'super-admin' || (me.role === 'organiser' && event.ownerTeamId !== null && me.teamId === event.ownerTeamId);
+}
+
+/** Remembers the registration questions the event's imports have seen and which of them are kept (Import attendees). */
+export function setImportedQuestions(event: DashboardEvent, questions: Record<string, boolean>) {
+	return updateDoc(doc(db, 'events', event.id), { importedQuestions: questions });
 }

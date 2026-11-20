@@ -249,6 +249,15 @@ describe('changing events', () => {
 		await assertFails(updateDoc(doc(mel(), 'events/syd'), { status: 'open' }));
 	});
 
+	test('organisers remember which registration questions their imports leave out', async () => {
+		const set = (importedQuestions: unknown) => updateDoc(doc(priya(), 'events/syd'), { importedQuestions });
+		await assertSucceeds(set({ 'University Email': false, 'T-Shirt Size': true }));
+		await assertSucceeds(set({}));
+		await assertFails(set(['University Email']));
+		await assertFails(set(Object.fromEntries(Array.from({ length: 201 }, (_, i) => [`Q${i}`, true]))));
+		await assertFails(updateDoc(doc(tom(), 'events/syd'), { importedQuestions: { 'University Email': false } }));
+	});
+
 	test('a ticket link is a web address, or empty for none', async () => {
 		const set = (ticketUrl: unknown) => updateDoc(doc(priya(), 'events/syd'), { ticketUrl });
 		await assertSucceeds(set('https://lu.ma/october-meetup'));
