@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Comparison } from '../lib/analytics';
 
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
@@ -467,18 +467,64 @@ const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) 
 /** More ticket types than fit beside the Checked in tile: the card takes the full width instead. */
 export const MANY_TICKET_TYPES = 6;
 
+// Shown before "Show all": two rows across a full-width card, the biggest types
+const TYPES_SHOWN = 6;
+
+const typeGrid = 'grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-x-8 gap-y-4';
+
 /**
- * Ticket types' turnout, biggest first, all of them: as many columns as the card has room for,
- * so twenty types from a platform like Humanitix sit in a few short rows across a wide card.
+ * Ticket types' turnout, biggest first, in as many columns as the card has room for, so twenty
+ * types from a platform like Humanitix sit in a few short rows. Past the first few, the rest fold
+ * open beneath them in the same columns (the Events page's past-events fold); `children` (the
+ * Walk-in line) comes last.
  */
 export function TicketTypeRows({ types, children }: { types: { name: string; checkedIn: number; total: number }[]; children?: ReactNode }) {
+	const [all, setAll] = useState(false);
+	const button = useRef<HTMLButtonElement>(null);
+	// Folding away a single row saves nothing
+	const folds = types.length > TYPES_SHOWN + 1;
+	const shown = folds ? types.slice(0, TYPES_SHOWN) : types;
+	const rest = folds ? types.slice(TYPES_SHOWN) : [];
+	// Folding back up, the card's top comes back into view if it's gone above the screen
+	const toggle = () => {
+		setAll(!all);
+		const card = button.current?.closest('section');
+		if (all && card && card.getBoundingClientRect().top < 0) {
+			card.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+		}
+	};
 	return (
-		<div className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-x-8 gap-y-4">
-			{types.map((t) => (
-				<CheckedInRow key={t.name} {...t} />
-			))}
-			{children}
-		</div>
+		<>
+			<div className={typeGrid}>
+				{shown.map((t) => (
+					<CheckedInRow key={t.name} {...t} />
+				))}
+				{!folds && children}
+			</div>
+			{folds && (
+				<>
+					<div data-expander data-open={all || undefined} inert={!all} className="-mt-4">
+						<div className="overflow-hidden pt-4">
+							<div className={typeGrid}>
+								{rest.map((t) => (
+									<CheckedInRow key={t.name} {...t} />
+								))}
+								{children}
+							</div>
+						</div>
+					</div>
+					<button
+						ref={button}
+						type="button"
+						aria-expanded={all}
+						onClick={toggle}
+						className="self-start rounded text-sm font-semibold text-med-blue underline-offset-4 hover:underline"
+					>
+						{all ? 'Show fewer' : `Show all ${types.length} ticket types`}
+					</button>
+				</>
+			)}
+		</>
 	);
 }
 
