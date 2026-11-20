@@ -26,6 +26,12 @@
         "value": "roboto",
         "createdAt": "2026-11-20T17:09:57.179Z",
         "reason": "Emails use a system font stack on purpose: email clients don't load web fonts reliably, so Plus Jakarta Sans can't be relied on there (functions/emails, predates this session)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "helvetica",
+        "createdAt": "2026-11-20T17:14:57.891Z",
+        "reason": "Emails use a system font stack on purpose: email clients don't load web fonts reliably (same exception as roboto)"
       }
     ]
   }
