@@ -153,7 +153,8 @@ function OneFieldForm({
 					</p>
 				)}
 			</div>
-			<button type="submit" aria-busy={busy} className={`relative ${buttonClass('primary', 'tall')}`}>
+			{/* Filled in already (from an invite, or a link that's expired): the button is the next step */}
+			<button type="submit" aria-busy={busy} autoFocus={Boolean(initial) && !input.autoFocus} className={`relative ${buttonClass('primary', 'tall')}`}>
 				<span className={busy ? 'invisible' : undefined}>{action}</span>
 				{busy && (
 					<span className="absolute inset-0 flex items-center justify-center">
@@ -200,6 +201,9 @@ export function SignInPage() {
 	const session = useSession();
 	const go = useTransitionNavigate();
 	const next = useNext();
+	// The invite's button brings their address (?email=), so signing in is one tap
+	const [params] = useSearchParams();
+	const invited = params.get('email') ?? '';
 	const [googleError, setGoogleError] = useState<string | null>(null);
 	useEffect(prepareGoogleSignIn, []);
 	if (session === undefined) return <Loading />;
@@ -212,6 +216,7 @@ export function SignInPage() {
 			foot={<DoorNotes />}
 		>
 			<EmailForm
+				initial={looksLikeEmail(invited) ? invited.trim() : ''}
 				action="Email me a code"
 				onSend={async (email) => {
 					const error = await sendSignInLink(email, next);
