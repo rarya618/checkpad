@@ -66,6 +66,7 @@ function RoleAndTeam({ role, team, setRole, setTeam }: { role: Role; team: strin
 			</SelectField>
 			<SelectField
 				label="Team"
+				noun="teams"
 				value={role === 'super-admin' ? '' : team}
 				disabled={role === 'super-admin'}
 				onChange={(e) => setTeam(e.target.value)}

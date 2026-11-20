@@ -1,4 +1,5 @@
 import { countries } from '@checkpad/shared/countries';
+import { formatClockTime } from '@checkpad/shared/format';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { endsNextDay, formTimesError, isMultiDay, nextDay, shiftedEndDate, ticketUrlError, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent, type PastVenue } from '../lib/events';
@@ -235,11 +236,11 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 				)}
 			</div>
 			<SwitchRow label="Multi-day event" note="It starts and ends on different dates" checked={multiDay} onChange={toggleMultiDay} />
-			<SelectField label="Time zone" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)}>
+			<SelectField label="Time zone" noun="time zones" value={form.timeZone} onChange={(e) => update('timeZone', e.target.value)}>
 				{countries.map((c) => (
 					<optgroup key={c.code} label={c.name}>
 						{c.timeZones.map((tz) => (
-							<option key={tz.id} value={tz.id}>
+							<option key={tz.id} value={tz.id} data-detail={formatClockTime(new Date(), tz.id)}>
 								{timeZoneLabel(tz.id, form.date ? new Date(`${form.date}T12:00:00Z`) : undefined)}
 							</option>
 						))}

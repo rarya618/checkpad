@@ -1,3 +1,4 @@
+import { formatClockTime } from '@checkpad/shared/format';
 import { countries, findCountry } from '@checkpad/shared/countries';
 import { timeZoneLabel } from '../lib/eventForm';
 import type { Team } from '../lib/teams';
@@ -19,6 +20,7 @@ export default function TeamPlaceFields({ value, onChange, required = false }: {
 		<>
 			<SelectField
 				label="Country"
+				noun="countries"
 				value={value.country}
 				// A new country starts at its largest city's time zone
 				onChange={(e) => onChange({ ...value, country: e.target.value, timeZone: findCountry(e.target.value)?.timeZones[0].id ?? '' })}
@@ -40,9 +42,9 @@ export default function TeamPlaceFields({ value, onChange, required = false }: {
 				maxLength={100}
 			/>
 			{country && country.timeZones.length > 1 && (
-				<SelectField label="Time zone" value={value.timeZone} onChange={(e) => onChange({ ...value, timeZone: e.target.value })} hint={zoneHint}>
+				<SelectField label="Time zone" noun="time zones" value={value.timeZone} onChange={(e) => onChange({ ...value, timeZone: e.target.value })} hint={zoneHint}>
 					{country.timeZones.map((tz) => (
-						<option key={tz.id} value={tz.id}>
+						<option key={tz.id} value={tz.id} data-detail={formatClockTime(new Date(), tz.id)}>
 							{timeZoneLabel(tz.id)}
 						</option>
 					))}

@@ -95,7 +95,16 @@ export function SelectField({
 	onChange,
 	disabled,
 	required,
-}: Base & { value: string; onChange: (e: { target: { value: string } }) => void; disabled?: boolean; required?: boolean; children: ReactNode }) {
+	noun,
+}: Base & {
+	value: string;
+	onChange: (e: { target: { value: string } }) => void;
+	disabled?: boolean;
+	required?: boolean;
+	/** What the list holds, for a long list's search box: "time zones". */
+	noun?: string;
+	children: ReactNode;
+}) {
 	const { chevron } = sizes[size];
 	return (
 		<Field label={label} hint={hint} error={error} size={size} className={className}>
@@ -106,6 +115,7 @@ export function SelectField({
 					onChange={(next) => onChange({ target: { value: next } })}
 					disabled={disabled}
 					required={required}
+					noun={noun}
 					buttonClassName={`${box(size)} ${chevron.pad} disabled:cursor-not-allowed`}
 					chevron={chevron}
 				>
