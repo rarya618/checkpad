@@ -37,7 +37,9 @@ a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !im
 </style>
 </head>
 <body class="page" style="margin:0;padding:0;background:#ffffff;">
-<!-- The inbox preview: the code, before anything else -->
+<!-- The inbox preview: the code, before anything else. The code is six plain digits, which Apple
+     Mail and Gmail recognise and offer to fill in or copy; the panel spaces them out, and one tap
+     or click selects all six. -->
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Your Checkpad sign-in code is {{{CODE}}}. It works for 10 minutes.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
 <table role="presentation" class="page top" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border-top:4px solid #112d4e;">
 <tr><td align="center" style="padding:0 8px;">
@@ -55,7 +57,7 @@ a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !im
 <h1 class="ink" style="margin:0;font-size:24px;line-height:1.25;font-weight:800;color:#112d4e;">Sign in to Checkpad</h1>
 <p class="ink" style="margin:8px 0 0;font-size:16px;line-height:1.5;color:#112d4e;">Enter this code on <a class="ink" href="https://manage.checkpad.app" style="color:#112d4e;font-weight:600;text-decoration:underline;">manage.checkpad.app</a>. It works once, for 10 minutes.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;"><tr>
-<td class="panel" align="center" style="background:#dbe2ef;border-radius:12px;padding:16px 12px;font-size:36px;line-height:1.25;font-weight:700;letter-spacing:6px;color:#112d4e;font-variant-numeric:tabular-nums;">{{{CODE}}}</td>
+<td class="panel" align="center" style="background:#dbe2ef;border-radius:12px;padding:16px 12px;font-size:36px;line-height:1.25;font-weight:700;letter-spacing:8px;color:#112d4e;font-variant-numeric:tabular-nums;-webkit-user-select:all;user-select:all;">{{{CODE}}}</td>
 </tr></table>
 <p class="soft" style="margin:28px 0 12px;font-size:16px;line-height:1.5;color:#3f72af;">Or, on the device you asked from, use this button. It works once, for an hour.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
