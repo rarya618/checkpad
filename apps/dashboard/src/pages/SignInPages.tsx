@@ -9,6 +9,7 @@ import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_URL } from '../lib/config';
 import { usingEmulators } from '../lib/firebase';
 import { useCurrentOrganiser } from '../lib/organisers';
+import { usePageArrival, useTransitionLink, useTransitionNavigate } from '../lib/pageTransition';
 
 // Not the Figma cards any more: each screen asks or answers one thing in display type on the
 // page's own ground, with the logo where the site's header puts it and, on the sign-in screens,
@@ -16,15 +17,19 @@ import { useCurrentOrganiser } from '../lib/organisers';
 // error page share the layout.
 
 export function AuthLayout({ title, description, children, foot }: { title: string; description: ReactNode; children: ReactNode; foot?: ReactNode }) {
+	usePageArrival();
 	return (
 		<div className="flex min-h-dvh flex-col px-6 py-6 md:px-12 md:py-8 lg:px-20">
 			<img src={logo} alt="checkpad" width={146} height={32} className="self-start" />
-			<main className="flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 py-14 md:gap-10">
+			{/* Centred by the space above and below rather than justify-center, so an error that
+			    appears under the field grows downwards instead of moving the question up the screen */}
+			<main className="flex w-full max-w-3xl flex-1 flex-col gap-8 py-14 md:gap-10">
+				<div className="flex-1" />
 				<div className="flex flex-col gap-3" data-enter>
 					<h1 className="font-display text-4xl leading-tight text-balance md:text-5xl lg:text-6xl">{title}</h1>
 					<p className="max-w-2xl text-lg leading-normal text-pretty text-dark-blue/80 md:text-xl">{description}</p>
 				</div>
-				<div className="flex w-full max-w-xl flex-col gap-5" data-enter style={{ '--enter': 1 } as CSSProperties}>
+				<div className="flex w-full max-w-2xl flex-1 flex-col gap-5" data-enter style={{ '--enter': 1 } as CSSProperties}>
 					{children}
 				</div>
 			</main>
@@ -106,7 +111,7 @@ function EmailForm({
 					placeholder="you@example.com"
 					aria-invalid={error ? true : undefined}
 					aria-describedby={error ? `${id}-error` : undefined}
-					className="min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/50 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)]"
+					className="min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue md:text-xl shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)]"
 				/>
 				{error && (
 					<p id={`${id}-error`} role="alert" className={alert}>
@@ -119,7 +124,9 @@ function EmailForm({
 				{busy && (
 					<span className="absolute inset-0 flex items-center justify-center">
 						<Spinner className="text-off-white" />
-						<span className="sr-only">Sending</span>
+						<span role="status" className="sr-only">
+							Sending
+						</span>
 					</span>
 				)}
 			</button>
@@ -138,7 +145,7 @@ const checkEmailPath = (email: string, next: string) => `/sign-in/check-email?${
 
 export function SignInPage() {
 	const session = useSession();
-	const navigate = useNavigate();
+	const go = useTransitionNavigate();
 	const next = useNext();
 	const [googleError, setGoogleError] = useState<string | null>(null);
 	useEffect(prepareGoogleSignIn, []);
@@ -155,7 +162,7 @@ export function SignInPage() {
 				action="Email me a link"
 				onSend={async (email) => {
 					const error = await sendSignInLink(email, next);
-					if (!error) navigate(checkEmailPath(email, next));
+					if (!error) go(checkEmailPath(email, next));
 					return error;
 				}}
 			/>
@@ -188,9 +195,13 @@ export function CheckEmailPage() {
 	const next = useNext();
 	const [wait, setWait] = useState(60);
 	const [error, setError] = useState<string | null>(null);
+	// Said once at the moments that matter, not every second of the countdown
+	const [announce, setAnnounce] = useState('');
 	const navigate = useNavigate();
+	const differentEmail = `/sign-in?${new URLSearchParams({ next })}`;
+	const toDifferentEmail = useTransitionLink(differentEmail);
 	useEffect(() => {
-		if (wait <= 0) return;
+		if (wait <= 0) return setAnnounce('You can send it again now.');
 		const t = setTimeout(() => setWait((w) => w - 1), 1000);
 		return () => clearTimeout(t);
 	}, [wait]);
@@ -201,38 +212,43 @@ export function CheckEmailPage() {
 			title="Check your email"
 			description={
 				<>
-					If <strong className="font-semibold text-dark-blue">{email}</strong> is on the organiser list, a sign-in link is on its way. Open it on this device
+					If <strong className="font-semibold wrap-anywhere text-dark-blue">{email}</strong> is on the organiser list, a sign-in link is on its way. Open it on this device
 					within an hour.
 				</>
 			}
 			foot={<DoorNotes />}
 		>
-			<Link to={`/sign-in?${new URLSearchParams({ next })}`} className={`self-start ${buttonClass('secondary', 'tall')}`}>
+			<Link to={differentEmail} onClick={toDifferentEmail} className={`self-start ${buttonClass('secondary', 'tall')}`}>
 				Use a different email
 			</Link>
-			<p className={help} aria-live="polite">
+			<p className={help}>
 				Not there? Check your spam folder, or{' '}
-				{wait > 0 ? (
-					<>
-						send it again in <span className="tabular-nums">{wait}</span> second
-						{wait === 1 ? '' : 's'}.
-					</>
-				) : (
-					<>
-						<button
-							type="button"
-							onClick={async () => {
-								setWait(60);
-								setError(await sendSignInLink(email, next));
-							}}
-							className={textLink}
-						>
-							send it again
-						</button>
-						.
-					</>
-				)}{' '}
-				Still nothing? Ask a super admin to check which address they invited.
+				{/* One button throughout, so focus stays on it while it counts down */}
+				<button
+					type="button"
+					aria-disabled={wait > 0}
+					onClick={async () => {
+						if (wait > 0) return;
+						setWait(60);
+						setAnnounce('');
+						const failed = await sendSignInLink(email, next);
+						setError(failed);
+						if (!failed) setAnnounce('Sent it again.');
+					}}
+					className={wait > 0 ? 'cursor-not-allowed' : textLink}
+				>
+					{wait > 0 ? (
+						<>
+							send it again in <span className="tabular-nums">{wait}</span> second{wait === 1 ? '' : 's'}
+						</>
+					) : (
+						'send it again'
+					)}
+				</button>
+				. Still nothing? Ask a super admin to check which address they invited.
+			</p>
+			<p role="status" className="sr-only">
+				{announce}
 			</p>
 			{error && (
 				<p role="alert" className={alert}>
@@ -267,7 +283,7 @@ export function CheckEmailPage() {
 export function SignInLinkPage() {
 	const next = useNext();
 	const [result, setResult] = useState<'signed-in' | 'expired'>();
-	const navigate = useNavigate();
+	const go = useTransitionNavigate();
 
 	useEffect(() => {
 		completeSignInLink().then(setResult);
@@ -282,7 +298,7 @@ export function SignInLinkPage() {
 				action="Send a new link"
 				onSend={async (email) => {
 					const error = await sendSignInLink(email, next);
-					if (!error) navigate(checkEmailPath(email, next));
+					if (!error) go(checkEmailPath(email, next));
 					return error;
 				}}
 			/>
@@ -297,8 +313,10 @@ export function NoAccessPage() {
 	if (session === null) return <Navigate to="/sign-in" replace />;
 	if (me) return <Navigate to="/events" replace />;
 	if (!session || me === undefined) return <Loading />;
-	const initials = (session.name ?? session.email)
-		.split(/[\s.@]+/)
+	// From the name, or the part of the email before the @ (not the domain)
+	const initials = (session.name?.trim() || session.email.split('@')[0])
+		.split(/[\s._-]+/)
+		.filter(Boolean)
 		.map((p) => p[0])
 		.slice(0, 2)
 		.join('')
@@ -316,7 +334,7 @@ export function NoAccessPage() {
 				</span>
 				<div className="flex min-w-0 flex-col leading-normal">
 					{session.name && <p className="truncate font-display text-base">{session.name}</p>}
-					<p className="truncate text-base text-dark-blue/80">{session.email}</p>
+					<p className="text-base wrap-anywhere text-dark-blue/80">{session.email}</p>
 				</div>
 			</div>
 			<button type="button" onClick={signOut} className={`self-start ${buttonClass('primary', 'tall')}`}>
