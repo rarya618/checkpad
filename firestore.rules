@@ -259,7 +259,7 @@ service cloud.firestore {
           && isName(data.firstName)
           && isText(data.lastName, 100)
           && isEmail(data.email)
-          && data.source in ['bevy', 'luma', 'csv', 'walk-in']
+          && data.source in ['bevy', 'luma', 'humanitix', 'csv', 'walk-in']
           && isText(data.get('ticketType', ''), 100)
           // Registration questions → answers, from imports (attendeeImport.ts caps them)
           && (!('answers' in data) || (data.answers is map && data.answers.size() <= 50))
@@ -295,7 +295,7 @@ service cloud.firestore {
         // and update names, ticket types, answers and registration dates
         allow create: if runsTeam(eventTeams(eventId))
           && isAttendee(ticket, request.resource.data)
-          && request.resource.data.source in ['bevy', 'luma', 'csv']
+          && request.resource.data.source in ['bevy', 'luma', 'humanitix', 'csv']
           && request.resource.data.checkedInAt == null
           && !('checkedInBy' in request.resource.data)
           && request.resource.data.importedAt == request.time

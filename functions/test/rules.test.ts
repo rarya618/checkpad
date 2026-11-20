@@ -414,9 +414,10 @@ describe('imports', () => {
 		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, firstName: ' ' }));
 	});
 
-	test('Luma and other CSV imports, with answers to registration questions', async () => {
+	test('Luma, Humanitix and other CSV imports, with answers to registration questions', async () => {
 		const answers = { 'Experience with Android': '1–3 years' };
 		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/gst-AbC123'), { ...person, source: 'luma', answers }));
+		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/S6TFX6HG-2'), { ...person, source: 'humanitix', answers }));
 		await assertSucceeds(setDoc(doc(priya(), 'events/syd/attendees/A-77'), { ...person, source: 'csv' }));
 		await assertSucceeds(updateDoc(doc(priya(), 'events/syd/attendees/GOOGA001'), { answers }));
 		await assertFails(setDoc(doc(priya(), 'events/syd/attendees/GOOGA003'), { ...person, source: 'walk-in' }));

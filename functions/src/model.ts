@@ -42,7 +42,7 @@ export interface AttendeeDoc {
 	/** Lowercase, so lookups by email match whatever case people type. */
 	email: string;
 	/** Where they came from: an import from Bevy, Luma or another platform's CSV, or a walk-in. */
-	source: 'bevy' | 'luma' | 'csv' | 'walk-in';
+	source: 'bevy' | 'luma' | 'humanitix' | 'csv' | 'walk-in';
 	checkedInAt: Timestamp | null;
 	/** The organiser who checked them in from the dashboard; absent for self check-in. */
 	checkedInBy?: string | null;

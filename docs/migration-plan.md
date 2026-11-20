@@ -179,7 +179,7 @@ events/{eventId}                     slug, name, description, status, startsAt?,
                                      walkInCounter, walkInTicketPrefix, selfWalkIns,
                                      ticketUrl? (offered while check-in isn't open yet), legacyId
 events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), source ('bevy' | 'luma' |
-                                     'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,
+                                     'humanitix' | 'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,
                                      ticketTitle?, ticketVenue?, bevyOrderNumber?, answers? (question → answer),
                                      importedAt?, importedBy? (set by the import that first added them)
 events/{eventId}/draw/{ticket}       result ('won' | 'not-here'), drawnAt, winnerNumber?
