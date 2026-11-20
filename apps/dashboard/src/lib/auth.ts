@@ -1,5 +1,5 @@
-// Sign-in with Firebase Auth: Google, or a link emailed to the organiser (no passwords). The
-// link comes from our own email (functions/src/organisers.ts), not Firebase's.
+// Sign-in with Firebase Auth: Google, or an email to the organiser with a code to type and a link
+// to open (no passwords). The email is our own (functions/src/organisers.ts), not Firebase's.
 // Signing in doesn't grant anything by itself: access comes from the organiser list
 // (organisers.ts), which the security rules check too.
 import { FirebaseError } from 'firebase/app';
@@ -8,6 +8,7 @@ import {
 	getRedirectResult,
 	isSignInWithEmailLink,
 	onAuthStateChanged,
+	signInWithCustomToken,
 	signInWithEmailLink,
 	signInWithPopup,
 	signOut as firebaseSignOut,
@@ -74,8 +75,8 @@ export async function signInWithGoogle(): Promise<string | null> {
 	} catch (error) {
 		const code = error instanceof FirebaseError ? error.code : '';
 		if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null;
-		if (code === 'auth/popup-blocked') return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site, or use an email link.';
-		if (code === 'auth/account-exists-with-different-credential') return 'This email signs in with an email link. Use that instead.';
+		if (code === 'auth/popup-blocked') return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site, or sign in with your email.';
+		if (code === 'auth/account-exists-with-different-credential') return 'This email signs in with an emailed code. Use that instead.';
 		return 'Couldn’t sign in with Google. Check your connection and try again.';
 	}
 }
@@ -107,6 +108,30 @@ export async function sendSignInLink(email: string, next: string): Promise<strin
 }
 
 /**
+ * Signs in with the six-digit code from the email, which works on any device: the API swaps it
+ * for a token (functions/src/organisers.ts). Resolves with an error message, or null.
+ */
+export async function signInWithCode(email: string, code: string): Promise<string | null> {
+	const address = email.trim().toLowerCase();
+	try {
+		const res = await fetch('/api/auth/sign-in-code', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ email: address, code }),
+		});
+		if (res.status === 400) return 'That code isn’t right, or it’s expired. Check the latest email, or send a new code.';
+		if (res.status === 429) return 'Too many tries for now. Wait a few minutes, or use Google.';
+		if (!res.ok) throw new Error(`Sign-in code: HTTP ${res.status}`);
+		const { token } = (await res.json()) as { token: string };
+		await signInWithCustomToken(auth, token);
+		localStorage.removeItem(LINK_EMAIL);
+		return null;
+	} catch {
+		return 'Couldn’t sign in. Check your connection and try again.';
+	}
+}
+
+/**
  * Finishes signing in from the emailed link (the current URL). "expired" covers links that
  * were used already, are over an hour old, or were opened on another device, where we don't
  * know which email they were sent to.
@@ -130,6 +155,23 @@ async function finishSignInLink(href: string): Promise<'signed-in' | 'expired'> 
 	} catch {
 		return 'expired';
 	}
+}
+
+/**
+ * The emulators send no email: the Functions emulator keeps each one in emulatorOutbox, which the
+ * Firestore emulator lets us read as its owner. Resolves with the newest code sent to `email`, or null.
+ */
+export async function emulatorSignInCode(email: string): Promise<string | null> {
+	if (!usingEmulators) return null;
+	const res = await fetch(`http://127.0.0.1:8080/v1/projects/${app.options.projectId}/databases/(default)/documents/emulatorOutbox`, {
+		headers: { authorization: 'Bearer owner' },
+	});
+	const { documents = [] }: { documents?: { fields: { to: { stringValue: string }; template: { stringValue: string }; at: { timestampValue: string }; variables: { mapValue: { fields: { CODE?: { stringValue: string } } } } } }[] } =
+		await res.json();
+	const newest = documents
+		.filter((d) => d.fields.to.stringValue === email.trim().toLowerCase() && d.fields.template.stringValue === 'sign-in')
+		.sort((a, b) => b.fields.at.timestampValue.localeCompare(a.fields.at.timestampValue))[0];
+	return newest?.fields.variables.mapValue.fields.CODE?.stringValue ?? null;
 }
 
 /**
