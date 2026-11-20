@@ -7,7 +7,7 @@ import { CONTACT_EMAIL, OPERATOR } from '../lib/config';
 // Not in Figma. Keep it true to the code: what each part of Checkpad stores is in
 // firestore.rules, and analytics is in components/marketing/Analytics.astro. Update the date
 // whenever the substance changes. "privacy" is a reserved event link (RESERVED_SLUGS).
-const updated = '20 November 2026';
+const updated = '21 November 2026';
 const email = CONTACT_EMAIL;
 const operator = OPERATOR;
 
@@ -25,15 +25,16 @@ const sections: { title: string; body: Block[] }[] = [
 	{
 		title: 'If you check in at an event',
 		body: [
-			'The event’s organiser imports their attendee list from where you registered, such as Bevy or Luma. For that event, Checkpad then holds:',
+			'The event’s organiser imports their attendee list from where you registered, such as Bevy, Luma or Humanitix. For that event, Checkpad then holds:',
 			{
 				list: [
 					'your name, email address, ticket number and ticket type, and your answers to the event’s registration questions, from that list',
+					'if you paid for your ticket, what you paid, its fees and any discount or access code you used, from that list; only the event’s organisers can see this, not its volunteers',
 					'when you checked in, and which volunteer checked you in if one did',
 					'if you weren’t on the list, the name and email address you give as a walk-in',
 				],
 			},
-			'The event’s organisers and volunteers can see this. They use it to check people in, count who came, run the prize draw and report attendance back to their registration platform.',
+			'The event’s organisers and volunteers can see this. They use it to check people in, count who came, run the prize draw, report attendance back to their registration platform and, for paid events, see how ticket sales went.',
 			'The organiser decides how long their event stays in Checkpad. Deleting an event deletes its attendee list. For questions about a particular event, contact its organiser.',
 		],
 	},
