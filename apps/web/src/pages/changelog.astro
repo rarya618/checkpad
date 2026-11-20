@@ -54,9 +54,9 @@ const label = (audiences: Audience[]) =>
 const inline = (text: string) => text.split(/`([^`]+)`/);
 
 const filters = [
-	{ value: 'all', label: 'All changes' },
-	{ value: 'organisers', label: 'For organisers' },
-	{ value: 'attendees', label: 'For attendees' },
+	{ value: 'all', label: 'Everyone' },
+	{ value: 'organisers', label: 'Organisers' },
+	{ value: 'attendees', label: 'Attendees' },
 ];
 ---
 
@@ -70,24 +70,26 @@ const filters = [
 			</header>
 
 			<!-- Shown once the script below runs; without it every change is listed -->
+			<!-- The timeline's line turned on its side: the choice is a navy stretch of it that slides -->
 			<div
 				data-filter
 				hidden
 				role="group"
 				aria-label="Show changes for"
-				class="relative mt-8 inline-flex rounded-lg bg-light-blue p-1"
+				class="relative mt-8 inline-flex gap-6 sm:gap-8"
 			>
+				<span aria-hidden="true" class="absolute inset-x-0 bottom-0 h-0.5 bg-light-blue"></span>
 				<span
 					data-thumb
 					aria-hidden="true"
-					class="absolute top-1 bottom-1 left-0 rounded-md bg-white shadow-[0_4.5px_12px_rgb(17_45_78/0.14)] motion-safe:transition-[translate,width] motion-safe:duration-220 motion-safe:ease-(--ease-out-quick)"
+					class="absolute bottom-0 left-0 h-0.5 rounded-full bg-dark-blue motion-safe:data-ready:transition-[translate,width] motion-safe:duration-220 motion-safe:ease-(--ease-out-quick)"
 				></span>
 				{filters.map((f) => (
 					<button
 						type="button"
 						data-value={f.value}
 						aria-pressed={f.value === 'all' ? 'true' : 'false'}
-						class="relative rounded-md px-3 py-2.5 text-sm sm:py-1.5 font-semibold tracking-tight text-dark-blue/70 transition-colors aria-pressed:text-dark-blue hover:text-dark-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue sm:px-4 sm:text-base"
+						class="relative rounded-sm pt-2 pb-3 text-base font-semibold tracking-tight text-dark-blue/70 transition-colors aria-pressed:text-dark-blue hover:text-dark-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
 					>
 						{f.label}
 					</button>
@@ -217,7 +219,7 @@ const filters = [
 	const params = new URLSearchParams(location.search);
 	let initial = buttons.some((b) => b.dataset.value === params.get('for')) ? params.get('for')! : 'all';
 	// A link to a version the filter would hide (say, an organiser following the dashboard to a
-	// release with nothing for organisers) opens on All changes, so the version is there
+	// release with nothing for organisers) opens on Everyone, so the version is there
 	const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
 	if (target?.matches('[data-release]') && !shows(target, initial)) {
 		initial = 'all';
@@ -226,6 +228,8 @@ const filters = [
 	}
 	group.hidden = false;
 	apply(initial, false);
+	// Only slide once it's in place, so the bar doesn't grow from nothing on load
+	requestAnimationFrame(() => requestAnimationFrame(() => thumb.toggleAttribute('data-ready', true)));
 
 	for (const b of buttons) {
 		b.addEventListener('click', () => {
