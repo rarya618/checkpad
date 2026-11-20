@@ -1,5 +1,5 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type Ref, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
-import chevronDown from '../assets/chevron-down.svg';
+import { useId, type InputHTMLAttributes, type ReactNode, type Ref, type TextareaHTMLAttributes } from 'react';
+import Select from './Select';
 
 // Figma "Text field": label, filled box, optional hint. "md" is the desktop dashboard's
 // 75% scale; "lg" is full size for the phone screens. Focus draws Figma's 2px med-blue
@@ -80,6 +80,10 @@ export function TextAreaField({ label, hint, error, size = 'md', className, rows
 	);
 }
 
+/**
+ * A dropdown field: the dashboard's own list (Select), written with <option> and <optgroup>
+ * children like a <select>. `onChange` gets `{ target: { value } }`, as a select's change event would.
+ */
 export function SelectField({
 	label,
 	hint,
@@ -87,24 +91,26 @@ export function SelectField({
 	size = 'md',
 	className,
 	children,
-	...select
-}: Base & Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> & { children: ReactNode }) {
+	value,
+	onChange,
+	disabled,
+	required,
+}: Base & { value: string; onChange: (e: { target: { value: string } }) => void; disabled?: boolean; required?: boolean; children: ReactNode }) {
 	const { chevron } = sizes[size];
 	return (
 		<Field label={label} hint={hint} error={error} size={size} className={className}>
 			{(control) => (
-				<div className="relative">
-					<select {...control} {...select} className={`${box(size)} appearance-none ${chevron.pad}`}>
-						{children}
-					</select>
-					<img
-						src={chevronDown}
-						alt=""
-						width={chevron.size}
-						height={chevron.size}
-						className={`pointer-events-none absolute top-1/2 ${chevron.right} -translate-y-1/2`}
-					/>
-				</div>
+				<Select
+					{...control}
+					value={value}
+					onChange={(next) => onChange({ target: { value: next } })}
+					disabled={disabled}
+					required={required}
+					buttonClassName={`${box(size)} ${chevron.pad} disabled:cursor-not-allowed`}
+					chevron={chevron}
+				>
+					{children}
+				</Select>
 			)}
 		</Field>
 	);
