@@ -4,6 +4,11 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.4.0 (2026-11-21)
+
+- [organisers] Analytics shows ticket sales for paid events: your earnings, every amount the platform reported, earnings by ticket type, and how many people using each discount or access code came
+- [organisers] The Analytics page compares ticket earnings across events
+
 ## 1.3.1 (2026-11-21)
 
 - [organisers] Analytics lays out many ticket types in columns across the page, showing the biggest first with the rest a click away
