@@ -303,13 +303,14 @@ export interface MethodSplit {
 	byOrganiser: { email: string; count: number }[];
 }
 
-/** How an event's check-ins happened; null for a migrated event, where nobody recorded it. */
+/** How an event's check-ins happened, leaving out imported ones; null for a migrated event, where nobody recorded it. */
 export function checkInMethods(event: DashboardEvent, roster: RosterAttendee[]): MethodSplit | null {
 	if (event.migrated) return null;
 	const byOrganiser = new Map<string, number>();
 	let self = 0;
 	for (const a of roster) {
-		if (!a.checkedInAt) continue;
+		// Check-ins brought in from the registration platform happened somewhere else
+		if (!a.checkedInAt || a.checkInImported) continue;
 		if (a.checkedInBy) byOrganiser.set(a.checkedInBy, (byOrganiser.get(a.checkedInBy) ?? 0) + 1);
 		else self++;
 	}

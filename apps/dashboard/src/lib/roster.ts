@@ -39,6 +39,8 @@ export interface RosterAttendee extends Attendee {
 	addedBy?: string;
 	/** The organiser who checked them in from the dashboard; none when they checked themselves in. */
 	checkedInBy?: string;
+	/** Checked in on the registration platform, and brought in by an import: nobody knows how. */
+	checkInImported?: boolean;
 }
 
 const EMPTY: RosterAttendee[] = [];
@@ -60,6 +62,7 @@ function toAttendee(snap: QueryDocumentSnapshot): RosterAttendee {
 		walkIn: data.source === 'walk-in',
 		...(data.source === 'walk-in' && data.checkedInBy && { addedBy: data.checkedInBy }),
 		...(data.checkedInAt && data.checkedInBy && { checkedInBy: data.checkedInBy }),
+		...(data.checkedInAt && data.checkInImported && { checkInImported: true }),
 	};
 }
 
@@ -108,10 +111,11 @@ export function useRosters(events: DashboardEvent[]) {
 	return manyStore.use(key || null) ?? {};
 }
 
-/** Checks someone in as the signed-in organiser, or undoes it. */
+/** Checks someone in as the signed-in organiser, or undoes it. Either way it's no longer an imported check-in. */
 export function setCheckedIn(event: DashboardEvent, attendeeId: string, checkedIn: boolean) {
 	const ref = doc(attendees(event.id), attendeeId);
-	return updateDoc(ref, checkedIn ? { checkedInAt: serverTimestamp(), checkedInBy: myEmail() } : { checkedInAt: null, checkedInBy: null });
+	const change = checkedIn ? { checkedInAt: serverTimestamp(), checkedInBy: myEmail() } : { checkedInAt: null, checkedInBy: null };
+	return updateDoc(ref, { ...change, checkInImported: deleteField() });
 }
 
 export function nextWalkInTicket(event: DashboardEvent) {
@@ -145,9 +149,22 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
  * Applies an import: adds new tickets as not arrived, stamped with who imported them and when,
  * and updates names, ticket types, answers and registration dates.
  * Writes 500 at a time, so a large import isn't all or nothing; it's safe to run again.
+ * `checkIns` checks people in at the platform's times: new people as they're added, and people
+ * already on the list one by one afterwards, so anyone checked in here meanwhile stays as they are.
  */
-export async function importAttendees(event: DashboardEvent, roster: RosterAttendee[], plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated'>) {
+export async function importAttendees(
+	event: DashboardEvent,
+	roster: RosterAttendee[],
+	plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated'>,
+	checkIns: ImportPlan['checkIns'] = [],
+) {
 	const ids = new Map(roster.map((a) => [a.id.toLowerCase(), a.id]));
+	const arrived = new Map(checkIns.map((c) => [c.ticket.toLowerCase(), c.at]));
+	const imported = (ticket: string) => {
+		const at = arrived.get(ticket.toLowerCase());
+		return at ? { checkedInAt: Timestamp.fromDate(at), checkInImported: true } : { checkedInAt: null };
+	};
+	const added = new Set(plan.added.map((row) => row.ticket.toLowerCase()));
 	const writes = [
 		...plan.added.map((row) => ({
 			ref: doc(attendees(event.id), row.ticket),
@@ -156,7 +173,7 @@ export async function importAttendees(event: DashboardEvent, roster: RosterAtten
 				lastName: row.lastName,
 				email: row.email,
 				source: plan.source,
-				checkedInAt: null,
+				...imported(row.ticket),
 				importedAt: serverTimestamp(),
 				importedBy: myEmail(),
 				...(row.ticketType && { ticketType: row.ticketType }),
@@ -186,6 +203,11 @@ export async function importAttendees(event: DashboardEvent, roster: RosterAtten
 		}
 		await batch.commit();
 	}
+	// The rules turn one down if they were checked in here since the file was read
+	const existing = checkIns.filter((c) => !added.has(c.ticket.toLowerCase()));
+	await Promise.allSettled(
+		existing.map((c) => updateDoc(doc(attendees(event.id), ids.get(c.ticket.toLowerCase()) ?? c.ticket), { checkedInAt: Timestamp.fromDate(c.at), checkInImported: true })),
+	);
 }
 
 export interface RosterStats {

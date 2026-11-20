@@ -27,6 +27,12 @@ export interface ImportRow {
 	registeredAt?: Date;
 }
 
+/** Someone the file has as checked in who isn't checked in here yet, and when they arrived. */
+export interface ImportCheckIn {
+	ticket: string;
+	at: Date;
+}
+
 export interface ImportPlan {
 	fileName: string;
 	source: ImportSource;
@@ -38,6 +44,13 @@ export interface ImportPlan {
 	unchanged: number;
 	/** Reason → spreadsheet row numbers (the header is row 1). */
 	skipped: Map<string, number[]>;
+	/**
+	 * Check-ins the file records for people who aren't checked in here, imported only when the
+	 * organiser asks. Check-ins made here always stay as they are.
+	 */
+	checkIns: ImportCheckIn[];
+	/** Rows checked in on the platform with no check-in time we can read. */
+	checkInsWithoutTime: number[];
 }
 
 export type ImportError =
@@ -61,6 +74,10 @@ const columns = {
 	timeZone: ['timezone'],
 	// What a ticket number counts within, when it's "1st", "2nd"… (Humanitix's "Order id")
 	order: ['orderid'],
+	// When they checked in on the platform: Luma's checked_in_at, Bevy's "Check in date (UTC)",
+	// Humanitix's "Checked in date"; and whether they did, where it's said apart from the time
+	checkedInAt: ['checkedinat', 'checkindateutc', 'checkedindate', 'checkindate', 'checkintime'],
+	checkedIn: ['checkedin'],
 } as const;
 type Column = keyof typeof columns;
 
@@ -161,6 +178,21 @@ export function parseRegisteredAt(text: string, zone = ''): Date | undefined {
 	return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
+const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+/** "Sat 10th Oct 2026, 11:25 am AEDT" (Humanitix's check-in times), or any format parseRegisteredAt reads. */
+export function parseCheckedInAt(text: string): Date | undefined {
+	const m = text.match(/^(?:[a-z]+,?\s+)?(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]{3})[a-z]*\.?\s+(\d{4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]m)?)\s*([a-z]{3,4}|[+-]\d{2}:?\d{2})?$/i);
+	if (!m) return parseRegisteredAt(text);
+	const [, d, mon, y, time, zone = ''] = m;
+	const mo = months.indexOf(mon.toLowerCase()) + 1;
+	if (!mo) return undefined;
+	return parseRegisteredAt(`${y}-${String(mo).padStart(2, '0')}-${d.padStart(2, '0')} ${time}`, zone);
+}
+
+// Values of a "checked in" column that mean they did
+const checkedInValues = new Set(['checkedin', 'yes', 'y', 'true', '1']);
+
 /** Same questions and answers, whatever their order. */
 function sameAnswers(a: Record<string, string> = {}, b: Record<string, string> = {}) {
 	const ak = Object.keys(a);
@@ -174,7 +206,11 @@ export async function planImport(file: File, roster: RosterAttendee[]): Promise<
 	return planFromText(file.name, await file.text(), roster);
 }
 
-export function planFromText(fileName: string, text: string, roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers' | 'registeredAt'>[]): ImportPlan | ImportError {
+export function planFromText(
+	fileName: string,
+	text: string,
+	roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers' | 'registeredAt' | 'checkedInAt'>[],
+): ImportPlan | ImportError {
 	const [header = [], ...rows] = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ''));
 	const keys = header.map(key);
 	const index = Object.fromEntries(
@@ -220,6 +256,8 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 		updated: [],
 		unchanged: 0,
 		skipped: new Map(),
+		checkIns: [],
+		checkInsWithoutTime: [],
 	};
 	const skip = (reason: string, row: number) => plan.skipped.set(reason, [...(plan.skipped.get(reason) ?? []), row]);
 
@@ -262,6 +300,14 @@ export function planFromText(fileName: string, text: string, roster: Pick<Roster
 		if (!existing && onList.has(row.email)) return skip('Already on the list with another ticket', rowNumber);
 		if (!existing && seenEmails.has(row.email)) return skip('Same email as an earlier row', rowNumber);
 		seenEmails.add(row.email);
+		// Without a separate "checked in" column, a check-in time is enough
+		const checkedIn = index.checkedIn >= 0 ? checkedInValues.has(key(cell(index.checkedIn))) : cell(index.checkedInAt) !== '';
+		if (checkedIn && !existing?.checkedInAt) {
+			const at = parseCheckedInAt(cell(index.checkedInAt));
+			// The database won't take a check-in from the future (firestore.rules)
+			if (at && at.getTime() <= Date.now()) plan.checkIns.push({ ticket: row.ticket, at });
+			else plan.checkInsWithoutTime.push(rowNumber);
+		}
 		if (!existing) plan.added.push(row);
 		else if (
 			existing.firstName !== row.firstName ||
