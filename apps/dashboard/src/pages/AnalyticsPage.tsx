@@ -2,10 +2,10 @@ import { buttonClass } from '@checkpad/shared/button';
 import { formatDay } from '@checkpad/shared/format';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import chevron from '../assets/chevron-small.svg';
 import { Section, SectionRail } from '../components/AnalyticsSections';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, StatTile, TicketTypeRows, type Series } from '../components/Charts';
 import PageHeader from '../components/PageHeader';
+import Select from '../components/Select';
 import {
 	byTicketType,
 	checkInMethods,
@@ -638,19 +638,18 @@ function NoShows({ list }: { list: Person[] }) {
 	);
 }
 
-/** Figma "Filter": a bordered dropdown in the page header. */
+/** Figma "Filter": a bordered dropdown in the page header, opening the dashboard's own list (Select). */
 function Filter({ label, value, onChange, children }: { label: string; value: string; onChange: (v: string) => void; children: ReactNode }) {
 	return (
-		<label className="relative">
-			<span className="sr-only">{label}</span>
-			<select
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				className="w-full appearance-none rounded-lg border border-med-blue bg-white py-2.5 pr-9 pl-3.5 text-sm leading-normal font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
-			>
-				{children}
-			</select>
-			<img src={chevron} alt="" width={13.5} height={13.5} className="pointer-events-none absolute top-1/2 right-[10.5px] -translate-y-1/2" />
-		</label>
+		<Select
+			aria-label={label}
+			value={value}
+			onChange={onChange}
+			buttonClassName="w-full rounded-lg border border-med-blue bg-white py-2.5 pr-9 pl-3.5 text-sm leading-normal font-semibold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-med-blue"
+			chevron={{ size: 13.5, right: 'right-[10.5px]' }}
+			align="end"
+		>
+			{children}
+		</Select>
 	);
 }
