@@ -92,6 +92,7 @@ beforeEach(async () => {
 		await setDoc(doc(db, 'slugs/joint-meetup'), { eventId: 'joint' });
 		await setDoc(doc(db, 'events/mel/attendees/GOOGA101'), { firstName: 'Ana', lastName: 'Ruiz', email: 'ana@example.com', source: 'bevy', checkedInAt: null });
 		await setDoc(doc(db, 'rateLimits/abc'), { count: 1 });
+		await setDoc(doc(db, 'signInCodes/abc'), { wrongTries: 0 });
 		await setDoc(doc(db, 'waitlist/w1'), { email: 'someone@example.com', createdAt: Timestamp.now() });
 	});
 });
@@ -103,7 +104,7 @@ const priya = () => as('priya@example.com');
 const tom = () => as('tom@example.com');
 const mel = () => as('mel@example.com');
 
-const LOCKED = ['events/syd', 'events/syd/attendees/GOOGA001', 'events/syd/draw/GOOGA002', 'admins/priya@example.com', 'teams/sydney', 'slugs/sydney-meetup', 'rateLimits/abc'];
+const LOCKED = ['events/syd', 'events/syd/attendees/GOOGA001', 'events/syd/draw/GOOGA002', 'admins/priya@example.com', 'teams/sydney', 'slugs/sydney-meetup', 'rateLimits/abc', 'signInCodes/abc'];
 
 const outsiders: [string, () => Firestore][] = [
 	['a visitor', visitor],

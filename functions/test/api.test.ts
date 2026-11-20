@@ -310,6 +310,128 @@ describe('POST /auth/sign-in-link', () => {
 	});
 });
 
+describe('POST /auth/sign-in-code', () => {
+	const DASHBOARD = 'http://localhost:5173';
+
+	/** Asks for a sign-in email, and returns the code in it. */
+	async function emailedCode(email: string) {
+		await fetch(`${API}/auth/sign-in-link`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json', origin: DASHBOARD },
+			body: JSON.stringify({ email }),
+		});
+		const sent = (await db.collection('emulatorOutbox').where('to', '==', email).get()).docs.map((d) => d.data());
+		return sent.sort((a, b) => b.at.toMillis() - a.at.toMillis())[0]?.variables.CODE as string;
+	}
+
+	async function useCode(email: string, code: string) {
+		const res = await fetch(`${API}/auth/sign-in-code`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ email, code }),
+		});
+		return { status: res.status, body: (await res.json()) as { token?: string; error?: string } };
+	}
+
+	/** Signs in with a custom token, as the dashboard does, and returns the ID token's claims. */
+	async function claimsFor(token: string) {
+		const res = await fetch(`http://${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=demo-key`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ token, returnSecureToken: true }),
+		});
+		const { idToken } = (await res.json()) as { idToken: string };
+		return JSON.parse(Buffer.from(idToken.split('.')[1], 'base64url').toString()) as { email: string; email_verified: boolean };
+	}
+
+	const wrong = { status: 400, body: { error: 'wrong-code' } };
+	const otherThan = (code: string) => String((Number(code.replace(' ', '')) + 1) % 1_000_000).padStart(6, '0');
+
+	beforeEach(async () => {
+		await db.doc('admins/priya@example.com').set({ role: 'organiser', teamId: 'team-test', invitedAt: at(0) });
+		await getAuth()
+			.getUserByEmail('priya@example.com')
+			.then((u) => getAuth().deleteUser(u.uid))
+			.catch(() => {});
+	});
+
+	test('the email has a six-digit code, which signs in as that address, verified', async () => {
+		const code = await emailedCode('priya@example.com');
+		assert.match(code, /^\d{3} \d{3}$/);
+		const { status, body } = await useCode(' Priya@Example.com ', code);
+		assert.equal(status, 200);
+		const claims = await claimsFor(body.token!);
+		assert.equal(claims.email, 'priya@example.com');
+		assert.equal(claims.email_verified, true);
+	});
+
+	test('signs in to the account an email link or Google already made, and verifies it', async () => {
+		const existing = await getAuth().createUser({ email: 'priya@example.com', emailVerified: false });
+		const { body } = await useCode('priya@example.com', await emailedCode('priya@example.com'));
+		await claimsFor(body.token!);
+		assert.equal((await getAuth().getUserByEmail('priya@example.com')).uid, existing.uid);
+		assert.equal((await getAuth().getUser(existing.uid)).emailVerified, true);
+	});
+
+	test('takes the code with or without its space', async () => {
+		const code = await emailedCode('priya@example.com');
+		assert.equal((await useCode('priya@example.com', code.replace(' ', ''))).status, 200);
+	});
+
+	test('a code works once', async () => {
+		const code = await emailedCode('priya@example.com');
+		assert.equal((await useCode('priya@example.com', code)).status, 200);
+		assert.deepEqual(await useCode('priya@example.com', code), wrong);
+	});
+
+	test('a newer email replaces the code in the last one', async () => {
+		const first = await emailedCode('priya@example.com');
+		let second = await emailedCode('priya@example.com');
+		// One in a million: the same code twice
+		while (second === first) second = await emailedCode('priya@example.com');
+		assert.deepEqual(await useCode('priya@example.com', first), wrong);
+		assert.equal((await useCode('priya@example.com', second)).status, 200);
+	});
+
+	test('five wrong tries and the code stops working', async () => {
+		const code = await emailedCode('priya@example.com');
+		for (let i = 0; i < 5; i++) assert.deepEqual(await useCode('priya@example.com', otherThan(code)), wrong);
+		assert.deepEqual(await useCode('priya@example.com', code), wrong);
+	});
+
+	test('an expired code does nothing', async () => {
+		const code = await emailedCode('priya@example.com');
+		const [saved] = (await db.collection('signInCodes').get()).docs;
+		await saved.ref.update({ expireAt: at(-1000) });
+		assert.deepEqual(await useCode('priya@example.com', code), wrong);
+	});
+
+	test('the same answer for someone not on the list, or removed since the email', async () => {
+		assert.deepEqual(await useCode('stranger@example.com', '123456'), wrong);
+		const code = await emailedCode('priya@example.com');
+		await db.doc('admins/priya@example.com').delete();
+		assert.deepEqual(await useCode('priya@example.com', code), wrong);
+	});
+
+	test('keeps only a hash of the code', async () => {
+		const code = (await emailedCode('priya@example.com')).replace(' ', '');
+		const [saved] = (await db.collection('signInCodes').get()).docs;
+		assert.ok(!JSON.stringify(saved.data()).includes(code));
+		assert.ok(!saved.id.includes('priya'));
+	});
+
+	test('rejects anything that isn’t six digits without using up a try', async () => {
+		const code = await emailedCode('priya@example.com');
+		for (const bad of ['', '12345', '1234567', 'abcdef']) assert.deepEqual(await useCode('priya@example.com', bad), wrong);
+		assert.equal((await useCode('priya@example.com', code)).status, 200);
+	});
+
+	test('limits tries at one address, however many codes are asked for', async () => {
+		for (let i = 0; i < 10; i++) assert.deepEqual(await useCode('priya@example.com', '000000'), wrong);
+		assert.deepEqual(await useCode('priya@example.com', '000000'), { status: 429, body: { error: 'rate-limited' } });
+	});
+});
+
 const AUTH = process.env.FIREBASE_AUTH_EMULATOR_HOST;
 
 /** An ID token for `email`, from the Auth emulator, as the dashboard sends it. */

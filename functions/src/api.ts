@@ -1,4 +1,4 @@
-// Routes for the check-in API, the dashboard's sign-in links (organisers.ts), deleting
+// Routes for the check-in API, the dashboard's sign-in emails and codes (organisers.ts), deleting
 // and setting up teams (teams.ts), and super admins' changes to organisers (admins.ts). Both sites reach it at /api/... through a Hosting rewrite (firebase.json),
 // so requests arrive with the /api prefix; called directly (or in the emulator) they don't.
 // Both work.
@@ -11,8 +11,8 @@ import type { Request, Response } from 'firebase-functions/https';
 import { ApiFailure, checkIn, getEvent, teamTarget, walkIn } from './checkin.js';
 import type { Mailer } from './email.js';
 import { reportError } from './monitoring.js';
-import { sendSignInLink } from './organisers.js';
-import { allowAttempt } from './rateLimit.js';
+import { sendSignInLink, signInWithCode } from './organisers.js';
+import { allowAttempt, DAY_MS } from './rateLimit.js';
 import { deleteTeam, setUpTeam } from './teams.js';
 
 const SLUG = '([a-z0-9-]+)';
@@ -20,6 +20,7 @@ const EVENT_ROUTE = new RegExp(`^/events/${SLUG}/?$`);
 const ACTION_ROUTE = new RegExp(`^/events/${SLUG}/(check-in|walk-in)/?$`);
 const TEAM_ROUTE = new RegExp(`^/teams/${SLUG}/?$`);
 const SIGN_IN_ROUTE = /^\/auth\/sign-in-link\/?$/;
+const SIGN_IN_CODE_ROUTE = /^\/auth\/sign-in-code\/?$/;
 const ADMIN_TEAM_ROUTE = /^\/admin\/teams\/([A-Za-z0-9_-]+)\/?$/;
 const ONBOARDING_TEAM_ROUTE = /^\/onboarding\/team\/?$/;
 const ADMIN_ORGANISER_ROUTE = /^\/admin\/organisers\/([^/]+)\/?$/;
@@ -28,6 +29,13 @@ const ADMIN_ORGANISER_ROUTE = /^\/admin\/organisers\/([^/]+)\/?$/;
 // or ask again, and few enough that the endpoint can't be used to flood someone's inbox
 const SIGN_IN_LIMIT_PER_IP = 30;
 const SIGN_IN_LIMIT_PER_EMAIL = 5;
+
+// Tries at a sign-in code. Each code also stops after five wrong tries (organisers.ts), but asking
+// for new codes would otherwise allow more guesses: these cap them per address, so a one-in-a-million
+// code can't be guessed in practice (at most 30 tries a day), while a person with a typo is fine
+const CODE_LIMIT_PER_IP = 30;
+const CODE_LIMIT_PER_EMAIL = 10;
+const CODE_LIMIT_PER_EMAIL_PER_DAY = 30;
 
 /** The attendee's address: Hosting's CDN passes it on; otherwise the first forwarded hop. */
 function clientIp(req: Request) {
@@ -71,6 +79,19 @@ export function createHandler(db: Firestore, auth: Auth, mail: () => Mailer) {
 					(await allowAttempt(db, email, 'sign-in', Date.now(), SIGN_IN_LIMIT_PER_EMAIL));
 				if (!allowed) return fail(res, 429, 'rate-limited');
 				return void res.json(await sendSignInLink(db, auth, mail(), body, [req.headers.origin].flat()[0]));
+			}
+			if (SIGN_IN_CODE_ROUTE.test(path)) {
+				if (req.method !== 'POST') return fail(res, 405, 'invalid');
+				res.set('Cache-Control', 'no-store');
+				const body = (req.body ?? {}) as Record<string, unknown>;
+				const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+				const now = Date.now();
+				const allowed =
+					(await allowAttempt(db, clientIp(req), 'sign-in-code', now, CODE_LIMIT_PER_IP)) &&
+					(await allowAttempt(db, email, 'sign-in-code', now, CODE_LIMIT_PER_EMAIL)) &&
+					(await allowAttempt(db, email, 'sign-in-code', now, CODE_LIMIT_PER_EMAIL_PER_DAY, DAY_MS));
+				if (!allowed) return fail(res, 429, 'rate-limited');
+				return void res.json(await signInWithCode(db, auth, body));
 			}
 			if ((match = path.match(ADMIN_TEAM_ROUTE))) {
 				if (req.method !== 'DELETE') return fail(res, 405, 'invalid');

@@ -8,6 +8,12 @@
       "indexes": []
     },
     {
+      "collectionGroup": "signInCodes",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
       "collectionGroup": "triggerRuns",
       "fieldPath": "expireAt",
       "ttl": true,

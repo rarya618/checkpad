@@ -1,7 +1,7 @@
-// Emails for the dashboard's organisers: sign-in links and invites (templates in email.ts).
-import { randomUUID } from 'node:crypto';
+// Emails for the dashboard's organisers: sign-in emails and invites (templates in email.ts).
+import { createHash, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { Auth } from 'firebase-admin/auth';
-import type { DocumentData, Firestore } from 'firebase-admin/firestore';
+import { Timestamp, type DocumentData, type Firestore } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
 import { ApiFailure, parseEmail } from './checkin.js';
 import type { Mailer } from './email.js';
@@ -31,10 +31,21 @@ export function onDashboardDomain(link: string) {
 	return url.toString();
 }
 
+/** How long a sign-in code works, and how many wrong tries it takes before it stops working. */
+export const CODE_TTL_MS = 10 * 60 * 1000;
+export const CODE_TRIES = 5;
+
+/** Codes are kept only as a hash, tied to the address, in signInCodes/{hash of the address}. */
+const hash = (text: string) => createHash('sha256').update(text).digest();
+const codeRef = (db: Firestore, email: string) => db.collection('signInCodes').doc(hash(`email|${email}`).toString('hex'));
+const codeHash = (email: string, code: string) => hash(`code|${email}|${code}`);
+
 /**
- * POST /api/auth/sign-in-link with { email, next }: emails a one-time link that signs in to the
- * dashboard and returns to `next`. Only organisers get one, but the answer is the same either
- * way, so the endpoint can't be used to find out who's on the list or to email strangers.
+ * POST /api/auth/sign-in-link with { email, next }: emails a six-digit code and a one-time link,
+ * either of which signs in to the dashboard (the link returning to `next`), so an organiser can
+ * read the email on one device and sign in on another. A new email replaces the last one's code.
+ * Only organisers get one, but the answer is the same either way, so the endpoint can't be used
+ * to find out who's on the list or to email strangers.
  */
 export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, body: { email?: unknown; next?: unknown }, origin: string | undefined) {
 	const email = parseEmail(body.email);
@@ -48,8 +59,52 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 		url: `${base}/sign-in/link?${new URLSearchParams({ next })}`,
 		handleCodeInApp: true,
 	});
-	await mail({ to: email, template: 'sign-in', variables: { ADDRESS: email, LINK: onDashboardDomain(link) }, idempotencyKey: `sign-in/${randomUUID()}` });
+	const code = String(randomInt(1_000_000)).padStart(6, '0');
+	await codeRef(db, email).set({ hash: codeHash(email, code), wrongTries: 0, expireAt: Timestamp.fromMillis(Date.now() + CODE_TTL_MS) });
+	await mail({
+		to: email,
+		template: 'sign-in',
+		variables: { ADDRESS: email, CODE: `${code.slice(0, 3)} ${code.slice(3)}`, LINK: onDashboardDomain(link) },
+		idempotencyKey: `sign-in/${randomUUID()}`,
+	});
 	return { status: 'sent' as const };
+}
+
+/**
+ * POST /api/auth/sign-in-code with { email, code }: swaps the emailed code for a Firebase custom
+ * token, which the dashboard signs in with. A code works once, for ten minutes, and stops working
+ * after five wrong tries. Every failure is the same "wrong-code", whether there's no code for the
+ * address (it isn't an organiser, or never asked), it's expired, used or simply wrong, so this
+ * can't be used to find out who's on the list either.
+ */
+export async function signInWithCode(db: Firestore, auth: Auth, body: { email?: unknown; code?: unknown }) {
+	const email = parseEmail(body.email);
+	const code = typeof body.code === 'string' ? body.code.replace(/\s/g, '') : '';
+	if (!/^\d{6}$/.test(code)) throw new ApiFailure('wrong-code', 400);
+	const ref = codeRef(db, email);
+	const right = await db.runTransaction(async (tx) => {
+		const saved = await tx.get(ref);
+		const stored = saved.get('hash') as Buffer | undefined;
+		if (!saved.exists || !stored || (saved.get('expireAt') as Timestamp).toMillis() < Date.now()) return false;
+		if (timingSafeEqual(Buffer.from(stored), codeHash(email, code))) {
+			tx.delete(ref);
+			return true;
+		}
+		const wrongTries = (saved.get('wrongTries') ?? 0) + 1;
+		if (wrongTries >= CODE_TRIES) tx.delete(ref);
+		else tx.update(ref, { wrongTries });
+		return false;
+	});
+	// Removed from the list since the email went out: the code goes nowhere
+	if (!right || !(await db.doc(`admins/${email}`).get()).exists) throw new ApiFailure('wrong-code', 400);
+	// The same account an email link or Google would sign in to, with the address marked as
+	// verified, since they've just shown they can read its email (the rules ask for that)
+	const user = await auth.getUserByEmail(email).catch((error: { code?: string }) => {
+		if (error.code === 'auth/user-not-found') return auth.createUser({ email, emailVerified: true });
+		throw error;
+	});
+	if (!user.emailVerified) await auth.updateUser(user.uid, { emailVerified: true });
+	return { token: await auth.createCustomToken(user.uid) };
 }
 
 const ROLES: Record<AdminDoc['role'], string> = { 'super-admin': 'a super admin', organiser: 'an organiser', 'team-member': 'a team member' };

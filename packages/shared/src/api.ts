@@ -57,6 +57,7 @@ export type ApiErrorCode =
 	| 'slug-taken' // onboarding: another team uses this link
 	| 'email-taken' // moving an organiser to an address that's already on the list
 	| 'last-super-admin' // a super admin can't demote, move or remove themselves while no other super admin can sign in
+	| 'wrong-code' // sign-in: the code is wrong, used or expired (or nobody asked for one): one answer for all, so it can't reveal who's an organiser
 	| 'server';
 
 export interface ApiError {

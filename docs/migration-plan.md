@@ -188,7 +188,9 @@ admins/{email}                       role, teamId?, invitedAt, invitedBy, lastSi
                                      to start a new team until they set it up on first sign-in)
 teams/{teamId}                       name, slug, walkInTicketPrefix, country?, city?, timeZone?,
                                      globalAccess
-rateLimits/{hash}                    count, expireAt (check-in attempts per network; a TTL policy deletes them)
+rateLimits/{hash}                    count, expireAt (check-in and sign-in attempts; a TTL policy deletes them)
+signInCodes/{hash of email}          hash, wrongTries, expireAt (the latest emailed sign-in code, hashed;
+                                     deleted when used, after five wrong tries, or by a TTL policy)
 ```
 
 Imports write in batches of at most 500, so a large import isn't all-or-nothing; it stays safe to re-run because it merges by ticket number. One importer reads every platform's CSV, matching columns by name (`apps/dashboard/src/lib/attendeeImport.ts`). Luma has no tickets, so its guests are filed under their `guest_id` and the check-in confirmation hides it; a status column (Luma's `approval_status`) keeps the waitlist, pending, declined and invited guests out. Columns that aren't a known field or one the platform adds (payments, phone numbers, ad tracking) are the organiser's registration questions, saved in `answers`.

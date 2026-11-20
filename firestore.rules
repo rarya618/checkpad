@@ -2,7 +2,7 @@ rules_version = '2';
 
 // Data model: docs/migration-plan.md (Backend approach).
 //
-// Organisers sign in to the dashboard with Google or an emailed link. What they can do comes
+// Organisers sign in to the dashboard with Google or an emailed code or link. What they can do comes
 // from admins/{email}, matched against their verified sign-in email:
 //   super-admin   every event and team, manages organisers and teams, and reads the waitlist
 //   organiser     creates, edits and deletes their team's events, and imports attendees
