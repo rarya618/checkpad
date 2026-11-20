@@ -4,6 +4,11 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.4.3 (2026-11-21)
+
+- [organisers] Dropdowns are Checkpad's own: the field opens out into its list, your choice sits highlighted, and long lists like time zones and countries can be searched by typing straight into the field
+- [organisers] Time zones show the time there now
+
 ## 1.4.2 (2026-11-21)
 
 - [organisers] The venue field lists your team's venues as soon as you click into it, each with the last event there, and narrows them as you type
