@@ -1,4 +1,4 @@
-import { Children, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactElement, type ReactNode, type RefObject } from 'react';
+import { Children, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactElement, type ReactNode, type RefObject } from 'react';
 
 // The dashboard's dropdown, in place of the browser's, drawn like the sidebar: the choice sits on
 // a light-blue fill in bold, as the page you're on does, and a fainter fill slides to whatever is
@@ -70,6 +70,9 @@ export default function Select({ value, onChange, children, id, disabled, requir
 	const [query, setQuery] = useState('');
 	const [active, setActive] = useState(-1);
 	const [above, setAbove] = useState(false);
+	// The field as it's drawn, so the open list can take its place exactly: its height, corners,
+	// padding, type and fill, read when it opens (fields and the Analytics filters differ)
+	const [field, setField] = useState<{ height: number; radius: string; row: CSSProperties } | null>(null);
 	const typed = useRef({ text: '', at: 0 });
 	const shownLabel = options.find((o) => o.value === value)?.label ?? '';
 
@@ -83,8 +86,25 @@ export default function Select({ value, onChange, children, id, disabled, requir
 	function openList(startQuery = '') {
 		if (disabled || !options.length) return;
 		// Opens upwards when there's more room above, as near the bottom of a dialog or page
-		const box = button.current!.getBoundingClientRect();
+		const el = button.current!;
+		const box = el.getBoundingClientRect();
 		setAbove(window.innerHeight - box.bottom < 300 && box.top > window.innerHeight - box.bottom);
+		const cs = getComputedStyle(el);
+		setField({
+			height: el.offsetHeight,
+			radius: cs.borderTopLeftRadius,
+			row: {
+				// Plus the hairline it draws between itself and the options, so the text sits where the field's did
+				height: el.offsetHeight + 1,
+				paddingLeft: cs.paddingLeft,
+				paddingRight: cs.paddingRight,
+				fontSize: cs.fontSize,
+				fontWeight: cs.fontWeight as CSSProperties['fontWeight'],
+				lineHeight: cs.lineHeight,
+				letterSpacing: cs.letterSpacing,
+				backgroundColor: cs.backgroundColor,
+			},
+		});
 		setQuery(startQuery);
 		const at = (startQuery ? options.filter((o) => matches(o, startQuery.toLowerCase())) : options).findIndex((o) => o.value === value);
 		setActive(startQuery ? 0 : Math.max(0, at));
@@ -234,10 +254,11 @@ export default function Select({ value, onChange, children, id, disabled, requir
 					<path d="M4.5 6.75L9 11.25L13.5 6.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>
 			</button>
-			{(open || closing) && (
+			{(open || closing) && field && (
 				<div
 					ref={panel}
-					// Unrolls from the field's edge, down or up, and rolls back into it on closing (index.css)
+					// The field itself grows into the list: the panel sits exactly over it, its first row
+					// drawn as the field, and unrolls from there, down or up (index.css)
 					data-select-panel
 					data-above={above || undefined}
 					data-closing={closing || undefined}
@@ -245,44 +266,58 @@ export default function Select({ value, onChange, children, id, disabled, requir
 					onTransitionEnd={(e) => {
 						if (closing && e.target === e.currentTarget && e.propertyName === 'clip-path') finishClosing();
 					}}
-					className={`absolute right-0 z-30 flex max-h-[min(360px,50dvh)] flex-col overflow-hidden rounded-xl border border-line bg-white shadow-[0_9px_30px_rgb(17_45_78/0.14)] ${
-						align === 'end' ? 'w-max max-w-[min(320px,calc(100vw-32px))] min-w-full' : 'left-0'
-					} ${above ? 'bottom-[calc(100%+6px)]' : 'top-[calc(100%+6px)]'}`}
+					style={{ '--field-h': `${field.height}px`, '--field-r': field.radius, borderRadius: field.radius } as CSSProperties}
+					// Its hairline sits a pixel outside the field, so the row inside lines up with the field exactly
+					className={`absolute z-30 flex overflow-hidden border border-line bg-white shadow-[0_12px_32px_rgb(17_45_78/0.16)] ${above ? '-bottom-px flex-col-reverse' : '-top-px flex-col'} ${
+						align === 'end' ? '-right-px w-max max-w-[min(320px,calc(100vw-32px))] min-w-[calc(100%+2px)]' : '-right-px -left-px'
+					}`}
 				>
-					{searchable && (
-						<div className="border-b border-light-blue p-1.5">
-							<label className="flex items-center gap-2 rounded-lg bg-off-white px-3 py-2 focus-within:outline-[1.5px] focus-within:-outline-offset-[1.5px] focus-within:outline-med-blue">
-								<svg aria-hidden="true" viewBox="0 0 16 16" width={14} height={14} className="shrink-0 text-med-blue">
-									<circle cx="7" cy="7" r="4.75" fill="none" stroke="currentColor" strokeWidth="1.5" />
-									<path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-								</svg>
-								<span className="sr-only">Search {noun}</span>
-								<input
-									ref={search}
-									type="text"
-									role="combobox"
-									aria-expanded="true"
-									aria-controls={listId}
-									aria-activedescendant={activeId}
-									aria-autocomplete="list"
-									autoComplete="off"
-									spellCheck={false}
-									value={query}
-									placeholder={`Search ${noun}`}
-									onChange={(e) => {
-										setQuery(e.target.value);
-										setActive(0);
-									}}
-									onKeyDown={onListKeys}
-									onBlur={(e) => {
-										if (e.relatedTarget !== button.current && !inPanel(e.relatedTarget as Node)) close(false);
-									}}
-									className="min-w-0 flex-1 bg-transparent text-sm leading-normal text-dark-blue outline-none placeholder:text-dark-blue/50"
-								/>
-							</label>
-						</div>
-					)}
-					<div ref={scroller} className="min-h-0 overflow-y-auto overscroll-contain p-1.5">
+					{/* The field's own row: the choice (or, for a long list, the search) where it was, the chevron turned */}
+					<div
+						style={field.row}
+						onMouseDown={(e) => e.target === e.currentTarget && e.preventDefault()}
+						onClick={(e) => !searchable && e.target === e.currentTarget && close()}
+						className={`relative flex shrink-0 cursor-pointer items-center text-dark-blue ${above ? 'border-t' : 'border-b'} border-light-blue`}
+					>
+						{searchable ? (
+							<input
+								ref={search}
+								type="text"
+								role="combobox"
+								aria-label={`Search ${noun}`}
+								aria-expanded="true"
+								aria-controls={listId}
+								aria-activedescendant={activeId}
+								aria-autocomplete="list"
+								autoComplete="off"
+								spellCheck={false}
+								value={query}
+								// The choice shows faded until something's typed, so typing replaces it
+								placeholder={shownLabel || `Search ${noun}`}
+								onChange={(e) => {
+									setQuery(e.target.value);
+									setActive(0);
+								}}
+								onKeyDown={onListKeys}
+								onBlur={(e) => {
+									if (e.relatedTarget !== button.current && !inPanel(e.relatedTarget as Node)) close(false);
+								}}
+								className="h-full min-w-0 flex-1 bg-transparent pr-8 text-inherit outline-none placeholder:text-dark-blue/55"
+							/>
+						) : (
+							<span className="pointer-events-none min-w-0 flex-1 truncate pr-8">{shownLabel || '\u00a0'}</span>
+						)}
+						<svg
+							aria-hidden="true"
+							viewBox="0 0 18 18"
+							width={chevron.size}
+							height={chevron.size}
+							className={`pointer-events-none absolute top-1/2 ${chevron.right} -translate-y-1/2 rotate-180`}
+						>
+							<path d="M4.5 6.75L9 11.25L13.5 6.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+						</svg>
+					</div>
+					<div ref={scroller} className="max-h-[min(320px,45dvh)] min-h-0 overflow-y-auto overscroll-contain p-1.5">
 						{shown.length ? (
 							<ul id={listId} role="listbox" aria-label={aria['aria-label']} aria-labelledby={aria['aria-label'] ? undefined : id} className="relative flex flex-col">
 								<Highlight list={scroller} target={activeId} />
