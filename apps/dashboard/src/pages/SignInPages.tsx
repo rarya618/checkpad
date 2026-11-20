@@ -270,14 +270,14 @@ export function SignInPage() {
 			<div className={`flex items-center gap-3 ${help}`}>
 				or
 				{/* Google's branding rules: a bordered light-theme button (fill, 1px #747775 stroke,
-				    #1F1F1F text), 12px before the logo, 10px after it, 12px after the text */}
+				    #1F1F1F text in Google Sans Medium), 12px before the logo, 10px after it, 12px after the text */}
 				<button
 					type="button"
 					onClick={async () => {
 						setGoogleError(null);
 						setGoogleError(await signInWithGoogle());
 					}}
-					className="flex items-center gap-2.5 rounded-lg border border-[#747775] bg-white px-3 py-2 font-display text-base leading-normal text-[#1F1F1F] transition-colors hover:bg-off-white"
+					className="flex items-center gap-2.5 rounded-lg border border-[#747775] bg-white px-3 py-2 font-google font-medium text-base leading-normal text-[#1F1F1F] transition-colors hover:bg-off-white"
 				>
 					<img src={google} alt="" width={18} height={18} />
 					Continue with Google
