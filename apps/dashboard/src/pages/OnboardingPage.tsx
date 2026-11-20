@@ -37,6 +37,7 @@ export default function OnboardingPage() {
 	return (
 		<AuthLayout title="Set up your team" description="Tell us who you are and the team you run events for. Attendees see the team’s name when they check in.">
 			<form
+				noValidate
 				className="flex flex-col gap-5"
 				onSubmit={async (e) => {
 					e.preventDefault();

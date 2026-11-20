@@ -22,7 +22,10 @@ const sizes = {
 };
 type Size = keyof typeof sizes;
 
-const boxBase = 'w-full bg-off-white leading-normal text-dark-blue outline-none focus-within:outline-med-blue';
+// Off-white on white cards; white with a faint navy ring straight on the off-white page
+// (the sign-in layout marks that with data-on-ground), where off-white would disappear
+const boxBase =
+	'w-full bg-off-white leading-normal text-dark-blue outline-none focus-within:outline-med-blue in-data-on-ground:bg-white in-data-on-ground:shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)]';
 const box = (size: Size) => `${boxBase} ${sizes[size].box}`;
 
 interface FieldProps {
