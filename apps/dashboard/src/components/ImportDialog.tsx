@@ -6,7 +6,7 @@ import fileIcon from '../assets/file.svg';
 import upload from '../assets/upload.svg';
 import x from '../assets/x.svg';
 import { importCount, planImport, skippedCount, sourceName, type ImportError, type ImportPlan } from '../lib/attendeeImport';
-import type { DashboardEvent } from '../lib/events';
+import { setImportedQuestions, type DashboardEvent } from '../lib/events';
 import { importAttendees, useRoster } from '../lib/roster';
 import { showToast } from '../lib/toast';
 import Dialog from './Dialog';
@@ -30,6 +30,9 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 	// Both off by default: an import otherwise never checks anyone in, and keeps one ticket per email
 	const [withCheckIns, setWithCheckIns] = useState(false);
 	const [keepSharedEmails, setKeepSharedEmails] = useState(false);
+	// Questions whose answers aren't imported, starting from what this event's earlier imports chose
+	const leftOutBefore = Object.keys(event.importedQuestions).filter((q) => !event.importedQuestions[q]);
+	const [skipQuestions, setSkip] = useState<string[]>(leftOutBefore);
 	const [file, setFile] = useState<File | null>(null);
 	const input = useRef<HTMLInputElement>(null);
 	const choose = () => input.current?.click();
@@ -59,21 +62,39 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 		setFile(chosen);
 		setWithCheckIns(false);
 		setKeepSharedEmails(false);
-		setResult(await planImport(chosen, roster));
+		setSkip(leftOutBefore);
+		setResult(await planImport(chosen, roster, { skipQuestions: leftOutBefore }));
 	}
 
 	async function toggleSharedEmails(keep: boolean) {
 		setKeepSharedEmails(keep);
-		if (file) setResult(await planImport(file, roster, { keepSharedEmails: keep }));
+		if (file) setResult(await planImport(file, roster, { keepSharedEmails: keep, skipQuestions }));
 	}
+
+	async function toggleQuestion(question: string, keep: boolean) {
+		const next = keep ? skipQuestions.filter((q) => q !== question) : [...skipQuestions, question];
+		setSkip(next);
+		if (file) setResult(await planImport(file, roster, { keepSharedEmails, skipQuestions: next }));
+	}
+
+	// On a re-import, questions this event hasn't seen before are pointed out: they arrive ticked.
+	// When none of the file's questions is familiar it's the first list of its kind, and all are new.
+	// Events imported before questions were remembered know them only from saved answers.
+	const known = new Set([...Object.keys(event.importedQuestions), ...roster.flatMap((a) => Object.keys(a.answers ?? {}))]);
+	const unseen = plan ? plan.allQuestions.filter((q) => !known.has(q)) : [];
+	const newQuestions = plan && unseen.length < plan.allQuestions.length ? unseen : [];
 
 	function runImport() {
 		if (!plan) return;
 		const ran = { ...plan, checkIns };
 		const skipped = skippedCount(plan);
 		const message = `Imported ${count} attendee${count === 1 ? '' : 's'}${checkIns.length ? `, ${checkIns.length} checked in` : ''}${skipped ? `. ${skipped} row${skipped === 1 ? '' : 's'} skipped` : ''}`;
+		// Remember this file's questions and which are kept, alongside earlier files' that this one doesn't have
+		const questions = { ...event.importedQuestions, ...Object.fromEntries(plan.allQuestions.map((q) => [q, !skipQuestions.includes(q)])) };
+		const changed = Object.keys(questions).some((q) => event.importedQuestions[q] !== questions[q]);
+		const remember = changed ? setImportedQuestions(event, questions) : Promise.resolve();
 		// The list shows them straight away; the toast waits until they're saved
-		importAttendees(event, roster, plan, checkIns).then(
+		Promise.all([importAttendees(event, roster, plan, checkIns), remember]).then(
 			() => showToast(message, skipped ? { label: 'Details', onClick: () => onImported?.(ran) } : undefined),
 			() => showToast('The import stopped partway. Import the same file again to finish it.'),
 		);
@@ -185,18 +206,20 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 				</section>
 			)}
 
-			{plan && (plan.payments.length > 0 || plan.questions.length > 0) && (
+			{plan && (plan.payments.length > 0 || (done ? plan.questions : plan.allQuestions).length > 0) && (
 				<section aria-labelledby="import-saved" className="flex flex-col gap-2">
 					<h3 id="import-saved" className="text-sm font-bold">
 						Also saved
 					</h3>
-					<ul className="flex flex-col rounded-lg border border-line text-sm leading-normal">
+					<ul className="flex flex-col overflow-hidden rounded-lg border border-line text-sm leading-normal">
 						{plan.payments.length > 0 && (
 							<Saved lead={`Payments for ${plan.payments.length} ticket${plan.payments.length === 1 ? '' : 's'}`} rest="price, fees, earnings and codes, for organisers only" />
 						)}
-						{plan.questions.length > 0 && (
-							<Saved lead={`Answers to ${plan.questions.length} question${plan.questions.length === 1 ? '' : 's'}`} rest={listOf(plan.questions.map((q) => `“${q}”`))} />
-						)}
+						{done
+							? plan.questions.length > 0 && (
+									<Saved lead={`Answers to ${plan.questions.length} question${plan.questions.length === 1 ? '' : 's'}`} rest={listOf(plan.questions.map((q) => `“${q}”`))} />
+								)
+							: plan.allQuestions.length > 0 && <QuestionPicker plan={plan} newQuestions={newQuestions} onToggle={toggleQuestion} />}
 					</ul>
 				</section>
 			)}
@@ -290,6 +313,56 @@ function Option({ label, note, checked, onChange }: { label: string; note: strin
 				<span className="text-sm text-med-blue">{note}</span>
 			</span>
 		</label>
+	);
+}
+
+/**
+ * Which questions' answers are saved: all of them ticked unless an earlier import of this event
+ * left some out. Folded away until there's something to look at: a question new to this event.
+ */
+function QuestionPicker({ plan, newQuestions, onToggle }: { plan: ImportPlan; newQuestions: string[]; onToggle: (question: string, keep: boolean) => void }) {
+	const all = plan.allQuestions.length;
+	const kept = plan.questions.length;
+	const left = plan.allQuestions.filter((q) => !plan.questions.includes(q));
+	return (
+		<li className="not-first:border-t not-first:border-light-blue">
+			<details open={newQuestions.length > 0 || undefined} className="group">
+				<summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 hover:bg-off-white [&::-webkit-details-marker]:hidden">
+					<span className="min-w-0 flex-1">
+						<span className="font-bold">{kept === all ? `Answers to ${all} question${all === 1 ? '' : 's'}` : `Answers to ${kept} of ${all} questions`}</span>
+						<span className="text-med-blue">{newQuestions.length ? ` · ${newQuestions.length} new` : ': choose which'}</span>
+					</span>
+					<img src={chevron} alt="" width={14} height={14} className="shrink-0 opacity-70 transition-transform group-open:rotate-180" />
+				</summary>
+				<div className="flex flex-col gap-3 px-4 pt-0.5 pb-3.5">
+					<fieldset className="flex flex-col gap-2">
+						<legend className="sr-only">Questions whose answers are saved</legend>
+						{plan.allQuestions.map((question) => (
+							<label key={question} className="flex cursor-pointer items-start gap-2.5">
+								<input
+									type="checkbox"
+									checked={plan.questions.includes(question)}
+									onChange={(e) => onToggle(question, e.target.checked)}
+									className="mt-1 size-4 shrink-0 accent-dark-blue"
+								/>
+								<span className="min-w-0">
+									{question}
+									{newQuestions.includes(question) && <span className="ml-2 rounded-full bg-light-blue px-2 py-0.5 align-middle text-xs font-semibold">New</span>}
+								</span>
+							</label>
+						))}
+					</fieldset>
+					{left.length > 0 && (
+						<p className="text-med-blue">
+							{plan.answersRemoved > 0
+								? `Answers already saved to ${left.length === 1 ? 'it' : 'them'} are removed from ${plan.answersRemoved} ${plan.answersRemoved === 1 ? 'person' : 'people'}. `
+								: ''}
+							{left.length === 1 ? `“${left[0]}” stays` : 'Unticked questions stay'} left out when this event is imported again.
+						</p>
+					)}
+				</div>
+			</details>
+		</li>
 	);
 }
 

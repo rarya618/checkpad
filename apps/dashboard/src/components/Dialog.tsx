@@ -65,12 +65,12 @@ export default function Dialog({ title, description, onClose, closeButton, foote
 				onClose();
 			}}
 			onClick={(e) => e.target === e.currentTarget && onClose()}
-			className={`m-auto max-w-[calc(100vw-48px)] bg-white p-0 text-dark-blue rounded-2xl backdrop:bg-dark-blue/45 shadow-[0_9px_30px_rgb(17_45_78/0.18)] ${footer ? 'max-h-[calc(100dvh-48px)] flex-col open:flex' : ''} ${className}`}
+			className={`m-auto max-w-[calc(100vw-48px)] bg-white p-0 text-dark-blue rounded-2xl backdrop:bg-dark-blue/45 shadow-[0_9px_30px_rgb(17_45_78/0.18)] ${footer ? 'max-h-[calc(100dvh-48px)] flex-col overflow-hidden open:flex' : ''} ${className}`}
 		>
 			{footer ? (
 				<>
 					<div className="px-6 pt-7 pb-5 sm:px-8">{header}</div>
-					<div ref={body} className="flex min-h-0 flex-col gap-5 overflow-y-auto px-6 pb-1 sm:px-8">
+					<div ref={body} className="relative flex min-h-0 flex-col gap-5 overflow-y-auto px-6 pb-1 sm:px-8">
 						{children}
 					</div>
 					<div className={`border-t px-6 pt-5 pb-7 transition-colors sm:px-8 ${scrolls ? 'border-line' : 'border-transparent'}`}>{footer}</div>
