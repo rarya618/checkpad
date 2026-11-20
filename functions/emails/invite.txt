@@ -2,7 +2,7 @@ You’ve been added to Checkpad
 
 {{{INVITER}}} added you as {{{ROLE}}}. {{{ACCESS}}}
 
-Sign in with Google or an email link, using {{{ADDRESS}}}:
+Sign in with Google or a code we email you, using {{{ADDRESS}}}:
 
 {{{LINK}}}
 
