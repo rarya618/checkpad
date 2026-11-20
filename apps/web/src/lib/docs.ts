@@ -22,7 +22,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		title: 'Getting started',
 		body: [
 			'Checkpad isn’t open to new organisers yet. Join the waitlist on the home page and we’ll email you when you can set up your first event.',
-			'If someone already on Checkpad adds you as an organiser, you’ll get an invite by email. Sign in to the dashboard with Google or with a link we email you, using the address the invite went to.',
+			'If someone already on Checkpad adds you as an organiser, you’ll get an invite by email. Sign in to the dashboard with Google or with a code we email you, using the address the invite went to.',
 			{ tip: 'If you were invited to start a new team, the dashboard asks you to name it and say where it meets the first time you sign in. New events start in that place’s time zone.' },
 		],
 	},
@@ -34,19 +34,20 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 			{
 				list: [
 					'Continue with Google, if that address is a Google account.',
-					'An email link: enter the address and we’ll email you a link that signs you in. It works once, expires after an hour, and has to be opened on the device and browser you asked from.',
+					'An emailed code: enter the address and we’ll email you a 6-digit code. Type it on the sign-in page, on any device; it works once, for 10 minutes. The same email has a link too, which signs you in when you open it on the device and browser you asked from, within an hour.',
 				],
 			},
 			'If something stops you:',
 			{
 				list: [
 					'“You don’t have access yet”: the address you signed in with isn’t on the organiser list. Choose Use another account, or ask a super admin to add that address.',
-					'“This sign-in link has expired”: it was used already, is more than an hour old, or was opened on another device. Send yourself a new one from that page.',
-					'No email after a few minutes: check your spam folder, then send the link again. If it still doesn’t come, the address probably isn’t the one you were invited with.',
-					'“This email signs in with an email link”: you’ve used email links with this address before, so Google sign-in won’t take it. Use an email link.',
+					'“That code isn’t right, or it’s expired”: check you’re using the code from the newest email (asking again replaces the last code), and that it’s less than 10 minutes old. After five wrong tries a code stops working; send a new one.',
+					'“This link has expired”: it was used already, is more than an hour old, or was opened on another device. Send yourself a new email from that page and use its code instead.',
+					'No email after a few minutes: check your spam folder, then send it again. If it still doesn’t come, the address probably isn’t the one you were invited with.',
+					'“This email signs in with an emailed code”: you’ve signed in by email with this address before, so Google sign-in won’t take it. Use an emailed code.',
 				],
 			},
-			{ tip: 'Sign-in emails come from noreply@checkpad.app and their link starts with https://manage.checkpad.app/. Don’t use a link that goes anywhere else.' },
+			{ tip: 'Sign-in emails come from noreply@checkpad.app and their link starts with https://manage.checkpad.app/. Don’t use a link that goes anywhere else, and only type the code on manage.checkpad.app. Nobody from Checkpad will ask you for it.' },
 		],
 	},
 	{
@@ -222,7 +223,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 // A screenshot for each page, shown after its first paragraph. They're exported from the
 // "Website screenshots" section of the Checkpad Figma file (Screens page), named docs-*.png there.
 const images: Record<string, { src: ImageMetadata; alt: string }> = {
-	'getting-started': { src: signIn, alt: 'The dashboard’s sign-in page, with Continue with Google and an email sign-in link' },
+	'getting-started': { src: signIn, alt: 'The dashboard’s sign-in page, asking “What’s your email?”, with Email me a code and continue with Google' },
 	'teams-and-roles': { src: organisers, alt: 'The Organisers page listing people with their roles and teams' },
 	'create-an-event': { src: newEvent, alt: 'The New event page with Details, When, Teams and Walk-ins' },
 	'import-attendees': { src: importAttendees, alt: 'The Import attendees dialog showing new, updated and skipped rows before importing' },
@@ -238,7 +239,7 @@ export const GROUPS = ['Set up', 'On the night', 'Afterwards', 'Help'] as const;
 /** Each page's group, its title where the old section's doesn't fit a page of its own, and a line for the index. */
 const meta: Record<string, { group: (typeof GROUPS)[number]; title?: string; slug?: string; description: string }> = {
 	'getting-started': { group: 'Set up', description: 'How to get onto Checkpad, and what happens the first time you sign in.' },
-	'signing-in': { group: 'Set up', description: 'Google or an email link, and what to do when sign-in stops you.' },
+	'signing-in': { group: 'Set up', description: 'Google or an emailed code, and what to do when sign-in stops you.' },
 	'teams-and-roles': { group: 'Set up', description: 'Organisers, team members and super admins, and your team’s permanent link.' },
 	'create-an-event': { group: 'Set up', description: 'Name, link, date, teams and walk-in settings.' },
 	'import-attendees': { group: 'Set up', description: 'Bring in your attendee list from Bevy or Luma, and import again as people register.' },
