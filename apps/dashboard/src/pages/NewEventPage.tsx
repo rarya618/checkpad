@@ -3,14 +3,14 @@ import { teamTimeZone } from '@checkpad/shared/countries';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { today } from '../components/DatePicker';
-import { DateTimeFields, TeamFields, TicketUrlField } from '../components/EventFields';
+import { DateTimeFields, TeamFields, TicketUrlField, VenueField } from '../components/EventFields';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
 import { Spinner } from '../components/Loading';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
-import { createEvent, isSlugTaken } from '../lib/events';
+import { createEvent, isSlugTaken, pastVenues, useEvents } from '../lib/events';
 import { useMe } from '../lib/organisers';
 import { useTeams, WALK_IN_PREFIX, type Team } from '../lib/teams';
 import { useIsDesktop } from '../lib/useMediaQuery';
@@ -42,25 +42,30 @@ export default function NewEventPage() {
 	usePageArrival();
 	const teams = useTeams() ?? [];
 	const me = useMe();
+	const events = useEvents();
 	// Your own team; super admins start with the first
 	const [form, setForm] = useState(() => {
 		const team = teams.find((t) => t.id === me.teamId) ?? teams[0];
-		// Dated today to start with, so the date fields are never empty
-		return { ...blank, date: today(), ownerTeam: team?.id ?? '', timeZone: teamTimeZone(team) };
+		// Dated today to start with, so the date fields are never empty; at the team's latest venue
+		const walkInVenue = team ? (pastVenues(events, team.id)[0] ?? '') : '';
+		return { ...blank, date: today(), ownerTeam: team?.id ?? '', timeZone: teamTimeZone(team), walkInVenue };
 	});
 	// The link follows the name until someone edits it by hand. A name another event
 	// already uses gets a suffix, picked once so it doesn't change with every keystroke.
 	const [slugEdited, setSlugEdited] = useState(false);
 	const [suffix] = useState(randomSuffix);
-	// The time zone follows the team's until someone picks one
+	// The time zone and venue follow the team's until someone changes them
 	const [timeZoneEdited, setTimeZoneEdited] = useState(false);
+	const [venueEdited, setVenueEdited] = useState(false);
 
 	function update<K extends keyof EventForm>(key: K, value: EventForm[K]) {
 		if (key === 'timeZone') setTimeZoneEdited(true);
+		if (key === 'walkInVenue') setVenueEdited(true);
 		setForm((f) => {
 			const next = { ...f, [key]: value };
 			if (!slugEdited && key === 'name') next.slug = suggestedSlug(next.name, suffix);
 			if (!timeZoneEdited && key === 'ownerTeam') next.timeZone = teamTimeZone(teams.find((t) => t.id === value));
+			if (!venueEdited && key === 'ownerTeam') next.walkInVenue = pastVenues(events, value as string)[0] ?? '';
 			return next;
 		});
 	}
@@ -189,10 +194,11 @@ export default function NewEventPage() {
 							onChange={(e) => update('walkInTicketTitle', e.target.value)}
 							placeholder="General admission"
 						/>
-						<TextField
+						<VenueField
 							label="Venue"
 							value={form.walkInVenue}
-							onChange={(e) => update('walkInVenue', e.target.value)}
+							onChange={(venue) => update('walkInVenue', venue)}
+							venues={pastVenues(events, form.ownerTeam)}
 							placeholder="Google Sydney, 1 Pirrama Rd, Pyrmont"
 						/>
 						<SwitchRow
