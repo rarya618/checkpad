@@ -219,6 +219,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		title: 'After the event',
 		body: [
 			'The event’s Analytics shows who came: arrivals every 15 minutes, turnout by ticket type, walk-ins, how early people arrived, first-timers and how people checked in. The Analytics page in the sidebar compares turnout across all your events.',
+			'For a paid event whose import brought in what tickets cost, organisers also see Ticket sales: your earnings, every amount the platform reported added up, earnings by ticket type, and each discount or access code with how many of its tickets came. Team members don’t see it.',
 			'To report attendance back, use the event’s options menu:',
 			{
 				list: [
