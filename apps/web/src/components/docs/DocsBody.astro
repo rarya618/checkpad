@@ -1,5 +1,5 @@
 ---
-// A docs page's body (lib/docs.ts): paragraphs, subheadings, numbered steps, lists and tips, with the
+// A docs page's body (lib/docs.ts): paragraphs, subheadings, numbered steps, lists, tables and tips, with the
 // page's screenshot after its first paragraph.
 import { Image } from 'astro:assets';
 import type { DocsPage } from '../../lib/docs';
@@ -33,6 +33,33 @@ const text = 'text-base leading-7 text-dark-blue/85 xl:text-lg xl:leading-8';
 					<li>{item}</li>
 				))}
 			</ul>
+		) : 'table' in block ? (
+			// Scrolls sideways on its own on a phone, so the page doesn't
+			<div class="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+				<table class="w-full min-w-[640px] border-collapse text-left text-sm leading-6 text-dark-blue/85 xl:text-base xl:leading-7">
+					<thead>
+						<tr class="border-b-2 border-light-blue">
+							{block.table.head.map((label) => (
+								<th scope="col" class="px-3 py-2 align-bottom font-bold text-dark-blue first:pl-0">
+									{label}
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{block.table.rows.map(([label, ...cells]) => (
+							<tr class="border-b border-light-blue">
+								<th scope="row" class="w-1/4 py-2.5 pr-3 align-top font-semibold text-dark-blue">
+									{label}
+								</th>
+								{cells.map((cell) => (
+									<td class="px-3 py-2.5 align-top">{cell}</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
 		) : (
 			<p class="rounded-2xl bg-light-blue px-5 py-4 text-base leading-7 text-dark-blue">
 				<span class="font-bold">Tip: </span>

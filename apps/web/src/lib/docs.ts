@@ -13,8 +13,15 @@ import signIn from '../assets/docs/sign-in.png';
 import staffCheckIn from '../assets/screens/staff-check-in.png';
 import { CONTACT_EMAIL } from './config';
 
-/** A page's body: paragraphs, subheadings, numbered steps, bulleted lists and tips. */
-export type Block = string | { heading: string } | { steps: string[] } | { list: string[] } | { tip: string };
+/** A page's body: paragraphs, subheadings, numbered steps, bulleted lists, tables and tips. */
+export type Block =
+	| string
+	| { heading: string }
+	| { steps: string[] }
+	| { list: string[] }
+	/** The first column heads each row; `head` labels the columns. */
+	| { table: { head: string[]; rows: string[][] } }
+	| { tip: string };
 
 const sections: { id: string; title: string; body: Block[] }[] = [
 	{
@@ -105,17 +112,33 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		id: 'import-reference',
 		title: 'What an import reads',
 		body: [
-			'Checkpad reads these columns from a Bevy, Luma or Humanitix export, by their headers:',
+			'Checkpad reads an export by its column headers, so a file from any of these platforms imports as it comes. What each one’s export brings in:',
+			{
+				table: {
+					head: ['', 'Bevy', 'Luma', 'Humanitix'],
+					rows: [
+						['Matched by', 'Ticket number', 'Guest ID', 'Order ID and ticket number, as ABC12345-2'],
+						['Ticket type', 'Ticket title', 'Ticket name', 'Ticket type'],
+						['Registration date', 'Paid date', 'Created at', 'Order date and time'],
+						['Only people who are going', 'Everyone: the export has no status', 'Approval status', 'Status'],
+						['Registration questions', 'Yes', 'Yes', 'Yes'],
+						['Check-ins, with Import check-ins', 'Check-in date', 'Checked-in time', 'Check-in date'],
+						['Payments', 'Price, amount paid and access code', 'Amount paid, tax, discount and coupon code', 'Price, amount paid, fees, earnings, refunds, discounts, and discount and access codes'],
+						['Ticket number shown when they check in', 'Yes', 'No: guest IDs mean nothing to attendees', 'Yes'],
+					],
+				},
+			},
+			'A CSV from anywhere else imports too, if it has columns like these. From any file, Checkpad reads:',
 			{
 				list: [
 					'First name and last name. If the file has a single name column instead, the last word becomes the last name.',
 					'Email.',
-					'Ticket number (Bevy), guest ID (Luma), or order ID and ticket number (Humanitix, read together as ABC12345-2). This is how people are matched when you import again.',
-					'Ticket type (Bevy’s ticket title, Luma’s ticket name, Humanitix’s ticket type), shown in the attendee list and in Analytics.',
+					'The ticket number. This is how people are matched when you import again.',
+					'Ticket type, shown in the attendee list and in Analytics.',
 					'When they registered, for Analytics’ Registrations section: when people signed up, day by day, and which of them came.',
-					'Status (Luma’s approval status, Humanitix’s status). Only people who are going are imported.',
-					'What each ticket cost: Humanitix’s price, amount paid, fees, earnings, refunds and discounts, and the discount and access codes used. These are saved apart from the attendee list, where only organisers can see them, and each import replaces them, so refunds show up.',
-					'Check-ins (Luma’s checked-in time, Bevy’s check-in date, Humanitix’s check-in date), only if you turn on Import check-ins. People checked in on the platform but not in Checkpad are checked in at the time the platform recorded. Use it when the platform ran check-in, not alongside Checkpad.',
+					'Status. Only people who are going are imported.',
+					'What each ticket cost, and the discount and access codes used. These are saved apart from the attendee list, where only organisers can see them, and each import replaces them, so refunds show up. Free tickets with no code aren’t saved.',
+					'Check-ins, only if you turn on Import check-ins. People checked in on the platform but not in Checkpad are checked in at the time the platform recorded. Use it when the platform ran check-in, not alongside Checkpad.',
 				],
 			},
 			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. Columns the platforms add themselves, like phone numbers, the buyer’s details and ad tracking, are left out.',
