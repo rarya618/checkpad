@@ -26,6 +26,9 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 	const [result, setResult] = useState<ImportPlan | ImportError | null>(done ?? null);
 	// Off by default: an import otherwise never checks anyone in
 	const [withCheckIns, setWithCheckIns] = useState(false);
+	// Off by default too: one ticket per email, unless the file has groups booked under one email
+	const [keepSharedEmails, setKeepSharedEmails] = useState(false);
+	const [file, setFile] = useState<File | null>(null);
 	const input = useRef<HTMLInputElement>(null);
 	const choose = () => input.current?.click();
 
@@ -33,6 +36,12 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 	const error = result && 'kind' in result ? result : null;
 	const platform = plan && plan.source !== 'csv' ? sourceName[plan.source] : null;
 	const offerCheckIns = !done && plan && plan.checkIns.length > 0;
+	const offerSharedEmails = !done && plan && plan.sharedEmails.length > 0;
+
+	async function toggleSharedEmails(keep: boolean) {
+		setKeepSharedEmails(keep);
+		if (file) setResult(await planImport(file, roster, { keepSharedEmails: keep }));
+	}
 	// A finished import's summary shows the check-ins it brought in, if it was asked to
 	const checkIns = done ? done.checkIns : withCheckIns ? (plan?.checkIns ?? []) : [];
 
@@ -75,8 +84,10 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 					const file = e.target.files?.[0];
 					e.target.value = '';
 					if (file) {
+						setFile(file);
 						setResult(await planImport(file, roster));
 						setWithCheckIns(false);
+						setKeepSharedEmails(false);
 					}
 				}}
 			/>
@@ -141,13 +152,26 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 				</dl>
 			)}
 
-			{offerCheckIns && (
-				<SwitchRow
-					label="Import check-ins"
-					note={checkInNote(plan, platform)}
-					checked={withCheckIns}
-					onChange={setWithCheckIns}
-				/>
+			{(offerSharedEmails || offerCheckIns) && (
+				<div className="flex flex-col gap-2">
+					{offerSharedEmails && (
+						<SwitchRow
+							label="Keep tickets that share an email"
+							note={sharedEmailNote(plan)}
+							checked={keepSharedEmails}
+							onChange={toggleSharedEmails}
+						/>
+					)}
+
+					{offerCheckIns && (
+						<SwitchRow
+							label="Import check-ins"
+							note={checkInNote(plan, platform)}
+							checked={withCheckIns}
+							onChange={setWithCheckIns}
+						/>
+					)}
+				</div>
 			)}
 
 			<div className="flex justify-end gap-3">
@@ -220,6 +244,12 @@ function SummaryRow({ count, label, detail }: { count: number; label: string; de
 			</dd>
 		</div>
 	);
+}
+
+/** "6 tickets share an email with another ticket, as when one person books for a group…" */
+function sharedEmailNote(plan: ImportPlan) {
+	const n = plan.sharedEmails.length;
+	return `${n === 1 ? 'One ticket shares its' : `${n} tickets share an`} email with another ticket, as when one person books for a group. Import each as its own attendee. Typing that email at check-in checks in one ticket; check in the rest from Attendees.`;
 }
 
 /** "Added as not arrived", or with how many of them arrive checked in */

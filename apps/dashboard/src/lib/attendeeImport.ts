@@ -51,6 +51,16 @@ export interface ImportPlan {
 	checkIns: ImportCheckIn[];
 	/** Rows checked in on the platform with no check-in time we can read. */
 	checkInsWithoutTime: number[];
+	/**
+	 * New tickets whose email another ticket has, as rows: skipped unless `keepSharedEmails`,
+	 * then added as people of their own. Emails of walk-ins aren't counted: those are always skipped.
+	 */
+	sharedEmails: number[];
+}
+
+export interface ImportOptions {
+	/** Import every ticket, even when its email is on another ticket: one buyer's email on a group's tickets. */
+	keepSharedEmails?: boolean;
 }
 
 export type ImportError =
@@ -199,17 +209,18 @@ function sameAnswers(a: Record<string, string> = {}, b: Record<string, string> =
 	return ak.length === Object.keys(b).length && ak.every((k) => a[k] === b[k]);
 }
 
-export async function planImport(file: File, roster: RosterAttendee[]): Promise<ImportPlan | ImportError> {
+export async function planImport(file: File, roster: RosterAttendee[], options: ImportOptions = {}): Promise<ImportPlan | ImportError> {
 	if (!/\.csv$/i.test(file.name) && file.type !== 'text/csv') {
 		return { kind: 'not-csv', fileName: file.name, fileType: fileType(file.name) };
 	}
-	return planFromText(file.name, await file.text(), roster);
+	return planFromText(file.name, await file.text(), roster, options);
 }
 
 export function planFromText(
 	fileName: string,
 	text: string,
-	roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers' | 'registeredAt' | 'checkedInAt'>[],
+	roster: Pick<RosterAttendee, 'ticket' | 'email' | 'firstName' | 'lastName' | 'ticketType' | 'answers' | 'registeredAt' | 'checkedInAt' | 'walkIn'>[],
+	options: ImportOptions = {},
 ): ImportPlan | ImportError {
 	const [header = [], ...rows] = parseCsv(text).filter((r) => r.some((c) => c.trim() !== ''));
 	const keys = header.map(key);
@@ -242,9 +253,11 @@ export function planFromText(
 	});
 
 	const byTicket = new Map(roster.filter((a) => a.ticket).map((a) => [a.ticket!.toLowerCase(), a]));
-	// One ticket per person: people register twice (once under an account handle, say), and the
-	// counts and turnout are per person. Walk-ins count too, so a late list doesn't add them again.
+	// One ticket per person, unless asked otherwise: people register twice (once under an account
+	// handle, say), and the counts and turnout are per person. Walk-ins count too, always, so a
+	// late list doesn't add them again.
 	const onList = new Set(roster.map((a) => a.email.toLowerCase()));
+	const walkedIn = new Set(roster.filter((a) => a.walkIn).map((a) => a.email.toLowerCase()));
 	const seen = new Set<string>();
 	const seenEmails = new Set<string>();
 	const plan: ImportPlan = {
@@ -258,6 +271,7 @@ export function planFromText(
 		skipped: new Map(),
 		checkIns: [],
 		checkInsWithoutTime: [],
+		sharedEmails: [],
 	};
 	const skip = (reason: string, row: number) => plan.skipped.set(reason, [...(plan.skipped.get(reason) ?? []), row]);
 
@@ -297,8 +311,11 @@ export function planFromText(
 
 		const existing = byTicket.get(row.ticket.toLowerCase());
 		// A ticket already on the list is updated whatever its email; a new one needs a new email
-		if (!existing && onList.has(row.email)) return skip('Already on the list with another ticket', rowNumber);
-		if (!existing && seenEmails.has(row.email)) return skip('Same email as an earlier row', rowNumber);
+		if (!existing && (onList.has(row.email) || seenEmails.has(row.email))) {
+			if (walkedIn.has(row.email)) return skip('Already on the list as a walk-in', rowNumber);
+			plan.sharedEmails.push(rowNumber);
+			if (!options.keepSharedEmails) return skip(onList.has(row.email) ? 'Already on the list with another ticket' : 'Same email as an earlier row', rowNumber);
+		}
 		seenEmails.add(row.email);
 		// Without a separate "checked in" column, a check-in time is enough
 		const checkedIn = index.checkedIn >= 0 ? checkedInValues.has(key(cell(index.checkedIn))) : cell(index.checkedInAt) !== '';
