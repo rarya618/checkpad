@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { Section, SectionRail } from '../components/AnalyticsSections';
 import { AnswerRow, BarChart, ChartCard, CheckedInRow, LineChart, MANY_TICKET_TYPES, SplitBar, StatTile, TicketTypeRows, type Series } from '../components/Charts';
 import EventOverview from '../components/EventOverview';
+import { EventTicketSales } from '../components/TicketSales';
 import PageHeader from '../components/PageHeader';
 import {
 	arrivalBins,
@@ -35,6 +36,7 @@ import {
 import type { ImportPlan } from '../lib/attendeeImport';
 import { useEvent, useEvents } from '../lib/events';
 import { useCanEditEvents } from '../lib/organisers';
+import { ticketSales, usePayments } from '../lib/payments';
 import { rosterStats, useRoster, useRosters } from '../lib/roster';
 import { useTeams } from '../lib/teams';
 import { usePageArrival } from '../lib/pageTransition';
@@ -85,6 +87,9 @@ export default function EventAnalyticsPage() {
 	const chartedQuestions = questions.filter((q) => q.answers.length);
 	const freeTextQuestions = questions.filter((q) => !q.answers.length);
 	const [importing, setImporting] = useState<{ done?: ImportPlan } | null>(null);
+	// Ticket sales, for organisers, when the import saved what tickets cost
+	const payments = usePayments(event, canEdit);
+	const sales = useMemo(() => ticketSales(payments, roster), [payments, roster]);
 
 	// First-timers need the earlier events of any of its teams, and the team average the owner team's
 	const events = useEvents();
@@ -374,8 +379,14 @@ export default function EventAnalyticsPage() {
 							</ChartCard>
 						)}
 					</Section>
+
+					{sales && (
+						<Section level={3} title="Ticket sales">
+							<EventTicketSales sales={sales} sideClassName={SIDE} />
+						</Section>
+					)}
 				</div>
-				<SectionRail sections={SECTIONS} />
+				<SectionRail sections={sales ? [...SECTIONS, 'Ticket sales'] : SECTIONS} />
 			</div>
 			{importing && (
 				<Suspense fallback={null}>
