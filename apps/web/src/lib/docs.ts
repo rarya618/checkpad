@@ -114,10 +114,11 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 					'Ticket type (Bevy’s ticket title, Luma’s ticket name, Humanitix’s ticket type), shown in the attendee list and in Analytics.',
 					'When they registered, for Analytics’ Registrations section: when people signed up, day by day, and which of them came.',
 					'Status (Luma’s approval status, Humanitix’s status). Only people who are going are imported.',
+					'What each ticket cost: Humanitix’s price, amount paid, fees, earnings, refunds and discounts, and the discount and access codes used. These are saved apart from the attendee list, where only organisers can see them, and each import replaces them, so refunds show up.',
 					'Check-ins (Luma’s checked-in time, Bevy’s check-in date, Humanitix’s check-in date), only if you turn on Import check-ins. People checked in on the platform but not in Checkpad are checked in at the time the platform recorded. Use it when the platform ran check-in, not alongside Checkpad.',
 				],
 			},
-			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. Columns the platforms add themselves, like phone numbers, payments and ad tracking, are left out.',
+			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. Columns the platforms add themselves, like phone numbers, the buyer’s details and ad tracking, are left out.',
 			'Rows are skipped, with the reason and the row numbers shown before you import, when they:',
 			{
 				list: [
