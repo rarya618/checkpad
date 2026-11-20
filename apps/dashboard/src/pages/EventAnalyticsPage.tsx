@@ -203,7 +203,7 @@ export default function EventAnalyticsPage() {
 											{!registeredCount
 												? 'Nobody has registered yet.'
 												: canEdit
-													? 'No registration dates yet. Import the attendee CSV again to add them: Luma and Bevy exports include when each person registered.'
+													? 'No registration dates yet. Import the attendee CSV again to add them: Bevy, Luma and Humanitix exports include when each person registered.'
 													: 'No registration dates yet. Your team’s organisers can add them by importing the attendee list again.'}
 										</p>
 										{canEdit && (

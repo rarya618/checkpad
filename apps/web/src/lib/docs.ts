@@ -88,11 +88,12 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		id: 'import-attendees',
 		title: 'Import attendees',
 		body: [
-			'Checkpad imports the attendee CSV from Bevy or Luma.',
+			'Checkpad imports the attendee CSV from Bevy, Luma or Humanitix.',
 			{
 				list: [
 					'Bevy: open the event’s attendee list and choose Export → CSV.',
 					'Luma: download the guest list as a CSV from the event’s Guests tab.',
+					'Humanitix: download the event’s attendee report as a CSV.',
 				],
 			},
 			'In the dashboard, open the event, choose the options menu, then Import attendees, and pick the file. Before anything is saved you’ll see how many people are new, updated, unchanged or skipped, and why any rows were skipped.',
@@ -104,15 +105,15 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		id: 'import-reference',
 		title: 'What an import reads',
 		body: [
-			'Checkpad reads these columns from a Bevy or Luma export, by their headers:',
+			'Checkpad reads these columns from a Bevy, Luma or Humanitix export, by their headers:',
 			{
 				list: [
 					'First name and last name. If the file has a single name column instead, the last word becomes the last name.',
 					'Email.',
-					'Ticket number (Bevy) or guest ID (Luma). This is how people are matched when you import again.',
-					'Ticket type (Bevy’s ticket title, Luma’s ticket name), shown in the attendee list and in Analytics.',
+					'Ticket number (Bevy), guest ID (Luma), or order ID and ticket number (Humanitix, read together as ABC12345-2). This is how people are matched when you import again.',
+					'Ticket type (Bevy’s ticket title, Luma’s ticket name, Humanitix’s ticket type), shown in the attendee list and in Analytics.',
 					'When they registered, for Analytics’ Registrations section: when people signed up, day by day, and which of them came.',
-					'Status (Luma’s approval status). Only people who are going are imported.',
+					'Status (Luma’s approval status, Humanitix’s status). Only people who are going are imported.',
 				],
 			},
 			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. Columns the platforms add themselves, like phone numbers, payments and ad tracking, are left out.',
@@ -242,7 +243,7 @@ const meta: Record<string, { group: (typeof GROUPS)[number]; title?: string; slu
 	'signing-in': { group: 'Set up', description: 'Google or an emailed code, and what to do when sign-in stops you.' },
 	'teams-and-roles': { group: 'Set up', description: 'Organisers, team members and super admins, and your team’s permanent link.' },
 	'create-an-event': { group: 'Set up', description: 'Name, link, date, teams and walk-in settings.' },
-	'import-attendees': { group: 'Set up', description: 'Bring in your attendee list from Bevy or Luma, and import again as people register.' },
+	'import-attendees': { group: 'Set up', description: 'Bring in your attendee list from Bevy, Luma or Humanitix, and import again as people register.' },
 	'import-reference': { group: 'Set up', description: 'Which columns are read, which rows are skipped, and what importing again changes.' },
 	'open-check-in': { group: 'On the night', description: 'Open self check-in and put the QR code at the door.' },
 	'on-the-night': { group: 'On the night', title: 'Checking people in', slug: 'checking-people-in', description: 'What attendees see, walk-ins, and checking people in from the dashboard.' },

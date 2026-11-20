@@ -16,7 +16,7 @@ import Layout from '../layouts/Layout.astro';
 // the offer and the waitlist up top with the product working under it, then how it works, one
 // feature grid, what a venue needs, and the close.
 const steps: { title: string; body: string }[] = [
-	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy or Luma. Checkpad matches people by ticket number, so you can import again when more register.' },
+	{ title: 'Import your list', body: 'Upload the attendee CSV from Bevy, Luma or Humanitix. Checkpad matches people by ticket number, so you can import again when more register.' },
 	{ title: 'Put the QR at the door', body: 'Show the venue QR on a screen or a printed sign. Attendees scan it and type their email.' },
 	{ title: 'Watch arrivals live', body: 'Your dashboard counts who’s in, who hasn’t arrived yet and how many walk-ins you’ve had.' },
 ];
@@ -27,9 +27,9 @@ const extras: { title: string; body: string }[] = [
 	{ title: 'Teams and organisers', body: 'A permanent check-in link for each group, co-organisers, and volunteers who can check people in without changing the event.' },
 ];
 
-// Bevy's and Luma's CSV imports are built. Keep the others marked as planned until they ship.
-const supported = ['Bevy', 'Luma'];
-const planned = ['Eventbrite', 'Humanitix', 'Meetup', 'Any CSV file'];
+// Bevy's, Luma's and Humanitix's CSV imports are built. Keep the others marked as planned until they ship.
+const supported = ['Bevy', 'Luma', 'Humanitix'];
+const planned = ['Eventbrite', 'Meetup', 'Any CSV file'];
 
 const venueNeeds: { title: string; body: string }[] = [
 	{ title: 'A screen or a printed sign', body: 'Show the QR on a TV or projector, or print it.' },
@@ -60,7 +60,7 @@ const crop = 'relative overflow-hidden rounded-tl-2xl border-t border-l border-l
 				</p>
 				<div data-intro style="--reveal-delay: 160ms" class="flex w-full flex-col items-center gap-3">
 					<WaitlistForm tone="light" client:load />
-					<p class="text-sm text-dark-blue/70">Imports attendee lists from Bevy and Luma. Not open to new organisers yet.</p>
+					<p class="text-sm text-dark-blue/70">Imports attendee lists from Bevy, Luma and Humanitix. Not open to new organisers yet.</p>
 				</div>
 			</div>
 
