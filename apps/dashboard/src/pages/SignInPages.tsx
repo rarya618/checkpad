@@ -277,7 +277,7 @@ export function SignInPage() {
 						setGoogleError(null);
 						setGoogleError(await signInWithGoogle());
 					}}
-					className="flex items-center gap-2.5 rounded-lg border border-[#747775] bg-white px-3 py-2 font-google font-medium text-base leading-normal text-[#1F1F1F] transition-colors hover:bg-off-white"
+					className="flex items-center gap-2.5 rounded-lg border border-[#747775] bg-white h-10 px-3 font-google font-medium text-sm leading-5 text-[#1F1F1F] transition-colors hover:bg-off-white"
 				>
 					<img src={google} alt="" width={18} height={18} />
 					Continue with Google
