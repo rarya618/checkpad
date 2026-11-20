@@ -17,6 +17,12 @@
   }
 }
 
+/* Selected text in the palette, as on the marketing site */
+::selection {
+  background: var(--color-light-blue);
+  color: var(--color-dark-blue);
+}
+
 /* Keyboard focus, in the palette rather than the browser's own blue. In the base layer, so the
    fields that draw their own focus outline (Field, search boxes) keep theirs. On the prize
    draw's navy screen it turns light blue to stay visible. */
