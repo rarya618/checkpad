@@ -4,6 +4,14 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.2.0 (2026-11-21)
+
+- [organisers] Sign in with a 6-digit code from the email, on any device; the link in the same email still works on the device you asked from
+- [organisers] New sign-in screens that ask one thing at a time, with clearer messages when a code or address is wrong
+- [organisers] New sign-in and invite emails that say who they're for and when, with the code at the top, and read well in dark mode
+- [organisers] The invite's button opens sign-in with your address already filled in
+- [organisers] Setting up a new team says what's still missing, instead of greying out the button
+
 ## 1.1.2 (2026-11-21)
 
 - [organisers, attendees] The changelog's filter is simpler, sits on the timeline's line, and shows a clearer focus ring when you use the keyboard

@@ -1,7 +1,7 @@
 {
   "name": "checkpad",
   "private": true,
-  "version": "1.1.2",
+  "version": "1.2.0",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
