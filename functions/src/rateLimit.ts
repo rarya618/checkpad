@@ -11,22 +11,24 @@
 import { createHash } from 'node:crypto';
 import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 
-const WINDOW_MS = 10 * 60 * 1000;
+export const WINDOW_MS = 10 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Attempts allowed per network, per event, per window. Override with CHECKIN_RATE_LIMIT. */
 export const rateLimit = () => Number(process.env.CHECKIN_RATE_LIMIT) || 500;
 
 /**
- * Counts one attempt by `who` (an IP address, or an email for sign-in links) at `what` (an event
- * link, or "sign-in"), and says whether it's within `limit` for this window.
+ * Counts one attempt by `who` (an IP address, or an email for sign-in) at `what` (an event link,
+ * "sign-in" or "sign-in-code"), and says whether it's within `limit` for this window: ten minutes,
+ * unless `windowMs` says otherwise.
  */
-export async function allowAttempt(db: Firestore, who: string, what: string, now = Date.now(), limit = rateLimit()) {
-	const windowStart = Math.floor(now / WINDOW_MS) * WINDOW_MS;
-	const id = createHash('sha256').update(`${who}|${what}|${windowStart}`).digest('hex');
+export async function allowAttempt(db: Firestore, who: string, what: string, now = Date.now(), limit = rateLimit(), windowMs = WINDOW_MS) {
+	const windowStart = Math.floor(now / windowMs) * windowMs;
+	const id = createHash('sha256').update(`${who}|${what}|${windowMs}|${windowStart}`).digest('hex');
 	const ref = db.collection('rateLimits').doc(id);
 	return db.runTransaction(async (tx) => {
 		const count = ((await tx.get(ref)).get('count') ?? 0) + 1;
-		tx.set(ref, { count, expireAt: Timestamp.fromMillis(windowStart + 2 * WINDOW_MS) });
+		tx.set(ref, { count, expireAt: Timestamp.fromMillis(windowStart + 2 * windowMs) });
 		return count <= limit;
 	});
 }
