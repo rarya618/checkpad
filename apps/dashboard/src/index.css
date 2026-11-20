@@ -466,3 +466,23 @@ tr[data-arrived] > td:last-child {
       visibility 0s linear 120ms;
   }
 }
+
+/* Sign-in (SignInPages): a message under a field fades in as it drops 4px into place, and with
+   reduced motion only fades. A refused sign-in code shakes its field (from script, so each wrong
+   try plays it again), and an accepted one draws the tick in its button ([data-tick]). */
+@keyframes note-in {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+}
+
+[data-note] {
+  animation: fade-in 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-note] {
+    animation: note-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}

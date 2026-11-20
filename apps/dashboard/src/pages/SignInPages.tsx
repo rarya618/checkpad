@@ -1,6 +1,6 @@
 import { buttonClass } from '@checkpad/shared/button';
 import logo from '@checkpad/shared/checkpad-logo.svg';
-import { useEffect, useId, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import arrow from '../assets/arrow-right.svg';
 import google from '../assets/google.svg';
@@ -98,6 +98,8 @@ function OneFieldForm({
 	onSubmit,
 	submitWhen,
 	narrow = false,
+	shakeOnRefusal = false,
+	done,
 	input,
 }: {
 	label: string;
@@ -113,21 +115,32 @@ function OneFieldForm({
 	submitWhen?: (value: string) => boolean;
 	/** A short value (a code): the field is only as wide as it needs, with the button right beside it. */
 	narrow?: boolean;
+	/** Shakes the field when onSubmit refuses the value (a wrong code), not for a typo check() catches. */
+	shakeOnRefusal?: boolean;
+	/** Shown in the button, with a drawn tick, once onSubmit works (it stays, as the page moves on). */
+	done?: string;
 	input: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'id'>;
 }) {
 	const id = useId();
 	const [value, setValue] = useState(initial);
 	const [busy, setBusy] = useState(false);
+	const [worked, setWorked] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const field = useRef<HTMLInputElement>(null);
 
 	async function submit(text: string) {
-		if (busy) return;
+		if (busy || worked) return;
 		const problem = check(text);
 		if (problem) return setError(problem);
 		setBusy(true);
 		const failed = await onSubmit(text.trim());
 		setBusy(false);
 		setError(failed);
+		if (!failed && done) setWorked(true);
+		// Three swings that die away, like a head shaking no: 320ms, and none with reduced motion
+		if (failed && shakeOnRefusal && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			field.current?.animate({ translate: ['0', '-6px', '5px', '-3px', '1px', '0'] }, { duration: 320, easing: 'ease-out' });
+		}
 	}
 
 	return (
@@ -146,7 +159,9 @@ function OneFieldForm({
 			<div className={`flex min-w-0 flex-col gap-2 ${narrow ? 'sm:w-56' : 'flex-1'}`}>
 				<input
 					{...input}
+					ref={field}
 					id={id}
+					readOnly={worked}
 					value={value}
 					onChange={(e) => {
 						setValue(e.target.value);
@@ -155,18 +170,32 @@ function OneFieldForm({
 					}}
 					aria-invalid={error ? true : undefined}
 					aria-describedby={error ? `${id}-error` : undefined}
-					className={`min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)] ${input.className ?? ''}`}
+					className={`min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue transition-shadow duration-150 aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)] ${worked ? 'shadow-[inset_0_0_0_2px_var(--color-dark-blue)]' : ''} ${input.className ?? ''}`}
 				/>
 				{error && (
 					// Under a narrow field it runs on under the button, which is no taller than the field
-					<p id={`${id}-error`} role="alert" className={`${alert} ${narrow ? 'sm:w-md' : ''}`}>
+					// Keyed by the message, so a new one arrives again rather than just changing
+					<p key={error} data-note id={`${id}-error`} role="alert" className={`${alert} ${narrow ? 'sm:w-md' : ''}`}>
 						{error}
 					</p>
 				)}
 			</div>
 			{/* Filled in already (from an invite, or a link that's expired): the button is the next step */}
 			<button type="submit" aria-busy={busy} autoFocus={Boolean(initial) && !input.autoFocus} className={`relative ${buttonClass('primary', 'tall')}`}>
-				<span className={busy ? 'invisible' : undefined}>{action}</span>
+				{/* The labels share one cell, so the button is as wide as the longer and never changes size */}
+				<span className="grid">
+					<span className={`[grid-area:1/1] ${busy || worked ? 'invisible' : ''}`}>{action}</span>
+					{done && (
+						<span aria-hidden={!worked} className={`[grid-area:1/1] flex items-center justify-center gap-2 ${worked ? 'animate-[fade-in_150ms_ease-out]' : 'invisible'}`}>
+							{worked && (
+								<svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+									<path data-tick d="M3 8.5l3.2 3.2L13 5" pathLength={1} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+								</svg>
+							)}
+							{done}
+						</span>
+					)}
+				</span>
 				{busy && (
 					<span className="absolute inset-0 flex items-center justify-center">
 						<Spinner className="text-off-white" />
@@ -176,6 +205,9 @@ function OneFieldForm({
 					</span>
 				)}
 			</button>
+			<span role="status" className="sr-only">
+				{worked ? done : ''}
+			</span>
 		</form>
 	);
 }
@@ -250,7 +282,7 @@ export function SignInPage() {
 				</button>
 			</p>
 			{googleError && (
-				<p role="alert" className={alert}>
+				<p data-note role="alert" className={alert}>
 					{googleError}
 				</p>
 			)}
@@ -268,6 +300,10 @@ export function CheckEmailPage() {
 	const [error, setError] = useState<string | null>(null);
 	// Said once at the moments that matter, not every second of the countdown
 	const [announce, setAnnounce] = useState('');
+	const [sentAgain, setSentAgain] = useState(false);
+	// Set while a code signs in, so the page stays to show "Signed in" before it moves on
+	const signingIn = useRef(false);
+	const go = useTransitionNavigate();
 	// Bumped to put the emulator's code in the field (development only)
 	const [filled, setFilled] = useState<{ code: string; n: number } | null>(null);
 	const navigate = useNavigate();
@@ -279,8 +315,8 @@ export function CheckEmailPage() {
 		return () => clearTimeout(t);
 	}, [wait]);
 	if (!looksLikeEmail(email)) return <Navigate to="/sign-in" replace />;
-	// Signed in, by the code here or the link in another tab
-	if (session) return <Navigate to={next} replace />;
+	// Signed in by the link in another tab (a code here moves on by itself, below)
+	if (session && !signingIn.current) return <Navigate to={next} replace />;
 
 	return (
 		<AuthLayout
@@ -300,8 +336,20 @@ export function CheckEmailPage() {
 				busyLabel="Signing in"
 				initial={filled?.code}
 				check={(code) => (looksLikeCode(code) ? null : 'Enter the 6 digits from the email.')}
-				onSubmit={(code) => signInWithCode(email, digits(code))}
+				onSubmit={async (code) => {
+					signingIn.current = true;
+					const error = await signInWithCode(email, digits(code));
+					if (error) {
+						signingIn.current = false;
+						return error;
+					}
+					// The tick draws in the button, holds a moment, then the dashboard opens
+					setTimeout(() => go(next), matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 750);
+					return null;
+				}}
 				submitWhen={looksLikeCode}
+				shakeOnRefusal
+				done="Signed in"
 				narrow
 				input={{
 					inputMode: 'numeric',
@@ -323,9 +371,10 @@ export function CheckEmailPage() {
 						if (wait > 0) return;
 						setWait(60);
 						setAnnounce('');
+						setSentAgain(false);
 						const failed = await sendSignInLink(email, next);
 						setError(failed);
-						if (!failed) setAnnounce('Sent it again. Use the code in the newest email.');
+						setSentAgain(!failed);
 					}}
 					className={wait > 0 ? 'cursor-not-allowed' : textLink}
 				>
@@ -346,8 +395,19 @@ export function CheckEmailPage() {
 			<p role="status" className="sr-only">
 				{announce}
 			</p>
+			{/* Seen as well as heard, since the code that worked a minute ago no longer does */}
+			<p role="status" className="empty:hidden">
+				{sentAgain && (
+					<span data-note className="flex items-center gap-2 text-base leading-normal text-dark-blue">
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0 text-med-blue">
+							<path data-tick d="M3 8.5l3.2 3.2L13 5" pathLength={1} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+						</svg>
+						Sent again. Use the code in the newest email.
+					</span>
+				)}
+			</p>
 			{error && (
-				<p role="alert" className={alert}>
+				<p data-note role="alert" className={alert}>
 					{error}
 				</p>
 			)}
