@@ -17,7 +17,7 @@ OWN-WORLD: Off-white ground, navy ink, no card. Logo top-left where the site hea
 
 STORY: An organiser reads "What's your email?", types it, and is told plainly what happens next; anyone who isn't an organiser sees at the foot where to go instead.
 
-FIRST VIEWPORT: Logo top-left; the question left-aligned in the middle of the screen, up to 720px wide, a line of plain explanation, then field and button on one row (stacked on phones), "or continue with Google" under it; the two wrong-door panels at the bottom.
+FIRST VIEWPORT: Logo top-left; the question left-aligned in the middle of the screen, up to 720px wide, a line of plain explanation, then field and button on one row (stacked on phones), "or" and a bordered "Sign in with Google" button under it; the two wrong-door panels at the bottom.
 
 FORM: one question per screen, position 4 on the ordered list; seed:730e80865e30cd67. Signature interaction: moving from one screen to the next, the question rises into place as the old one gives way, so the flow reads as one conversation; the button keeps its size and shows a spinner while it sends.
 
