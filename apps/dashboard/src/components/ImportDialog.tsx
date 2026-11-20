@@ -116,7 +116,7 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 
 			{plan && (
 				<dl className="flex flex-col">
-					<SummaryRow count={plan.added.length} label="new attendees" detail={checkIns.length ? 'Added, checked in where they are below' : 'Added as not arrived'} />
+					<SummaryRow count={plan.added.length} label="new attendees" detail={newDetail(plan, checkIns)} />
 					<SummaryRow
 						count={plan.updated.length}
 						label="updated"
@@ -220,6 +220,14 @@ function SummaryRow({ count, label, detail }: { count: number; label: string; de
 			</dd>
 		</div>
 	);
+}
+
+/** "Added as not arrived", or with how many of them arrive checked in */
+function newDetail(plan: ImportPlan, checkIns: ImportPlan['checkIns']) {
+	const added = new Set(plan.added.map((row) => row.ticket.toLowerCase()));
+	const arrived = checkIns.filter((c) => added.has(c.ticket.toLowerCase())).length;
+	if (!arrived) return 'Added as not arrived';
+	return arrived === plan.added.length ? 'Added as checked in' : `Added, ${arrived} of them as checked in`;
 }
 
 /** "12 people are checked in on Humanitix and not here. Check them in at the times it recorded." */
