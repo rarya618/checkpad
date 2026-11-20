@@ -1,0 +1,38 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "roboto",
+        "createdAt": "2026-11-20T17:19:10.846Z",
+        "reason": "Emails use a system font stack on purpose: email clients don't load web fonts reliably (DESIGN.md Emails)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "helvetica",
+        "createdAt": "2026-11-20T17:19:10.872Z",
+        "reason": "Emails use a system font stack on purpose: email clients don't load web fonts reliably (DESIGN.md Emails)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "emails/sign-in.html"
+        ],
+        "createdAt": "2026-11-20T17:19:49.480Z",
+        "reason": "Measured in a browser: every text colour is at least 4.96:1 in light and 10.3:1 in dark mode (the dark colours sit in a prefers-color-scheme block)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "emails/invite.html"
+        ],
+        "createdAt": "2026-11-20T17:19:49.502Z",
+        "reason": "Measured in a browser: every text colour is at least 4.96:1 in light and 10.3:1 in dark mode (the dark colours sit in a prefers-color-scheme block)"
+      }
+    ]
+  }
+}
