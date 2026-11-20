@@ -156,7 +156,7 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
 export async function importAttendees(
 	event: DashboardEvent,
 	roster: RosterAttendee[],
-	plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated' | 'payments'>,
+	plan: Pick<ImportPlan, 'source' | 'allQuestions' | 'added' | 'updated' | 'payments' | 'strippedAnswers'>,
 	checkIns: ImportPlan['checkIns'] = [],
 ) {
 	const ids = new Map(roster.map((a) => [a.id.toLowerCase(), a.id]));
@@ -190,9 +190,15 @@ export async function importAttendees(
 				lastName: row.lastName,
 				...(row.ticketType && { ticketType: row.ticketType }),
 				// A file with questions replaces the answers; one without leaves them be
-				...(plan.questions.length && { answers: Object.keys(row.answers).length ? row.answers : deleteField() }),
+				...(plan.allQuestions.length && { answers: Object.keys(row.answers).length ? row.answers : deleteField() }),
 				...(row.registeredAt && { registeredAt: Timestamp.fromDate(row.registeredAt) }),
 			},
+			create: false,
+		})),
+		// Questions left out lose their answers from people this file doesn't have, too
+		...plan.strippedAnswers.map(({ ticket, answers }) => ({
+			ref: doc(attendees(event.id), ids.get(ticket.toLowerCase()) ?? ticket),
+			data: { answers: Object.keys(answers).length ? answers : deleteField() },
 			create: false,
 		})),
 		...plan.payments.map(({ ticket, payment }) => ({

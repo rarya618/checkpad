@@ -92,7 +92,9 @@ export interface ImportPlan {
 	fileName: string;
 	source: ImportSource;
 	rowCount: number;
-	/** The registration questions whose answers are saved, as the file's column headers. */
+	/** Every registration question in the file, as its column headers, in the file's order. */
+	allQuestions: string[];
+	/** The questions whose answers are saved: all of them, less those the organiser leaves out. */
 	questions: string[];
 	added: ImportRow[];
 	updated: ImportRow[];
@@ -113,11 +115,17 @@ export interface ImportPlan {
 	sharedEmails: number[];
 	/** Every imported ticket's payment, new, updated or unchanged. */
 	payments: { ticket: string; payment: ImportPayment }[];
+	/** People on the list whose saved answers include a question left out, which an import removes. */
+	answersRemoved: number;
+	/** People on the list but not in this file whose answers lose the questions left out: ticket → what's left. */
+	strippedAnswers: { ticket: string; answers: Record<string, string> }[];
 }
 
 export interface ImportOptions {
 	/** Import every ticket, even when its email is on another ticket: one buyer's email on a group's tickets. */
 	keepSharedEmails?: boolean;
+	/** Questions not to save answers to; answers already saved to them are removed. */
+	skipQuestions?: string[];
 }
 
 export type ImportError =
@@ -309,6 +317,10 @@ export function planFromText(
 		questionColumns.push({ col, question });
 	});
 
+	// Answers to questions left out aren't kept, here or on anyone already on the list
+	const skipQuestions = new Set(options.skipQuestions ?? []);
+	const keptColumns = questionColumns.filter((q) => !skipQuestions.has(q.question));
+
 	const moneyCols = keys.flatMap((k, col) => (moneyColumns[k] ? [{ col, name: moneyColumns[k] }] : []));
 	const codeCols = keys.flatMap((k, col) => (codeColumns[k] ? [{ col, name: codeColumns[k] }] : []));
 
@@ -324,7 +336,8 @@ export function planFromText(
 		fileName,
 		source: detectSource(keys),
 		rowCount: rows.length,
-		questions: questionColumns.map((q) => q.question),
+		allQuestions: questionColumns.map((q) => q.question),
+		questions: keptColumns.map((q) => q.question),
 		added: [],
 		updated: [],
 		unchanged: 0,
@@ -333,6 +346,8 @@ export function planFromText(
 		checkInsWithoutTime: [],
 		sharedEmails: [],
 		payments: [],
+		answersRemoved: 0,
+		strippedAnswers: [],
 	};
 	const skip = (reason: string, row: number) => plan.skipped.set(reason, [...(plan.skipped.get(reason) ?? []), row]);
 
@@ -347,7 +362,7 @@ export function planFromText(
 		let lastName = cell(index.lastName);
 		if (!firstName && index.name >= 0) [firstName, lastName] = splitName(cell(index.name));
 		const answers: Record<string, string> = {};
-		for (const { col, question } of questionColumns) {
+		for (const { col, question } of keptColumns) {
 			const answer = cell(col).slice(0, MAX_ANSWER);
 			if (answer) answers[question] = answer;
 		}
@@ -406,13 +421,24 @@ export function planFromText(
 			existing.firstName !== row.firstName ||
 			existing.lastName !== row.lastName ||
 			(row.ticketType && existing.ticketType !== row.ticketType) ||
-			(plan.questions.length > 0 && !sameAnswers(existing.answers, row.answers)) ||
+			(plan.allQuestions.length > 0 && !sameAnswers(existing.answers, row.answers)) ||
 			// Lists imported before Checkpad kept registration dates get them on the next import
 			(row.registeredAt && existing.registeredAt?.getTime() !== row.registeredAt.getTime())
 		)
 			plan.updated.push(row);
 		else plan.unchanged++;
 	});
+	if (skipQuestions.size) {
+		for (const a of roster) {
+			const answers = a.answers ?? {};
+			if (!Object.keys(answers).some((q) => skipQuestions.has(q))) continue;
+			plan.answersRemoved++;
+			// People in the file get their answers replaced above; the rest are trimmed here
+			if (a.ticket && !seen.has(a.ticket.toLowerCase())) {
+				plan.strippedAnswers.push({ ticket: a.ticket, answers: Object.fromEntries(Object.entries(answers).filter(([q]) => !skipQuestions.has(q))) });
+			}
+		}
+	}
 	return plan;
 }
 
