@@ -169,7 +169,9 @@ export async function sendInvite(db: Firestore, mail: Mailer, run: { id: string;
 			ACCESS: access(admin.role, admin.teamId ? ((team?.data() as TeamDoc | undefined)?.name ?? 'your team') : null),
 			NEXT: firstSteps(admin.role, !admin.teamId),
 			ADDRESS: run.email,
-			LINK: `${DASHBOARD_URL}/sign-in`,
+			// The sign-in page with their address filled in: one tap from here, but nothing in an
+			// email that may be opened days later, or forwarded, signs anyone in by itself
+			LINK: `${DASHBOARD_URL}/sign-in?${new URLSearchParams({ email: run.email })}`,
 		},
 		idempotencyKey: `invite/${run.id}`,
 	});

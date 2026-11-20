@@ -106,7 +106,7 @@ describe('inviteOrganiser', () => {
 			ACCESS: 'You can check people in at GDG Invite’s events.',
 			NEXT: 'Before the night, open the event, scan its QR code with your own phone and check in as someone on the list, so you know what attendees see. You can undo that check-in on the Attendees page.',
 			ADDRESS: 'new@example.com',
-			LINK: 'https://manage.checkpad.app/sign-in',
+			LINK: 'https://manage.checkpad.app/sign-in?email=new%40example.com',
 		});
 	});
 
