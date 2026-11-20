@@ -26,7 +26,8 @@ type Size = keyof typeof sizes;
 // (the sign-in layout marks that with data-on-ground), where off-white would disappear
 const boxBase =
 	'w-full bg-off-white leading-normal text-dark-blue outline-none focus-within:outline-med-blue in-data-on-ground:bg-white in-data-on-ground:shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)]';
-const box = (size: Size) => `${boxBase} ${sizes[size].box}`;
+/** The filled box a field's control is drawn in, for fields built from Field directly. */
+export const box = (size: Size) => `${boxBase} ${sizes[size].box}`;
 
 interface FieldProps {
 	label: string;

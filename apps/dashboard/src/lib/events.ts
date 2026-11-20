@@ -249,15 +249,21 @@ export function setImportedQuestions(event: DashboardEvent, questions: Record<st
 	return updateDoc(doc(db, 'events', event.id), { importedQuestions: questions });
 }
 
+/** A venue a team has used, and the last of its events there. */
+export interface PastVenue {
+	venue: string;
+	lastEvent: DashboardEvent;
+}
+
 /**
  * The venues a team's events have been at, the most recently used first and each once, for the
  * event form's venue suggestions. `except` leaves out the event being edited.
  */
-export function pastVenues(events: DashboardEvent[], teamId: string, except?: string) {
+export function pastVenues(events: DashboardEvent[], teamId: string, except?: string): PastVenue[] {
 	const seen = new Set<string>();
 	return [...events]
 		.filter((e) => e.id !== except && e.teamIds.includes(teamId) && e.walkInVenue.trim())
 		.sort((a, b) => b.startsAt.localeCompare(a.startsAt))
-		.map((e) => e.walkInVenue.trim())
-		.filter((v) => !seen.has(v.toLowerCase()) && seen.add(v.toLowerCase()));
+		.filter((e) => !seen.has(e.walkInVenue.trim().toLowerCase()) && seen.add(e.walkInVenue.trim().toLowerCase()))
+		.map((e) => ({ venue: e.walkInVenue.trim(), lastEvent: e }));
 }

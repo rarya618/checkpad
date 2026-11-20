@@ -47,7 +47,7 @@ export default function NewEventPage() {
 	const [form, setForm] = useState(() => {
 		const team = teams.find((t) => t.id === me.teamId) ?? teams[0];
 		// Dated today to start with, so the date fields are never empty; at the team's latest venue
-		const walkInVenue = team ? (pastVenues(events, team.id)[0] ?? '') : '';
+		const walkInVenue = team ? (pastVenues(events, team.id)[0]?.venue ?? '') : '';
 		return { ...blank, date: today(), ownerTeam: team?.id ?? '', timeZone: teamTimeZone(team), walkInVenue };
 	});
 	// The link follows the name until someone edits it by hand. A name another event
@@ -65,7 +65,7 @@ export default function NewEventPage() {
 			const next = { ...f, [key]: value };
 			if (!slugEdited && key === 'name') next.slug = suggestedSlug(next.name, suffix);
 			if (!timeZoneEdited && key === 'ownerTeam') next.timeZone = teamTimeZone(teams.find((t) => t.id === value));
-			if (!venueEdited && key === 'ownerTeam') next.walkInVenue = pastVenues(events, value as string)[0] ?? '';
+			if (!venueEdited && key === 'ownerTeam') next.walkInVenue = pastVenues(events, value as string)[0]?.venue ?? '';
 			return next;
 		});
 	}

@@ -1,11 +1,11 @@
 import { countries } from '@checkpad/shared/countries';
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { endsNextDay, formTimesError, isMultiDay, nextDay, shiftedEndDate, ticketUrlError, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
-import { ownsEvent, type DashboardEvent } from '../lib/events';
+import { ownsEvent, type DashboardEvent, type PastVenue } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
 import { teamName, type Team } from '../lib/teams';
 import { DateTrigger, RangeCalendar } from './DatePicker';
-import { SelectField, TextField } from './Field';
+import { box, Field, SelectField, TextField } from './Field';
 import { TimeField } from './TimePicker';
 import { SwitchRow } from './Switch';
 
@@ -254,32 +254,133 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 // offers it while check-in isn't open yet. A part-typed address ("lu") isn't wrong yet, so the
 // error waits until you leave the field; saving waits for a whole one either way (formIsComplete).
 /**
- * The venue, with the team's past venues offered as it's typed (the browser's own suggestions
- * list), since a team mostly meets at the same few places.
+ * The venue, with the team's past venues in a list under it, since a team mostly meets at the
+ * same few places. The list opens on focus with them all, most recent first, each with the last
+ * event there; typing narrows it, the matching part in bold. Arrow keys move through it, Enter
+ * picks one (without submitting the form) and Escape closes it. Anything else typed is kept as is.
  */
-export function VenueField({ label, value, onChange, venues, placeholder }: { label: string; value: string; onChange: (venue: string) => void; venues: string[]; placeholder?: string }) {
-	const list = useId();
+export function VenueField({ label, value, onChange, venues, placeholder }: { label: string; value: string; onChange: (venue: string) => void; venues: PastVenue[]; placeholder?: string }) {
+	const listId = useId();
+	const [open, setOpen] = useState(false);
+	// Until they type, the whole list shows: the venue filled in is a starting point, not a search
+	const [typed, setTyped] = useState(false);
+	const [active, setActive] = useState(-1);
+	const query = typed ? value.trim().toLowerCase() : '';
+	const shown = venues.filter((v) => v.venue.toLowerCase().includes(query) && v.venue !== value.trim());
+	const expanded = open && shown.length > 0;
+
+	function pick(venue: string) {
+		onChange(venue);
+		setOpen(false);
+		setTyped(false);
+		setActive(-1);
+	}
+
+	function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			e.preventDefault();
+			if (!expanded) {
+				setOpen(true);
+				setActive(e.key === 'ArrowDown' ? 0 : shown.length - 1);
+				return;
+			}
+			setActive((i) => (e.key === 'ArrowDown' ? (i + 1) % shown.length : (i <= 0 ? shown.length : i) - 1));
+		} else if (e.key === 'Enter' && expanded && active >= 0) {
+			e.preventDefault();
+			pick(shown[active].venue);
+		} else if (e.key === 'Escape' && expanded) {
+			// Closes the list, not the page or dialog it's on
+			e.preventDefault();
+			e.stopPropagation();
+			setOpen(false);
+			setActive(-1);
+		}
+	}
+
+	return (
+		<Field label={label}>
+			{(control) => (
+				<div className="relative">
+					<input
+						type="text"
+						{...control}
+						role="combobox"
+						aria-autocomplete="list"
+						aria-expanded={expanded}
+						aria-controls={expanded ? listId : undefined}
+						aria-activedescendant={expanded && active >= 0 ? `${listId}-${active}` : undefined}
+						// The team's venues, not whatever the browser remembers from other forms
+						autoComplete="off"
+						// Place and street names aren't spelling mistakes
+						spellCheck={false}
+						value={value}
+						placeholder={placeholder}
+						onChange={(e) => {
+							onChange(e.target.value);
+							setTyped(true);
+							setOpen(true);
+							setActive(-1);
+						}}
+						onFocus={() => setOpen(true)}
+						onBlur={() => {
+							setOpen(false);
+							setTyped(false);
+							setActive(-1);
+						}}
+						onKeyDown={onKeyDown}
+						className={`${box('md')} placeholder:text-[#bbbbbb]`}
+					/>
+					{expanded && (
+						<ul
+							id={listId}
+							role="listbox"
+							aria-label={`Your team’s ${label.toLowerCase()}s`}
+							data-popover
+							className="absolute top-[calc(100%+6px)] right-0 left-0 z-20 flex max-h-[min(320px,50dvh)] flex-col gap-0.5 overflow-y-auto rounded-xl border border-line bg-white p-1.5 shadow-[0_9px_30px_rgb(17_45_78/0.14)]"
+						>
+							{shown.map((v, i) => (
+								<li
+									key={v.venue}
+									id={`${listId}-${i}`}
+									role="option"
+									aria-selected={i === active}
+									// Keeps focus in the field, so the list stays open until the pick lands
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={() => pick(v.venue)}
+									onMouseEnter={() => setActive(i)}
+									className={`flex cursor-pointer flex-col rounded-md px-3 py-2 leading-normal ${i === active ? 'bg-off-white' : ''}`}
+								>
+									<span className="text-sm text-dark-blue">
+										<Highlight text={v.venue} query={query} />
+									</span>
+									<span className="text-xs text-med-blue">
+										{v.lastEvent.name} · {monthYear(v.lastEvent)}
+									</span>
+								</li>
+							))}
+						</ul>
+					)}
+				</div>
+			)}
+		</Field>
+	);
+}
+
+/** The part of a suggestion that matches what's typed, in bold; the whole thing bold before anything is typed. */
+function Highlight({ text, query }: { text: string; query: string }) {
+	const at = query ? text.toLowerCase().indexOf(query) : -1;
+	if (at < 0) return <span className="font-semibold">{text}</span>;
 	return (
 		<>
-			<TextField
-				label={label}
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				placeholder={placeholder}
-				list={venues.length ? list : undefined}
-				// The team's venues, not whatever the browser remembers from other forms
-				autoComplete="off"
-			/>
-			{venues.length > 0 && (
-				<datalist id={list}>
-					{venues.map((v) => (
-						<option key={v} value={v} />
-					))}
-				</datalist>
-			)}
+			{text.slice(0, at)}
+			<span className="font-bold">{text.slice(at, at + query.length)}</span>
+			{text.slice(at + query.length)}
 		</>
 	);
 }
+
+/** "Mar 2030", in the event's own time zone. */
+const monthYear = (e: DashboardEvent) => new Intl.DateTimeFormat('en-AU', { month: 'short', year: 'numeric', timeZone: e.timeZone }).format(new Date(e.startsAt));
 
 export function TicketUrlField({ form, update }: { form: EventForm; update: Update }) {
 	const [left, setLeft] = useState(false);

@@ -188,10 +188,11 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								hint={`Next walk-in ticket: ${nextWalkInTicket(event)}`}
 							/>
 							<VenueField
-								label="Walk-in venue"
+								label="Venue"
 								value={form.walkInVenue}
 								onChange={(venue) => update('walkInVenue', venue)}
 								venues={event.ownerTeamId ? pastVenues(events, event.ownerTeamId, event.id) : []}
+								placeholder="Google Sydney, 1 Pirrama Rd, Pyrmont"
 							/>
 							<SwitchRow
 								label="Attendees can add themselves"
