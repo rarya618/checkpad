@@ -4,6 +4,11 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.3.1 (2026-11-21)
+
+- [organisers] Analytics lays out many ticket types in columns across the page, showing the biggest first with the rest a click away
+- [organisers] Turnout by sign-up timing splits registrations made weeks and months ahead, for events that sell tickets early
+
 ## 1.3.0 (2026-11-21)
 
 - [organisers] Import attendees from Humanitix as well as Bevy and Luma
