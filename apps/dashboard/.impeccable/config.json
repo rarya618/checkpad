@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "createdAt": "2026-11-20T16:42:00.614Z",
+        "reason": "DESIGN.md: Plus Jakarta Sans is Checkpad's one typeface, shared by every surface (Two-Weight Rule)"
+      }
+    ]
+  }
+}
