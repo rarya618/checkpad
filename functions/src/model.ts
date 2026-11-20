@@ -63,6 +63,22 @@ export interface AttendeeDoc {
 	importedBy?: string;
 }
 
+/**
+ * events/{eventId}/payments/{ticket}: what was paid for an imported ticket, as the platform
+ * reported it. Written by the dashboard's import, readable by organisers only.
+ */
+export interface PaymentDoc {
+	source: 'bevy' | 'luma' | 'humanitix' | 'csv';
+	/** Cents, by name: price, paid, passedOnFees, absorbedFees, earnings, refunds, discount… (attendeeImport.ts) */
+	amounts: Record<string, number>;
+	currency?: string;
+	discountCode?: string;
+	accessCode?: string;
+	gateway?: string;
+	importedAt: Timestamp;
+	importedBy: string;
+}
+
 /** teams/{teamId} */
 export interface TeamDoc {
 	name: string;

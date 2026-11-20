@@ -48,12 +48,12 @@ export async function countChange(db: Firestore, run: { id: string; eventId: str
 	}
 }
 
-/** After an event is deleted: its attendees, prize draw results and links go too. */
+/** After an event is deleted: its attendees, payments, prize draw results and links go too. */
 export async function cleanUpEvent(db: Firestore, eventId: string) {
 	const ref = db.doc(`events/${eventId}`);
 	// Written again since (only ever in tests and seeding, which reuse IDs): leave it be
 	if ((await ref.get()).exists) return;
-	await Promise.all([db.recursiveDelete(ref.collection('attendees')), db.recursiveDelete(ref.collection('draw'))]);
+	await Promise.all(['attendees', 'draw', 'payments'].map((name) => db.recursiveDelete(ref.collection(name))));
 	const slugs = await db.collection('slugs').where('eventId', '==', eventId).get();
 	const batch = db.batch();
 	for (const slug of slugs.docs) batch.delete(slug.ref);

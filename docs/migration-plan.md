@@ -182,6 +182,9 @@ events/{eventId}/attendees/{ticket}  firstName, lastName, email (lowercase), sou
                                      'humanitix' | 'csv' | 'walk-in'), checkedInAt, jobTitle?, company?, ticketType?,
                                      ticketTitle?, ticketVenue?, bevyOrderNumber?, answers? (question → answer),
                                      importedAt?, importedBy? (set by the import that first added them)
+events/{eventId}/payments/{ticket}   source, amounts (name → cents: price, paid, passedOnFees, earnings…),
+                                     currency?, discountCode?, accessCode?, gateway?, importedAt, importedBy
+                                     (organisers only; replaced by each import)
 events/{eventId}/draw/{ticket}       result ('won' | 'not-here'), drawnAt, winnerNumber?
 admins/{email}                       role, teamId?, invitedAt, invitedBy, lastSignInAt?
                                      (teamId null for super admins, and for an organiser invited

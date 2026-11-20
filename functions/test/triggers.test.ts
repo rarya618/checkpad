@@ -71,13 +71,15 @@ describe('countAttendees', () => {
 });
 
 describe('cleanUpDeletedEvent', () => {
-	test('deletes the event’s attendees, prize draw and links, and nothing else', async () => {
+	test('deletes the event’s attendees, payments, prize draw and links, and nothing else', async () => {
 		await event.collection('attendees').doc('GOOGA001').set(person('a@example.com'));
 		await event.collection('draw').doc('GOOGA001').set({ result: 'won' });
+		await event.collection('payments').doc('GOOGA001').set({ source: 'humanitix', amounts: { paid: 5175 } });
 		await event.delete();
 		await eventually(async () => {
 			assert.equal((await event.collection('attendees').get()).size, 0);
 			assert.equal((await event.collection('draw').get()).size, 0);
+			assert.equal((await event.collection('payments').get()).size, 0);
 			assert.deepEqual((await db.collection('slugs').get()).docs.map((d) => d.id), ['someone-else']);
 		});
 	});

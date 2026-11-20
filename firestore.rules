@@ -325,6 +325,26 @@ service cloud.firestore {
           || (onTeam(eventTeams(eventId)) && resource.data.source == 'walk-in' && resource.data.checkedInBy == myEmail());
       }
 
+      // events/{eventId}/payments/{ticket}: what was paid for each imported ticket, its fees
+      // and codes, as the platform reported it. Organisers only: volunteers see attendees, not money.
+
+      match /payments/{ticket} {
+        allow read, delete: if runsTeam(eventTeams(eventId));
+        allow create, update: if runsTeam(eventTeams(eventId))
+          && ticket.size() <= 100
+          && request.resource.data.keys().hasAll(['source', 'amounts', 'importedAt', 'importedBy'])
+          && request.resource.data.keys().hasOnly(['source', 'amounts', 'currency', 'discountCode', 'accessCode', 'gateway', 'importedAt', 'importedBy'])
+          && request.resource.data.source in ['bevy', 'luma', 'humanitix', 'csv']
+          && request.resource.data.amounts is map
+          && request.resource.data.amounts.size() <= 20
+          && isText(request.resource.data.get('currency', ''), 100)
+          && isText(request.resource.data.get('discountCode', ''), 100)
+          && isText(request.resource.data.get('accessCode', ''), 100)
+          && isText(request.resource.data.get('gateway', ''), 100)
+          && request.resource.data.importedAt == request.time
+          && request.resource.data.importedBy == myEmail();
+      }
+
       // events/{eventId}/draw/{ticket}: prize draw results, so a refresh or a second
       // laptop doesn't lose a winner or draw them again
 

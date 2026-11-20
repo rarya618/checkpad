@@ -471,6 +471,39 @@ describe('imports', () => {
 	});
 });
 
+describe('payments', () => {
+	const payment = {
+		source: 'humanitix',
+		amounts: { price: 5000, paid: 5175, passedOnFees: 175, earnings: 5000 },
+		discountCode: 'DEEPMIND5',
+		gateway: 'braintree',
+		importedAt: serverTimestamp(),
+		importedBy: 'priya@example.com',
+	};
+	const ref = (db: Firestore) => doc(db, 'events/syd/payments/GOOGA001');
+
+	test('organisers save and read what was paid, and imports replace it', async () => {
+		await assertSucceeds(setDoc(ref(priya()), payment));
+		await assertSucceeds(setDoc(ref(priya()), { ...payment, amounts: { ...payment.amounts, refunds: 5000 } }));
+		await assertSucceeds(getDoc(ref(priya())));
+	});
+
+	test('volunteers and other teams can’t see or change payments', async () => {
+		await assertSucceeds(setDoc(ref(priya()), payment));
+		await assertFails(getDoc(ref(tom())));
+		await assertFails(getDoc(ref(mel())));
+		await assertFails(setDoc(ref(tom()), { ...payment, importedBy: 'tom@example.com' }));
+		await assertFails(deleteDoc(ref(tom())));
+	});
+
+	test('payments hold amounts, codes and who imported them, nothing else', async () => {
+		await assertFails(setDoc(ref(priya()), { ...payment, buyerEmail: 'buyer@example.com' }));
+		await assertFails(setDoc(ref(priya()), { ...payment, amounts: 5000 }));
+		await assertFails(setDoc(ref(priya()), { ...payment, importedBy: 'tom@example.com' }));
+		await assertFails(setDoc(ref(priya()), { ...payment, source: 'walk-in' }));
+	});
+});
+
 describe('prize draw', () => {
 	const win = (db: Firestore) => setDoc(doc(db, 'events/syd/draw/GOOGA001'), { result: 'won', drawnAt: serverTimestamp(), winnerNumber: 2 });
 
