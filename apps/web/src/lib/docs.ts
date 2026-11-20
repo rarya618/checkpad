@@ -141,7 +141,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 					'Check-ins, only if you turn on Import check-ins. People checked in on the platform but not in Checkpad are checked in at the time the platform recorded. Use it when the platform ran check-in, not alongside Checkpad.',
 				],
 			},
-			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. Columns the platforms add themselves, like phone numbers, the buyer’s details and ad tracking, are left out.',
+			'Any other column is treated as one of your registration questions, and its answers are kept with each person and included in Export attendance. Up to 50 questions are kept. To leave a question out, such as a second email address you don’t need, open Answers under Also saved and untick it: its answers aren’t imported, any already saved are removed, and the event’s later imports leave it out too. Questions a later file brings that the event hasn’t seen are marked New. Columns the platforms add themselves, like phone numbers, the buyer’s details and ad tracking, are left out.',
 			'Rows are skipped, with the reason and the row numbers shown before you import, when they:',
 			{
 				list: [
