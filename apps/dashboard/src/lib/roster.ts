@@ -147,7 +147,8 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
 
 /**
  * Applies an import: adds new tickets as not arrived, stamped with who imported them and when,
- * and updates names, ticket types, answers and registration dates.
+ * and updates names, ticket types, answers and registration dates. Saves each ticket's payment
+ * apart (events/{eventId}/payments/{ticket}), replacing the last import's, for organisers only.
  * Writes 500 at a time, so a large import isn't all or nothing; it's safe to run again.
  * `checkIns` checks people in at the platform's times: new people as they're added, and people
  * already on the list one by one afterwards, so anyone checked in here meanwhile stays as they are.
@@ -155,7 +156,7 @@ export function removeAttendee(event: DashboardEvent, attendeeId: string) {
 export async function importAttendees(
 	event: DashboardEvent,
 	roster: RosterAttendee[],
-	plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated'>,
+	plan: Pick<ImportPlan, 'source' | 'questions' | 'added' | 'updated' | 'payments'>,
 	checkIns: ImportPlan['checkIns'] = [],
 ) {
 	const ids = new Map(roster.map((a) => [a.id.toLowerCase(), a.id]));
@@ -193,6 +194,11 @@ export async function importAttendees(
 				...(row.registeredAt && { registeredAt: Timestamp.fromDate(row.registeredAt) }),
 			},
 			create: false,
+		})),
+		...plan.payments.map(({ ticket, payment }) => ({
+			ref: doc(db, 'events', event.id, 'payments', ids.get(ticket.toLowerCase()) ?? ticket),
+			data: { source: plan.source, ...payment, importedAt: serverTimestamp(), importedBy: myEmail() },
+			create: true,
 		})),
 	];
 	for (let i = 0; i < writes.length; i += 500) {

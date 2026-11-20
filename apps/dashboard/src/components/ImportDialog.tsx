@@ -142,6 +142,13 @@ export default function ImportDialog({ event, onClose, onImported, done }: Props
 					{checkIns.length > 0 && (
 						<SummaryRow count={checkIns.length} label="checked in" detail={`At the times ${platform ?? 'the file'} recorded`} />
 					)}
+					{plan.payments.length > 0 && (
+						<SummaryRow
+							count={plan.payments.length}
+							label={`ticket${plan.payments.length === 1 ? '’s payment' : 's’ payments'} saved`}
+							detail="Price, fees, earnings and codes used, for organisers only"
+						/>
+					)}
 					{plan.questions.length > 0 && (
 						<SummaryRow
 							count={plan.questions.length}

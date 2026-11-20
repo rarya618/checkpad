@@ -25,6 +25,57 @@ export interface ImportRow {
 	answers: Record<string, string>;
 	/** When they registered on the platform; absent when the file has no date we can read. */
 	registeredAt?: Date;
+	/** What was paid for the ticket, when the file says. */
+	payment?: ImportPayment;
+}
+
+/**
+ * One ticket's money, as the platform reports it: amounts in cents under the names in
+ * `moneyColumns`, and the codes used. Saved apart from the attendee, for organisers only.
+ */
+export interface ImportPayment {
+	amounts: Record<string, number>;
+	currency?: string;
+	discountCode?: string;
+	accessCode?: string;
+	gateway?: string;
+}
+
+// Money columns → the names their amounts are saved under. Humanitix's report has them per
+// ticket, so they add up across an order.
+const moneyColumns: Record<string, string> = {
+	price: 'price',
+	paid: 'paid',
+	humanitixpassedonfees: 'passedOnFees',
+	humanitixabsorbedfees: 'absorbedFees',
+	amexsurcharge: 'amexSurcharge',
+	customtax: 'customTax',
+	zipfeeabsorbed: 'zipFee',
+	afterpayfeeabsorbed: 'afterpayFee',
+	refunds: 'refunds',
+	feerebate: 'feeRebate',
+	yourearnings: 'earnings',
+	refundedfees: 'refundedFees',
+	discountredeemed: 'discount',
+	taxonsales: 'taxOnSales',
+	taxonbookingfees: 'taxOnBookingFees',
+};
+const codeColumns: Record<string, Exclude<keyof ImportPayment, 'amounts'>> = {
+	currency: 'currency',
+	discountcodeused: 'discountCode',
+	couponcode: 'discountCode',
+	accesscodeused: 'accessCode',
+	accesscode: 'accessCode',
+	gateway: 'gateway',
+};
+
+/** "$1,234.50" → 123450, "-$5.00" or "($5.00)" → -500; anything else is left out. */
+export function parseCents(text: string): number | undefined {
+	const m = text.trim().match(/^(-)?\(?(-)?\s*(?:[A-Z]{3}\s*)?[$€£¥]?\s*(\d{1,3}(?:,\d{3})*|\d+)(?:\.(\d{1,2}))?\s*(?:[A-Z]{3})?\)?$/i);
+	if (!m) return undefined;
+	const [, minus, innerMinus, whole, frac = ''] = m;
+	const cents = Number(whole.replace(/,/g, '')) * 100 + Number(frac.padEnd(2, '0'));
+	return minus || innerMinus || /^\(.*\)$/.test(text.trim()) ? -cents : cents;
 }
 
 /** Someone the file has as checked in who isn't checked in here yet, and when they arrived. */
@@ -56,6 +107,8 @@ export interface ImportPlan {
 	 * then added as people of their own. Emails of walk-ins aren't counted: those are always skipped.
 	 */
 	sharedEmails: number[];
+	/** Every imported ticket's payment, new, updated or unchanged. */
+	payments: { ticket: string; payment: ImportPayment }[];
 }
 
 export interface ImportOptions {
@@ -252,6 +305,9 @@ export function planFromText(
 		questionColumns.push({ col, question });
 	});
 
+	const moneyCols = keys.flatMap((k, col) => (moneyColumns[k] ? [{ col, name: moneyColumns[k] }] : []));
+	const codeCols = keys.flatMap((k, col) => (codeColumns[k] ? [{ col, name: codeColumns[k] }] : []));
+
 	const byTicket = new Map(roster.filter((a) => a.ticket).map((a) => [a.ticket!.toLowerCase(), a]));
 	// One ticket per person, unless asked otherwise: people register twice (once under an account
 	// handle, say), and the counts and turnout are per person. Walk-ins count too, always, so a
@@ -272,6 +328,7 @@ export function planFromText(
 		checkIns: [],
 		checkInsWithoutTime: [],
 		sharedEmails: [],
+		payments: [],
 	};
 	const skip = (reason: string, row: number) => plan.skipped.set(reason, [...(plan.skipped.get(reason) ?? []), row]);
 
@@ -297,6 +354,18 @@ export function planFromText(
 		const row: ImportRow = { firstName, lastName, email: cell(index.email), ticket, ticketType: cell(index.ticketType), answers };
 		const registeredAt = parseRegisteredAt(cell(index.registeredAt), cell(index.timeZone));
 		if (registeredAt) row.registeredAt = registeredAt;
+		if (moneyCols.length || codeCols.length) {
+			const payment: ImportPayment = { amounts: {} };
+			for (const { col, name } of moneyCols) {
+				const cents = parseCents(cell(col));
+				if (cents !== undefined) payment.amounts[name] = cents;
+			}
+			for (const { col, name } of codeCols) {
+				const code = cell(col).slice(0, 100);
+				if (code) payment[name] = code;
+			}
+			if (Object.keys(payment.amounts).length || Object.keys(payment).length > 1) row.payment = payment;
+		}
 
 		if (!row.email) return skip('No email address', rowNumber);
 		// The rest match what the database accepts (firestore.rules), so one bad row can't stop the import
@@ -325,6 +394,8 @@ export function planFromText(
 			if (at && at.getTime() <= Date.now()) plan.checkIns.push({ ticket: row.ticket, at });
 			else plan.checkInsWithoutTime.push(rowNumber);
 		}
+		// Saved with every import, so a refund on the platform shows up here too
+		if (row.payment) plan.payments.push({ ticket: row.ticket, payment: row.payment });
 		if (!existing) plan.added.push(row);
 		else if (
 			existing.firstName !== row.firstName ||
