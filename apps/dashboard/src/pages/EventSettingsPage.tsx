@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useBlocker, useNavigate, useParams } from 'react-router';
 import Dialog from '../components/Dialog';
-import { DateTimeFields, TeamFields, TicketUrlField } from '../components/EventFields';
+import { DateTimeFields, TeamFields, TicketUrlField, VenueField } from '../components/EventFields';
 import EventOverview from '../components/EventOverview';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
@@ -22,7 +22,7 @@ import {
 	unsavedMessage,
 	type EventForm,
 } from '../lib/eventForm';
-import { isSlugTaken, updateEvent, useEvent, type DashboardEvent } from '../lib/events';
+import { isSlugTaken, pastVenues, updateEvent, useEvent, useEvents, type DashboardEvent } from '../lib/events';
 import { useSession } from '../lib/auth';
 import { useMe } from '../lib/organisers';
 import { nextWalkInTicket } from '../lib/roster';
@@ -41,6 +41,7 @@ export default function EventSettingsRoute() {
 function EventSettingsPage({ slug }: { slug: string }) {
 	// EventLayout has already redirected unknown slugs.
 	const event = useEvent(slug)!;
+	const events = useEvents();
 	const navigate = useNavigate();
 	const session = useSession();
 	const me = useMe();
@@ -186,7 +187,12 @@ function EventSettingsPage({ slug }: { slug: string }) {
 								onChange={(e) => update('walkInTicketTitle', e.target.value)}
 								hint={`Next walk-in ticket: ${nextWalkInTicket(event)}`}
 							/>
-							<TextField label="Walk-in venue" value={form.walkInVenue} onChange={(e) => update('walkInVenue', e.target.value)} />
+							<VenueField
+								label="Walk-in venue"
+								value={form.walkInVenue}
+								onChange={(venue) => update('walkInVenue', venue)}
+								venues={event.ownerTeamId ? pastVenues(events, event.ownerTeamId, event.id) : []}
+							/>
 							<SwitchRow
 								label="Attendees can add themselves"
 								note={selfWalkInsNote(form.selfWalkIns)}

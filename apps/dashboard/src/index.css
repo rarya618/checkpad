@@ -488,3 +488,9 @@ tr[data-arrived] > td:last-child {
     animation: note-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+/* A text field with suggestions (the event form's venue) stays a text field: Chrome's dropdown
+   arrow would make it look like a select. The suggestions still show as you type. */
+input[list]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}

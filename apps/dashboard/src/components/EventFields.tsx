@@ -1,5 +1,5 @@
 import { countries } from '@checkpad/shared/countries';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { endsNextDay, formTimesError, isMultiDay, nextDay, shiftedEndDate, ticketUrlError, timeZoneLabel, withOwner, type EventForm } from '../lib/eventForm';
 import { ownsEvent, type DashboardEvent } from '../lib/events';
 import type { Organiser } from '../lib/organisers';
@@ -253,6 +253,34 @@ export function DateTimeFields({ form, update }: { form: EventForm; update: Upda
 // Where to get a ticket, for New event and Event settings (not in Figma). The check-in page
 // offers it while check-in isn't open yet. A part-typed address ("lu") isn't wrong yet, so the
 // error waits until you leave the field; saving waits for a whole one either way (formIsComplete).
+/**
+ * The venue, with the team's past venues offered as it's typed (the browser's own suggestions
+ * list), since a team mostly meets at the same few places.
+ */
+export function VenueField({ label, value, onChange, venues, placeholder }: { label: string; value: string; onChange: (venue: string) => void; venues: string[]; placeholder?: string }) {
+	const list = useId();
+	return (
+		<>
+			<TextField
+				label={label}
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				placeholder={placeholder}
+				list={venues.length ? list : undefined}
+				// The team's venues, not whatever the browser remembers from other forms
+				autoComplete="off"
+			/>
+			{venues.length > 0 && (
+				<datalist id={list}>
+					{venues.map((v) => (
+						<option key={v} value={v} />
+					))}
+				</datalist>
+			)}
+		</>
+	);
+}
+
 export function TicketUrlField({ form, update }: { form: EventForm; update: Update }) {
 	const [left, setLeft] = useState(false);
 	return (
