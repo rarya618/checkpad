@@ -22,7 +22,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 		title: 'Getting started',
 		body: [
 			'Checkpad isn’t open to new organisers yet. Join the waitlist on the home page and we’ll email you when you can set up your first event.',
-			'If someone already on Checkpad adds you as an organiser, you’ll get an invite by email. Sign in to the dashboard with Google or with a code we email you, using the address the invite went to.',
+			'If someone already on Checkpad adds you as an organiser, you’ll get an invite by email. Its button opens the dashboard’s sign-in with your address filled in: sign in with Google or with a code we email you.',
 			{ tip: 'If you were invited to start a new team, the dashboard asks you to name it and say where it meets the first time you sign in. New events start in that place’s time zone.' },
 		],
 	},
