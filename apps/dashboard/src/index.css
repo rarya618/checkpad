@@ -488,3 +488,11 @@ tr[data-arrived] > td:last-child {
     animation: note-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+/* The dropdown's highlight (Select) slides to what's pointed at, like the Organisers rail's fill.
+   It jumps into place when the list opens; with reduced motion it always jumps. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-select-highlight][data-moved] {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), height 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
