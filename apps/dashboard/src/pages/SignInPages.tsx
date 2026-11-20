@@ -36,7 +36,7 @@ export function AuthLayout({ title, description, children, foot }: { title: stri
 			    appears under the field grows downwards instead of moving the question up the screen.
 			    The space below gets twice the share, so there is room for that message on phones. A 0px
 			    basis, not flex-1's 0%, which counts as the content's height here */}
-			<main className="flex w-full max-w-3xl grow basis-0 flex-col gap-8 py-14 md:gap-10">
+			<main data-on-ground className="flex w-full max-w-3xl grow basis-0 flex-col gap-8 py-14 md:gap-10">
 				<div className="grow basis-0" />
 				<div className="flex flex-col gap-3" data-enter>
 					<h1 className="font-display text-4xl leading-tight text-balance md:text-5xl lg:text-6xl">{title}</h1>
@@ -86,6 +86,7 @@ function OneFieldForm({
 	check,
 	onSubmit,
 	submitWhen,
+	narrow = false,
 	input,
 }: {
 	label: string;
@@ -99,6 +100,8 @@ function OneFieldForm({
 	onSubmit: (value: string) => Promise<string | null>;
 	/** Sends without the button once the value looks complete (a pasted or autofilled code). */
 	submitWhen?: (value: string) => boolean;
+	/** A short value (a code): the field is only as wide as it needs, with the button right beside it. */
+	narrow?: boolean;
 	input: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'id'>;
 }) {
 	const id = useId();
@@ -129,7 +132,7 @@ function OneFieldForm({
 				{label}
 			</label>
 			{/* The error sits under the field, so it stays beside it when the button stacks on phones */}
-			<div className="flex min-w-0 flex-1 flex-col gap-2">
+			<div className={`flex min-w-0 flex-col gap-2 ${narrow ? 'sm:w-56' : 'flex-1'}`}>
 				<input
 					{...input}
 					id={id}
@@ -144,7 +147,8 @@ function OneFieldForm({
 					className={`min-w-0 flex-1 rounded-xl bg-white px-5 py-3 text-lg leading-normal text-dark-blue caret-med-blue shadow-[inset_0_0_0_1px_rgb(17_45_78/0.2)] outline-none placeholder:text-dark-blue/65 focus:outline-2 focus:outline-offset-2 focus:outline-med-blue aria-invalid:shadow-[inset_0_0_0_2px_var(--color-error)] ${input.className ?? ''}`}
 				/>
 				{error && (
-					<p id={`${id}-error`} role="alert" className={alert}>
+					// Under a narrow field it runs on under the button, which is no taller than the field
+					<p id={`${id}-error`} role="alert" className={`${alert} ${narrow ? 'sm:w-md' : ''}`}>
 						{error}
 					</p>
 				)}
@@ -282,6 +286,7 @@ export function CheckEmailPage() {
 				check={(code) => (looksLikeCode(code) ? null : 'Enter the 6 digits from the email.')}
 				onSubmit={(code) => signInWithCode(email, digits(code))}
 				submitWhen={looksLikeCode}
+				narrow
 				input={{
 					inputMode: 'numeric',
 					autoComplete: 'one-time-code',
@@ -289,7 +294,7 @@ export function CheckEmailPage() {
 					placeholder: '123 456',
 					maxLength: 7,
 					spellCheck: false,
-					className: 'tabular-nums tracking-widest sm:max-w-56',
+					className: 'tabular-nums tracking-widest',
 				}}
 			/>
 			<p className={help}>
