@@ -1,6 +1,8 @@
+Sign-in request for {{{ADDRESS}}} · {{{SENT_AT}}}
+
 Sign in to Checkpad
 
-Enter this code on manage.checkpad.app to sign in as {{{ADDRESS}}}. It works once, for 10 minutes:
+Enter this code on manage.checkpad.app. It works once, for 10 minutes:
 
 {{{CODE}}}
 
@@ -8,4 +10,4 @@ Or, on the device you asked from, open this link. It works once, for an hour:
 
 {{{LINK}}}
 
-Didn’t ask to sign in? You can ignore this email. Nobody can sign in without the code or the link.
+Real Checkpad emails come from noreply@checkpad.app and only link to manage.checkpad.app. Didn’t ask to sign in? You can ignore this email: nobody can sign in without the code or the link.

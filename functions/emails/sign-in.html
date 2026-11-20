@@ -3,31 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 <title>Sign in to Checkpad</title>
+<!-- Checkpad's dashboard sign-in email (functions/src/email.ts): a letterhead saying who it's for
+     and when it was asked for, then a code to type on any device and a link for this one.
+     Variables: ADDRESS, SENT_AT, CODE, LINK. Built for Gmail, Apple Mail and Outlook on the web
+     and phones; the dark styles below apply where the email app supports them (Apple Mail, iOS
+     Mail, Outlook apps). Matches invite.html. -->
+<style>
+:root { color-scheme: light dark; supported-color-schemes: light dark; }
+@media (prefers-color-scheme: dark) {
+  .page { background: #112d4e !important; }
+  .top { border-top-color: #3f72af !important; }
+  .rule { border-color: #1c3d65 !important; }
+  .ink { color: #f9f7f7 !important; }
+  .soft { color: #dbe2ef !important; }
+  .panel { background: #1c3d65 !important; color: #f9f7f7 !important; }
+  .button { background: #dbe2ef !important; }
+  .button a { color: #112d4e !important; }
+  .link { color: #f9f7f7 !important; }
+  .logo-light { display: none !important; }
+  .logo-dark { display: block !important; max-height: none !important; overflow: visible !important; }
+}
+</style>
 </head>
-<!-- Checkpad's dashboard sign-in email (functions/src/email.ts): a code to type on any device,
-     and a link for this one. The logo above one white card. Variables: ADDRESS, CODE, LINK. -->
-<body style="margin:0;padding:0;background:#f9f7f7;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9f7f7;">
-<tr><td align="center" style="padding:40px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;">
-<tr><td align="center" style="padding-bottom:28px;">
-<img src="https://checkpad.app/email/checkpad-logo.png" width="218" height="48" alt="checkpad" style="display:block;border:0;">
+<body class="page" style="margin:0;padding:0;background:#ffffff;">
+<!-- The inbox preview: the code, before anything else -->
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Your Checkpad sign-in code is {{{CODE}}}. It works for 10 minutes.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" class="page top" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border-top:4px solid #112d4e;">
+<tr><td align="center" style="padding:0 8px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+
+<!-- Letterhead: who it's from, who it's for, and when -->
+<tr><td class="rule" style="padding:28px 16px 20px;border-bottom:1px solid #dbe2ef;">
+<img class="logo-light" src="https://checkpad.app/email/checkpad-logo.png" width="146" height="32" alt="checkpad" style="display:block;border:0;">
+<img class="logo-dark" src="https://checkpad.app/email/checkpad-logo-light.png" width="146" height="32" alt="checkpad" style="display:none;max-height:0;overflow:hidden;border:0;">
+<p class="soft" style="margin:12px 0 0;font-size:14px;line-height:1.5;color:#3f72af;">Sign-in request for <strong class="ink" style="font-weight:600;color:#112d4e;">{{{ADDRESS}}}</strong> <span style="white-space:nowrap;">· {{{SENT_AT}}}</span></p>
 </td></tr>
-<tr><td style="background:#ffffff;border:1px solid #3f72af;border-radius:12px;padding:36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<h1 style="margin:0 0 10px;font-size:26px;line-height:1.2;color:#112d4e;font-weight:700;">Sign in to Checkpad</h1>
-<p style="margin:0 0 20px;font-size:16px;line-height:1.5;color:#3f72af;">Enter this code on manage.checkpad.app to sign in as {{{ADDRESS}}}. It works once, for 10 minutes.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="border-radius:12px;background:#dbe2ef;padding:18px 12px;font-size:36px;line-height:1.2;font-weight:700;letter-spacing:6px;color:#112d4e;font-variant-numeric:tabular-nums;">{{{CODE}}}</td></tr></table>
-<p style="margin:26px 0 14px;font-size:16px;line-height:1.5;color:#3f72af;">Or, on the device you asked from, use this button. It works once, for an hour.</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="border-radius:9px;background:#112d4e;">
-<a href="{{{LINK}}}" style="display:block;padding:14px 24px;font-size:17px;font-weight:600;line-height:1.3;color:#ffffff;text-decoration:none;border-radius:9px;">Sign in</a>
-</td></tr></table>
-<p style="margin:26px 0 0;font-size:13px;line-height:1.5;color:#3f72af;">Button not working? Paste this link into your browser on the device you asked from:<br><a href="{{{LINK}}}" style="color:#112d4e;word-break:break-all;">{{{LINK}}}</a></p>
+
+<tr><td style="padding:28px 16px 32px;">
+<h1 class="ink" style="margin:0;font-size:26px;line-height:1.2;font-weight:800;color:#112d4e;">Sign in to Checkpad</h1>
+<p class="ink" style="margin:8px 0 0;font-size:16px;line-height:1.5;color:#112d4e;">Enter this code on manage.checkpad.app. It works once, for 10 minutes.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;"><tr>
+<td class="panel" align="center" style="background:#dbe2ef;border-radius:12px;padding:18px 12px;font-size:38px;line-height:1.2;font-weight:700;letter-spacing:6px;color:#112d4e;font-variant-numeric:tabular-nums;">{{{CODE}}}</td>
+</tr></table>
+<p class="soft" style="margin:28px 0 12px;font-size:15px;line-height:1.5;color:#3f72af;">Or, on the device you asked from, use this button. It works once, for an hour.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+<td class="button" align="center" style="background:#112d4e;border-radius:8px;"><a href="{{{LINK}}}" style="display:block;padding:13px 24px;font-size:16px;font-weight:700;line-height:1.3;color:#f9f7f7;text-decoration:none;border-radius:8px;">Sign in</a></td>
+</tr></table>
+<p class="soft" style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#3f72af;">Button not working? Open this link on the device you asked from:<br><a class="link" href="{{{LINK}}}" style="color:#112d4e;word-break:break-all;">{{{LINK}}}</a></p>
 </td></tr>
-<tr><td style="padding:20px 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#3f72af;text-align:center;">
-Didn’t ask to sign in? You can ignore this email. Nobody can sign in without the code or the link.
+
+<!-- How to tell a real Checkpad email -->
+<tr><td class="rule soft" style="padding:16px 16px 40px;border-top:1px solid #dbe2ef;font-size:13px;line-height:1.5;color:#3f72af;">
+Real Checkpad emails come from noreply@checkpad.app and only link to manage.checkpad.app. Didn’t ask to sign in? You can ignore this email: nobody can sign in without the code or the link.
 </td></tr>
+
 </table>
 </td></tr>
 </table>
