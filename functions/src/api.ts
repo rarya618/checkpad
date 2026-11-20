@@ -25,7 +25,7 @@ const ADMIN_TEAM_ROUTE = /^\/admin\/teams\/([A-Za-z0-9_-]+)\/?$/;
 const ONBOARDING_TEAM_ROUTE = /^\/onboarding\/team\/?$/;
 const ADMIN_ORGANISER_ROUTE = /^\/admin\/organisers\/([^/]+)\/?$/;
 
-// Sign-in links per network and per address in ten minutes: plenty for organisers who mistype
+// Sign-in emails per network and per address in ten minutes: plenty for organisers who mistype
 // or ask again, and few enough that the endpoint can't be used to flood someone's inbox
 const SIGN_IN_LIMIT_PER_IP = 30;
 const SIGN_IN_LIMIT_PER_EMAIL = 5;

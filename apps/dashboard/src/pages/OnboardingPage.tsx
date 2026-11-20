@@ -16,7 +16,7 @@ import { AuthLayout } from './SignInPages';
 export default function OnboardingPage() {
 	const session = useSession();
 	const teams = useTeams() ?? [];
-	// Filled in from Google, if they signed in with it; an email link leaves it empty
+	// Filled in from Google, if they signed in with it; signing in by email leaves it empty
 	const [yourName, setYourName] = useState(useMe().name ?? '');
 	const [name, setName] = useState('');
 	const [slug, setSlug] = useState('');

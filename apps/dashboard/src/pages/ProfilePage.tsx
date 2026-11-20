@@ -116,7 +116,7 @@ function SigningIn() {
 	const session = useSession();
 	if (!session) return null;
 	return (
-		<FormCard title="Signing in" description={`Signed in as ${session.email}, with ${session.method === 'google' ? 'Google' : 'an email link'}.`}>
+		<FormCard title="Signing in" description={`Signed in as ${session.email}, with ${session.method === 'google' ? 'Google' : 'an emailed code or link'}.`}>
 			<div className="flex flex-wrap gap-3">
 				{/* Both sign out: Switch account says why you'd want to */}
 				<button type="button" onClick={signOut} className={buttonClass('secondary')}>

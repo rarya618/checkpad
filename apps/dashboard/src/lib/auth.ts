@@ -85,7 +85,7 @@ export async function signInWithGoogle(): Promise<string | null> {
 const LINK_EMAIL = 'checkpad:sign-in-email';
 
 /**
- * Emails a one-time sign-in link that returns to `next`, through the check-in API
+ * Emails a sign-in code, and a one-time link that returns to `next`, through the check-in API
  * (functions/src/organisers.ts), which sends Checkpad's own email and only to organisers.
  * Resolves with an error message, or null.
  */
@@ -192,7 +192,7 @@ export async function emulatorSignInLink(email: string): Promise<string | null> 
 	return link.pathname + link.search;
 }
 
-/** The email the last sign-in link went to from this browser, to offer a new one. */
+/** The address the last sign-in email went to from this browser, to offer a new one. */
 export function lastLinkEmail() {
 	return localStorage.getItem(LINK_EMAIL) ?? '';
 }

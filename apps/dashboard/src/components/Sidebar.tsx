@@ -272,7 +272,7 @@ function AccountMenu() {
 					<p className="text-xs text-med-blue">Signed in as</p>
 					<p className="truncate text-sm font-bold">{session.email}</p>
 					<p className="text-xs text-med-blue">
-						{me ? roleLabel(me.role) : 'Organiser'} · via {session.method === 'google' ? 'Google' : 'email link'}
+						{me ? roleLabel(me.role) : 'Organiser'} · via {session.method === 'google' ? 'Google' : 'email'}
 					</p>
 				</div>
 			}
