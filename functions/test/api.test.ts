@@ -275,6 +275,8 @@ describe('POST /auth/sign-in-link', () => {
 		const [email] = await sentTo('priya@example.com');
 		assert.equal(email.template, 'sign-in');
 		assert.equal(email.variables.ADDRESS, 'priya@example.com');
+		// In the team's time zone, or Sydney's for a team that hasn't set one, for the letterhead line
+		assert.match(email.variables.SENT_AT, /^\d{1,2}:\d{2}(am|pm) AE[DS]T$/);
 		const link = new URL(email.variables.LINK);
 		assert.equal(link.searchParams.get('mode'), 'signIn');
 		assert.ok(link.searchParams.get('oobCode'));

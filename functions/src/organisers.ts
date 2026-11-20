@@ -31,6 +31,20 @@ export function onDashboardDomain(link: string) {
 	return url.toString();
 }
 
+/**
+ * When the email was asked for, in the organiser's team's time zone (Sydney for a super admin, or
+ * an organiser yet to set up a team), like "6:24pm AEDT": the letterhead line, so they can tell
+ * whether it was them.
+ */
+export function sentAt(timeZone: string, now = new Date()) {
+	const parts = Object.fromEntries(
+		new Intl.DateTimeFormat('en-AU', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' })
+			.formatToParts(now)
+			.map((p) => [p.type, p.value]),
+	);
+	return `${parts.hour}:${parts.minute}${(parts.dayPeriod ?? '').toLowerCase()} ${parts.timeZoneName}`;
+}
+
 /** How long a sign-in code works, and how many wrong tries it takes before it stops working. */
 export const CODE_TTL_MS = 10 * 60 * 1000;
 export const CODE_TRIES = 5;
@@ -51,10 +65,13 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 	const email = parseEmail(body.email);
 	const base = dashboardOrigin(origin);
 	const next = typeof body.next === 'string' && body.next.startsWith('/') && !body.next.startsWith('//') ? body.next : '/events';
-	if (!(await db.doc(`admins/${email}`).get()).exists) {
+	const admin = await db.doc(`admins/${email}`).get();
+	if (!admin.exists) {
 		logger.info('Sign-in link not sent: not an organiser');
 		return { status: 'sent' as const };
 	}
+	const teamId = (admin.data() as AdminDoc).teamId;
+	const team = teamId ? ((await db.doc(`teams/${teamId}`).get()).data() as TeamDoc | undefined) : undefined;
 	const link = await auth.generateSignInWithEmailLink(email, {
 		url: `${base}/sign-in/link?${new URLSearchParams({ next })}`,
 		handleCodeInApp: true,
@@ -64,7 +81,12 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 	await mail({
 		to: email,
 		template: 'sign-in',
-		variables: { ADDRESS: email, CODE: `${code.slice(0, 3)} ${code.slice(3)}`, LINK: onDashboardDomain(link) },
+		variables: {
+			ADDRESS: email,
+			CODE: `${code.slice(0, 3)} ${code.slice(3)}`,
+			LINK: onDashboardDomain(link),
+			SENT_AT: sentAt(team?.timeZone || 'Australia/Sydney'),
+		},
 		idempotencyKey: `sign-in/${randomUUID()}`,
 	});
 	return { status: 'sent' as const };

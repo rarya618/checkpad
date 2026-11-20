@@ -22,7 +22,7 @@ const TEMPLATE_IDS = {
 
 interface TemplateVariables {
 	/** functions/emails/sign-in.html */
-	'sign-in': { ADDRESS: string; CODE: string; LINK: string };
+	'sign-in': { ADDRESS: string; CODE: string; LINK: string; SENT_AT: string };
 	/** functions/emails/invite.html */
 	invite: { INVITER: string; ROLE: string; ACCESS: string; NEXT: string; ADDRESS: string; LINK: string };
 }
