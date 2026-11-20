@@ -1,6 +1,6 @@
 Sign in to Checkpad
 
-Enter this code to sign in to the dashboard as {{{ADDRESS}}}. It works once, for 10 minutes:
+Enter this code on manage.checkpad.app to sign in as {{{ADDRESS}}}. It works once, for 10 minutes:
 
 {{{CODE}}}
 
