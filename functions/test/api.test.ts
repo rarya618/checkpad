@@ -359,7 +359,7 @@ describe('POST /auth/sign-in-code', () => {
 
 	test('the email has a six-digit code, which signs in as that address, verified', async () => {
 		const code = await emailedCode('priya@example.com');
-		assert.match(code, /^\d{3} \d{3}$/);
+		assert.match(code, /^\d{6}$/);
 		const { status, body } = await useCode(' Priya@Example.com ', code);
 		assert.equal(status, 200);
 		const claims = await claimsFor(body.token!);
@@ -375,9 +375,9 @@ describe('POST /auth/sign-in-code', () => {
 		assert.equal((await getAuth().getUser(existing.uid)).emailVerified, true);
 	});
 
-	test('takes the code with or without its space', async () => {
+	test('takes the code typed with a space in the middle', async () => {
 		const code = await emailedCode('priya@example.com');
-		assert.equal((await useCode('priya@example.com', code.replace(' ', ''))).status, 200);
+		assert.equal((await useCode('priya@example.com', `${code.slice(0, 3)} ${code.slice(3)}`)).status, 200);
 	});
 
 	test('a code works once', async () => {

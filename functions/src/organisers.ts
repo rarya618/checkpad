@@ -83,7 +83,9 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 		template: 'sign-in',
 		variables: {
 			ADDRESS: email,
-			CODE: `${code.slice(0, 3)} ${code.slice(3)}`,
+			// Six plain digits, no space: what Apple Mail and Gmail recognise as a code to offer for
+			// autofill or copying (the email spaces the figures out visually instead)
+			CODE: code,
 			LINK: onDashboardDomain(link),
 			SENT_AT: sentAt(team?.timeZone || 'Australia/Sydney'),
 		},
