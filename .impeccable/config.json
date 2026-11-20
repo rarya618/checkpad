@@ -32,6 +32,24 @@
         "value": "helvetica",
         "createdAt": "2026-11-20T17:14:57.891Z",
         "reason": "Emails use a system font stack on purpose: email clients don't load web fonts reliably (same exception as roboto)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "functions/emails/sign-in.html"
+        ],
+        "createdAt": "2026-11-20T17:21:29.806Z",
+        "reason": "Measured in a browser: every text colour is at least 4.96:1 in light and 10.3:1 in dark mode (the dark colours sit in a prefers-color-scheme block)"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "functions/emails/invite.html"
+        ],
+        "createdAt": "2026-11-20T17:21:29.834Z",
+        "reason": "Measured in a browser: every text colour is at least 4.96:1 in light and 10.3:1 in dark mode (the dark colours sit in a prefers-color-scheme block)"
       }
     ]
   }
