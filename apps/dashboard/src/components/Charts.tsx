@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Comparison } from '../lib/analytics';
 
 // Analytics building blocks at the dashboard's 75% scale: Figma "Stat tile" and the bar
@@ -464,55 +464,21 @@ export function LineChart({ points, ticks, label, heading, valueName }: { points
 
 const pct = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
 
-// Ticket types shown before "Show all": platforms like Humanitix sell a type per release and
-// add-on, so an event can have twenty, and the biggest few tell the story
-const TYPES_SHOWN = 5;
+/** More ticket types than fit beside the Checked in tile: the card takes the full width instead. */
+export const MANY_TICKET_TYPES = 6;
 
 /**
- * Ticket types' turnout, biggest first: the first few, with the rest folding open beneath them
- * (the Events page's past-events fold) so the card stays the height of what's beside it.
+ * Ticket types' turnout, biggest first, all of them: as many columns as the card has room for,
+ * so twenty types from a platform like Humanitix sit in a few short rows across a wide card.
  */
-export function TicketTypeRows({ types }: { types: { name: string; checkedIn: number; total: number }[] }) {
-	const [all, setAll] = useState(false);
-	const button = useRef<HTMLButtonElement>(null);
-	// Folding back up, the card's top comes back into view if it's gone above the screen
-	const toggle = () => {
-		setAll(!all);
-		const card = button.current?.closest('section');
-		if (all && card && card.getBoundingClientRect().top < 0) {
-			card.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-		}
-	};
-	// Folding away a single row saves nothing
-	const folds = types.length > TYPES_SHOWN + 1;
-	const shown = folds ? types.slice(0, TYPES_SHOWN) : types;
-	const rest = folds ? types.slice(TYPES_SHOWN) : [];
+export function TicketTypeRows({ types, children }: { types: { name: string; checkedIn: number; total: number }[]; children?: ReactNode }) {
 	return (
-		<>
-			{shown.map((t) => (
+		<div className="grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-x-8 gap-y-4">
+			{types.map((t) => (
 				<CheckedInRow key={t.name} {...t} />
 			))}
-			{folds && (
-				<>
-					<div data-expander data-open={all || undefined} inert={!all} className="-mt-4">
-						<div className="flex flex-col gap-4 overflow-hidden pt-4">
-							{rest.map((t) => (
-								<CheckedInRow key={t.name} {...t} />
-							))}
-						</div>
-					</div>
-					<button
-						ref={button}
-						type="button"
-						aria-expanded={all}
-						onClick={toggle}
-						className="self-start rounded text-sm font-semibold text-med-blue underline-offset-4 hover:underline"
-					>
-						{all ? 'Show fewer' : `Show all ${types.length} ticket types`}
-					</button>
-				</>
-			)}
-		</>
+			{children}
+		</div>
 	);
 }
 
