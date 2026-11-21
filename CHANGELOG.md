@@ -4,6 +4,12 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.5.0 (2026-11-22)
+
+- [organisers] In Chrome and Edge, Google offers to continue as your account as soon as the sign-in page opens, so signing in with Google is one click
+- [organisers] Opening the sign-in email's link on another device asks for the code from the same email, instead of saying the link has expired
+- [organisers, attendees] AI assistants can read the docs, help and changelog: checkpad.app/llms.txt lists every page, each as plain Markdown
+
 ## 1.4.3 (2026-11-21)
 
 - [organisers] Dropdowns are Checkpad's own: the field opens out into its list, your choice sits highlighted, and long lists like time zones and countries can be searched by typing straight into the field
