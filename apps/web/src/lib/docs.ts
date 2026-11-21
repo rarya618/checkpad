@@ -41,7 +41,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 			{
 				list: [
 					'Sign in with Google, if that address is a Google account.',
-					'An emailed code: enter the address and we’ll email you a 6-digit code. Type it on the sign-in page, on any device; it works once, for 10 minutes. The same email has a link too, which signs you in when you open it on the device and browser you asked from, within an hour.',
+					'An emailed code: enter the address and we’ll email you a 6-digit code. Type it on the sign-in page, on any device; it works once, for 10 minutes. The same email has a link too, which signs you in when you open it on the device and browser you asked from, within an hour. Opened anywhere else, it asks for the code instead.',
 				],
 			},
 			'If something stops you:',
@@ -49,7 +49,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 				list: [
 					'“You don’t have access yet”: the address you signed in with isn’t on the organiser list. Choose Use another account, or ask a super admin to add that address.',
 					'“That code isn’t right, or it’s expired”: check you’re using the code from the newest email (asking again replaces the last code), and that it’s less than 10 minutes old. After five wrong tries a code stops working; send a new one.',
-					'“This link has expired”: it was used already, is more than an hour old, or was opened on another device. Send yourself a new email from that page and use its code instead.',
+					'“This link has expired”: it was used already or is more than an hour old. Send yourself a new email from that page and use its code instead.',
 					'No email after a few minutes: check your spam folder, then send it again. If it still doesn’t come, the address probably isn’t the one you were invited with.',
 					'“This email signs in with an emailed code”: you’ve signed in by email with this address before, so Google sign-in won’t take it. Use an emailed code.',
 				],
