@@ -291,6 +291,8 @@ describe('POST /auth/sign-in-link', () => {
 		const back = new URL(link.searchParams.get('continueUrl')!);
 		assert.equal(back.origin + back.pathname, `${DASHBOARD}/sign-in/link`);
 		assert.equal(back.searchParams.get('next'), '/events/test-meetup');
+		// So the link, opened on another device, can ask for this email's code
+		assert.equal(back.searchParams.get('email'), 'priya@example.com');
 	});
 
 	test('answers the same for someone not on the list, but sends nothing', async () => {

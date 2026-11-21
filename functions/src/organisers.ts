@@ -72,8 +72,12 @@ export async function sendSignInLink(db: Firestore, auth: Auth, mail: Mailer, bo
 	}
 	const teamId = (admin.data() as AdminDoc).teamId;
 	const team = teamId ? ((await db.doc(`teams/${teamId}`).get()).data() as TeamDoc | undefined) : undefined;
+	// The address comes back with the link so that, opened on another device (where the link
+	// can't sign in), the page can ask for this email's code instead. It's only used to fill in
+	// the code page, never to sign in with the link, so a link someone else sends can't sign
+	// you in to their account.
 	const link = await auth.generateSignInWithEmailLink(email, {
-		url: `${base}/sign-in/link?${new URLSearchParams({ next })}`,
+		url: `${base}/sign-in/link?${new URLSearchParams({ next, email })}`,
 		handleCodeInApp: true,
 	});
 	const code = String(randomInt(1_000_000)).padStart(6, '0');
