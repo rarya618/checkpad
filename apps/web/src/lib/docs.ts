@@ -40,7 +40,7 @@ const sections: { id: string; title: string; body: Block[] }[] = [
 			'The dashboard is at manage.checkpad.app. Sign in with the email address you were invited with, in one of two ways:',
 			{
 				list: [
-					'Sign in with Google, if that address is a Google account.',
+					'Sign in with Google, if that address is a Google account. In Chrome and Edge, Google may offer to continue as that account as soon as the page opens: choose it to sign in in one click.',
 					'An emailed code: enter the address and we’ll email you a 6-digit code. Type it on the sign-in page, on any device; it works once, for 10 minutes. The same email has a link too, which signs you in when you open it on the device and browser you asked from, within an hour. Opened anywhere else, it asks for the code instead.',
 				],
 			},
