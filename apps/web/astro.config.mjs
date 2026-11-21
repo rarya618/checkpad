@@ -39,6 +39,9 @@ function checkInRewrites() {
 
 // https://astro.build/config
 export default defineConfig({
+  // Absolute URLs for canonical links, the sitemap and llms.txt
+  site: 'https://checkpad.app',
+
   vite: {
     plugins: [tailwindcss(), checkInRewrites()],
     define: { 'import.meta.env.PUBLIC_CHECKPAD_VERSION': JSON.stringify(VERSION) },

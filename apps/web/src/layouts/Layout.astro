@@ -8,9 +8,13 @@ interface Props {
 	description?: string;
 	/** Keep the page out of search results (check-in and team links). */
 	noindex?: boolean;
+	/** The page's Markdown copy, for agents and LLMs (docs pages). */
+	markdown?: string;
 }
 
-const { title, description, noindex = false } = Astro.props;
+const { title, description, noindex = false, markdown } = Astro.props;
+// Check-in and team links are rewrites, so their own URL isn't the page's; they're noindex anyway
+const canonical = noindex ? undefined : new URL(Astro.url.pathname.replace(/\/$/, '') || '/', Astro.site);
 ---
 
 <html lang="en">
@@ -24,6 +28,9 @@ const { title, description, noindex = false } = Astro.props;
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
 		{noindex && <meta name="robots" content="noindex" />}
+		{canonical && <link rel="canonical" href={canonical} />}
+		{markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
+		<link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
 		<slot name="head" />
 		<ErrorTracking />
 	</head>
