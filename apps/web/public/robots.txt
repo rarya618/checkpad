@@ -1,0 +1,6 @@
+# Every crawler and agent is welcome. Event check-in pages are noindex; the API is for those pages.
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://checkpad.app/sitemap.xml
