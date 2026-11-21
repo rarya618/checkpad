@@ -14,6 +14,7 @@ import {
 	sendSignInLink,
 	signInWithCode,
 	signInWithGoogle,
+	signInWithGoogleIdToken,
 	signOut,
 	useSession,
 	type LinkResult,
@@ -21,6 +22,7 @@ import {
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_URL } from '../lib/config';
 import { usingEmulators } from '../lib/firebase';
+import { showOneTap } from '../lib/googleOneTap';
 import { useCurrentOrganiser } from '../lib/organisers';
 import { usePageArrival, useTransitionLink, useTransitionNavigate } from '../lib/pageTransition';
 
@@ -252,6 +254,17 @@ export function SignInPage() {
 	const invited = params.get('email') ?? '';
 	const [googleError, setGoogleError] = useState<string | null>(null);
 	useEffect(prepareGoogleSignIn, []);
+	// Google's "Continue as …" prompt, once we know nobody's signed in. Choosing an account signs
+	// in, and the page then moves on like any other sign-in
+	const signedOut = session === null;
+	const hint = looksLikeEmail(invited) ? invited.trim() : '';
+	useEffect(() => {
+		if (!signedOut) return;
+		return showOneTap(async (idToken) => {
+			setGoogleError(null);
+			setGoogleError(await signInWithGoogleIdToken(idToken));
+		}, hint);
+	}, [signedOut, hint]);
 	if (session === undefined) return <Loading />;
 	if (session) return <Navigate to={next} replace />;
 

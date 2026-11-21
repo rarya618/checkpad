@@ -6,8 +6,10 @@ import { FirebaseError } from 'firebase/app';
 import {
 	browserPopupRedirectResolver,
 	getRedirectResult,
+	GoogleAuthProvider,
 	isSignInWithEmailLink,
 	onAuthStateChanged,
+	signInWithCredential,
 	signInWithCustomToken,
 	signInWithEmailLink,
 	signInWithPopup,
@@ -67,17 +69,35 @@ export function prepareGoogleSignIn() {
 	getRedirectResult(auth, browserPopupRedirectResolver).catch(() => {});
 }
 
+/** What to say when Google sign-in, by the button or One Tap, fails: null for nothing at all. */
+function googleError(error: unknown): string | null {
+	const code = error instanceof FirebaseError ? error.code : '';
+	if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null;
+	if (code === 'auth/popup-blocked') return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site, or sign in with your email.';
+	if (code === 'auth/account-exists-with-different-credential') return 'This email signs in with an emailed code. Use that instead.';
+	return 'Couldn’t sign in with Google. Check your connection and try again.';
+}
+
 /** Opens Google's account picker. Resolves with an error message, or null. */
 export async function signInWithGoogle(): Promise<string | null> {
 	try {
 		await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
 		return null;
 	} catch (error) {
-		const code = error instanceof FirebaseError ? error.code : '';
-		if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return null;
-		if (code === 'auth/popup-blocked') return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site, or sign in with your email.';
-		if (code === 'auth/account-exists-with-different-credential') return 'This email signs in with an emailed code. Use that instead.';
-		return 'Couldn’t sign in with Google. Check your connection and try again.';
+		return googleError(error);
+	}
+}
+
+/**
+ * Signs in with the ID token Google One Tap hands back (googleOneTap.ts): the same Google
+ * account the button signs in to. Resolves with an error message, or null.
+ */
+export async function signInWithGoogleIdToken(idToken: string): Promise<string | null> {
+	try {
+		await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+		return null;
+	} catch (error) {
+		return googleError(error);
 	}
 }
 
