@@ -7,7 +7,7 @@ import { CONTACT_EMAIL, OPERATOR } from '../lib/config';
 // Not in Figma. Keep it true to the code: what each part of Checkpad stores is in
 // firestore.rules, and analytics is in components/marketing/Analytics.astro. Update the date
 // whenever the substance changes. "privacy" is a reserved event link (RESERVED_SLUGS).
-const updated = '21 November 2026';
+const updated = '22 November 2026';
 const email = CONTACT_EMAIL;
 const operator = OPERATOR;
 
@@ -41,7 +41,8 @@ const sections: { title: string; body: Block[] }[] = [
 	{
 		title: 'If you’re an organiser or volunteer',
 		body: [
-			'We store your email address, name, role and team, who invited you and when you last signed in. You sign in with Google or with a link we email you.',
+			'We store your email address, name, role and team, who invited you and when you last signed in. You sign in with Google, or with a code or link we email you.',
+			'The dashboard’s sign-in page loads Google’s sign-in prompt, which offers to continue with your Google account. Your browser contacts Google to show it, whichever way you sign in, so Google can see that you opened the page. Checkpad only learns your Google account if you choose to sign in with it.',
 		],
 	},
 	{
