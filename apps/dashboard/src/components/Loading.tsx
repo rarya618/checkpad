@@ -1,32 +1,14 @@
 import { buttonClass } from '@checkpad/shared/button';
 import logo from '@checkpad/shared/checkpad-logo.svg';
+import { Spinner } from '@checkpad/shared/spinner';
 import { useEffect, useState } from 'react';
 import check from '../assets/check.svg';
 
-/** The ring spinner: med-blue on a page, or the text colour inside a button. */
-export function Spinner({ className = 'text-med-blue' }: { className?: string }) {
-	const circumference = 2 * Math.PI * 9;
-	return (
-		<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" className={`animate-spin ${className}`}>
-			<circle cx="10" cy="10" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2" />
-			<circle
-				cx="10"
-				cy="10"
-				r="9"
-				stroke="currentColor"
-				strokeWidth="2"
-				strokeDasharray={`${circumference * 0.375} ${circumference}`}
-				transform="rotate(-90 10 10)"
-			/>
-		</svg>
-	);
-}
-
-// While a page loads. The spinner matches apps/web's.
+// While a page loads.
 export default function Loading() {
 	return (
 		<main aria-busy="true" className="flex min-h-dvh items-center justify-center">
-			<Spinner />
+			<Spinner className="text-med-blue" />
 			<span className="sr-only">Loading</span>
 		</main>
 	);
@@ -82,7 +64,7 @@ export function LoadingSteps({ steps }: { steps: LoadingStep[] }) {
 											<img src={check} alt="" width={12} height={12} />
 										</span>
 									) : active ? (
-										<Spinner />
+										<Spinner className="text-med-blue" />
 									) : (
 										<span className="size-5 rounded-full border-2 border-light-blue" />
 									)}

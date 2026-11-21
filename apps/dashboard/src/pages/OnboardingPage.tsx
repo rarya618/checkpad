@@ -1,7 +1,7 @@
 import { buttonClass } from '@checkpad/shared/button';
 import { useState } from 'react';
 import { TextField } from '../components/Field';
-import { Spinner } from '../components/Loading';
+import { Spinner } from '@checkpad/shared/spinner';
 import TeamPlaceFields from '../components/TeamPlaceFields';
 import { signOut, useSession } from '../lib/auth';
 import { WEB_HOST } from '../lib/config';

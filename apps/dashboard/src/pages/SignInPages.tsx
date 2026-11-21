@@ -1,10 +1,11 @@
 import { buttonClass } from '@checkpad/shared/button';
 import logo from '@checkpad/shared/checkpad-logo.svg';
+import { Spinner } from '@checkpad/shared/spinner';
 import { useEffect, useId, useRef, useState, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import arrow from '../assets/arrow-right.svg';
 import google from '../assets/google.svg';
-import Loading, { Spinner } from '../components/Loading';
+import Loading from '../components/Loading';
 import {
 	completeSignInLink,
 	emulatorSignInCode,

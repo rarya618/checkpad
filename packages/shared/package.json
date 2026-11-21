@@ -12,6 +12,10 @@
     "./format": "./src/format.ts",
     "./checkpad-logo.svg": "./assets/checkpad-logo.svg",
     "./checkpad-logo-light.svg": "./assets/checkpad-logo-light.svg",
-    "./api": "./src/api.ts"
+    "./api": "./src/api.ts",
+    "./spinner": "./src/Spinner.tsx"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
   }
 }

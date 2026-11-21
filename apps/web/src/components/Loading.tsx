@@ -1,4 +1,4 @@
-import { Spinner } from './SubmitButton';
+import { Spinner } from '@checkpad/shared/spinner';
 
 /** Shown while the page asks the API where a link goes. */
 export default function Loading() {

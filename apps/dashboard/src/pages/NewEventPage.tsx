@@ -6,7 +6,7 @@ import { today } from '../components/DatePicker';
 import { DateTimeFields, TeamFields, TicketUrlField, VenueField } from '../components/EventFields';
 import { LinkField, TextAreaField, TextField } from '../components/Field';
 import FormCard from '../components/FormCard';
-import { Spinner } from '../components/Loading';
+import { Spinner } from '@checkpad/shared/spinner';
 import { SwitchRow } from '../components/Switch';
 import { WEB_HOST } from '../lib/config';
 import { cleanSlug, formIsComplete, formToInput, randomSuffix, selfWalkInsNote, suggestedSlug, type EventForm } from '../lib/eventForm';
