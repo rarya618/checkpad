@@ -12,13 +12,15 @@ interface Props {
 	description: string;
 	/** The page being read; none on the index. */
 	current?: string;
+	/** The page's Markdown copy (pages/docs/[slug].md.ts). */
+	markdown?: string;
 }
 
-const { title, description, current } = Astro.props;
+const { title, description, current, markdown } = Astro.props;
 const groups = GROUPS.map((group) => ({ group, pages: PAGES.filter((p) => p.group === group) }));
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} markdown={markdown}>
 	<Nav />
 	<div class="mx-auto flex w-full max-w-[1440px] gap-16 px-6 pt-8 pb-18 md:px-12 xl:px-30 xl:pt-12 xl:pb-30">
 		<aside class="hidden w-72 shrink-0 lg:block">
