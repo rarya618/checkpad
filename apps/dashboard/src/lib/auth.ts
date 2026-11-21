@@ -132,22 +132,29 @@ export async function signInWithCode(email: string, code: string): Promise<strin
 }
 
 /**
- * Finishes signing in from the emailed link (the current URL). "expired" covers links that
- * were used already, are over an hour old, or were opened on another device, where we don't
- * know which email they were sent to.
+ * Finishes signing in from the emailed link (the current URL). "other-device" is a link opened
+ * somewhere other than where it was asked for, which can't sign in there: the page asks for the
+ * same email's code instead. "expired" covers links that were used already or are over an hour old.
  */
-export function completeSignInLink(): Promise<'signed-in' | 'expired'> {
+export type LinkResult = 'signed-in' | 'other-device' | 'expired';
+
+export function completeSignInLink(): Promise<LinkResult> {
 	// Once per link: a second try (React runs effects twice in development) would find it used
 	const href = location.href;
 	if (completing?.href !== href) completing = { href, result: finishSignInLink(href) };
 	return completing.result;
 }
 
-let completing: { href: string; result: Promise<'signed-in' | 'expired'> } | undefined;
+let completing: { href: string; result: Promise<LinkResult> } | undefined;
 
-async function finishSignInLink(href: string): Promise<'signed-in' | 'expired'> {
+async function finishSignInLink(href: string): Promise<LinkResult> {
+	if (!isSignInWithEmailLink(auth, href)) return 'expired';
+	// Which address it went to, from the link (functions/src/organisers.ts), and the one this
+	// browser last asked for. The link's address is only compared, never signed in with, so a
+	// link from someone else's email can't sign this browser in to their account.
+	const sentTo = new URL(href).searchParams.get('email')?.toLowerCase();
 	const email = localStorage.getItem(LINK_EMAIL);
-	if (!email || !isSignInWithEmailLink(auth, href)) return 'expired';
+	if (!email || (sentTo && sentTo !== email)) return 'other-device';
 	try {
 		await signInWithEmailLink(auth, email, href);
 		localStorage.removeItem(LINK_EMAIL);

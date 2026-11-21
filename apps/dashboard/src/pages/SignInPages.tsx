@@ -16,6 +16,7 @@ import {
 	signInWithGoogle,
 	signOut,
 	useSession,
+	type LinkResult,
 } from '../lib/auth';
 import { looksLikeEmail } from '../lib/checkIn';
 import { WEB_URL } from '../lib/config';
@@ -238,7 +239,9 @@ function useNext() {
 	return next?.startsWith('/') && !next.startsWith('//') ? next : '/events';
 }
 
-const checkEmailPath = (email: string, next: string) => `/sign-in/check-email?${new URLSearchParams({ email, next })}`;
+/** `fromLink`: the email's link was opened on another device, so this asks for its code instead. */
+const checkEmailPath = (email: string, next: string, fromLink = false) =>
+	`/sign-in/check-email?${new URLSearchParams({ email, next, ...(fromLink && { from: 'link' }) })}`;
 
 export function SignInPage() {
 	const session = useSession();
@@ -296,9 +299,12 @@ export function SignInPage() {
 export function CheckEmailPage() {
 	const [params] = useSearchParams();
 	const email = params.get('email') ?? '';
+	// Here from the email's link, opened on another device: the email went a while ago, so it can
+	// be sent again straight away
+	const fromLink = params.get('from') === 'link';
 	const next = useNext();
 	const session = useSession();
-	const [wait, setWait] = useState(60);
+	const [wait, setWait] = useState(fromLink ? 0 : 60);
 	const [error, setError] = useState<string | null>(null);
 	// Said once at the moments that matter, not every second of the countdown
 	const [announce, setAnnounce] = useState('');
@@ -312,7 +318,7 @@ export function CheckEmailPage() {
 	const differentEmail = `/sign-in?${new URLSearchParams({ next })}`;
 	const toDifferentEmail = useTransitionLink(differentEmail);
 	useEffect(() => {
-		if (wait <= 0) return setAnnounce('You can send it again now.');
+		if (wait <= 0) return setAnnounce(fromLink ? '' : 'You can send it again now.');
 		const t = setTimeout(() => setWait((w) => w - 1), 1000);
 		return () => clearTimeout(t);
 	}, [wait]);
@@ -324,10 +330,17 @@ export function CheckEmailPage() {
 		<AuthLayout
 			title="Check your email"
 			description={
-				<>
-					If <strong className="font-semibold wrap-anywhere text-dark-blue">{email}</strong> is on the organiser list, we’ve sent it a 6-digit code.
-					Enter it here, or open the link in the email on this device.
-				</>
+				fromLink ? (
+					<>
+						That link only signs in on the device you asked from. Here, enter the 6-digit code from the same email to{' '}
+						<strong className="font-semibold wrap-anywhere text-dark-blue">{email}</strong>.
+					</>
+				) : (
+					<>
+						If <strong className="font-semibold wrap-anywhere text-dark-blue">{email}</strong> is on the organiser list, we’ve sent it a 6-digit code.
+						Enter it here, or open the link in the email on this device.
+					</>
+				)
 			}
 			foot={<DoorNotes />}
 		>
@@ -451,7 +464,9 @@ export function CheckEmailPage() {
 /** Where the emailed link lands: signs in, or explains why it can't. */
 export function SignInLinkPage() {
 	const next = useNext();
-	const [result, setResult] = useState<'signed-in' | 'expired'>();
+	const [params] = useSearchParams();
+	const sentTo = params.get('email') ?? '';
+	const [result, setResult] = useState<LinkResult>();
 	const go = useTransitionNavigate();
 
 	useEffect(() => {
@@ -460,6 +475,9 @@ export function SignInLinkPage() {
 
 	if (result === undefined) return <Loading />;
 	if (result === 'signed-in') return <Navigate to={next} replace />;
+	// The email's code works on any device, so ask for that rather than sending a new email.
+	// Links from before the address came with them can't, so they get a new email below
+	if (result === 'other-device' && looksLikeEmail(sentTo)) return <Navigate to={checkEmailPath(sentTo, next, true)} replace />;
 	return (
 		<AuthLayout
 			title="This link has expired"
