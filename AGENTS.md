@@ -60,7 +60,7 @@ Sign in as a seeded organiser (`russal@example.com` super admin, `priya@example.
 
 ### functions (Cloud Functions)
 
-The attendee check-in API and the dashboard's emails, served at `/api` on both sites through Hosting rewrites. Build with `npm run build -w @checkpad/functions`. The tests run against the Auth, Firestore and Functions emulators, which need Java 21 (`brew install openjdk@21`; it isn't the default `java`, so put it first on `PATH`):
+The attendee check-in API and the dashboard's emails, served at `/api` on both sites through Hosting rewrites. Event links (`/<slug>`) also go through a function, `eventPage`, which adds the event's name, date and description to the check-in page so shared links preview properly (the pages stay noindex). The dev server skips it. Build with `npm run build -w @checkpad/functions`. The tests run against the Auth, Firestore and Functions emulators, which need Java 21 (`brew install openjdk@21`; it isn't the default `java`, so put it first on `PATH`):
 
 ```
 PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH npx -y firebase-tools@latest emulators:exec --project demo-checkpad --only auth,firestore,functions "npm test -w @checkpad/functions"
