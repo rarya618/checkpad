@@ -79,7 +79,7 @@
       ],
       "headers": [
         {
-          "source": "{/,/!(api),/!(api)/**}",
+          "source": "{/,/{changelog,check-in,docs,help,privacy,team,terms},/*.*,/!(api)/**/*}",
           "headers": [
             {
               "key": "Cache-Control",

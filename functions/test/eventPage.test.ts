@@ -2,6 +2,7 @@
 // api.test.ts says. The handler is called directly with a stand-in check-in page, so nothing
 // fetches the real site.
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, test } from 'node:test';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
@@ -101,5 +102,22 @@ describe('event pages', () => {
 
 	test('refuse anything but GET and HEAD', async () => {
 		assert.equal((await open('/test-meetup', undefined, 'POST')).status, 405);
+	});
+});
+
+describe('Hosting headers', () => {
+	// The web site's pages get no-cache from firebase.json so a deploy shows straight away, but
+	// event links mustn't: that header would override the function's CDN caching. So the rule
+	// names the site's own top-level pages, which have to stay in step with RESERVED_SLUGS.
+	test('keep no-cache off event links but on every reserved page', async () => {
+		const { minimatch } = await import('minimatch');
+		const { RESERVED_SLUGS } = await import('../../packages/shared/src/events.ts');
+		const config = JSON.parse(readFileSync(new URL('../../firebase.json', import.meta.url), 'utf8'));
+		const web = config.hosting.find((site: { target: string }) => site.target === 'web');
+		const noCache = web.headers.find((rule: { headers: { value: string }[] }) => rule.headers.some((h) => h.value === 'no-cache')).source;
+		const matches = (path: string) => minimatch(path, noCache);
+		for (const slug of RESERVED_SLUGS) if (slug !== 'api') assert.ok(matches(`/${slug}`), `/${slug} should be no-cache`);
+		for (const path of ['/', '/docs/import', '/team/gdg-sydney', '/llms.txt', '/help.md']) assert.ok(matches(path), `${path} should be no-cache`);
+		for (const path of ['/android-for-the-agentic-era', '/api/events/x']) assert.ok(!matches(path), `${path} shouldn't be no-cache`);
 	});
 });
