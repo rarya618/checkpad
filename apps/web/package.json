@@ -1,7 +1,7 @@
 {
   "name": "@checkpad/web",
   "type": "module",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "private": true,
   "engines": {
     "node": ">=22.12.0"
