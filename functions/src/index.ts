@@ -7,6 +7,7 @@ import { onDocumentCreated, onDocumentDeleted, onDocumentWritten } from 'firebas
 import { onRequest } from 'firebase-functions/https';
 import { createHandler } from './api.js';
 import { mailer, resendApiKey } from './email.js';
+import { createEventPageHandler } from './eventPage.js';
 import { tracked } from './monitoring.js';
 import { sendInvite } from './organisers.js';
 import { cleanUpEvent, countChange } from './triggers.js';
@@ -22,6 +23,16 @@ const db = getFirestore();
 export const api = onRequest(
 	{ region: 'australia-southeast1', invoker: 'public', maxInstances: 10, memory: '256MiB', secrets: [resendApiKey] },
 	createHandler(db, getAuth(), () => mailer(db)),
+);
+
+/**
+ * Event links (/<slug>) with the event's name and date in the HTML, for link previews
+ * (eventPage.ts). Every attendee opening a link comes through here, but Hosting's CDN keeps
+ * each page for a few minutes, so it's capped like the API.
+ */
+export const eventPage = onRequest(
+	{ region: 'australia-southeast1', invoker: 'public', maxInstances: 10, memory: '256MiB' },
+	createEventPageHandler(db),
 );
 
 // Next to the database in Sydney. Every check-in runs this, so it's capped like the API.
