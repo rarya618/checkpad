@@ -17,6 +17,7 @@ const API_EMULATOR = 'http://127.0.0.1:5001/demo-checkpad/australia-southeast1/a
 /**
  * Serves event and team links from their shared pages in development, as the Hosting
  * rewrites in firebase.json do once deployed: /<slug> → /check-in, /team/<slug> → /team.
+ * Deployed, /<slug> goes through the eventPage function for its link-preview tags; here it doesn't.
  * The site's own pages (RESERVED_SLUGS) are left alone, as Hosting serves them first.
  * @returns {import('vite').Plugin}
  */

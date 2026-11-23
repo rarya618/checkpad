@@ -1,6 +1,7 @@
 ---
-// One page for every event's check-in link: Hosting rewrites /<slug> here (firebase.json),
-// and so does the dev server (astro.config.mjs). The page asks the API for the event.
+// One page for every event's check-in link. Hosting serves /<slug> through the eventPage
+// function (functions/src/eventPage.ts), which adds the event's preview tags to this page; the
+// dev server serves it as is (astro.config.mjs). The page asks the API for the event.
 import EventCheckIn from '../components/EventCheckIn';
 import PoweredBy from '../components/PoweredBy.astro';
 import Layout from '../layouts/Layout.astro';

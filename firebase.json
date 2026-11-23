@@ -71,7 +71,10 @@
         },
         {
           "source": "/*",
-          "destination": "/check-in/index.html"
+          "function": {
+            "functionId": "eventPage",
+            "region": "australia-southeast1"
+          }
         }
       ],
       "headers": [
