@@ -24,6 +24,7 @@ describe('parseCents', () => {
 describe('parseRegisteredAt', () => {
 	it('reads Luma’s ISO times', () => expect(parseRegisteredAt('2026-08-21T03:12:45.123Z')?.toISOString()).toBe('2026-08-21T03:12:45.123Z'));
 	it('reads Bevy’s times as UTC', () => expect(parseRegisteredAt('2026-08-21 03:12:45')?.toISOString()).toBe('2026-08-21T03:12:45.000Z'));
+	it('reads a leap day', () => expect(parseRegisteredAt('2028-02-29')?.toISOString()).toBe('2028-02-29T00:00:00.000Z'));
 	it('reads a date alone as midnight UTC', () => expect(parseRegisteredAt('2026-08-21')?.toISOString()).toBe('2026-08-21T00:00:00.000Z'));
 	it('reads 12-hour times in the zone it’s given', () => {
 		expect(parseRegisteredAt('2026-08-21 1:12 pm', 'AEST')?.toISOString()).toBe('2026-08-21T03:12:00.000Z');
@@ -36,6 +37,9 @@ describe('parseRegisteredAt', () => {
 		['2026-08-21 13:00 pm', ''],
 		['2026-08-21 0:30 am', ''],
 		['2026-08-21 10:00', 'XYZT'],
+		['2026-02-30', ''],
+		['2026-04-31 10:00', ''],
+		['2026-13-01', ''],
 		['', ''],
 	])('leaves out %j (zone %j) rather than guess', (text, zone) => expect(parseRegisteredAt(text, zone)).toBeUndefined());
 });

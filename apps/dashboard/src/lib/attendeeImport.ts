@@ -241,6 +241,8 @@ export function parseRegisteredAt(text: string, zone = ''): Date | undefined {
 	const m = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{1,2}):(\d{2})(?::(\d{2})(\.\d+)?)?\s*([ap]m)?)?\s*(Z|[A-Z]{3,4}|[+-]\d{2}:?\d{2})?$/i);
 	if (!m) return undefined;
 	const [, y, mo, d, hour = '0', mi = '00', s = '00', frac = '', meridiem, ownZone] = m;
+	// Date would roll 30 February over to 2 March
+	if (Number(d) < 1 || Number(d) > new Date(Date.UTC(Number(y), Number(mo), 0)).getUTCDate()) return undefined;
 	let h = Number(hour);
 	if (meridiem) {
 		if (h < 1 || h > 12) return undefined;
