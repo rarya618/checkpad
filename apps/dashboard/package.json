@@ -7,7 +7,8 @@
     "dev": "vite",
     "dev:emulators": "VITE_USE_EMULATORS=1 vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@checkpad/shared": "*",
@@ -26,6 +27,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^5.1.2"
   }
 }
