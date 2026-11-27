@@ -40,6 +40,9 @@ jobs:
           npx tsc --noEmit -p apps/web
           npm run build --workspaces --if-present
 
+      - name: Unit-test the dashboard
+        run: npm run test:dashboard
+
       - name: Cache the emulator downloads
         uses: actions/cache@v4
         with:
