@@ -1,7 +1,22 @@
 // Staff check-in actions shared by the Check in page and the Attendees table.
 import type { DashboardEvent } from './events';
+import { reportError } from './errorTracking';
 import { addWalkIn, removeAttendee, setCheckedIn, type RosterAttendee } from './roster';
 import { showToast } from './toast';
+
+/**
+ * Runs a save and, if it fails, says so in a toast and reports the error. Resolves to the save's
+ * result, or undefined when it failed. Being offline isn't reported: that's the venue's Wi-Fi.
+ */
+export async function safely<T>(action: () => Promise<T>, failureMessage: string): Promise<T | undefined> {
+	try {
+		return await action();
+	} catch (error) {
+		showToast(failureMessage);
+		if ((error as { code?: unknown } | null)?.code !== 'unavailable') reportError(error);
+		return undefined;
+	}
+}
 
 export function fullName(person: Pick<RosterAttendee, 'firstName' | 'lastName'>) {
 	return `${person.firstName} ${person.lastName}`.trim();
@@ -25,18 +40,20 @@ export function looksLikeEmail(text: string) {
 /** Checks someone in and offers Undo in the toast (Figma "Toast – checked in"). */
 export function checkIn(event: DashboardEvent, attendee: RosterAttendee) {
 	const name = fullName(attendee);
-	setCheckedIn(event, attendee.id, true).catch(() => showToast(`Couldn’t check ${name} in. Try again.`));
+	// Shown at once, as the offline cache saves it at once. If the server turns it down, the cache
+	// puts it back and the failure toast takes this one's place (one toast at a time).
+	safely(() => setCheckedIn(event, attendee.id, true), `Couldn’t check ${name} in. Try again.`);
 	showToast(`${name} checked in`, { label: 'Undo', onClick: () => undoCheckIn(event, attendee) });
 }
 
 export function undoCheckIn(event: DashboardEvent, attendee: RosterAttendee) {
-	setCheckedIn(event, attendee.id, false).catch(() => showToast(`Couldn’t undo ${fullName(attendee)}’s check-in. Try again.`));
+	safely(() => setCheckedIn(event, attendee.id, false), `Couldn’t undo ${fullName(attendee)}’s check-in. Try again.`);
 }
 
 /** Takes a walk-in off the list, and out of the counts. */
 export function removeWalkIn(event: DashboardEvent, attendee: RosterAttendee) {
 	const name = fullName(attendee);
-	removeAttendee(event, attendee.id).catch(() => showToast(`Couldn’t remove ${name}. Try again.`));
+	safely(() => removeAttendee(event, attendee.id), `Couldn’t remove ${name}. Try again.`);
 	showToast(`${name} removed`);
 }
 
@@ -46,13 +63,10 @@ export function removeWalkIn(event: DashboardEvent, attendee: RosterAttendee) {
  */
 export async function addWalkInAndCheckIn(event: DashboardEvent, person: Pick<RosterAttendee, 'firstName' | 'lastName' | 'email'>) {
 	const name = fullName(person);
-	try {
-		const ticket = await addWalkIn(event, person);
-		showToast(`${name} checked in`, {
-			label: 'Undo',
-			onClick: () => removeAttendee(event, ticket).catch(() => showToast(`Couldn’t remove ${name}. Try again.`)),
-		});
-	} catch {
-		showToast(`Couldn’t add ${name}. Check the connection and try again.`);
-	}
+	const ticket = await safely(() => addWalkIn(event, person), `Couldn’t add ${name}. Check the connection and try again.`);
+	if (ticket === undefined) return;
+	showToast(`${name} checked in`, {
+		label: 'Undo',
+		onClick: () => safely(() => removeAttendee(event, ticket), `Couldn’t remove ${name}. Try again.`),
+	});
 }
