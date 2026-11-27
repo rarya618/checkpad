@@ -4,6 +4,10 @@ Checkpad has one version for the whole product: the dashboard, the check-in site
 
 Each line starts with who the change is for: `[organisers]`, `[attendees]` or `[organisers, attendees]`. The release script drafts lines as `[?]`, and checkpad.app/changelog (apps/web/src/pages/changelog.astro) won't build until each one is tagged.
 
+## 1.6.2 (2026-11-28)
+
+- [organisers] Importing a list leaves out registration dates that don't exist, such as 30 February, instead of saving them as a day in the next month
+
 ## 1.6.1 (2026-11-24)
 
 - [attendees] Event links open faster when a room is checking in at once

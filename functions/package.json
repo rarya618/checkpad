@@ -1,6 +1,6 @@
 {
   "name": "@checkpad/functions",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
